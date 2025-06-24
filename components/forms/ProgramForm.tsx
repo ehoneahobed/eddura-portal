@@ -306,22 +306,24 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="localFee">Local Fee</Label>
+              <Label htmlFor="tuitionFees.local">Local Fee</Label>
               <Input
-                id="localFee"
+                id="tuitionFees.local"
                 type="number"
+                min={0}
                 {...register('tuitionFees.local', { valueAsNumber: true })}
-                placeholder="0"
+                placeholder="Local tuition fee"
                 className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="internationalFee">International Fee</Label>
+              <Label htmlFor="tuitionFees.international">International Fee</Label>
               <Input
-                id="internationalFee"
+                id="tuitionFees.international"
                 type="number"
+                min={0}
                 {...register('tuitionFees.international', { valueAsNumber: true })}
-                placeholder="0"
+                placeholder="International tuition fee"
                 className="h-11"
               />
             </div>
@@ -340,8 +342,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             <Input
               id="applicationFee"
               type="number"
+              min={0}
               {...register('applicationFee', { valueAsNumber: true })}
-              placeholder="0"
+              placeholder="Application fee"
               className="h-11"
             />
           </div>
@@ -476,9 +479,11 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               <Input
                 id="minGPA"
                 type="number"
-                step="0.1"
+                min={0}
+                max={4}
+                step={0.01}
                 {...register('admissionRequirements.minGPA', { valueAsNumber: true })}
-                placeholder="3.0"
+                placeholder="Minimum GPA"
                 className="h-11"
               />
             </div>
@@ -488,8 +493,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               <Input
                 id="lettersOfRecommendation"
                 type="number"
+                min={0}
                 {...register('admissionRequirements.lettersOfRecommendation', { valueAsNumber: true })}
-                placeholder="0"
+                placeholder="Letters of recommendation"
                 className="h-11"
               />
             </div>

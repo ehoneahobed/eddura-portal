@@ -142,6 +142,7 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
               <Input
                 id="globalRanking"
                 type="number"
+                min={0}
                 {...register('globalRanking', { valueAsNumber: true })}
                 placeholder="Enter ranking"
                 className="h-11"
@@ -153,6 +154,7 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
               <Input
                 id="yearFounded"
                 type="number"
+                min={0}
                 {...register('yearFounded', { valueAsNumber: true })}
                 placeholder="Enter year founded"
                 className="h-11"
@@ -164,6 +166,7 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
               <Input
                 id="internationalStudentCount"
                 type="number"
+                min={0}
                 {...register('internationalStudentCount', { valueAsNumber: true })}
                 placeholder="Number of international students"
                 className="h-11"
@@ -185,6 +188,7 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
               <Input
                 id="avgLivingCost"
                 type="number"
+                min={0}
                 {...register('avgLivingCost', { valueAsNumber: true })}
                 placeholder="Annual living cost"
                 className="h-11"

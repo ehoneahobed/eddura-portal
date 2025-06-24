@@ -160,6 +160,7 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               <Input
                 id="value"
                 type="number"
+                min={0}
                 {...register('value', { required: 'Value is required', valueAsNumber: true })}
                 placeholder="0"
                 className="h-11"
@@ -198,8 +199,9 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               <Input
                 id="numberOfAwardsPerYear"
                 type="number"
+                min={0}
                 {...register('numberOfAwardsPerYear', { valueAsNumber: true })}
-                placeholder="0"
+                placeholder="Awards per year"
                 className="h-11"
               />
             </div>
@@ -290,9 +292,11 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               <Input
                 id="minGPA"
                 type="number"
-                step="0.1"
+                min={0}
+                max={4}
+                step={0.01}
                 {...register('eligibility.minGPA', { valueAsNumber: true })}
-                placeholder="3.0"
+                placeholder="Minimum GPA"
                 className="h-11"
               />
             </div>
@@ -419,8 +423,9 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               <Input
                 id="recommendationLetters"
                 type="number"
+                min={0}
                 {...register('applicationRequirements.recommendationLetters', { valueAsNumber: true })}
-                placeholder="0"
+                placeholder="Recommendation letters"
                 className="h-11"
               />
             </div>
