@@ -153,7 +153,7 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>Program Level *</Label>
-            <Select value={programLevel} onValueChange={setProgramLevel}>
+            <Select value={programLevel} onValueChange={val => setProgramLevel(val as "Undergraduate" | "Postgraduate")}>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select program level" />
               </SelectTrigger>
