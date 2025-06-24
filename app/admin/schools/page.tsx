@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,20 +16,7 @@ export default function SchoolsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchSchools();
-  }, []);
-
-  useEffect(() => {
-    const filtered = schools.filter(school =>
-      school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      school.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      school.city.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredSchools(filtered);
-  }, [schools, searchTerm]);
-
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     try {
       const response = await fetch('/api/schools');
       const data = await response.json();
@@ -41,7 +28,20 @@ export default function SchoolsPage() {
         variant: 'destructive'
       });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchSchools();
+  }, [fetchSchools]);
+
+  useEffect(() => {
+    const filtered = schools.filter(school =>
+      school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      school.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      school.city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredSchools(filtered);
+  }, [schools, searchTerm]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this school?')) return;
@@ -98,81 +98,93 @@ export default function SchoolsPage() {
       {/* Schools Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSchools.map((school) => (
-          <Card key={school.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="text-lg mb-2">{school.name}</CardTitle>
-                  <div className="flex items-center text-sm text-gray-600 mb-2">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {school.city}, {school.country}
+          <Link
+            key={school.id}
+            href={`/admin/schools/${school.id}`}
+            className="block group focus:outline-none"
+            aria-label={`View details for ${school.name}`}
+          >
+            <Card
+              className="hover:shadow-lg transition-shadow cursor-pointer group-focus:ring-2 group-focus:ring-blue-500 relative"
+              tabIndex={0}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg mb-2 group-hover:underline group-focus:underline">{school.name}</CardTitle>
+                    <div className="flex items-center text-sm text-gray-600 mb-2">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      {school.city}, {school.country}
+                    </div>
+                    {school.globalRanking && (
+                      <div className="text-sm text-blue-600 font-medium">
+                        Ranking: #{school.globalRanking}
+                      </div>
+                    )}
                   </div>
-                  {school.globalRanking && (
-                    <div className="text-sm text-blue-600 font-medium">
-                      Ranking: #{school.globalRanking}
+                  <div className="flex space-x-1 z-10" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+                    <Link href={`/admin/schools/${school.id}/edit`} tabIndex={-1} legacyBehavior>
+                      <Button size="sm" variant="ghost" onClick={e => e.stopPropagation()}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={e => { e.stopPropagation(); handleDelete(school.id); }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-1">
+                    {school.types.slice(0, 2).map((type, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {type}
+                      </Badge>
+                    ))}
+                    {school.types.length > 2 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{school.types.length - 2} more
+                      </Badge>
+                    )}
+                  </div>
+
+                  {school.yearFounded && (
+                    <div className="text-sm text-gray-600">
+                      Founded: {school.yearFounded}
+                    </div>
+                  )}
+
+                  {school.internationalStudentCount && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Users className="h-4 w-4 mr-1" />
+                      {school.internationalStudentCount.toLocaleString()} international students
+                    </div>
+                  )}
+
+                  {school.websiteUrl && (
+                    <div className="flex items-center text-sm text-blue-600">
+                      <Globe className="h-4 w-4 mr-1" />
+                      <a
+                        href={school.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                        onClick={e => e.stopPropagation()}
+                        tabIndex={-1}
+                      >
+                        Visit Website
+                      </a>
                     </div>
                   )}
                 </div>
-                <div className="flex space-x-1">
-                  <Link href={`/admin/schools/${school.id}/edit`}>
-                    <Button size="sm" variant="ghost">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(school.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-1">
-                  {school.types.slice(0, 2).map((type, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {type}
-                    </Badge>
-                  ))}
-                  {school.types.length > 2 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{school.types.length - 2} more
-                    </Badge>
-                  )}
-                </div>
-
-                {school.yearFounded && (
-                  <div className="text-sm text-gray-600">
-                    Founded: {school.yearFounded}
-                  </div>
-                )}
-
-                {school.internationalStudentCount && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Users className="h-4 w-4 mr-1" />
-                    {school.internationalStudentCount.toLocaleString()} international students
-                  </div>
-                )}
-
-                {school.websiteUrl && (
-                  <div className="flex items-center text-sm text-blue-600">
-                    <Globe className="h-4 w-4 mr-1" />
-                    <a
-                      href={school.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline"
-                    >
-                      Visit Website
-                    </a>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
