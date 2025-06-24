@@ -42,6 +42,8 @@ export interface Program {
   languages: string[];
   applicationDeadlines: string[];
   intakeSessions: string[];
+  /** Program level: Undergraduate or Postgraduate */
+  programLevel: 'Undergraduate' | 'Postgraduate';
   admissionRequirements: {
     minGPA?: number;
     requiredDegrees?: string[];
@@ -50,6 +52,14 @@ export interface Program {
     requiresPersonalStatement?: boolean;
     requiresCV?: boolean;
     detailedRequirementNote?: string;
+    /** SAT/ACT score for undergraduate */
+    satScore?: string;
+    /** GRE/GMAT score for postgraduate */
+    greScore?: string;
+    /** Work experience in years for postgraduate */
+    workExperience?: number;
+    /** Whether thesis/research is required for postgraduate */
+    thesisRequired?: string;
   };
   tuitionFees: {
     local: number;

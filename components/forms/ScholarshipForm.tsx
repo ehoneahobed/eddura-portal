@@ -11,6 +11,7 @@ import { Scholarship } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Plus } from 'lucide-react';
+import { getNames as getCountryNames } from 'country-list';
 
 interface ScholarshipFormProps {
   scholarship?: Scholarship;
@@ -18,6 +19,10 @@ interface ScholarshipFormProps {
   onCancel: () => void;
   isLoading?: boolean;
 }
+
+const popularCurrencies = [
+  'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'ZAR', 'NGN', 'GHS', 'SGD', 'BRL', 'SEK', 'NOK', 'DKK', 'RUB', 'KRW', 'MXN', 'TRY', 'PLN', 'NZD', 'HKD', 'MYR', 'IDR', 'THB', 'SAR', 'AED', 'EGP', 'KES', 'TZS', 'UGX', 'MAD', 'XOF', 'XAF', 'UAH', 'CZK', 'HUF', 'ILS', 'PKR', 'BDT', 'PHP', 'COP', 'CLP', 'ARS', 'VND', 'LKR', 'QAR', 'OMR', 'BHD', 'KWD', 'JOD', 'DZD', 'TND', 'LBP', 'SDG', 'ETB', 'SOS', 'MZN', 'AOA', 'ZMW', 'BWP', 'MUR', 'SCR', 'MGA', 'MWK', 'BIF', 'RWF', 'CDF', 'GMD', 'SLL', 'GNF', 'XPF', 'FJD', 'PGK', 'TOP', 'WST', 'VUV', 'KZT', 'UZS', 'TJS', 'KGS', 'MNT', 'LAK', 'KHR', 'MMK', 'BND', 'BTN', 'NPR', 'AFN', 'IRR', 'IQD', 'YER', 'SYP', 'LYD', 'TMT', 'AZN', 'GEL', 'AMD', 'MDL', 'BYN', 'ISK', 'HRK', 'MKD', 'ALL', 'RON', 'BGN', 'SRD', 'GYD', 'TTD', 'JMD', 'BBD', 'BSD', 'BZD', 'KYD', 'XCD', 'TTD', 'HTG', 'DOP', 'HNL', 'NIO', 'PAB', 'PYG', 'UYU', 'BOB', 'PEN', 'GTQ', 'CRC', 'SVC', 'BMD', 'ANG', 'AWG', 'CUC', 'CUP', 'DZD', 'MAD', 'TND', 'SDG', 'SSP', 'DJF', 'SZL', 'LSL', 'NAD', 'ZWL', 'MRO', 'MRU', 'GHS', 'NGN', 'XOF', 'XAF', 'CFA', 'CVE', 'STD', 'STN', 'SHP', 'FKP', 'GIP', 'JEP', 'IMP', 'GGP', 'SPL', 'TVD', 'ZWD', 'ZWL', 'ZMW', 'ZAR', 'ZMK', 'YUN', 'YUD', 'YUM', 'YUG', 'YER', 'XTS', 'XXX', 'XUA', 'XSU', 'XRE', 'XPT', 'XPD', 'XPF', 'XOF', 'XDR', 'XCD', 'XBC', 'XBB', 'XBA', 'XAG', 'XAF', 'WST', 'VUV', 'VND', 'VEF', 'UZS', 'UYU', 'USD', 'UAH', 'TZS', 'TWD', 'TTD', 'TRY', 'TOP', 'TND', 'TMT', 'THB', 'SZL', 'SYP', 'SVC', 'STD', 'SRD', 'SOS', 'SLL', 'SGD', 'SEK', 'SDG', 'SCR', 'SAR', 'RWF', 'RUB', 'RON', 'QAR', 'PYG', 'PLN', 'PHP', 'PGK', 'PEN', 'PKR', 'OMR', 'NZD', 'NPR', 'NOK', 'NGN', 'NAD', 'MZN', 'MWK', 'MUR', 'MRO', 'MOP', 'MMK', 'MKD', 'MGA', 'MDL', 'MAD', 'LYD', 'LSL', 'LRD', 'LBP', 'LAK', 'KZT', 'KWD', 'KRW', 'KMF', 'KES', 'JOD', 'JPY', 'JMD', 'ISK', 'IQD', 'INR', 'ILS', 'IDR', 'HUF', 'HTG', 'HRK', 'HNL', 'HKD', 'GYD', 'GTQ', 'GNF', 'GMD', 'GEL', 'FJD', 'ETB', 'ERN', 'EGP', 'DZD', 'DOP', 'DKK', 'DJF', 'CZK', 'CVE', 'CUP', 'CRC', 'COP', 'CNY', 'CLP', 'CHF', 'CDF', 'BZD', 'BWP', 'BTN', 'BSD', 'BRL', 'BND', 'BMD', 'BIF', 'BGN', 'BDT', 'BBD', 'AZN', 'AWG', 'AUD', 'ARS', 'AOA', 'ANG', 'ALL', 'AFN'
+];
 
 export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoading }: ScholarshipFormProps) {
   const [selectedFrequency, setSelectedFrequency] = useState(scholarship?.frequency || '');
@@ -96,6 +101,9 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
     });
   };
 
+  // Get country options from country-list
+  const countryOptions = getCountryNames();
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Basic Information */}
@@ -124,7 +132,7 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               {...register('scholarshipDetails', { required: 'Scholarship details are required' })}
               placeholder="Detailed description of the scholarship program"
               rows={4}
-              className="resize-none"
+              className="resize-y min-h-[80px]"
             />
             {errors.scholarshipDetails && (
               <p className="text-sm text-red-600">{errors.scholarshipDetails.message}</p>
@@ -172,12 +180,19 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
 
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
-              <Input
-                id="currency"
-                {...register('currency')}
-                placeholder="USD"
-                className="h-11"
-              />
+              <Select
+                value={watch('currency')}
+                onValueChange={val => setValue('currency', val)}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {popularCurrencies.map((cur) => (
+                    <SelectItem key={cur} value={cur}>{cur}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -336,28 +351,24 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
           {/* Nationalities */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Eligible Nationalities</Label>
-            <div className="flex space-x-2">
-              <Input
-                value={newNationality}
-                onChange={(e) => setNewNationality(e.target.value)}
-                placeholder="Add nationality"
-                className="h-10"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addToArray('eligibility.nationalities', newNationality, setNewNationality, watchedNationalities);
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                onClick={() => addToArray('eligibility.nationalities', newNationality, setNewNationality, watchedNationalities)}
-                size="sm"
-                className="h-10 px-4"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+            {/* Nationality dropdown using country-list */}
+            <Select
+              value=""
+              onValueChange={val => {
+                if (val && !watchedNationalities.includes(val)) {
+                  addToArray('eligibility.nationalities', val, setNewNationality, watchedNationalities);
+                }
+              }}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Add nationality" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryOptions.map((country: string) => (
+                  <SelectItem key={country} value={country}>{country}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="flex flex-wrap gap-2">
               {watchedNationalities.map((item, index) => (
                 <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
@@ -403,6 +414,40 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
                   <X
                     className="h-3 w-3 cursor-pointer hover:text-red-500"
                     onClick={() => removeFromArray('eligibility.degreeLevels', item, watchedDegreeLevels)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Country Residency */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Eligible Country Residency</Label>
+            {/* Country dropdown using country-list */}
+            <Select
+              value=""
+              onValueChange={val => {
+                if (val && !watchedCountryResidency.includes(val)) {
+                  addToArray('eligibility.countryResidency', val, setNewCountryResidency, watchedCountryResidency);
+                }
+              }}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Add country" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryOptions.map((country: string) => (
+                  <SelectItem key={country} value={country}>{country}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex flex-wrap gap-2">
+              {watchedCountryResidency.map((item, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {item}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('eligibility.countryResidency', item, watchedCountryResidency)}
                   />
                 </Badge>
               ))}

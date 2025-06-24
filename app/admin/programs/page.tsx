@@ -55,7 +55,10 @@ export default function ProgramsPage() {
     }
   };
 
-  const getSchoolName = (schoolId: string) => {
+  const getSchoolName = (schoolId: any) => {
+    if (typeof schoolId === 'object' && schoolId !== null && 'name' in schoolId) {
+      return schoolId.name || 'Unknown School';
+    }
     const school = schools.find(s => s.id === schoolId);
     return school?.name || 'Unknown School';
   };

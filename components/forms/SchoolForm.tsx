@@ -11,6 +11,10 @@ import { School } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Plus } from 'lucide-react';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import { Controller } from 'react-hook-form';
+import { getNames as getCountryNames } from 'country-list';
 
 interface SchoolFormProps {
   school?: School;
@@ -22,7 +26,7 @@ interface SchoolFormProps {
 export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: SchoolFormProps) {
   const [selectedCampusType, setSelectedCampusType] = useState(school?.campusType || '');
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<School>({
+  const { register, handleSubmit, formState: { errors }, watch, setValue, control } = useForm<School>({
     defaultValues: school || {
       name: '',
       country: '',
@@ -55,6 +59,9 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
   const watchedHousing = watch('housingOptions') || [];
   const watchedServices = watch('supportServices') || [];
   const watchedAccreditations = watch('accreditationBodies') || [];
+
+  // Get country options from country-list
+  const countryOptions = getCountryNames();
 
   const addToArray = (field: keyof School, value: string, setter: (value: string) => void, currentArray: string[]) => {
     if (value.trim() && !currentArray.includes(value.trim())) {
@@ -98,12 +105,21 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
 
             <div className="space-y-2">
               <Label htmlFor="country">Country *</Label>
-              <Input
-                id="country"
-                {...register('country', { required: 'Country is required' })}
-                placeholder="Enter country"
-                className="h-11"
-              />
+              {/* Country dropdown using country-list and react-hook-form */}
+              <Select
+                value={watch('country')}
+                onValueChange={val => setValue('country', val)}
+                name="country"
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countryOptions.map((country: string) => (
+                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.country && (
                 <p className="text-sm text-red-600">{errors.country.message}</p>
               )}
@@ -230,12 +246,28 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
 
             <div className="space-y-2">
               <Label htmlFor="contactPhone">Contact Phone</Label>
-              <Input
-                id="contactPhone"
-                {...register('contactPhone')}
-                placeholder="Enter contact phone"
-                className="h-11"
+              {/* International phone input using react-phone-number-input and react-hook-form Controller */}
+              <Controller
+                name="contactPhone"
+                control={control}
+                rules={{
+                  required: false, // Set to true if phone is required
+                  validate: value => !value || value.length >= 8 || 'Enter a valid phone number',
+                }}
+                render={({ field }) => (
+                  <PhoneInput
+                    {...field}
+                    id="contactPhone"
+                    international
+                    defaultCountry="US"
+                    className="PhoneInput w-full h-11 border rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    placeholder="Enter contact phone"
+                  />
+                )}
               />
+              {errors.contactPhone && (
+                <p className="text-sm text-red-600">{errors.contactPhone.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">

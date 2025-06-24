@@ -19,11 +19,21 @@ interface ProgramFormProps {
   isLoading?: boolean;
 }
 
+const popularCurrencies = [
+  'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'ZAR', 'NGN', 'GHS', 'SGD', 'BRL', 'SEK', 'NOK', 'DKK', 'RUB', 'KRW', 'MXN', 'TRY', 'PLN', 'NZD', 'HKD', 'MYR', 'IDR', 'THB', 'SAR', 'AED', 'EGP', 'KES', 'TZS', 'UGX', 'MAD', 'XOF', 'XAF', 'UAH', 'CZK', 'HUF', 'ILS', 'PKR', 'BDT', 'PHP', 'COP', 'CLP', 'ARS', 'VND', 'LKR', 'QAR', 'OMR', 'BHD', 'KWD', 'JOD', 'DZD', 'TND', 'LBP', 'SDG', 'ETB', 'SOS', 'MZN', 'AOA', 'ZMW', 'BWP', 'MUR', 'SCR', 'MGA', 'MWK', 'BIF', 'RWF', 'CDF', 'GMD', 'SLL', 'GNF', 'XPF', 'FJD', 'PGK', 'TOP', 'WST', 'VUV', 'KZT', 'UZS', 'TJS', 'KGS', 'MNT', 'LAK', 'KHR', 'MMK', 'BND', 'BTN', 'NPR', 'AFN', 'IRR', 'IQD', 'YER', 'SYP', 'LYD', 'TMT', 'AZN', 'GEL', 'AMD', 'MDL', 'BYN', 'ISK', 'HRK', 'MKD', 'ALL', 'RON', 'BGN', 'SRD', 'GYD', 'TTD', 'JMD', 'BBD', 'BSD', 'BZD', 'KYD', 'XCD', 'TTD', 'HTG', 'DOP', 'HNL', 'NIO', 'PAB', 'PYG', 'UYU', 'BOB', 'PEN', 'GTQ', 'CRC', 'SVC', 'BMD', 'ANG', 'AWG', 'CUC', 'CUP', 'DZD', 'MAD', 'TND', 'SDG', 'SSP', 'DJF', 'SZL', 'LSL', 'NAD', 'ZWL', 'MRO', 'MRU', 'GHS', 'NGN', 'XOF', 'XAF', 'CFA', 'CVE', 'STD', 'STN', 'SHP', 'FKP', 'GIP', 'JEP', 'IMP', 'GGP', 'SPL', 'TVD', 'ZWD', 'ZWL', 'ZMW', 'ZAR', 'ZMK', 'YUN', 'YUD', 'YUM', 'YUG', 'YER', 'XTS', 'XXX', 'XUA', 'XSU', 'XRE', 'XPT', 'XPD', 'XPF', 'XOF', 'XDR', 'XCD', 'XBC', 'XBB', 'XBA', 'XAG', 'XAF', 'WST', 'VUV', 'VND', 'VEF', 'UZS', 'UYU', 'USD', 'UAH', 'TZS', 'TWD', 'TTD', 'TRY', 'TOP', 'TND', 'TMT', 'THB', 'SZL', 'SYP', 'SVC', 'STD', 'SRD', 'SOS', 'SLL', 'SGD', 'SEK', 'SDG', 'SCR', 'SAR', 'RWF', 'RUB', 'RON', 'QAR', 'PYG', 'PLN', 'PHP', 'PGK', 'PEN', 'PKR', 'OMR', 'NZD', 'NPR', 'NOK', 'NGN', 'NAD', 'MZN', 'MWK', 'MUR', 'MRO', 'MOP', 'MMK', 'MKD', 'MGA', 'MDL', 'MAD', 'LYD', 'LSL', 'LRD', 'LBP', 'LAK', 'KZT', 'KWD', 'KRW', 'KMF', 'KES', 'JOD', 'JPY', 'JMD', 'ISK', 'IQD', 'INR', 'ILS', 'IDR', 'HUF', 'HTG', 'HRK', 'HNL', 'HKD', 'GYD', 'GTQ', 'GNF', 'GMD', 'GEL', 'FJD', 'ETB', 'ERN', 'EGP', 'DZD', 'DOP', 'DKK', 'DJF', 'CZK', 'CVE', 'CUP', 'CRC', 'COP', 'CNY', 'CLP', 'CHF', 'CDF', 'BZD', 'BWP', 'BTN', 'BSD', 'BRL', 'BND', 'BMD', 'BIF', 'BGN', 'BDT', 'BBD', 'AZN', 'AWG', 'AUD', 'ARS', 'AOA', 'ANG', 'ALL', 'AFN'
+];
+
 export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: ProgramFormProps) {
   const [schools, setSchools] = useState<School[]>([]);
-  const [selectedSchoolId, setSelectedSchoolId] = useState(program?.schoolId || '');
+  const initialSchoolId = program?.schoolId
+    ? typeof program.schoolId === 'object' && program.schoolId !== null && ('_id' in program.schoolId || 'id' in program.schoolId)
+      ? ((program.schoolId as any)?._id || (program.schoolId as any)?.id)
+      : program.schoolId
+    : '';
+  const [selectedSchoolId, setSelectedSchoolId] = useState(initialSchoolId);
   const [selectedDegreeType, setSelectedDegreeType] = useState(program?.degreeType || '');
   const [selectedMode, setSelectedMode] = useState(program?.mode || '');
+  const [programLevel, setProgramLevel] = useState(program?.programLevel || 'Undergraduate');
 
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<Program>({
     defaultValues: program || {
@@ -42,12 +52,22 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
         currency: 'USD'
       },
       admissionRequirements: {
+        minGPA: undefined,
         requiredDegrees: [],
-        requiredTests: []
+        requiredTests: [],
+        lettersOfRecommendation: undefined,
+        requiresPersonalStatement: undefined,
+        requiresCV: undefined,
+        detailedRequirementNote: '',
+        satScore: '',
+        greScore: '',
+        workExperience: undefined,
+        thesisRequired: ''
       },
       availableScholarships: [],
       teachingMethodology: [],
-      careerOutcomes: []
+      careerOutcomes: [],
+      programLevel: 'Undergraduate',
     }
   });
 
@@ -116,6 +136,7 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
   const handleFormSubmit = (data: Program) => {
     onSubmit({
       ...data,
+      programLevel,
       schoolId: selectedSchoolId,
       degreeType: selectedDegreeType as Program['degreeType'],
       mode: selectedMode as Program['mode']
@@ -130,6 +151,19 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
           <CardTitle className="text-lg font-semibold text-gray-900">Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label>Program Level *</Label>
+            <Select value={programLevel} onValueChange={setProgramLevel}>
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Select program level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Undergraduate">Undergraduate</SelectItem>
+                <SelectItem value="Postgraduate">Postgraduate</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>School *</Label>
@@ -268,9 +302,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             <Textarea
               id="programSummary"
               {...register('programSummary')}
-              placeholder="Brief summary of the program"
-              rows={3}
-              className="resize-none"
+              placeholder="Enter a detailed summary of the program"
+              rows={4}
+              className="resize-y min-h-[80px]"
             />
           </div>
 
@@ -329,12 +363,19 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             </div>
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
-              <Input
-                id="currency"
-                {...register('tuitionFees.currency')}
-                placeholder="USD"
-                className="h-11"
-              />
+              <Select
+                value={watch('tuitionFees.currency')}
+                onValueChange={val => setValue('tuitionFees.currency', val)}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {popularCurrencies.map((cur) => (
+                    <SelectItem key={cur} value={cur}>{cur}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="space-y-2">
@@ -588,6 +629,31 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               ))}
             </div>
           </div>
+
+          {programLevel === 'Undergraduate' && (
+            <div className="space-y-2">
+              <Label htmlFor="satScore">SAT/ACT Score</Label>
+              <Input id="satScore" {...register('admissionRequirements.satScore')} placeholder="Enter SAT/ACT score" className="h-11" />
+            </div>
+          )}
+          {programLevel === 'Postgraduate' && (
+            <div className="space-y-2">
+              <Label htmlFor="greScore">GRE/GMAT Score</Label>
+              <Input id="greScore" {...register('admissionRequirements.greScore')} placeholder="Enter GRE/GMAT score" className="h-11" />
+              <Label htmlFor="workExperience">Work Experience (years)</Label>
+              <Input id="workExperience" type="number" min={0} {...register('admissionRequirements.workExperience', { valueAsNumber: true })} placeholder="Enter years of work experience" className="h-11" />
+              <Label htmlFor="thesisRequired">Thesis/Research Required?</Label>
+              <Select value={watch('admissionRequirements.thesisRequired') || ''} onValueChange={val => setValue('admissionRequirements.thesisRequired', val)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Yes">Yes</SelectItem>
+                  <SelectItem value="No">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
 
