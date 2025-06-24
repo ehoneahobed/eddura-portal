@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Program, School } from '@/types';
-import ProgramForm from '@/components/forms/ProgramForm';
 import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe } from 'lucide-react';
 
 export default function ProgramsPage() {
@@ -16,9 +15,6 @@ export default function ProgramsPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,69 +60,6 @@ export default function ProgramsPage() {
     return school?.name || 'Unknown School';
   };
 
-  const handleCreate = async (data: Partial<Program>) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/programs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Program created successfully'
-        });
-        fetchPrograms();
-        setIsModalOpen(false);
-        setEditingProgram(null);
-      } else {
-        throw new Error('Failed to create program');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create program',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdate = async (data: Partial<Program>) => {
-    if (!editingProgram) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/programs/${editingProgram.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Program updated successfully'
-        });
-        fetchPrograms();
-        setIsModalOpen(false);
-        setEditingProgram(null);
-      } else {
-        throw new Error('Failed to update program');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update program',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this program?')) return;
 
@@ -153,21 +86,6 @@ export default function ProgramsPage() {
     }
   };
 
-  const openCreateModal = () => {
-    setEditingProgram(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (program: Program) => {
-    setEditingProgram(program);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingProgram(null);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -175,10 +93,12 @@ export default function ProgramsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Programs</h1>
           <p className="text-gray-600">Manage academic programs</p>
         </div>
-        <Button onClick={openCreateModal} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Program
-        </Button>
+        <Link href="/admin/programs/create">
+          <Button className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Program
+          </Button>
+        </Link>
       </div>
 
       {/* Search */}
@@ -209,13 +129,11 @@ export default function ProgramsPage() {
                   </div>
                 </div>
                 <div className="flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => openEditModal(program)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <Link href={`/admin/programs/${program.id}/edit`}>
+                    <Button size="sm" variant="ghost">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -279,23 +197,6 @@ export default function ProgramsPage() {
           </div>
         </div>
       )}
-
-      {/* Modal */}
-      <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProgram ? 'Edit Program' : 'Create New Program'}
-            </DialogTitle>
-          </DialogHeader>
-          <ProgramForm
-            program={editingProgram || undefined}
-            onSubmit={editingProgram ? handleUpdate : handleCreate}
-            onCancel={closeModal}
-            isLoading={isLoading}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

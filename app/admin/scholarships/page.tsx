@@ -1,23 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Scholarship } from '@/types';
-import ScholarshipForm from '@/components/forms/ScholarshipForm';
 import { Search, Plus, Edit, Trash2, Calendar, DollarSign, ExternalLink } from 'lucide-react';
 
 export default function ScholarshipsPage() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [filteredScholarships, setFilteredScholarships] = useState<Scholarship[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingScholarship, setEditingScholarship] = useState<Scholarship | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,69 +43,6 @@ export default function ScholarshipsPage() {
     }
   };
 
-  const handleCreate = async (data: Partial<Scholarship>) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/scholarships', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Scholarship created successfully'
-        });
-        fetchScholarships();
-        setIsModalOpen(false);
-        setEditingScholarship(null);
-      } else {
-        throw new Error('Failed to create scholarship');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create scholarship',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdate = async (data: Partial<Scholarship>) => {
-    if (!editingScholarship) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/scholarships/${editingScholarship.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Scholarship updated successfully'
-        });
-        fetchScholarships();
-        setIsModalOpen(false);
-        setEditingScholarship(null);
-      } else {
-        throw new Error('Failed to update scholarship');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update scholarship',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this scholarship?')) return;
 
@@ -136,21 +69,6 @@ export default function ScholarshipsPage() {
     }
   };
 
-  const openCreateModal = () => {
-    setEditingScholarship(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (scholarship: Scholarship) => {
-    setEditingScholarship(scholarship);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingScholarship(null);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -166,10 +84,12 @@ export default function ScholarshipsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Scholarships</h1>
           <p className="text-gray-600">Manage scholarship opportunities</p>
         </div>
-        <Button onClick={openCreateModal} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Scholarship
-        </Button>
+        <Link href="/admin/scholarships/create">
+          <Button className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Scholarship
+          </Button>
+        </Link>
       </div>
 
       {/* Search */}
@@ -204,13 +124,11 @@ export default function ScholarshipsPage() {
                   </div>
                 </div>
                 <div className="flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => openEditModal(scholarship)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <Link href={`/admin/scholarships/${scholarship.id}/edit`}>
+                    <Button size="sm" variant="ghost">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -297,23 +215,6 @@ export default function ScholarshipsPage() {
           </div>
         </div>
       )}
-
-      {/* Modal */}
-      <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingScholarship ? 'Edit Scholarship' : 'Create New Scholarship'}
-            </DialogTitle>
-          </DialogHeader>
-          <ScholarshipForm
-            scholarship={editingScholarship || undefined}
-            onSubmit={editingScholarship ? handleUpdate : handleCreate}
-            onCancel={closeModal}
-            isLoading={isLoading}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

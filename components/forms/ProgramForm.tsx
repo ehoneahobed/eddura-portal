@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Program, School } from '@/types';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { X, Plus } from 'lucide-react';
 
 interface ProgramFormProps {
   program?: Program;
@@ -122,16 +123,18 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
   };
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+      {/* Basic Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
               <Label>School *</Label>
               <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select a school" />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,26 +146,27 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
                 </SelectContent>
               </Select>
               {!selectedSchoolId && (
-                <p className="text-sm text-red-600 mt-1">School is required</p>
+                <p className="text-sm text-red-600">School is required</p>
               )}
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="name">Program Name *</Label>
               <Input
                 id="name"
                 {...register('name', { required: 'Program name is required' })}
                 placeholder="Enter program name"
+                className="h-11"
               />
               {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                <p className="text-sm text-red-600">{errors.name.message}</p>
               )}
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label>Degree Type *</Label>
               <Select value={selectedDegreeType} onValueChange={setSelectedDegreeType}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select degree type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,31 +181,33 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="fieldOfStudy">Field of Study *</Label>
               <Input
                 id="fieldOfStudy"
                 {...register('fieldOfStudy', { required: 'Field of study is required' })}
                 placeholder="e.g., Computer Science"
+                className="h-11"
               />
               {errors.fieldOfStudy && (
-                <p className="text-sm text-red-600 mt-1">{errors.fieldOfStudy.message}</p>
+                <p className="text-sm text-red-600">{errors.fieldOfStudy.message}</p>
               )}
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="subfield">Subfield</Label>
               <Input
                 id="subfield"
                 {...register('subfield')}
                 placeholder="e.g., Artificial Intelligence"
+                className="h-11"
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label>Mode *</Label>
               <Select value={selectedMode} onValueChange={setSelectedMode}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select mode" />
                 </SelectTrigger>
                 <SelectContent>
@@ -213,223 +219,259 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="duration">Duration *</Label>
               <Input
                 id="duration"
                 {...register('duration', { required: 'Duration is required' })}
                 placeholder="e.g., 2 years"
+                className="h-11"
               />
               {errors.duration && (
-                <p className="text-sm text-red-600 mt-1">{errors.duration.message}</p>
+                <p className="text-sm text-red-600">{errors.duration.message}</p>
               )}
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="employabilityRank">Employability Rank</Label>
               <Input
                 id="employabilityRank"
                 type="number"
                 {...register('employabilityRank', { valueAsNumber: true })}
                 placeholder="e.g., 95"
+                className="h-11"
               />
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Program Overview */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Program Details</h3>
-          
-          <div>
+      {/* Program Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Program Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
             <Label htmlFor="programOverview">Program Overview</Label>
             <Textarea
               id="programOverview"
               {...register('programOverview')}
               placeholder="Comprehensive overview of the program"
               rows={4}
+              className="resize-none"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="programSummary">Program Summary</Label>
             <Textarea
               id="programSummary"
               {...register('programSummary')}
               placeholder="Brief summary of the program"
               rows={3}
+              className="resize-none"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="learningOutcomes">Learning Outcomes</Label>
             <Textarea
               id="learningOutcomes"
               {...register('learningOutcomes')}
               placeholder="What students will learn and achieve"
               rows={3}
+              className="resize-none"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="alumniDetails">Alumni Details</Label>
             <Textarea
               id="alumniDetails"
               {...register('alumniDetails')}
               placeholder="Information about program alumni and their achievements"
               rows={3}
+              className="resize-none"
             />
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Tuition Fees */}
-        <div>
-          <Label>Tuition Fees</Label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            <div>
+      {/* Tuition & Fees */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Tuition & Fees</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
               <Label htmlFor="localFee">Local Fee</Label>
               <Input
                 id="localFee"
                 type="number"
                 {...register('tuitionFees.local', { valueAsNumber: true })}
                 placeholder="0"
+                className="h-11"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="internationalFee">International Fee</Label>
               <Input
                 id="internationalFee"
                 type="number"
                 {...register('tuitionFees.international', { valueAsNumber: true })}
                 placeholder="0"
+                className="h-11"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
               <Input
                 id="currency"
                 {...register('tuitionFees.currency')}
                 placeholder="USD"
+                className="h-11"
               />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="space-y-2">
             <Label htmlFor="applicationFee">Application Fee</Label>
             <Input
               id="applicationFee"
               type="number"
               {...register('applicationFee', { valueAsNumber: true })}
               placeholder="0"
+              className="h-11"
             />
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Languages */}
-        <div>
-          <Label>Languages</Label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              value={newLanguage}
-              onChange={(e) => setNewLanguage(e.target.value)}
-              placeholder="Add language"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addToArray('languages', newLanguage, setNewLanguage, watchedLanguages);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              onClick={() => addToArray('languages', newLanguage, setNewLanguage, watchedLanguages)}
-            >
-              Add
-            </Button>
+      {/* Dynamic Arrays */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Program Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          {/* Languages */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Languages</Label>
+            <div className="flex space-x-2">
+              <Input
+                value={newLanguage}
+                onChange={(e) => setNewLanguage(e.target.value)}
+                placeholder="Add language"
+                className="h-10"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addToArray('languages', newLanguage, setNewLanguage, watchedLanguages);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => addToArray('languages', newLanguage, setNewLanguage, watchedLanguages)}
+                size="sm"
+                className="h-10 px-4"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {watchedLanguages.map((language, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {language}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('languages', language, watchedLanguages)}
+                  />
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watchedLanguages.map((language, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {language}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFromArray('languages', language, watchedLanguages)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
 
-        {/* Application Deadlines */}
-        <div>
-          <Label>Application Deadlines</Label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              type="date"
-              value={newDeadline}
-              onChange={(e) => setNewDeadline(e.target.value)}
-              placeholder="Add deadline"
-            />
-            <Button
-              type="button"
-              onClick={() => addToArray('applicationDeadlines', newDeadline, setNewDeadline, watchedDeadlines)}
-            >
-              Add
-            </Button>
+          {/* Application Deadlines */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Application Deadlines</Label>
+            <div className="flex space-x-2">
+              <Input
+                type="date"
+                value={newDeadline}
+                onChange={(e) => setNewDeadline(e.target.value)}
+                className="h-10"
+              />
+              <Button
+                type="button"
+                onClick={() => addToArray('applicationDeadlines', newDeadline, setNewDeadline, watchedDeadlines)}
+                size="sm"
+                className="h-10 px-4"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {watchedDeadlines.map((deadline, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {deadline}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('applicationDeadlines', deadline, watchedDeadlines)}
+                  />
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watchedDeadlines.map((deadline, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {deadline}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFromArray('applicationDeadlines', deadline, watchedDeadlines)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
 
-        {/* Intake Sessions */}
-        <div>
-          <Label>Intake Sessions</Label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              value={newIntake}
-              onChange={(e) => setNewIntake(e.target.value)}
-              placeholder="Add intake session"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addToArray('intakeSessions', newIntake, setNewIntake, watchedIntakes);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              onClick={() => addToArray('intakeSessions', newIntake, setNewIntake, watchedIntakes)}
-            >
-              Add
-            </Button>
+          {/* Intake Sessions */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Intake Sessions</Label>
+            <div className="flex space-x-2">
+              <Input
+                value={newIntake}
+                onChange={(e) => setNewIntake(e.target.value)}
+                placeholder="Add intake session"
+                className="h-10"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addToArray('intakeSessions', newIntake, setNewIntake, watchedIntakes);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => addToArray('intakeSessions', newIntake, setNewIntake, watchedIntakes)}
+                size="sm"
+                className="h-10 px-4"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {watchedIntakes.map((intake, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {intake}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('intakeSessions', intake, watchedIntakes)}
+                  />
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watchedIntakes.map((intake, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {intake}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFromArray('intakeSessions', intake, watchedIntakes)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Admission Requirements */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Admission Requirements</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+      {/* Admission Requirements */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Admission Requirements</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
               <Label htmlFor="minGPA">Minimum GPA</Label>
               <Input
                 id="minGPA"
@@ -437,38 +479,42 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
                 step="0.1"
                 {...register('admissionRequirements.minGPA', { valueAsNumber: true })}
                 placeholder="3.0"
+                className="h-11"
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="lettersOfRecommendation">Letters of Recommendation</Label>
               <Input
                 id="lettersOfRecommendation"
                 type="number"
                 {...register('admissionRequirements.lettersOfRecommendation', { valueAsNumber: true })}
                 placeholder="0"
+                className="h-11"
               />
             </div>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="detailedRequirementNote">Detailed Requirement Note</Label>
             <Textarea
               id="detailedRequirementNote"
               {...register('admissionRequirements.detailedRequirementNote')}
               placeholder="Additional details about admission requirements"
               rows={3}
+              className="resize-none"
             />
           </div>
 
           {/* Required Degrees */}
-          <div>
-            <Label>Required Degrees</Label>
-            <div className="flex space-x-2 mt-1">
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Required Degrees</Label>
+            <div className="flex space-x-2">
               <Input
                 value={newRequiredDegree}
                 onChange={(e) => setNewRequiredDegree(e.target.value)}
                 placeholder="Add required degree"
+                className="h-10"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -479,16 +525,18 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               <Button
                 type="button"
                 onClick={() => addToArray('admissionRequirements.requiredDegrees', newRequiredDegree, setNewRequiredDegree, watchedRequiredDegrees)}
+                size="sm"
+                className="h-10 px-4"
               >
-                Add
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2">
               {watchedRequiredDegrees.map((degree, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
                   {degree}
                   <X
-                    className="h-3 w-3 cursor-pointer"
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
                     onClick={() => removeFromArray('admissionRequirements.requiredDegrees', degree, watchedRequiredDegrees)}
                   />
                 </Badge>
@@ -497,180 +545,199 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
           </div>
 
           {/* Required Tests */}
-          <div>
-            <Label>Required Tests</Label>
-            <div className="flex space-x-2 mt-1">
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Required Tests</Label>
+            <div className="flex space-x-2">
               <Input
                 value={newRequiredTest.name}
                 onChange={(e) => setNewRequiredTest({ ...newRequiredTest, name: e.target.value })}
                 placeholder="Test name (e.g., GRE)"
+                className="h-10"
               />
               <Input
                 type="number"
                 value={newRequiredTest.minScore}
                 onChange={(e) => setNewRequiredTest({ ...newRequiredTest, minScore: parseInt(e.target.value) || 0 })}
                 placeholder="Min score"
+                className="h-10 w-32"
               />
               <Button
                 type="button"
                 onClick={() => addToArray('admissionRequirements.requiredTests', newRequiredTest, setNewRequiredTest, watchedRequiredTests)}
+                size="sm"
+                className="h-10 px-4"
               >
-                Add
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2">
               {watchedRequiredTests.map((test, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
                   {test.name} ({test.minScore})
                   <X
-                    className="h-3 w-3 cursor-pointer"
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
                     onClick={() => removeFromArray('admissionRequirements.requiredTests', test, watchedRequiredTests)}
                   />
                 </Badge>
               ))}
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Teaching Methodology */}
-        <div>
-          <Label>Teaching Methodology</Label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              value={newMethodology}
-              onChange={(e) => setNewMethodology(e.target.value)}
-              placeholder="Add teaching method"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addToArray('teachingMethodology', newMethodology, setNewMethodology, watchedMethodology);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              onClick={() => addToArray('teachingMethodology', newMethodology, setNewMethodology, watchedMethodology)}
-            >
-              Add
-            </Button>
+      {/* Additional Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Additional Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          {/* Teaching Methodology */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Teaching Methodology</Label>
+            <div className="flex space-x-2">
+              <Input
+                value={newMethodology}
+                onChange={(e) => setNewMethodology(e.target.value)}
+                placeholder="Add teaching method"
+                className="h-10"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addToArray('teachingMethodology', newMethodology, setNewMethodology, watchedMethodology);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => addToArray('teachingMethodology', newMethodology, setNewMethodology, watchedMethodology)}
+                size="sm"
+                className="h-10 px-4"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {watchedMethodology.map((method, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {method}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('teachingMethodology', method, watchedMethodology)}
+                  />
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watchedMethodology.map((method, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {method}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFromArray('teachingMethodology', method, watchedMethodology)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
 
-        {/* Career Outcomes */}
-        <div>
-          <Label>Career Outcomes</Label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              value={newCareerOutcome}
-              onChange={(e) => setNewCareerOutcome(e.target.value)}
-              placeholder="Add career outcome"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addToArray('careerOutcomes', newCareerOutcome, setNewCareerOutcome, watchedCareerOutcomes);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              onClick={() => addToArray('careerOutcomes', newCareerOutcome, setNewCareerOutcome, watchedCareerOutcomes)}
-            >
-              Add
-            </Button>
+          {/* Career Outcomes */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Career Outcomes</Label>
+            <div className="flex space-x-2">
+              <Input
+                value={newCareerOutcome}
+                onChange={(e) => setNewCareerOutcome(e.target.value)}
+                placeholder="Add career outcome"
+                className="h-10"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addToArray('careerOutcomes', newCareerOutcome, setNewCareerOutcome, watchedCareerOutcomes);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => addToArray('careerOutcomes', newCareerOutcome, setNewCareerOutcome, watchedCareerOutcomes)}
+                size="sm"
+                className="h-10 px-4"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {watchedCareerOutcomes.map((outcome, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {outcome}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('careerOutcomes', outcome, watchedCareerOutcomes)}
+                  />
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watchedCareerOutcomes.map((outcome, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {outcome}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFromArray('careerOutcomes', outcome, watchedCareerOutcomes)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
 
-        {/* Available Scholarships */}
-        <div>
-          <Label>Available Scholarships</Label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              value={newScholarship}
-              onChange={(e) => setNewScholarship(e.target.value)}
-              placeholder="Add scholarship ID"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addToArray('availableScholarships', newScholarship, setNewScholarship, watchedScholarships);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              onClick={() => addToArray('availableScholarships', newScholarship, setNewScholarship, watchedScholarships)}
-            >
-              Add
-            </Button>
+          {/* Available Scholarships */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Available Scholarships</Label>
+            <div className="flex space-x-2">
+              <Input
+                value={newScholarship}
+                onChange={(e) => setNewScholarship(e.target.value)}
+                placeholder="Add scholarship ID"
+                className="h-10"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addToArray('availableScholarships', newScholarship, setNewScholarship, watchedScholarships);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => addToArray('availableScholarships', newScholarship, setNewScholarship, watchedScholarships)}
+                size="sm"
+                className="h-10 px-4"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {watchedScholarships.map((scholarship, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                  {scholarship}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
+                    onClick={() => removeFromArray('availableScholarships', scholarship, watchedScholarships)}
+                  />
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watchedScholarships.map((scholarship, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {scholarship}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFromArray('availableScholarships', scholarship, watchedScholarships)}
-                />
-              </Badge>
-            ))}
-          </div>
-        </div>
 
-        {/* Additional Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
               <Label htmlFor="brochureLink">Brochure Link</Label>
               <Input
                 id="brochureLink"
                 {...register('brochureLink')}
                 placeholder="https://example.com/brochure"
+                className="h-11"
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="vectorId">Vector ID</Label>
               <Input
                 id="vectorId"
                 {...register('vectorId')}
                 placeholder="Unique vector identifier"
+                className="h-11"
               />
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : program ? 'Update Program' : 'Create Program'}
-          </Button>
-        </div>
-      </form>
-    </div>
+      {/* Form Actions */}
+      <div className="flex justify-end space-x-4 pt-6 border-t">
+        <Button type="button" variant="outline" onClick={onCancel} className="px-8">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading} className="px-8">
+          {isLoading ? 'Saving...' : program ? 'Update Program' : 'Create Program'}
+        </Button>
+      </div>
+    </form>
   );
 }

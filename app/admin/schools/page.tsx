@@ -1,23 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { School } from '@/types';
-import SchoolForm from '@/components/forms/SchoolForm';
 import { Search, Plus, Edit, Trash2, Globe, MapPin, Users } from 'lucide-react';
 
 export default function SchoolsPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [filteredSchools, setFilteredSchools] = useState<School[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSchool, setEditingSchool] = useState<School | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,69 +43,6 @@ export default function SchoolsPage() {
     }
   };
 
-  const handleCreate = async (data: Partial<School>) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/schools', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'School created successfully'
-        });
-        fetchSchools();
-        setIsModalOpen(false);
-        setEditingSchool(null);
-      } else {
-        throw new Error('Failed to create school');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create school',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdate = async (data: Partial<School>) => {
-    if (!editingSchool) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/schools/${editingSchool.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'School updated successfully'
-        });
-        fetchSchools();
-        setIsModalOpen(false);
-        setEditingSchool(null);
-      } else {
-        throw new Error('Failed to update school');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update school',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this school?')) return;
 
@@ -136,21 +69,6 @@ export default function SchoolsPage() {
     }
   };
 
-  const openCreateModal = () => {
-    setEditingSchool(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (school: School) => {
-    setEditingSchool(school);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingSchool(null);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -158,10 +76,12 @@ export default function SchoolsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Schools</h1>
           <p className="text-gray-600">Manage educational institutions</p>
         </div>
-        <Button onClick={openCreateModal} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add School
-        </Button>
+        <Link href="/admin/schools/create">
+          <Button className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add School
+          </Button>
+        </Link>
       </div>
 
       {/* Search */}
@@ -194,13 +114,11 @@ export default function SchoolsPage() {
                   )}
                 </div>
                 <div className="flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => openEditModal(school)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <Link href={`/admin/schools/${school.id}/edit`}>
+                    <Button size="sm" variant="ghost">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -266,23 +184,6 @@ export default function SchoolsPage() {
           </div>
         </div>
       )}
-
-      {/* Modal */}
-      <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingSchool ? 'Edit School' : 'Create New School'}
-            </DialogTitle>
-          </DialogHeader>
-          <SchoolForm
-            school={editingSchool || undefined}
-            onSubmit={editingSchool ? handleUpdate : handleCreate}
-            onCancel={closeModal}
-            isLoading={isLoading}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

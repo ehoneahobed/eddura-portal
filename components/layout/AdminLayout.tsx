@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar */}
         <div className="bg-white shadow-sm border-b px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -120,7 +120,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto py-8 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
           {children}
         </main>
       </div>
