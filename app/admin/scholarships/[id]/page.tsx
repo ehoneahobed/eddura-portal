@@ -123,6 +123,78 @@ const ScholarshipViewPage = async ({ params }: { params: { id: string } }) => {
           <div><dt className="font-semibold text-gray-700">Updated At</dt><dd className="text-gray-900">{scholarship.updatedAt ? new Date(scholarship.updatedAt).toLocaleString() : <span className="text-gray-400">Not provided</span>}</dd></div>
         </dl>
       </section>
+
+      {/* Award Details */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <BarChart2 className="w-5 h-5 text-blue-700" />
+          <h2 className="text-lg md:text-xl font-semibold text-blue-900">Award Details</h2>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div><dt className="font-semibold text-gray-700">Award Usage</dt><dd className="text-gray-900">{show(scholarship.awardUsage)}</dd></div>
+        </dl>
+      </section>
+
+      {/* Contact Information */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <Info className="w-5 h-5 text-blue-700" />
+          <h2 className="text-lg md:text-xl font-semibold text-blue-900">Contact Information</h2>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div><dt className="font-semibold text-gray-700">Email</dt><dd className="text-gray-900">{show(scholarship.contactInfo?.email)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Phone</dt><dd className="text-gray-900">{show(scholarship.contactInfo?.phone)}</dd></div>
+        </dl>
+      </section>
+
+      {/* Application Process */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck className="w-5 h-5 text-blue-700" />
+          <h2 className="text-lg md:text-xl font-semibold text-blue-900">Application Process</h2>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div><dt className="font-semibold text-gray-700">Application Method</dt><dd className="text-gray-900">{show(scholarship.applicationMethod)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Selection Process</dt><dd className="text-gray-900">{show(scholarship.selectionProcess)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Notification Method</dt><dd className="text-gray-900">{show(scholarship.notificationMethod)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Deferral Policy</dt><dd className="text-gray-900">{show(scholarship.deferralPolicy)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Disbursement Details</dt><dd className="text-gray-900">{show(scholarship.disbursementDetails)}</dd></div>
+        </dl>
+      </section>
+
+      {/* Info & Links */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <Info className="w-5 h-5 text-blue-700" />
+          <h2 className="text-lg md:text-xl font-semibold text-blue-900">Info & Links</h2>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div><dt className="font-semibold text-gray-700">Official Info Page</dt><dd>{scholarship.infoPage ? <a href={scholarship.infoPage} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">View Info</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+          <div><dt className="font-semibold text-gray-700">FAQ/Help Link</dt><dd>{scholarship.faqLink ? <a href={scholarship.faqLink} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">View FAQ</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+        </dl>
+      </section>
+
+      {/* Eligible Regions */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="w-5 h-5 text-blue-700" />
+          <h2 className="text-lg md:text-xl font-semibold text-blue-900">Eligible Regions</h2>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div><dt className="font-semibold text-gray-700">Regions</dt><dd className="text-gray-900">{show(scholarship.eligibleRegions)}</dd></div>
+        </dl>
+      </section>
+
+      {/* Past Recipients / Testimonials */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <BarChart2 className="w-5 h-5 text-blue-700" />
+          <h2 className="text-lg md:text-xl font-semibold text-blue-900">Past Recipients / Testimonials</h2>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div><dt className="font-semibold text-gray-700">Past Recipients</dt><dd className="text-gray-900">{show(scholarship.pastRecipients)}</dd></div>
+        </dl>
+      </section>
     </div>
   );
 };

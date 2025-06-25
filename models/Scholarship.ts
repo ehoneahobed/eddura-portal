@@ -39,6 +39,20 @@ export interface IScholarship extends Document {
   tags?: string[];
   vectorId?: string;
   notes?: string;
+  awardUsage?: string[];
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+  };
+  applicationMethod?: string;
+  selectionProcess?: string;
+  notificationMethod?: string;
+  eligibleRegions?: string[];
+  deferralPolicy?: string;
+  infoPage?: string;
+  faqLink?: string;
+  disbursementDetails?: string;
+  pastRecipients?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -92,6 +106,20 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
     tags: [{ type: String, trim: true }],
     vectorId: { type: String, trim: true },
     notes: { type: String, trim: true },
+    awardUsage: [{ type: String, trim: true }],
+    contactInfo: {
+      email: { type: String, trim: true },
+      phone: { type: String, trim: true },
+    },
+    applicationMethod: { type: String, trim: true },
+    selectionProcess: { type: String, trim: true },
+    notificationMethod: { type: String, trim: true },
+    eligibleRegions: [{ type: String, trim: true }],
+    deferralPolicy: { type: String, trim: true },
+    infoPage: { type: String, trim: true },
+    faqLink: { type: String, trim: true },
+    disbursementDetails: { type: String, trim: true },
+    pastRecipients: { type: String, trim: true },
   },
   { 
     timestamps: true,

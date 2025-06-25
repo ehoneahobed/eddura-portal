@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Scholarship } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Info } from 'lucide-react';
 import { getNames as getCountryNames } from 'country-list';
+import CustomMultiSelect from '@/components/CustomMultiSelect';
 
 interface ScholarshipFormProps {
   scholarship?: Scholarship;
@@ -23,6 +24,9 @@ interface ScholarshipFormProps {
 const popularCurrencies = [
   'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'ZAR', 'NGN', 'GHS', 'SGD', 'BRL', 'SEK', 'NOK', 'DKK', 'RUB', 'KRW', 'MXN', 'TRY', 'PLN', 'NZD', 'HKD', 'MYR', 'IDR', 'THB', 'SAR', 'AED', 'EGP', 'KES', 'TZS', 'UGX', 'MAD', 'XOF', 'XAF', 'UAH', 'CZK', 'HUF', 'ILS', 'PKR', 'BDT', 'PHP', 'COP', 'CLP', 'ARS', 'VND', 'LKR', 'QAR', 'OMR', 'BHD', 'KWD', 'JOD', 'DZD', 'TND', 'LBP', 'SDG', 'ETB', 'SOS', 'MZN', 'AOA', 'ZMW', 'BWP', 'MUR', 'SCR', 'MGA', 'MWK', 'BIF', 'RWF', 'CDF', 'GMD', 'SLL', 'GNF', 'XPF', 'FJD', 'PGK', 'TOP', 'WST', 'VUV', 'KZT', 'UZS', 'TJS', 'KGS', 'MNT', 'LAK', 'KHR', 'MMK', 'BND', 'BTN', 'NPR', 'AFN', 'IRR', 'IQD', 'YER', 'SYP', 'LYD', 'TMT', 'AZN', 'GEL', 'AMD', 'MDL', 'BYN', 'ISK', 'HRK', 'MKD', 'ALL', 'RON', 'BGN', 'SRD', 'GYD', 'TTD', 'JMD', 'BBD', 'BSD', 'BZD', 'KYD', 'XCD', 'TTD', 'HTG', 'DOP', 'HNL', 'NIO', 'PAB', 'PYG', 'UYU', 'BOB', 'PEN', 'GTQ', 'CRC', 'SVC', 'BMD', 'ANG', 'AWG', 'CUC', 'CUP', 'DZD', 'MAD', 'TND', 'SDG', 'SSP', 'DJF', 'SZL', 'LSL', 'NAD', 'ZWL', 'MRO', 'MRU', 'GHS', 'NGN', 'XOF', 'XAF', 'CFA', 'CVE', 'STD', 'STN', 'SHP', 'FKP', 'GIP', 'JEP', 'IMP', 'GGP', 'SPL', 'TVD', 'ZWD', 'ZWL', 'ZMW', 'ZAR', 'ZMK', 'YUN', 'YUD', 'YUM', 'YUG', 'YER', 'XTS', 'XXX', 'XUA', 'XSU', 'XRE', 'XPT', 'XPD', 'XPF', 'XOF', 'XDR', 'XCD', 'XBC', 'XBB', 'XBA', 'XAG', 'XAF', 'WST', 'VUV', 'VND', 'VEF', 'UZS', 'UYU', 'USD', 'UAH', 'TZS', 'TWD', 'TTD', 'TRY', 'TOP', 'TND', 'TMT', 'THB', 'SZL', 'SYP', 'SVC', 'STD', 'SRD', 'SOS', 'SLL', 'SGD', 'SEK', 'SDG', 'SCR', 'SAR', 'RWF', 'RUB', 'RON', 'QAR', 'PYG', 'PLN', 'PHP', 'PGK', 'PEN', 'PKR', 'OMR', 'NZD', 'NPR', 'NOK', 'NGN', 'NAD', 'MZN', 'MWK', 'MUR', 'MRO', 'MOP', 'MMK', 'MKD', 'MGA', 'MDL', 'MAD', 'LYD', 'LSL', 'LRD', 'LBP', 'LAK', 'KZT', 'KWD', 'KRW', 'KMF', 'KES', 'JOD', 'JPY', 'JMD', 'ISK', 'IQD', 'INR', 'ILS', 'IDR', 'HUF', 'HTG', 'HRK', 'HNL', 'HKD', 'GYD', 'GTQ', 'GNF', 'GMD', 'GEL', 'FJD', 'ETB', 'ERN', 'EGP', 'DZD', 'DOP', 'DKK', 'DJF', 'CZK', 'CVE', 'CUP', 'CRC', 'COP', 'CNY', 'CLP', 'CHF', 'CDF', 'BZD', 'BWP', 'BTN', 'BSD', 'BRL', 'BND', 'BMD', 'BIF', 'BGN', 'BDT', 'BBD', 'AZN', 'AWG', 'AUD', 'ARS', 'AOA', 'ANG', 'ALL', 'AFN'
 ];
+
+const awardUsageOptions = ['Tuition', 'Living Expenses', 'Travel', 'Books', 'Accommodation', 'Other'];
+const regionOptions = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Middle East', 'Other'];
 
 export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoading }: ScholarshipFormProps) {
   const [selectedFrequency, setSelectedFrequency] = useState(scholarship?.frequency || '');
@@ -188,9 +192,11 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {popularCurrencies.map((cur) => (
-                    <SelectItem key={cur} value={cur}>{cur}</SelectItem>
-                  ))}
+                  {popularCurrencies
+                    .filter(cur => cur !== watch('currency'))
+                    .map((cur) => (
+                      <SelectItem key={cur} value={cur}>{cur}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -654,6 +660,70 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
           </div>
         </CardContent>
       </Card>
+
+      {/* Award Details Section */}
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Award Details</h3>
+        <Label>Award Usage <span title="What the scholarship funds can be used for."><Info className="inline w-4 h-4 text-gray-400" /></span></Label>
+        <CustomMultiSelect
+          options={awardUsageOptions}
+          value={watch('awardUsage') || []}
+          onChange={(val: string[]) => setValue('awardUsage', val)}
+          placeholder="Select or type usage..."
+          allowCustom
+        />
+      </section>
+
+      {/* Contact Section */}
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Contact Information</h3>
+        <Label>Email</Label>
+        <Input type="email" {...register('contactInfo.email')} placeholder="Contact email" />
+        <Label>Phone</Label>
+        <Input type="tel" {...register('contactInfo.phone')} placeholder="Contact phone" />
+      </section>
+
+      {/* Application Process Section */}
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Application Process</h3>
+        <Label>Application Method <span title="How to apply (e.g., online, mail, through school)"><Info className="inline w-4 h-4 text-gray-400" /></span></Label>
+        <Input {...register('applicationMethod')} placeholder="e.g., Online, Mail, Through School" />
+        <Label>Selection Process <span title="How recipients are selected (e.g., interview, test, document review)"><Info className="inline w-4 h-4 text-gray-400" /></span></Label>
+        <Input {...register('selectionProcess')} placeholder="e.g., Interview, Document Review" />
+        <Label>Notification Method <span title="How applicants are notified (e.g., email, portal, mail)"><Info className="inline w-4 h-4 text-gray-400" /></span></Label>
+        <Input {...register('notificationMethod')} placeholder="e.g., Email, Portal, Mail" />
+        <Label>Deferral Policy <span title="Can the award be deferred if admission is postponed?"><Info className="inline w-4 h-4 text-gray-400" /></span></Label>
+        <Input {...register('deferralPolicy')} placeholder="e.g., Can be deferred for 1 year" />
+        <Label>Disbursement Details <span title="How and when the award is paid out."><Info className="inline w-4 h-4 text-gray-400" /></span></Label>
+        <Textarea {...register('disbursementDetails')} placeholder="Describe how the award is paid out..." rows={2} style={{ resize: 'vertical' }} />
+      </section>
+
+      {/* Info & Links Section */}
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Info & Links</h3>
+        <Label>Official Info Page</Label>
+        <Input type="url" {...register('infoPage')} placeholder="https://..." />
+        <Label>FAQ/Help Link</Label>
+        <Input type="url" {...register('faqLink')} placeholder="https://..." />
+      </section>
+
+      {/* Eligibility Regions Section */}
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Eligible Regions</h3>
+        <CustomMultiSelect
+          options={regionOptions}
+          value={watch('eligibleRegions') || []}
+          onChange={(val: string[]) => setValue('eligibleRegions', val)}
+          placeholder="Select or type region..."
+          allowCustom
+        />
+      </section>
+
+      {/* Past Recipients Section */}
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Past Recipients / Testimonials</h3>
+        <Textarea {...register('pastRecipients')} placeholder="Share stories, stats, or testimonials about previous recipients..." rows={2} style={{ resize: 'vertical' }} />
+      </section>
 
       {/* Form Actions */}
       <div className="flex justify-end space-x-4 pt-6 border-t">

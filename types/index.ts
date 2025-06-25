@@ -151,6 +151,20 @@ export interface Scholarship {
   tags?: string[];
   vectorId?: string;
   notes?: string;
+  awardUsage?: string[];
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+  };
+  applicationMethod?: string;
+  selectionProcess?: string;
+  notificationMethod?: string;
+  eligibleRegions?: string[];
+  deferralPolicy?: string;
+  infoPage?: string;
+  faqLink?: string;
+  disbursementDetails?: string;
+  pastRecipients?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
