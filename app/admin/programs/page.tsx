@@ -9,12 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Program, School } from '@/types';
 import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [schools, setSchools] = useState<School[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('all');
+  const [selectedLevel, setSelectedLevel] = useState('all');
+  const [selectedDegreeType, setSelectedDegreeType] = useState('all');
   const { toast } = useToast();
 
   const fetchPrograms = useCallback(async () => {
@@ -37,19 +41,34 @@ export default function ProgramsPage() {
   }, [fetchPrograms]);
 
   useEffect(() => {
-    const filtered = programs.filter(program =>
-      program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      program.fieldOfStudy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      program.degreeType.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = programs.filter(program => {
+      const matchesSearch =
+        program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        program.fieldOfStudy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        program.degreeType.toLowerCase().includes(searchTerm.toLowerCase());
+      console.log('program.schoolId:', program.schoolId, 'selectedSchool:', selectedSchool);
+      const matchesSchool =
+        selectedSchool === 'all' ||
+        (typeof program.schoolId === 'object' && program.schoolId !== null
+          ? ((program.schoolId as { id?: string; _id?: string }).id || (program.schoolId as { id?: string; _id?: string })._id) === selectedSchool
+          : program.schoolId === selectedSchool);
+      const matchesLevel = selectedLevel === 'all' || program.programLevel === selectedLevel;
+      const matchesDegreeType = selectedDegreeType === 'all' || program.degreeType === selectedDegreeType;
+      return matchesSearch && matchesSchool && matchesLevel && matchesDegreeType;
+    });
     setFilteredPrograms(filtered);
-  }, [programs, searchTerm]);
+  }, [programs, searchTerm, selectedSchool, selectedLevel, selectedDegreeType]);
 
   const fetchSchools = async () => {
     try {
       const response = await fetch('/api/schools');
       const data = await response.json();
-      setSchools(data);
+      // Ensure each school has an 'id' property (from 'id' or '_id')
+      const schoolsWithId: School[] = data.map((school: any) => ({
+        ...school,
+        id: school.id || school._id,
+      }));
+      setSchools(schoolsWithId);
     } catch (error) {
       console.error('Error fetching schools:', error);
     }
@@ -102,6 +121,46 @@ export default function ProgramsPage() {
             Add Program
           </Button>
         </Link>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-2">
+        <Select value={selectedSchool} onValueChange={setSelectedSchool}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by School" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Schools</SelectItem>
+            {(schools as any[]).map((school, idx) => (
+              <SelectItem key={school.id} value={school.id}>{school.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by Level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Levels</SelectItem>
+            <SelectItem value="Undergraduate">Undergraduate</SelectItem>
+            <SelectItem value="Postgraduate">Postgraduate</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={selectedDegreeType} onValueChange={setSelectedDegreeType}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by Degree Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Degree Types</SelectItem>
+            <SelectItem value="Diploma">Diploma</SelectItem>
+            <SelectItem value="Bachelor">Bachelor</SelectItem>
+            <SelectItem value="Master">Master</SelectItem>
+            <SelectItem value="MBA">MBA</SelectItem>
+            <SelectItem value="PhD">PhD</SelectItem>
+            <SelectItem value="Certificate">Certificate</SelectItem>
+            <SelectItem value="Short Course">Short Course</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Search */}

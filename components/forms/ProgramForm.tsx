@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Program, School } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Info } from 'lucide-react';
 
 interface ProgramFormProps {
   program?: Program;
@@ -22,6 +22,15 @@ interface ProgramFormProps {
 const popularCurrencies = [
   'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'ZAR', 'NGN', 'GHS', 'SGD', 'BRL', 'SEK', 'NOK', 'DKK', 'RUB', 'KRW', 'MXN', 'TRY', 'PLN', 'NZD', 'HKD', 'MYR', 'IDR', 'THB', 'SAR', 'AED', 'EGP', 'KES', 'TZS', 'UGX', 'MAD', 'XOF', 'XAF', 'UAH', 'CZK', 'HUF', 'ILS', 'PKR', 'BDT', 'PHP', 'COP', 'CLP', 'ARS', 'VND', 'LKR', 'QAR', 'OMR', 'BHD', 'KWD', 'JOD', 'DZD', 'TND', 'LBP', 'SDG', 'ETB', 'SOS', 'MZN', 'AOA', 'ZMW', 'BWP', 'MUR', 'SCR', 'MGA', 'MWK', 'BIF', 'RWF', 'CDF', 'GMD', 'SLL', 'GNF', 'XPF', 'FJD', 'PGK', 'TOP', 'WST', 'VUV', 'KZT', 'UZS', 'TJS', 'KGS', 'MNT', 'LAK', 'KHR', 'MMK', 'BND', 'BTN', 'NPR', 'AFN', 'IRR', 'IQD', 'YER', 'SYP', 'LYD', 'TMT', 'AZN', 'GEL', 'AMD', 'MDL', 'BYN', 'ISK', 'HRK', 'MKD', 'ALL', 'RON', 'BGN', 'SRD', 'GYD', 'TTD', 'JMD', 'BBD', 'BSD', 'BZD', 'KYD', 'XCD', 'TTD', 'HTG', 'DOP', 'HNL', 'NIO', 'PAB', 'PYG', 'UYU', 'BOB', 'PEN', 'GTQ', 'CRC', 'SVC', 'BMD', 'ANG', 'AWG', 'CUC', 'CUP', 'DZD', 'MAD', 'TND', 'SDG', 'SSP', 'DJF', 'SZL', 'LSL', 'NAD', 'ZWL', 'MRO', 'MRU', 'GHS', 'NGN', 'XOF', 'XAF', 'CFA', 'CVE', 'STD', 'STN', 'SHP', 'FKP', 'GIP', 'JEP', 'IMP', 'GGP', 'SPL', 'TVD', 'ZWD', 'ZWL', 'ZMW', 'ZAR', 'ZMK', 'YUN', 'YUD', 'YUM', 'YUG', 'YER', 'XTS', 'XXX', 'XUA', 'XSU', 'XRE', 'XPT', 'XPD', 'XPF', 'XOF', 'XDR', 'XCD', 'XBC', 'XBB', 'XBA', 'XAG', 'XAF', 'WST', 'VUV', 'VND', 'VEF', 'UZS', 'UYU', 'USD', 'UAH', 'TZS', 'TWD', 'TTD', 'TRY', 'TOP', 'TND', 'TMT', 'THB', 'SZL', 'SYP', 'SVC', 'STD', 'SRD', 'SOS', 'SLL', 'SGD', 'SEK', 'SDG', 'SCR', 'SAR', 'RWF', 'RUB', 'RON', 'QAR', 'PYG', 'PLN', 'PHP', 'PGK', 'PEN', 'PKR', 'OMR', 'NZD', 'NPR', 'NOK', 'NGN', 'NAD', 'MZN', 'MWK', 'MUR', 'MRO', 'MOP', 'MMK', 'MKD', 'MGA', 'MDL', 'MAD', 'LYD', 'LSL', 'LRD', 'LBP', 'LAK', 'KZT', 'KWD', 'KRW', 'KMF', 'KES', 'JOD', 'JPY', 'JMD', 'ISK', 'IQD', 'INR', 'ILS', 'IDR', 'HUF', 'HTG', 'HRK', 'HNL', 'HKD', 'GYD', 'GTQ', 'GNF', 'GMD', 'GEL', 'FJD', 'ETB', 'ERN', 'EGP', 'DZD', 'DOP', 'DKK', 'DJF', 'CZK', 'CVE', 'CUP', 'CRC', 'COP', 'CNY', 'CLP', 'CHF', 'CDF', 'BZD', 'BWP', 'BTN', 'BSD', 'BRL', 'BND', 'BMD', 'BIF', 'BGN', 'BDT', 'BBD', 'AZN', 'AWG', 'AUD', 'ARS', 'AOA', 'ANG', 'ALL', 'AFN'
 ];
+
+const languageOptions = [
+  'English', 'French', 'Spanish', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Hindi',
+  'Italian', 'Korean', 'Dutch', 'Turkish', 'Swedish', 'Polish', 'Ukrainian', 'Greek', 'Czech', 'Finnish',
+  'Danish', 'Norwegian', 'Hebrew', 'Hungarian', 'Romanian', 'Thai', 'Vietnamese', 'Indonesian', 'Malay', 'Swahili'
+];
+const intakeOptions = ['Fall', 'Spring', 'Summer', 'Winter', 'Rolling', 'Other'];
+const methodologyOptions = ['Lectures', 'Seminars', 'Workshops', 'Lab Work', 'Research Projects', 'Field Work', 'Online Learning', 'Other'];
+const careerOptions = ['Software Engineer', 'Data Scientist', 'Researcher', 'Consultant', 'Manager', 'Entrepreneur', 'Other'];
 
 export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: ProgramFormProps) {
   const [schools, setSchools] = useState<School[]>([]);
@@ -89,6 +98,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
   const watchedMethodology = watch('teachingMethodology') || [];
   const watchedCareerOutcomes = watch('careerOutcomes') || [];
 
+  const [schoolSearch, setSchoolSearch] = useState('');
+  const schoolInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     async function fetchSchools() {
       try {
@@ -143,6 +155,8 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
     });
   };
 
+  const uniqueCurrencies = Array.from(new Set(popularCurrencies));
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Basic Information */}
@@ -166,16 +180,24 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>School *</Label>
+              <Label>School * <span className="ml-1 text-gray-400" title="The school offering this program."><Info className="inline w-4 h-4" /></span></Label>
               <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select a school" />
                 </SelectTrigger>
                 <SelectContent>
-                  {schools.map((school) => (
-                    <SelectItem key={school.id} value={school.id}>
-                      {school.name}
-                    </SelectItem>
+                  <div className="px-2 py-2">
+                    <Input
+                      ref={schoolInputRef}
+                      value={schoolSearch}
+                      onChange={e => setSchoolSearch(e.target.value)}
+                      placeholder="Search school..."
+                      className="h-9 mb-2"
+                      onKeyDown={e => e.stopPropagation()}
+                    />
+                  </div>
+                  {schools.filter(s => s.name.toLowerCase().includes(schoolSearch.toLowerCase())).map((school) => (
+                    <SelectItem key={school.id} value={school.id}>{school.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -271,7 +293,8 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
               <Input
                 id="employabilityRank"
                 type="number"
-                {...register('employabilityRank', { valueAsNumber: true })}
+                min={0}
+                {...register('employabilityRank', { valueAsNumber: true, min: 0 })}
                 placeholder="e.g., 95"
                 className="h-11"
               />
@@ -371,7 +394,7 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {popularCurrencies.map((cur) => (
+                  {uniqueCurrencies.map((cur) => (
                     <SelectItem key={cur} value={cur}>{cur}</SelectItem>
                   ))}
                 </SelectContent>
