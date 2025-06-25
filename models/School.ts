@@ -9,8 +9,8 @@ export interface ISchool extends Document {
   yearFounded?: number;
   accreditationBodies?: string[];
   websiteUrl?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  contactEmails?: string[];
+  contactPhones?: string[];
   logoUrl?: string;
   socialLinks?: {
     facebook?: string;
@@ -27,6 +27,35 @@ export interface ISchool extends Document {
   avgLivingCost?: number;
   visaSupportServices?: boolean;
   virtualTourLink?: string;
+  acceptanceRate?: number;
+  /** List of campus facilities (e.g., library, gym, labs) */
+  campusFacilities?: string[];
+  /** General climate description (e.g., temperate, tropical) */
+  climate?: string;
+  /** General safety rating (e.g., very safe, safe, moderate, unsafe) */
+  safetyRating?: string;
+  /** Optional description or link to safety/crime statistics */
+  safetyDescription?: string;
+  /** Are internships/co-ops available? */
+  internshipsAvailable?: boolean;
+  /** Description or list of internship/co-op opportunities */
+  internshipsDescription?: string;
+  /** Are career services available? */
+  careerServicesAvailable?: boolean;
+  /** Description of career services */
+  careerServicesDescription?: string;
+  /** Is language support available? */
+  languageSupportAvailable?: boolean;
+  /** Description of language support */
+  languageSupportDescription?: string;
+  /** Student diversity info (e.g., % international, gender ratio) */
+  studentDiversity?: string;
+  /** Accessibility for students with disabilities */
+  accessibility?: string;
+  /** Description of accessibility services */
+  accessibilityDescription?: string;
+  /** Transport/location info (e.g., near metro, airport) */
+  transportLocation?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,13 +70,13 @@ const SchoolSchema: Schema = new Schema<ISchool>(
     yearFounded: { type: Number, min: 1000, max: new Date().getFullYear() },
     accreditationBodies: [{ type: String, trim: true }],
     websiteUrl: { type: String, trim: true },
-    contactEmail: { 
+    contactEmails: [{ 
       type: String, 
       trim: true,
       lowercase: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
-    },
-    contactPhone: { type: String, trim: true },
+    }],
+    contactPhones: [{ type: String, trim: true }],
     logoUrl: { type: String, trim: true },
     socialLinks: {
       facebook: { type: String, trim: true },
@@ -68,6 +97,21 @@ const SchoolSchema: Schema = new Schema<ISchool>(
     avgLivingCost: { type: Number, min: 0 },
     visaSupportServices: { type: Boolean, default: false },
     virtualTourLink: { type: String, trim: true },
+    acceptanceRate: { type: Number, min: 0, max: 100 },
+    campusFacilities: [{ type: String, trim: true }],
+    climate: { type: String, trim: true },
+    safetyRating: { type: String, trim: true },
+    safetyDescription: { type: String, trim: true },
+    internshipsAvailable: { type: Boolean },
+    internshipsDescription: { type: String, trim: true },
+    careerServicesAvailable: { type: Boolean },
+    careerServicesDescription: { type: String, trim: true },
+    languageSupportAvailable: { type: Boolean },
+    languageSupportDescription: { type: String, trim: true },
+    studentDiversity: { type: String, trim: true },
+    accessibility: { type: String, trim: true },
+    accessibilityDescription: { type: String, trim: true },
+    transportLocation: { type: String, trim: true },
   },
   { 
     timestamps: true,

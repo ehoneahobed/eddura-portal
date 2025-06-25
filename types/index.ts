@@ -8,8 +8,8 @@ export interface School {
   yearFounded?: number;
   accreditationBodies?: string[];
   websiteUrl?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  contactEmails?: string[];
+  contactPhones?: string[];
   logoUrl?: string;
   socialLinks?: {
     facebook?: string;
@@ -26,6 +26,36 @@ export interface School {
   avgLivingCost?: number;
   visaSupportServices?: boolean;
   virtualTourLink?: string;
+  /** Acceptance rate as a percentage (0-100) */
+  acceptanceRate?: number;
+  /** List of campus facilities (e.g., library, gym, labs) */
+  campusFacilities?: string[];
+  /** General climate description (e.g., temperate, tropical) */
+  climate?: string;
+  /** General safety rating (e.g., very safe, safe, moderate, unsafe) */
+  safetyRating?: string;
+  /** Optional description or link to safety/crime statistics */
+  safetyDescription?: string;
+  /** Are internships/co-ops available? */
+  internshipsAvailable?: boolean;
+  /** Description or list of internship/co-op opportunities */
+  internshipsDescription?: string;
+  /** Are career services available? */
+  careerServicesAvailable?: boolean;
+  /** Description of career services */
+  careerServicesDescription?: string;
+  /** Is language support available? */
+  languageSupportAvailable?: boolean;
+  /** Description of language support */
+  languageSupportDescription?: string;
+  /** Student diversity info (e.g., % international, gender ratio) */
+  studentDiversity?: string;
+  /** Accessibility for students with disabilities */
+  accessibility?: string;
+  /** Description of accessibility services */
+  accessibilityDescription?: string;
+  /** Transport/location info (e.g., near metro, airport) */
+  transportLocation?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

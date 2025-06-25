@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { headers } from 'next/headers';
 import { Globe, Mail, Phone, Home, Users, Building2, Languages, Award, Calendar, Link2, Facebook, Twitter, Linkedin, Youtube, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock } from 'lucide-react';
+import SchoolActions from '@/components/schools/SchoolActions';
 
 /**
  * SchoolViewPage displays all details of a single school in a modern, professional layout.
@@ -38,6 +39,9 @@ const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 tracking-tight flex items-center gap-2"><Building2 className="w-7 h-7 text-blue-700" />{show(school.name)}</h1>
             <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><Home className="w-5 h-5 text-blue-400" />{show(school.city)}, {show(school.country)}</div>
+          </div>
+          <div className="mt-4 md:mt-0 md:ml-auto">
+            <SchoolActions schoolId={params.id} />
           </div>
         </div>
 
@@ -104,6 +108,64 @@ const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
           </dl>
         </section>
         <hr className="my-6 border-gray-200" />
+
+        {/* Facilities & Environment */}
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Home className="w-5 h-5 text-blue-700" />
+            <h2 className="text-lg md:text-xl font-semibold text-blue-900">Facilities & Environment</h2>
+          </div>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div><dt className="font-semibold text-gray-700">Campus Facilities</dt><dd className="text-gray-900">{show(school.campusFacilities)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Climate/Weather</dt><dd className="text-gray-900">{show(school.climate)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Transport/Location</dt><dd className="text-gray-900">{show(school.transportLocation)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Accessibility</dt><dd className="text-gray-900">{show(school.accessibility)}</dd></div>
+          </dl>
+        </section>
+        <hr className="my-6 border-gray-200" />
+
+        {/* Safety & Support */}
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldCheck className="w-5 h-5 text-blue-700" />
+            <h2 className="text-lg md:text-xl font-semibold text-blue-900">Safety & Support</h2>
+          </div>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div><dt className="font-semibold text-gray-700">Safety Rating</dt><dd className="text-gray-900">{show(school.safetyRating)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Safety Description</dt><dd className="text-gray-900">{show(school.safetyDescription)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Internships/Co-op Opportunities</dt><dd className="text-gray-900">{show(school.internshipsAvailable)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Internships Description</dt><dd className="text-gray-900">{show(school.internshipsDescription)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Career Services</dt><dd className="text-gray-900">{show(school.careerServicesAvailable)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Career Services Description</dt><dd className="text-gray-900">{show(school.careerServicesDescription)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Language Support</dt><dd className="text-gray-900">{show(school.languageSupportAvailable)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Language Support Description</dt><dd className="text-gray-900">{show(school.languageSupportDescription)}</dd></div>
+          </dl>
+        </section>
+        <hr className="my-6 border-gray-200" />
+
+        {/* Diversity & Accessibility */}
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="w-5 h-5 text-blue-700" />
+            <h2 className="text-lg md:text-xl font-semibold text-blue-900">Diversity & Accessibility</h2>
+          </div>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div><dt className="font-semibold text-gray-700">Student Diversity</dt><dd className="text-gray-900">{show(school.studentDiversity)}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Accessibility</dt><dd className="text-gray-900">{show(school.accessibility)}</dd></div>
+          </dl>
+        </section>
+        <hr className="my-6 border-gray-200" />
+
+        {/* Additional Info */}
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Award className="w-5 h-5 text-blue-700" />
+            <h2 className="text-lg md:text-xl font-semibold text-blue-900">Additional Information</h2>
+          </div>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div><dt className="font-semibold text-gray-700">Acceptance Rate</dt><dd className="text-gray-900">{show(school.acceptanceRate)}</dd></div>
+          </dl>
+        </section>
 
         {/* Timestamps */}
         <section>
