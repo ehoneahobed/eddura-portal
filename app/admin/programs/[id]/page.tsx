@@ -88,6 +88,10 @@ const ProgramViewPage = async ({ params }: { params: { id: string } }) => {
           <div><dt className="font-semibold text-gray-700">Personal Statement Required</dt><dd className="text-gray-900">{show(program.admissionRequirements?.requiresPersonalStatement)}</dd></div>
           <div><dt className="font-semibold text-gray-700">CV Required</dt><dd className="text-gray-900">{show(program.admissionRequirements?.requiresCV)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Detailed Requirement Note</dt><dd className="text-gray-900">{show(program.admissionRequirements?.detailedRequirementNote)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">SAT/ACT Score</dt><dd className="text-gray-900">{show(program.admissionRequirements?.satScore)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">GRE/GMAT Score</dt><dd className="text-gray-900">{show(program.admissionRequirements?.greScore)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Work Experience (years)</dt><dd className="text-gray-900">{show(program.admissionRequirements?.workExperience)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Thesis/Research Required</dt><dd className="text-gray-900">{show(program.admissionRequirements?.thesisRequired)}</dd></div>
         </dl>
       </section>
       <hr className="my-6 border-gray-200" />
@@ -122,6 +126,7 @@ const ProgramViewPage = async ({ params }: { params: { id: string } }) => {
           <div><dt className="font-semibold text-gray-700">Brochure Link</dt><dd>{program.brochureLink ? <a href={program.brochureLink} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer"><Link2 className="inline w-4 h-4 mr-1" />Download</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
           <div><dt className="font-semibold text-gray-700">Program Overview</dt><dd className="text-gray-900">{show(program.programOverview)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Learning Outcomes</dt><dd className="text-gray-900">{show(program.learningOutcomes)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Vector ID</dt><dd className="text-gray-900">{show(program.vectorId)}</dd></div>
         </dl>
       </section>
       <hr className="my-6 border-gray-200" />

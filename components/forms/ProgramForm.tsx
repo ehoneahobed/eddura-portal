@@ -11,6 +11,7 @@ import { Program, School } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Plus, Info } from 'lucide-react';
+import CustomMultiSelect from '@/components/CustomMultiSelect';
 
 interface ProgramFormProps {
   program?: Program;
@@ -24,13 +25,16 @@ const popularCurrencies = [
 ];
 
 const languageOptions = [
-  'English', 'French', 'Spanish', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Hindi',
-  'Italian', 'Korean', 'Dutch', 'Turkish', 'Swedish', 'Polish', 'Ukrainian', 'Greek', 'Czech', 'Finnish',
-  'Danish', 'Norwegian', 'Hebrew', 'Hungarian', 'Romanian', 'Thai', 'Vietnamese', 'Indonesian', 'Malay', 'Swahili'
+  'English', 'French', 'Spanish', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Italian', 'Hindi', 'Bengali', 'Korean', 'Turkish', 'Vietnamese', 'Polish', 'Dutch', 'Swedish', 'Greek', 'Czech', 'Romanian', 'Hungarian', 'Finnish', 'Danish', 'Norwegian', 'Hebrew', 'Thai', 'Indonesian', 'Malay', 'Filipino', 'Ukrainian', 'Persian', 'Swahili', 'Zulu', 'Afrikaans', 'Other'
 ];
 const intakeOptions = ['Fall', 'Spring', 'Summer', 'Winter', 'Rolling', 'Other'];
 const methodologyOptions = ['Lectures', 'Seminars', 'Workshops', 'Lab Work', 'Research Projects', 'Field Work', 'Online Learning', 'Other'];
 const careerOptions = ['Software Engineer', 'Data Scientist', 'Researcher', 'Consultant', 'Manager', 'Entrepreneur', 'Other'];
+
+// Add a curated list of common admission tests
+const testOptions = [
+  'TOEFL', 'IELTS', 'SAT', 'ACT', 'GRE', 'GMAT', 'LSAT', 'MCAT', 'Duolingo English Test', 'PTE', 'CAEL', 'Cambridge English', 'AP', 'IB', 'Other'
+];
 
 export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: ProgramFormProps) {
   const [schools, setSchools] = useState<School[]>([]);
@@ -314,9 +318,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             <Textarea
               id="programOverview"
               {...register('programOverview')}
-              placeholder="Comprehensive overview of the program"
-              rows={4}
-              className="resize-none"
+              rows={2}
+              style={{ resize: 'vertical' }}
+              placeholder="Enter a detailed overview of the program..."
             />
           </div>
 
@@ -336,9 +340,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             <Textarea
               id="learningOutcomes"
               {...register('learningOutcomes')}
-              placeholder="What students will learn and achieve"
-              rows={3}
-              className="resize-none"
+              rows={2}
+              style={{ resize: 'vertical' }}
+              placeholder="Enter a detailed description of the learning outcomes..."
             />
           </div>
 
@@ -347,9 +351,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             <Textarea
               id="alumniDetails"
               {...register('alumniDetails')}
-              placeholder="Information about program alumni and their achievements"
-              rows={3}
-              className="resize-none"
+              rows={2}
+              style={{ resize: 'vertical' }}
+              placeholder="Enter details about the program alumni and their achievements..."
             />
           </div>
         </CardContent>
@@ -422,41 +426,16 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
         </CardHeader>
         <CardContent className="space-y-8">
           {/* Languages */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Languages</Label>
-            <div className="flex space-x-2">
-              <Input
-                value={newLanguage}
-                onChange={(e) => setNewLanguage(e.target.value)}
-                placeholder="Add language"
-                className="h-10"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addToArray('languages', newLanguage, setNewLanguage, watchedLanguages);
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                onClick={() => addToArray('languages', newLanguage, setNewLanguage, watchedLanguages)}
-                size="sm"
-                className="h-10 px-4"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {watchedLanguages.map((language, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                  {language}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-500"
-                    onClick={() => removeFromArray('languages', language, watchedLanguages)}
-                  />
-                </Badge>
-              ))}
-            </div>
+          <div className="mb-4">
+            <Label htmlFor="languages">Languages of Instruction</Label>
+            <CustomMultiSelect
+              options={languageOptions}
+              value={watch('languages') || []}
+              onChange={val => setValue('languages', val)}
+              placeholder="Select or type languages..."
+              allowCustom
+            />
+            <span className="text-xs text-gray-500">Select all languages in which the program is taught. You can also type to add a language not in the list.</span>
           </div>
 
           {/* Application Deadlines */}
@@ -570,9 +549,9 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             <Textarea
               id="detailedRequirementNote"
               {...register('admissionRequirements.detailedRequirementNote')}
-              placeholder="Additional details about admission requirements"
-              rows={3}
-              className="resize-none"
+              rows={2}
+              style={{ resize: 'vertical' }}
+              placeholder="Additional details about admission requirements..."
             />
           </div>
 
@@ -614,41 +593,43 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
             </div>
           </div>
 
-          {/* Required Tests */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Required Tests</Label>
-            <div className="flex space-x-2">
-              <Input
-                value={newRequiredTest.name}
-                onChange={(e) => setNewRequiredTest({ ...newRequiredTest, name: e.target.value })}
-                placeholder="Test name (e.g., GRE)"
-                className="h-10"
-              />
-              <Input
-                type="number"
-                value={newRequiredTest.minScore}
-                onChange={(e) => setNewRequiredTest({ ...newRequiredTest, minScore: parseInt(e.target.value) || 0 })}
-                placeholder="Min score"
-                className="h-10 w-32"
-              />
-              <Button
-                type="button"
-                onClick={() => addToArray('admissionRequirements.requiredTests', newRequiredTest, setNewRequiredTest, watchedRequiredTests)}
-                size="sm"
-                className="h-10 px-4"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {watchedRequiredTests.map((test, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                  {test.name} ({test.minScore})
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-500"
-                    onClick={() => removeFromArray('admissionRequirements.requiredTests', test, watchedRequiredTests)}
+          {/* Required Tests Multi-Select */}
+          <div className="mb-4">
+            <Label>Required Tests</Label>
+            <CustomMultiSelect
+              options={testOptions}
+              value={watch('admissionRequirements.requiredTests')?.map((t: any) => t.name) || []}
+              onChange={testNames => {
+                // Map to objects with name and minScore, preserving existing minScores
+                const prev = watch('admissionRequirements.requiredTests') || [];
+                const newTests = testNames.map((name: string) => {
+                  const existing = prev.find((t: any) => t.name === name);
+                  return existing || { name, minScore: 0 };
+                });
+                setValue('admissionRequirements.requiredTests', newTests);
+              }}
+              placeholder="Select or type test names..."
+              allowCustom
+            />
+            <span className="text-xs text-gray-500">Select all standardized tests required for admission. You can also type to add a test not in the list.</span>
+            <div className="space-y-2 mt-2">
+              {(watch('admissionRequirements.requiredTests') || []).map((test: any, idx: number) => (
+                <div key={test.name} className="flex items-center gap-3">
+                  <span className="min-w-[120px] font-medium">{test.name}</span>
+                  <Label htmlFor={`requiredTests-minScore-${idx}`}>Minimum Score</Label>
+                  <Input
+                    id={`requiredTests-minScore-${idx}`}
+                    type="number"
+                    min={0}
+                    value={test.minScore}
+                    onChange={e => {
+                      const updated = [...(watch('admissionRequirements.requiredTests') || [])];
+                      updated[idx] = { ...test, minScore: e.target.value === '' ? undefined : Number(e.target.value) };
+                      setValue('admissionRequirements.requiredTests', updated);
+                    }}
+                    className="w-32"
                   />
-                </Badge>
+                </div>
               ))}
             </div>
           </div>

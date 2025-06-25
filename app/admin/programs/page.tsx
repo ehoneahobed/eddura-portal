@@ -11,6 +11,24 @@ import { Program, School } from '@/types';
 import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Helper to get currency symbol from code
+const getCurrencySymbol = (code: string) => {
+  switch (code) {
+    case 'USD': return '$';
+    case 'EUR': return '€';
+    case 'GBP': return '£';
+    case 'CAD': return 'C$';
+    case 'AUD': return 'A$';
+    case 'JPY': return '¥';
+    case 'CNY': return '¥';
+    case 'INR': return '₹';
+    case 'ZAR': return 'R';
+    case 'NGN': return '₦';
+    case 'GHS': return '₵';
+    default: return code;
+  }
+};
+
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [schools, setSchools] = useState<School[]>([]);
@@ -230,7 +248,7 @@ export default function ProgramsPage() {
                   </div>
 
                   <div className="flex items-center text-sm text-gray-600">
-                    <DollarSign className="h-4 w-4 mr-1" />
+                    <span className="mr-1 font-bold">{getCurrencySymbol(program.tuitionFees.currency)}</span>
                     {program.tuitionFees.international.toLocaleString()} {program.tuitionFees.currency}
                     <span className="text-xs text-gray-500 ml-1">(International)</span>
                   </div>
