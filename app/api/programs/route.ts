@@ -5,14 +5,27 @@ import Program from '@/models/Program';
 export async function GET() {
   try {
     await connectDB();
-    const programs = await Program.find({})
-      .populate('schoolId', 'name country city')
-      .sort({ createdAt: -1 });
+    let programs;
+    try {
+      programs = await Program.find({})
+        .populate('schoolId', 'name country city')
+        .sort({ createdAt: -1 });
+    } catch (err) {
+      console.error('Error during Program.find/populate:', err);
+      return NextResponse.json(
+        { error: 'Failed to fetch programs (find/populate)', details: err instanceof Error ? err.message : String(err) },
+        { status: 500 }
+      );
+    }
+    if (!Array.isArray(programs)) {
+      console.error('Programs is not an array:', programs);
+      return NextResponse.json([], { status: 200 });
+    }
     return NextResponse.json(programs);
   } catch (error) {
     console.error('Error fetching programs:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch programs' },
+      { error: 'Failed to fetch programs', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
