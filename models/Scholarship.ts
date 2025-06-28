@@ -7,8 +7,8 @@ export interface IScholarship extends Document {
   linkedSchool?: string;
   linkedProgram?: string;
   coverage: string[];
-  value: number;
-  currency: string;
+  value?: number | string;
+  currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   numberOfAwardsPerYear?: number;
   eligibility: {
@@ -65,8 +65,20 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
     linkedSchool: { type: String, trim: true },
     linkedProgram: { type: String, trim: true },
     coverage: [{ type: String, required: true, trim: true }],
-    value: { type: Number, required: true, min: 0 },
-    currency: { type: String, required: true, trim: true, uppercase: true },
+    value: { 
+      type: Schema.Types.Mixed,
+      validate: {
+        validator: function(value: any) {
+          // Allow undefined, null, number, or string
+          if (value === undefined || value === null) return true;
+          if (typeof value === 'number') return value >= 0;
+          if (typeof value === 'string') return value.trim().length > 0;
+          return false;
+        },
+        message: 'Value must be a non-negative number or a non-empty string'
+      }
+    },
+    currency: { type: String, trim: true, uppercase: true },
     frequency: {
       type: String,
       enum: ['One-time', 'Annual', 'Full Duration'],

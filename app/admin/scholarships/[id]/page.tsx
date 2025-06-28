@@ -49,7 +49,13 @@ const ScholarshipViewPage = async ({ params }: { params: { id: string } }) => {
           <div><dt className="font-semibold text-gray-700">Linked School</dt><dd className="text-gray-900">{show(scholarship.linkedSchool)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Linked Program</dt><dd className="text-gray-900">{show(scholarship.linkedProgram)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Coverage</dt><dd className="text-gray-900">{show(scholarship.coverage)}</dd></div>
-          <div><dt className="font-semibold text-gray-700">Value</dt><dd className="text-gray-900">{scholarship.value ? `${scholarship.value} ${scholarship.currency}` : 'Not provided'}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Value</dt><dd className="text-gray-900">
+            {scholarship.value ? (
+              typeof scholarship.value === 'number' 
+                ? `${scholarship.value.toLocaleString()} ${scholarship.currency || ''}`
+                : scholarship.value
+            ) : 'Not provided'}
+          </dd></div>
           <div><dt className="font-semibold text-gray-700">Frequency</dt><dd className="text-gray-900">{show(scholarship.frequency)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Number of Awards/Year</dt><dd className="text-gray-900">{show(scholarship.numberOfAwardsPerYear)}</dd></div>
         </dl>

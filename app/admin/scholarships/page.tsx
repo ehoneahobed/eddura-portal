@@ -152,7 +152,11 @@ export default function ScholarshipsPage() {
                 <div className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600">
                     <DollarSign className="h-4 w-4 mr-1" />
-                    {scholarship.value.toLocaleString()} {scholarship.currency}
+                    {scholarship.value ? (
+                      typeof scholarship.value === 'number' 
+                        ? `${scholarship.value.toLocaleString()} ${scholarship.currency || ''}`
+                        : scholarship.value
+                    ) : 'Value not specified'}
                   </div>
 
                   <div className="flex items-center text-sm text-gray-600">

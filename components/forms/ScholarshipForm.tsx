@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Scholarship } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Plus, Info } from 'lucide-react';
+import { X, Plus, Info, Copy } from 'lucide-react';
 import { getNames as getCountryNames } from 'country-list';
 import CustomMultiSelect from '@/components/CustomMultiSelect';
 
@@ -30,6 +30,11 @@ const regionOptions = ['Africa', 'Asia', 'Europe', 'North America', 'South Ameri
 
 export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoading }: ScholarshipFormProps) {
   const [selectedFrequency, setSelectedFrequency] = useState(scholarship?.frequency || '');
+  const [valueType, setValueType] = useState<'number' | 'text'>(
+    typeof scholarship?.value === 'number' ? 'number' : 'text'
+  );
+  const [bulkCountriesInput, setBulkCountriesInput] = useState('');
+  const [bulkNationalitiesInput, setBulkNationalitiesInput] = useState('');
 
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<Scholarship>({
     defaultValues: scholarship || {
@@ -37,7 +42,7 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
       scholarshipDetails: '',
       provider: '',
       coverage: [],
-      value: 0,
+      value: '',
       currency: 'USD',
       frequency: 'Annual',
       deadline: '',
@@ -98,9 +103,54 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
     }
   };
 
+  const handleBulkCountriesSubmit = () => {
+    if (bulkCountriesInput.trim()) {
+      // Split by common delimiters and clean up
+      const countries = bulkCountriesInput
+        .split(/[,;\n\r]+/)
+        .map(country => country.trim())
+        .filter(country => country.length > 0);
+      
+      // Add each country to the existing list
+      countries.forEach(country => {
+        if (!watchedCountryResidency.includes(country)) {
+          addToArray('eligibility.countryResidency', country, setNewCountryResidency, watchedCountryResidency);
+        }
+      });
+      
+      setBulkCountriesInput('');
+    }
+  };
+
+  const handleBulkNationalitiesSubmit = () => {
+    if (bulkNationalitiesInput.trim()) {
+      // Split by common delimiters and clean up
+      const nationalities = bulkNationalitiesInput
+        .split(/[,;\n\r]+/)
+        .map(nationality => nationality.trim())
+        .filter(nationality => nationality.length > 0);
+      
+      // Add each nationality to the existing list
+      nationalities.forEach(nationality => {
+        if (!watchedNationalities.includes(nationality)) {
+          addToArray('eligibility.nationalities', nationality, setNewNationality, watchedNationalities);
+        }
+      });
+      
+      setBulkNationalitiesInput('');
+    }
+  };
+
   const handleFormSubmit = (data: Scholarship) => {
+    // Convert value to appropriate type
+    let processedValue: number | string | undefined = data.value;
+    if (valueType === 'number' && typeof data.value === 'string') {
+      processedValue = data.value ? parseFloat(data.value) : undefined;
+    }
+    
     onSubmit({
       ...data,
+      value: processedValue,
       frequency: selectedFrequency as Scholarship['frequency']
     });
   };
@@ -168,15 +218,36 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="value">Value *</Label>
-              <Input
-                id="value"
-                type="number"
-                min={0}
-                {...register('value', { required: 'Value is required', valueAsNumber: true })}
-                placeholder="0"
-                className="h-11"
-              />
+              <Label htmlFor="value">Value</Label>
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <Input
+                    id="value"
+                    type={valueType}
+                    {...register('value', { 
+                      valueAsNumber: valueType === 'number',
+                      min: valueType === 'number' ? 0 : undefined
+                    })}
+                    placeholder={valueType === 'number' ? '0' : 'e.g., Full coverage, Variable, $10,000'}
+                    className="h-11"
+                  />
+                </div>
+                <Select value={valueType} onValueChange={(val: 'number' | 'text') => setValueType(val)}>
+                  <SelectTrigger className="w-24 h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="text">Text</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-gray-500">
+                {valueType === 'number' 
+                  ? 'Enter a specific amount' 
+                  : 'Enter descriptive text (e.g., "Full coverage", "Variable", "Up to $10,000")'
+                }
+              </p>
               {errors.value && (
                 <p className="text-sm text-red-600">{errors.value.message}</p>
               )}
@@ -187,6 +258,7 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               <Select
                 value={watch('currency')}
                 onValueChange={val => setValue('currency', val)}
+                disabled={valueType === 'text'}
               >
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select currency" />
@@ -199,6 +271,9 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
                     ))}
                 </SelectContent>
               </Select>
+              {valueType === 'text' && (
+                <p className="text-xs text-gray-500">Currency not applicable for text values</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -357,34 +432,75 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
           {/* Nationalities */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Eligible Nationalities</Label>
-            {/* Nationality dropdown using country-list */}
-            <Select
-              value=""
-              onValueChange={val => {
-                if (val && !watchedNationalities.includes(val)) {
-                  addToArray('eligibility.nationalities', val, setNewNationality, watchedNationalities);
-                }
-              }}
-            >
-              <SelectTrigger className="h-10">
-                <SelectValue placeholder="Add nationality" />
-              </SelectTrigger>
-              <SelectContent>
-                {countryOptions.map((country: string) => (
-                  <SelectItem key={country} value={country}>{country}</SelectItem>
+            
+            {/* Bulk Input Section */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-gray-600">Bulk Input (Copy & Paste)</Label>
+                <Info className="h-3 w-3 text-gray-400" />
+              </div>
+              <div className="flex space-x-2">
+                <Textarea
+                  value={bulkNationalitiesInput}
+                  onChange={(e) => setBulkNationalitiesInput(e.target.value)}
+                  placeholder="Paste nationalities here (separated by commas, semicolons, or new lines)&#10;Example:&#10;United States, Canada, United Kingdom&#10;Germany; France; Italy"
+                  rows={3}
+                  className="resize-none text-sm"
+                />
+                <Button
+                  type="button"
+                  onClick={handleBulkNationalitiesSubmit}
+                  size="sm"
+                  className="h-10 px-4 self-start"
+                  disabled={!bulkNationalitiesInput.trim()}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Paste multiple nationalities from the scholarships page. They will be automatically separated and added.
+              </p>
+            </div>
+
+            {/* Individual Nationality Selection */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Add Individual Nationalities</Label>
+              <Select
+                value=""
+                onValueChange={val => {
+                  if (val && !watchedNationalities.includes(val)) {
+                    addToArray('eligibility.nationalities', val, setNewNationality, watchedNationalities);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Add nationality" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countryOptions.map((country: string) => (
+                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Display Selected Nationalities */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Selected Nationalities ({watchedNationalities.length})</Label>
+              <div className="flex flex-wrap gap-2">
+                {watchedNationalities.map((item, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                    {item}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-red-500"
+                      onClick={() => removeFromArray('eligibility.nationalities', item, watchedNationalities)}
+                    />
+                  </Badge>
                 ))}
-              </SelectContent>
-            </Select>
-            <div className="flex flex-wrap gap-2">
-              {watchedNationalities.map((item, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                  {item}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-500"
-                    onClick={() => removeFromArray('eligibility.nationalities', item, watchedNationalities)}
-                  />
-                </Badge>
-              ))}
+                {watchedNationalities.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">No nationalities selected</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -429,34 +545,75 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
           {/* Country Residency */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Eligible Country Residency</Label>
-            {/* Country dropdown using country-list */}
-            <Select
-              value=""
-              onValueChange={val => {
-                if (val && !watchedCountryResidency.includes(val)) {
-                  addToArray('eligibility.countryResidency', val, setNewCountryResidency, watchedCountryResidency);
-                }
-              }}
-            >
-              <SelectTrigger className="h-10">
-                <SelectValue placeholder="Add country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countryOptions.map((country: string) => (
-                  <SelectItem key={country} value={country}>{country}</SelectItem>
+            
+            {/* Bulk Input Section */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-gray-600">Bulk Input (Copy & Paste)</Label>
+                <Info className="h-3 w-3 text-gray-400" />
+              </div>
+              <div className="flex space-x-2">
+                <Textarea
+                  value={bulkCountriesInput}
+                  onChange={(e) => setBulkCountriesInput(e.target.value)}
+                  placeholder="Paste countries here (separated by commas, semicolons, or new lines)&#10;Example:&#10;United States, Canada, United Kingdom&#10;Germany; France; Italy"
+                  rows={3}
+                  className="resize-none text-sm"
+                />
+                <Button
+                  type="button"
+                  onClick={handleBulkCountriesSubmit}
+                  size="sm"
+                  className="h-10 px-4 self-start"
+                  disabled={!bulkCountriesInput.trim()}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Paste multiple countries from the scholarships page. They will be automatically separated and added.
+              </p>
+            </div>
+
+            {/* Individual Country Selection */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Add Individual Countries</Label>
+              <Select
+                value=""
+                onValueChange={val => {
+                  if (val && !watchedCountryResidency.includes(val)) {
+                    addToArray('eligibility.countryResidency', val, setNewCountryResidency, watchedCountryResidency);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Add country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countryOptions.map((country: string) => (
+                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Display Selected Countries */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Selected Countries ({watchedCountryResidency.length})</Label>
+              <div className="flex flex-wrap gap-2">
+                {watchedCountryResidency.map((item, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                    {item}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-red-500"
+                      onClick={() => removeFromArray('eligibility.countryResidency', item, watchedCountryResidency)}
+                    />
+                  </Badge>
                 ))}
-              </SelectContent>
-            </Select>
-            <div className="flex flex-wrap gap-2">
-              {watchedCountryResidency.map((item, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                  {item}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-500"
-                    onClick={() => removeFromArray('eligibility.countryResidency', item, watchedCountryResidency)}
-                  />
-                </Badge>
-              ))}
+                {watchedCountryResidency.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">No countries selected</p>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

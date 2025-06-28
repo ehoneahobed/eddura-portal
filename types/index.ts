@@ -119,8 +119,8 @@ export interface Scholarship {
   linkedSchool?: string;
   linkedProgram?: string;
   coverage: string[];
-  value: number;
-  currency: string;
+  value?: number | string;
+  currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   numberOfAwardsPerYear?: number;
   eligibility: {
