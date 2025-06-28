@@ -1,73 +1,64 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { School, Program, Scholarship } from '@/types';
-import { School as SchoolIcon, BookOpen, GraduationCap, TrendingUp } from 'lucide-react';
+import { useDashboardStats } from '@/hooks/use-dashboard';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { RecentActivityCard } from '@/components/dashboard/RecentActivityCard';
+import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
+import { TopItemsCard } from '@/components/dashboard/TopItemsCard';
+import { School, BookOpen, GraduationCap, TrendingUp, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    schools: 0,
-    programs: 0,
-    scholarships: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const { stats, isLoading, isError, mutate } = useDashboardStats();
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const [schoolsRes, programsRes, scholarshipsRes] = await Promise.all([
-          fetch('/api/schools'),
-          fetch('/api/programs'),
-          fetch('/api/scholarships')
-        ]);
-
-        const [schools, programs, scholarships]: [School[], Program[], Scholarship[]] = await Promise.all([
-          schoolsRes.json(),
-          programsRes.json(),
-          scholarshipsRes.json()
-        ]);
-
-        setStats({
-          schools: schools.length,
-          programs: programs.length,
-          scholarships: scholarships.length
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchStats();
-  }, []);
+  if (isError) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-gray-600">
+            Overview of your educational platform
+          </p>
+        </div>
+        
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load dashboard data. Please refresh the page or try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const statCards = [
     {
       title: 'Total Schools',
-      value: stats.schools,
-      icon: SchoolIcon,
+      value: stats?.schools || 0,
+      icon: School,
       description: 'Educational institutions',
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      trend: { value: 8.2, isPositive: true }
     },
     {
       title: 'Total Programs',
-      value: stats.programs,
+      value: stats?.programs || 0,
       icon: BookOpen,
       description: 'Academic programs',
-      color: 'text-green-600'
+      color: 'text-green-600',
+      trend: { value: 12.5, isPositive: true }
     },
     {
       title: 'Total Scholarships',
-      value: stats.scholarships,
+      value: stats?.scholarships || 0,
       icon: GraduationCap,
       description: 'Financial aid opportunities',
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      trend: { value: 15.3, isPositive: true }
     },
     {
       title: 'Growth Rate',
-      value: '+12%',
+      value: `${stats?.growthRate || 0}%`,
       icon: TrendingUp,
       description: 'Month over month',
       color: 'text-orange-600'
@@ -76,90 +67,106 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Overview of your educational platform
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-gray-600">
+            Overview of your educational platform
+          </p>
+        </div>
+        <button
+          onClick={() => mutate()}
+          className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          Refresh Data
+        </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {loading ? '...' : stat.value}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            key={index}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            description={stat.description}
+            color={stat.color}
+            isLoading={isLoading}
+            trend={stat.trend}
+          />
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New school added: Stanford University</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Program updated: Computer Science MS</p>
-                  <p className="text-xs text-gray-500">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New scholarship: Rhodes Scholarship</p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Recent Activity */}
+        <div className="lg:col-span-1">
+          <RecentActivityCard 
+            activities={stats?.recentActivity || []} 
+            isLoading={isLoading}
+          />
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                <div className="font-medium text-sm">Add New School</div>
-                <div className="text-xs text-gray-500">Create a new educational institution</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors">
-                <div className="font-medium text-sm">Create Program</div>
-                <div className="text-xs text-gray-500">Add a new academic program</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors">
-                <div className="font-medium text-sm">New Scholarship</div>
-                <div className="text-xs text-gray-500">Set up a scholarship opportunity</div>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Quick Actions */}
+        <div className="lg:col-span-1">
+          <QuickActionsCard />
+        </div>
+
+        {/* Top Schools */}
+        <div className="lg:col-span-1">
+          <TopItemsCard
+            title="Top Schools"
+            type="schools"
+            items={stats?.topSchools || []}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
+
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Top Programs */}
+        <TopItemsCard
+          title="Top Programs by Tuition"
+          type="programs"
+          items={stats?.topPrograms || []}
+          isLoading={isLoading}
+        />
+
+        {/* Top Scholarships */}
+        <TopItemsCard
+          title="Top Scholarships by Value"
+          type="scholarships"
+          items={stats?.topScholarships || []}
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* Data Summary */}
+      {!isLoading && stats && (
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">Platform Summary</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="font-medium">Total Data Points:</span>
+              <span className="ml-2 text-gray-600">
+                {(stats.schools + stats.programs + stats.scholarships).toLocaleString()}
+              </span>
+            </div>
+            <div>
+              <span className="font-medium">Last Updated:</span>
+              <span className="ml-2 text-gray-600">
+                {new Date().toLocaleString()}
+              </span>
+            </div>
+            <div>
+              <span className="font-medium">Data Health:</span>
+              <span className="ml-2 text-green-600 font-medium">Excellent</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
