@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,7 +117,26 @@ export default function ApplicationTemplateForm({
     name: 'sections'
   });
 
-  const watchedSections = watch('sections') || [];
+  const watchedSections = useMemo(() => watch('sections') || [], [watch]);
+
+  // Ensure fileConfig is initialized for file type questions
+  useEffect(() => {
+    const updatedSections = [...watchedSections];
+    let hasChanges = false;
+
+    updatedSections.forEach((section, sectionIndex) => {
+      section.questions?.forEach((question, questionIndex) => {
+        if (question.type === 'file' && !question.fileConfig) {
+          question.fileConfig = { allowedTypes: [], maxSize: 5, maxFiles: 1 };
+          hasChanges = true;
+        }
+      });
+    });
+
+    if (hasChanges) {
+      setValue('sections', updatedSections);
+    }
+  }, [watchedSections, setValue]);
 
   const handleFormSubmit = (data: ApplicationTemplate) => {
     // Validate that we have at least one section with questions
@@ -226,6 +245,11 @@ export default function ApplicationTemplateForm({
     newQuestion.helpText = question.helpText;
     newQuestion.group = question.group;
     
+    // Initialize fileConfig for file type questions
+    if (newType === 'file' && !newQuestion.fileConfig) {
+      newQuestion.fileConfig = { allowedTypes: [], maxSize: 5, maxFiles: 1 };
+    }
+    
     section.questions[questionIndex] = newQuestion;
     setValue('sections', updatedSections);
   };
@@ -257,24 +281,15 @@ export default function ApplicationTemplateForm({
     if (question.options && question.options.length > 1) {
       question.options.splice(optionIndex, 1);
       setValue('sections', updatedSections);
+      toast.success('Option removed');
+    } else {
+      toast.error('Cannot remove the last option');
     }
   };
 
-  const updateQuestionOption = (
-    sectionIndex: number, 
-    questionIndex: number, 
-    optionIndex: number, 
-    field: keyof QuestionOption, 
-    value: string
-  ) => {
-    const updatedSections = [...watchedSections];
-    const section = updatedSections[sectionIndex];
-    const question = section.questions[questionIndex];
-    
-    if (question.options) {
-      question.options[optionIndex][field] = value;
-      setValue('sections', updatedSections);
-    }
+  // Helper function to handle required field changes
+  const handleRequiredChange = (sectionIndex: number, questionIndex: number, checked: boolean) => {
+    setValue(`sections.${sectionIndex}.questions.${questionIndex}.required`, checked);
   };
 
   const onDragEnd = (result: any) => {
@@ -618,8 +633,8 @@ export default function ApplicationTemplateForm({
 
                                           <div className="flex items-center space-x-2">
                                             <Switch
-                                              {...register(`sections.${sectionIndex}.questions.${questionIndex}.required` as const)}
-                                              defaultChecked={question.required}
+                                              checked={question.required}
+                                              onCheckedChange={(checked) => handleRequiredChange(sectionIndex, questionIndex, checked)}
                                             />
                                             <Label>Required</Label>
                                           </div>
@@ -643,26 +658,12 @@ export default function ApplicationTemplateForm({
                                                 {question.options?.map((option, optionIndex) => (
                                                   <div key={optionIndex} className="flex items-center gap-2">
                                                     <Input
-                                                      value={option.value}
-                                                      onChange={(e) => updateQuestionOption(
-                                                        sectionIndex, 
-                                                        questionIndex, 
-                                                        optionIndex, 
-                                                        'value', 
-                                                        e.target.value
-                                                      )}
+                                                      {...register(`sections.${sectionIndex}.questions.${questionIndex}.options.${optionIndex}.value` as const)}
                                                       placeholder="Value"
                                                       className="h-8"
                                                     />
                                                     <Input
-                                                      value={option.label}
-                                                      onChange={(e) => updateQuestionOption(
-                                                        sectionIndex, 
-                                                        questionIndex, 
-                                                        optionIndex, 
-                                                        'label', 
-                                                        e.target.value
-                                                      )}
+                                                      {...register(`sections.${sectionIndex}.questions.${questionIndex}.options.${optionIndex}.label` as const)}
                                                       placeholder="Label"
                                                       className="h-8"
                                                     />
@@ -691,15 +692,10 @@ export default function ApplicationTemplateForm({
                                                   <Input
                                                     type="number"
                                                     min={1}
-                                                    value={question.fileConfig?.maxSize || 5}
-                                                    onChange={(e) => {
-                                                      const updatedSections = [...watchedSections];
-                                                      const section = updatedSections[sectionIndex];
-                                                      const q = section.questions[questionIndex];
-                                                      if (!q.fileConfig) q.fileConfig = { allowedTypes: [], maxSize: 5 };
-                                                      q.fileConfig.maxSize = parseInt(e.target.value);
-                                                      setValue('sections', updatedSections);
-                                                    }}
+                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.fileConfig.maxSize` as const, { 
+                                                      valueAsNumber: true,
+                                                      setValueAs: (value) => value || 5
+                                                    })}
                                                     className="h-8"
                                                   />
                                                 </div>
@@ -708,15 +704,10 @@ export default function ApplicationTemplateForm({
                                                   <Input
                                                     type="number"
                                                     min={1}
-                                                    value={question.fileConfig?.maxFiles || 1}
-                                                    onChange={(e) => {
-                                                      const updatedSections = [...watchedSections];
-                                                      const section = updatedSections[sectionIndex];
-                                                      const q = section.questions[questionIndex];
-                                                      if (!q.fileConfig) q.fileConfig = { allowedTypes: [], maxSize: 5 };
-                                                      q.fileConfig.maxFiles = parseInt(e.target.value);
-                                                      setValue('sections', updatedSections);
-                                                    }}
+                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.fileConfig.maxFiles` as const, { 
+                                                      valueAsNumber: true,
+                                                      setValueAs: (value) => value || 1
+                                                    })}
                                                     className="h-8"
                                                   />
                                                 </div>
