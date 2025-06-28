@@ -168,3 +168,98 @@ export interface Scholarship {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+// Application Template Types
+export type QuestionType = 
+  | 'text'           // Short text input
+  | 'textarea'       // Long text input
+  | 'email'          // Email input
+  | 'phone'          // Phone number input
+  | 'number'         // Numeric input
+  | 'date'           // Date picker
+  | 'select'         // Single choice dropdown
+  | 'multiselect'    // Multiple choice dropdown
+  | 'radio'          // Single choice radio buttons
+  | 'checkbox'       // Multiple choice checkboxes
+  | 'file'           // File upload
+  | 'url'            // URL input
+  | 'address'        // Address input
+  | 'education'      // Education history
+  | 'experience'     // Work experience
+  | 'reference'      // Reference contact
+  | 'essay'          // Essay/long form response
+  | 'statement'      // Personal statement
+  | 'gpa'            // GPA input with validation
+  | 'test_score';    // Test scores (SAT, GRE, etc.)
+
+export interface QuestionOption {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+export interface FileUploadConfig {
+  allowedTypes: string[];  // e.g., ['pdf', 'doc', 'docx']
+  maxSize: number;         // in MB
+  maxFiles?: number;       // number of files allowed
+  description?: string;    // description of what files are expected
+}
+
+export interface ValidationRule {
+  type: 'required' | 'min' | 'max' | 'pattern' | 'email' | 'url' | 'phone' | 'gpa' | 'test_score';
+  value?: string | number;
+  message: string;
+}
+
+export interface Question {
+  id: string;
+  type: QuestionType;
+  title: string;
+  description?: string;
+  placeholder?: string;
+  required: boolean;
+  order: number;
+  options?: QuestionOption[];
+  fileConfig?: FileUploadConfig;
+  validation?: ValidationRule[];
+  conditional?: {
+    dependsOn: string;  // ID of the question this depends on
+    condition: 'equals' | 'not_equals' | 'contains' | 'not_contains';
+    value: string;
+  };
+  helpText?: string;
+  maxLength?: number;
+  minLength?: number;
+  defaultValue?: string | number | boolean;
+  group?: string;  // For grouping related questions
+}
+
+export interface FormSection {
+  id: string;
+  title: string;
+  description?: string;
+  order: number;
+  questions: Question[];
+  isRepeatable?: boolean;  // For sections that can be repeated (e.g., work experience)
+  maxRepeats?: number;     // Maximum number of times this section can be repeated
+}
+
+export interface ApplicationTemplate {
+  id: string;
+  scholarshipId: string;
+  title: string;
+  description?: string;
+  version: string;
+  isActive: boolean;
+  sections: FormSection[];
+  estimatedTime: number;  // Estimated time to complete in minutes
+  instructions?: string;  // General instructions for applicants
+  submissionDeadline?: Date;
+  allowDraftSaving: boolean;
+  requireEmailVerification: boolean;
+  requirePhoneVerification: boolean;
+  maxFileSize: number;  // Maximum file size in MB
+  allowedFileTypes: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}

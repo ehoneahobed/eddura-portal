@@ -11,6 +11,7 @@ import {
   School,
   BookOpen,
   GraduationCap,
+  FileText,
   Menu,
   X,
   ChevronRight
@@ -20,7 +21,8 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Schools', href: '/admin/schools', icon: School },
   { name: 'Programs', href: '/admin/programs', icon: BookOpen },
-  { name: 'Scholarships', href: '/admin/scholarships', icon: GraduationCap }
+  { name: 'Scholarships', href: '/admin/scholarships', icon: GraduationCap },
+  { name: 'Application Templates', href: '/admin/application-templates', icon: FileText }
 ];
 
 interface AdminLayoutProps {
@@ -68,7 +70,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="flex-1 mt-6 px-3">
           <div className="space-y-1">
             {navigation.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.name}

@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import School from '@/models/School';
 
+/**
+ * Transform MongoDB document to include id field
+ */
+function transformSchool(school: any) {
+  if (!school) return school;
+  
+  const transformed = school.toObject ? school.toObject() : school;
+  return {
+    ...transformed,
+    id: transformed._id?.toString()
+  };
+}
+
+/**
+ * Transform array of schools
+ */
+function transformSchools(schools: any[]) {
+  return schools.map(transformSchool);
+}
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -40,7 +60,7 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(totalCount / limit);
     
     return NextResponse.json({
-      schools,
+      schools: transformSchools(schools),
       pagination: {
         currentPage: page,
         totalPages,
@@ -67,7 +87,7 @@ export async function POST(request: NextRequest) {
     const school = new School(body);
     const savedSchool = await school.save();
     
-    return NextResponse.json(savedSchool, { status: 201 });
+    return NextResponse.json(transformSchool(savedSchool), { status: 201 });
   } catch (error) {
     console.error('Error creating school:', error);
     

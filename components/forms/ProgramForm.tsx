@@ -109,10 +109,12 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
     async function fetchSchools() {
       try {
         const response = await fetch('/api/schools');
-        const schoolsData = await response.json();
-        setSchools(schoolsData);
+        const data = await response.json();
+        // The API returns { schools: [...], pagination: {...} }
+        setSchools(data.schools || []);
       } catch (error) {
         console.error('Error fetching schools:', error);
+        setSchools([]);
       }
     }
     fetchSchools();
@@ -200,7 +202,7 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
                       onKeyDown={e => e.stopPropagation()}
                     />
                   </div>
-                  {schools.filter(s => s.name.toLowerCase().includes(schoolSearch.toLowerCase())).map((school) => (
+                  {Array.isArray(schools) && schools.filter(s => s.name.toLowerCase().includes(schoolSearch.toLowerCase())).map((school) => (
                     <SelectItem key={school.id} value={school.id}>{school.name}</SelectItem>
                   ))}
                 </SelectContent>

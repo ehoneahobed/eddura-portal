@@ -3,6 +3,19 @@ import connectDB from '@/lib/mongodb';
 import School from '@/models/School';
 import mongoose from 'mongoose';
 
+/**
+ * Transform MongoDB document to include id field
+ */
+function transformSchool(school: any) {
+  if (!school) return school;
+  
+  const transformed = school.toObject ? school.toObject() : school;
+  return {
+    ...transformed,
+    id: transformed._id?.toString()
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -19,7 +32,7 @@ export async function GET(
       return NextResponse.json({ error: 'School not found' }, { status: 404 });
     }
     
-    return NextResponse.json(school);
+    return NextResponse.json(transformSchool(school));
   } catch (error) {
     console.error('Error fetching school:', error);
     return NextResponse.json(
@@ -52,7 +65,7 @@ export async function PUT(
       return NextResponse.json({ error: 'School not found' }, { status: 404 });
     }
     
-    return NextResponse.json(school);
+    return NextResponse.json(transformSchool(school));
   } catch (error) {
     console.error('Error updating school:', error);
     
