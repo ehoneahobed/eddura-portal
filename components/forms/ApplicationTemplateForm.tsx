@@ -21,7 +21,8 @@ import {
   FileText,
   Calendar,
   Clock,
-  Save
+  Save,
+  Award
 } from 'lucide-react';
 import { 
   ApplicationTemplate, 
@@ -43,13 +44,15 @@ import {
 } from '@/hooks/use-application-templates';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { toast } from 'sonner';
+import SearchableScholarshipSelect from '@/components/ui/searchable-scholarship-select';
 
 interface ApplicationTemplateFormProps {
   template?: ApplicationTemplate;
-  scholarshipId: string;
+  scholarshipId?: string;
   onSubmit: (data: Partial<ApplicationTemplate>) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  allowScholarshipChange?: boolean;
 }
 
 const questionTypes: { value: QuestionType; label: string; description: string }[] = [
@@ -85,7 +88,8 @@ export default function ApplicationTemplateForm({
   scholarshipId, 
   onSubmit, 
   onCancel, 
-  isLoading 
+  isLoading,
+  allowScholarshipChange
 }: ApplicationTemplateFormProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
@@ -746,6 +750,30 @@ export default function ApplicationTemplateForm({
           </DragDropContext>
         </CardContent>
       </Card>
+
+      {/* Scholarship Selector */}
+      {allowScholarshipChange && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              Scholarship
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>Scholarship *</Label>
+              <SearchableScholarshipSelect
+                value={scholarshipId || ''}
+                onValueChange={(value: string) => {
+                  setValue('scholarshipId', value);
+                }}
+                placeholder="Select a scholarship for this template"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Form Actions */}
       <div className="flex items-center justify-end gap-4">

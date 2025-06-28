@@ -98,6 +98,7 @@ export default function EditApplicationTemplatePage({ params }: EditApplicationT
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={isUpdating}
+        allowScholarshipChange={true}
       />
     </div>
   );
