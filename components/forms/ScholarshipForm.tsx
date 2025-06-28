@@ -142,10 +142,24 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
   };
 
   const handleFormSubmit = (data: Scholarship) => {
+    // Validate required fields that aren't handled by react-hook-form
+    if (!selectedFrequency) {
+      // Don't submit if frequency is not selected
+      return;
+    }
+
+    if (watchedCoverage.length === 0) {
+      // Don't submit if no coverage items
+      return;
+    }
+
     // Convert value to appropriate type
     let processedValue: number | string | undefined = data.value;
     if (valueType === 'number' && typeof data.value === 'string') {
       processedValue = data.value ? parseFloat(data.value) : undefined;
+    } else if (typeof data.value === 'string' && data.value.trim() === '') {
+      // Convert empty strings to undefined for optional field
+      processedValue = undefined;
     }
     
     onSubmit({
@@ -157,6 +171,13 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
 
   // Get country options from country-list
   const countryOptions = getCountryNames();
+
+  // Handle value type switching
+  const handleValueTypeChange = (newType: 'number' | 'text') => {
+    setValueType(newType);
+    // Clear the value when switching types to avoid confusion
+    setValue('value', '');
+  };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
@@ -218,21 +239,20 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="value">Value</Label>
+              <Label htmlFor="value">Value (Optional)</Label>
               <div className="flex space-x-2">
                 <div className="flex-1">
                   <Input
                     id="value"
                     type={valueType}
                     {...register('value', { 
-                      valueAsNumber: valueType === 'number',
-                      min: valueType === 'number' ? 0 : undefined
+                      valueAsNumber: valueType === 'number'
                     })}
                     placeholder={valueType === 'number' ? '0' : 'e.g., Full coverage, Variable, $10,000'}
                     className="h-11"
                   />
                 </div>
-                <Select value={valueType} onValueChange={(val: 'number' | 'text') => setValueType(val)}>
+                <Select value={valueType} onValueChange={(val: 'number' | 'text') => handleValueTypeChange(val)}>
                   <SelectTrigger className="w-24 h-11">
                     <SelectValue />
                   </SelectTrigger>
@@ -288,6 +308,9 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
                   <SelectItem value="Full Duration">Full Duration</SelectItem>
                 </SelectContent>
               </Select>
+              {!selectedFrequency && (
+                <p className="text-sm text-red-600">Frequency is required</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -319,7 +342,13 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               <Label htmlFor="applicationLink">Application Link *</Label>
               <Input
                 id="applicationLink"
-                {...register('applicationLink', { required: 'Application link is required' })}
+                {...register('applicationLink', { 
+                  required: 'Application link is required',
+                  pattern: {
+                    value: /^https?:\/\/.+/,
+                    message: 'Please enter a valid URL starting with http:// or https://'
+                  }
+                })}
                 placeholder="https://example.com/apply"
                 className="h-11"
               />
@@ -334,11 +363,11 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
       {/* Coverage */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">Coverage & Benefits</CardTitle>
+          <CardTitle className="text-lg font-semibold text-gray-900">Coverage & Benefits *</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Coverage</Label>
+            <Label className="text-sm font-medium">Coverage *</Label>
             <div className="flex space-x-2">
               <Input
                 value={newCoverage}
@@ -372,6 +401,9 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
                 </Badge>
               ))}
             </div>
+            {watchedCoverage.length === 0 && (
+              <p className="text-sm text-red-600">At least one coverage item is required</p>
+            )}
           </div>
         </CardContent>
       </Card>

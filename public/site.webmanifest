@@ -1,0 +1,25 @@
+{
+  "name": "Eddura - Educational Management Platform",
+  "short_name": "Eddura",
+  "description": "Comprehensive platform for managing schools, programs, and scholarships",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "productivity", "business"],
+  "lang": "en",
+  "dir": "ltr"
+} 

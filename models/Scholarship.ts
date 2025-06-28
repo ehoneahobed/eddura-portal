@@ -69,13 +69,13 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
       type: Schema.Types.Mixed,
       validate: {
         validator: function(value: any) {
-          // Allow undefined, null, number, or string
-          if (value === undefined || value === null) return true;
+          // Allow undefined, null, empty string, number, or non-empty string
+          if (value === undefined || value === null || value === '') return true;
           if (typeof value === 'number') return value >= 0;
-          if (typeof value === 'string') return value.trim().length > 0;
+          if (typeof value === 'string') return true; // Allow any string, including empty
           return false;
         },
-        message: 'Value must be a non-negative number or a non-empty string'
+        message: 'Value must be a non-negative number or a string'
       }
     },
     currency: { type: String, trim: true, uppercase: true },
