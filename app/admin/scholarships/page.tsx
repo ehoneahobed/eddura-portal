@@ -1,98 +1,61 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Scholarship } from '@/types';
+import { useScholarships } from '@/hooks/use-scholarships';
 import { Search, Plus, Edit, Trash2, Calendar, DollarSign, ExternalLink, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination';
-
-interface PaginationData {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-  limit: number;
-}
+import { useDebounce } from '@/hooks/use-debounce';
 
 export default function ScholarshipsPage() {
-  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('all');
   const [selectedFrequency, setSelectedFrequency] = useState('all');
   const [selectedDegreeLevel, setSelectedDegreeLevel] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState<PaginationData>({
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-    limit: 12
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const { toast } = useToast();
 
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page when search changes
-      fetchScholarships();
-    }, 300);
+  // Use SWR hook for scholarships data
+  const { scholarships, pagination, isLoading, isError, mutate } = useScholarships({
+    page: currentPage,
+    limit: 12,
+    search: debouncedSearch,
+    provider: selectedProvider !== 'all' ? selectedProvider : undefined,
+    frequency: selectedFrequency !== 'all' ? 
+      (selectedFrequency === 'One-time' ? 'one-time' : 
+       selectedFrequency === 'Annual' ? 'annual' : 
+       selectedFrequency === 'Full Duration' ? 'other' : 'other') : undefined,
+    sortBy: 'title',
+    sortOrder: 'asc'
+  });
 
-    return () => clearTimeout(timer);
-  }, [searchTerm, selectedProvider, selectedFrequency, selectedDegreeLevel]);
+  // Handle search and filter changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
-  // Fetch scholarships when page changes
-  useEffect(() => {
-    fetchScholarships();
-  }, [currentPage]);
+  const handleProviderChange = (value: string) => {
+    setSelectedProvider(value);
+    setCurrentPage(1);
+  };
 
-  const fetchScholarships = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '12',
-        search: searchTerm,
-        provider: selectedProvider,
-        frequency: selectedFrequency,
-        degreeLevel: selectedDegreeLevel
-      });
+  const handleFrequencyChange = (value: string) => {
+    setSelectedFrequency(value);
+    setCurrentPage(1);
+  };
 
-      const response = await fetch(`/api/scholarships?${params}`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        setScholarships(data.scholarships || []);
-        setPagination(data.pagination || {
-          currentPage: 1,
-          totalPages: 1,
-          totalCount: 0,
-          hasNextPage: false,
-          hasPrevPage: false,
-          limit: 12
-        });
-      } else {
-        throw new Error(data.error || 'Failed to fetch scholarships');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch scholarships',
-        variant: 'destructive'
-      });
-      console.error('Error fetching scholarships:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, searchTerm, selectedProvider, selectedFrequency, selectedDegreeLevel, toast]);
+  const handleDegreeLevelChange = (value: string) => {
+    setSelectedDegreeLevel(value);
+    setCurrentPage(1);
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this scholarship?')) return;
@@ -107,7 +70,7 @@ export default function ScholarshipsPage() {
           title: 'Success',
           description: 'Scholarship deleted successfully'
         });
-        fetchScholarships(); // Refresh current page
+        mutate(); // Refresh data using SWR
       } else {
         throw new Error('Failed to delete scholarship');
       }
@@ -132,6 +95,18 @@ export default function ScholarshipsPage() {
     setCurrentPage(page);
   };
 
+  // Handle error state
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load scholarships</p>
+          <Button onClick={() => mutate()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -149,7 +124,7 @@ export default function ScholarshipsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-2">
-        <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+        <Select value={selectedProvider} onValueChange={handleProviderChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by Provider" />
           </SelectTrigger>
@@ -161,7 +136,7 @@ export default function ScholarshipsPage() {
             <SelectItem value="Foundation">Foundation</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={selectedFrequency} onValueChange={setSelectedFrequency}>
+        <Select value={selectedFrequency} onValueChange={handleFrequencyChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by Frequency" />
           </SelectTrigger>
@@ -172,7 +147,7 @@ export default function ScholarshipsPage() {
             <SelectItem value="Full Duration">Full Duration</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={selectedDegreeLevel} onValueChange={setSelectedDegreeLevel}>
+        <Select value={selectedDegreeLevel} onValueChange={handleDegreeLevelChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by Degree Level" />
           </SelectTrigger>
@@ -192,7 +167,7 @@ export default function ScholarshipsPage() {
         <Input
           placeholder="Search scholarships by title, provider, or tags..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-10"
         />
       </div>
@@ -238,12 +213,7 @@ export default function ScholarshipsPage() {
                         {scholarship.provider}
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline">{scholarship.frequency}</Badge>
-                        {scholarship.numberOfAwardsPerYear && (
-                          <Badge variant="secondary">
-                            {scholarship.numberOfAwardsPerYear} awards/year
-                          </Badge>
-                        )}
+                        <Badge variant="secondary">{scholarship.frequency}</Badge>
                       </div>
                     </div>
                     <div className="flex space-x-1 z-10" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
@@ -255,7 +225,11 @@ export default function ScholarshipsPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={e => { e.stopPropagation(); handleDelete(scholarship.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(scholarship.id);
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -264,71 +238,34 @@ export default function ScholarshipsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      {scholarship.value ? (
-                        typeof scholarship.value === 'number' 
-                          ? `${scholarship.value.toLocaleString()} ${scholarship.currency || ''}`
-                          : scholarship.value
-                      ) : 'Value not specified'}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Value:</span>
+                      <div className="flex items-center">
+                        <DollarSign className="h-4 w-4 mr-1 text-gray-400" />
+                        <span>
+                          {scholarship.value ? (
+                            typeof scholarship.value === 'number' 
+                              ? `${scholarship.currency || 'USD'} ${scholarship.value.toLocaleString()}`
+                              : scholarship.value
+                          ) : 'Variable'}
+                        </span>
+                      </div>
                     </div>
-
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Deadline: {formatDate(scholarship.deadline)}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Deadline:</span>
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                        <span>{formatDate(scholarship.deadline)}</span>
+                      </div>
                     </div>
-
-                    {scholarship.coverage.length > 0 && (
-                      <div>
-                        <div className="text-sm font-medium text-gray-700 mb-1">Coverage:</div>
-                        <div className="flex flex-wrap gap-1">
-                          {scholarship.coverage.slice(0, 2).map((item, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {item}
-                            </Badge>
-                          ))}
-                          {scholarship.coverage.length > 2 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{scholarship.coverage.length - 2} more
-                            </Badge>
-                          )}
-                        </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Application:</span>
+                      <div className="flex items-center">
+                        <ExternalLink className="h-4 w-4 mr-1 text-gray-400" />
+                        <span className="text-blue-600 hover:underline">
+                          {scholarship.applicationLink ? 'External Link' : 'Internal'}
+                        </span>
                       </div>
-                    )}
-
-                    {scholarship.linkedSchool && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">School:</span> {scholarship.linkedSchool}
-                      </div>
-                    )}
-
-                    {scholarship.tags && scholarship.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {scholarship.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {scholarship.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{scholarship.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="pt-2">
-                      <a
-                        href={scholarship.applicationLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-                        onClick={e => e.stopPropagation()}
-                        tabIndex={-1}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        Apply
-                      </a>
                     </div>
                   </div>
                 </CardContent>
@@ -341,19 +278,20 @@ export default function ScholarshipsPage() {
       {/* Empty State */}
       {!isLoading && scholarships.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-500 text-lg">No scholarships found</div>
-          <div className="text-gray-400 text-sm mt-1">
-            {searchTerm || selectedProvider !== 'all' || selectedFrequency !== 'all' || selectedDegreeLevel !== 'all'
-              ? 'Try adjusting your search terms or filters' 
-              : 'Create your first scholarship to get started'
-            }
+          <div className="text-gray-500 mb-4">
+            <ExternalLink className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">No scholarships found</p>
+            <p className="text-sm">Try adjusting your search criteria or add a new scholarship.</p>
           </div>
+          <Link href="/admin/scholarships/create">
+            <Button>Add First Scholarship</Button>
+          </Link>
         </div>
       )}
 
       {/* Pagination */}
       {!isLoading && pagination.totalPages > 1 && (
-        <div className="mt-8">
+        <div className="flex justify-center">
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}

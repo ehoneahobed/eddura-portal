@@ -1,91 +1,37 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { School } from '@/types';
+import { useSchools } from '@/hooks/use-schools';
 import { Search, Plus, Edit, Trash2, Globe, MapPin, Users, Loader2 } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
-
-interface PaginationData {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-  limit: number;
-}
+import { useDebounce } from '@/hooks/use-debounce';
 
 export default function SchoolsPage() {
-  const [schools, setSchools] = useState<School[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState<PaginationData>({
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-    limit: 12
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const { toast } = useToast();
 
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page when search changes
-      fetchSchools();
-    }, 300);
+  // Use SWR hook for schools data
+  const { schools, pagination, isLoading, isError, mutate } = useSchools({
+    page: currentPage,
+    limit: 12,
+    search: debouncedSearch,
+    sortBy: 'name',
+    sortOrder: 'asc'
+  });
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  // Fetch schools when page changes
-  useEffect(() => {
-    fetchSchools();
-  }, [currentPage]);
-
-  const fetchSchools = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '12',
-        search: searchTerm
-      });
-
-      const response = await fetch(`/api/schools?${params}`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        setSchools(data.schools || []);
-        setPagination(data.pagination || {
-          currentPage: 1,
-          totalPages: 1,
-          totalCount: 0,
-          hasNextPage: false,
-          hasPrevPage: false,
-          limit: 12
-        });
-      } else {
-        throw new Error(data.error || 'Failed to fetch schools');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch schools',
-        variant: 'destructive'
-      });
-      console.error('Error fetching schools:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, searchTerm, toast]);
+  // Handle search change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when search changes
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this school?')) return;
@@ -100,7 +46,7 @@ export default function SchoolsPage() {
           title: 'Success',
           description: 'School deleted successfully'
         });
-        fetchSchools(); // Refresh current page
+        mutate(); // Refresh data using SWR
       } else {
         throw new Error('Failed to delete school');
       }
@@ -116,6 +62,18 @@ export default function SchoolsPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  // Handle error state
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load schools</p>
+          <Button onClick={() => mutate()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -138,7 +96,7 @@ export default function SchoolsPage() {
         <Input
           placeholder="Search schools by name, country, or city..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-10"
         />
       </div>
@@ -199,7 +157,11 @@ export default function SchoolsPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={e => { e.stopPropagation(); handleDelete(school.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(school.id);
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -208,47 +170,23 @@ export default function SchoolsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex flex-wrap gap-1">
-                      {school.types.slice(0, 2).map((type, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {type}
-                        </Badge>
-                      ))}
-                      {school.types.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{school.types.length - 2} more
-                        </Badge>
-                      )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Type:</span>
+                      <Badge variant="secondary">{school.types[0] || 'N/A'}</Badge>
                     </div>
-
-                    {school.yearFounded && (
-                      <div className="text-sm text-gray-600">
-                        Founded: {school.yearFounded}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Website:</span>
+                      <div className="flex items-center">
+                        <Globe className="h-4 w-4 mr-1 text-gray-400" />
+                        <span className="text-blue-600 hover:underline">
+                          {school.websiteUrl ? new URL(school.websiteUrl).hostname : 'N/A'}
+                        </span>
                       </div>
-                    )}
-
-                    {school.internationalStudentCount && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="h-4 w-4 mr-1" />
-                        {school.internationalStudentCount.toLocaleString()} international students
-                      </div>
-                    )}
-
-                    {school.websiteUrl && (
-                      <div className="flex items-center text-sm text-blue-600">
-                        <Globe className="h-4 w-4 mr-1" />
-                        <a
-                          href={school.websiteUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:underline"
-                          onClick={e => e.stopPropagation()}
-                          tabIndex={-1}
-                        >
-                          Visit Website
-                        </a>
-                      </div>
-                    )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Established:</span>
+                      <span>{school.yearFounded || 'N/A'}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -260,16 +198,20 @@ export default function SchoolsPage() {
       {/* Empty State */}
       {!isLoading && schools.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-500 text-lg">No schools found</div>
-          <div className="text-gray-400 text-sm mt-1">
-            {searchTerm ? 'Try adjusting your search terms' : 'Create your first school to get started'}
+          <div className="text-gray-500 mb-4">
+            <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">No schools found</p>
+            <p className="text-sm">Try adjusting your search criteria or add a new school.</p>
           </div>
+          <Link href="/admin/schools/create">
+            <Button>Add First School</Button>
+          </Link>
         </div>
       )}
 
       {/* Pagination */}
       {!isLoading && pagination.totalPages > 1 && (
-        <div className="mt-8">
+        <div className="flex justify-center">
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}

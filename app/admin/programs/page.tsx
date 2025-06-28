@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Program, School } from '@/types';
+import { usePrograms } from '@/hooks/use-programs';
+import { useSchoolsList } from '@/hooks/use-schools';
 import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination';
+import { useDebounce } from '@/hooks/use-debounce';
 
 // Helper to get currency symbol from code
 const getCurrencySymbol = (code: string) => {
@@ -30,113 +32,54 @@ const getCurrencySymbol = (code: string) => {
   }
 };
 
-interface PaginationData {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-  limit: number;
-}
-
 export default function ProgramsPage() {
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [schools, setSchools] = useState<School[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedDegreeType, setSelectedDegreeType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState<PaginationData>({
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-    limit: 12
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const { toast } = useToast();
 
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page when search changes
-      fetchPrograms();
-    }, 300);
+  // Use SWR hooks for data
+  const { programs, pagination, isLoading, isError, mutate } = usePrograms({
+    page: currentPage,
+    limit: 12,
+    search: debouncedSearch,
+    schoolId: selectedSchool !== 'all' ? selectedSchool : undefined,
+    degreeType: selectedDegreeType !== 'all' ? selectedDegreeType : undefined,
+    sortBy: 'name',
+    sortOrder: 'asc'
+  });
 
-    return () => clearTimeout(timer);
-  }, [searchTerm, selectedSchool, selectedLevel, selectedDegreeType]);
+  const { schools } = useSchoolsList();
 
-  // Fetch programs when page changes
-  useEffect(() => {
-    fetchPrograms();
-  }, [currentPage]);
+  // Handle search and filter changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
-  const fetchPrograms = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '12',
-        search: searchTerm,
-        school: selectedSchool,
-        level: selectedLevel,
-        degreeType: selectedDegreeType
-      });
+  const handleSchoolChange = (value: string) => {
+    setSelectedSchool(value);
+    setCurrentPage(1);
+  };
 
-      const response = await fetch(`/api/programs?${params}`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        setPrograms(data.programs || []);
-        setPagination(data.pagination || {
-          currentPage: 1,
-          totalPages: 1,
-          totalCount: 0,
-          hasNextPage: false,
-          hasPrevPage: false,
-          limit: 12
-        });
-      } else {
-        throw new Error(data.error || 'Failed to fetch programs');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch programs',
-        variant: 'destructive'
-      });
-      console.error('Error fetching programs:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, searchTerm, selectedSchool, selectedLevel, selectedDegreeType, toast]);
+  const handleLevelChange = (value: string) => {
+    setSelectedLevel(value);
+    setCurrentPage(1);
+  };
 
-  useEffect(() => {
-    fetchSchools();
-  }, []);
-
-  const fetchSchools = async () => {
-    try {
-      const response = await fetch('/api/schools');
-      const data = await response.json();
-      // Ensure each school has an 'id' property (from 'id' or '_id')
-      const schoolsWithId: School[] = data.map((school: any) => ({
-        ...school,
-        id: school.id || school._id,
-      }));
-      setSchools(schoolsWithId);
-    } catch (error) {
-      console.error('Error fetching schools:', error);
-    }
+  const handleDegreeTypeChange = (value: string) => {
+    setSelectedDegreeType(value);
+    setCurrentPage(1);
   };
 
   const getSchoolName = (schoolId: any) => {
     if (typeof schoolId === 'object' && schoolId !== null && 'name' in schoolId) {
       return schoolId.name || 'Unknown School';
     }
-    const school = schools.find(s => s.id === schoolId);
+    const school = schools.find((s: any) => s.id === schoolId);
     return school?.name || 'Unknown School';
   };
 
@@ -153,7 +96,7 @@ export default function ProgramsPage() {
           title: 'Success',
           description: 'Program deleted successfully'
         });
-        fetchPrograms(); // Refresh current page
+        mutate(); // Refresh data using SWR
       } else {
         throw new Error('Failed to delete program');
       }
@@ -169,6 +112,18 @@ export default function ProgramsPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  // Handle error state
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load programs</p>
+          <Button onClick={() => mutate()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -187,18 +142,19 @@ export default function ProgramsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-2">
-        <Select value={selectedSchool} onValueChange={setSelectedSchool}>
+        <Select value={selectedSchool} onValueChange={handleSchoolChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by School" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Schools</SelectItem>
-            {(schools as any[]).map((school, idx) => (
+            {schools.map((school: any) => (
               <SelectItem key={school.id} value={school.id}>{school.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+
+        <Select value={selectedLevel} onValueChange={handleLevelChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by Level" />
           </SelectTrigger>
@@ -208,7 +164,8 @@ export default function ProgramsPage() {
             <SelectItem value="Postgraduate">Postgraduate</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={selectedDegreeType} onValueChange={setSelectedDegreeType}>
+
+        <Select value={selectedDegreeType} onValueChange={handleDegreeTypeChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by Degree Type" />
           </SelectTrigger>
@@ -229,9 +186,9 @@ export default function ProgramsPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
-          placeholder="Search programs by name, field, or degree type..."
+          placeholder="Search programs by name, field of study, or school..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-10"
         />
       </div>
@@ -277,8 +234,8 @@ export default function ProgramsPage() {
                         {getSchoolName(program.schoolId)}
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline">{program.degreeType}</Badge>
-                        <Badge variant="secondary">{program.mode}</Badge>
+                        <Badge variant="secondary">{program.degreeType}</Badge>
+                        <Badge variant="outline">{program.programLevel}</Badge>
                       </div>
                     </div>
                     <div className="flex space-x-1 z-10" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
@@ -290,7 +247,11 @@ export default function ProgramsPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={e => { e.stopPropagation(); handleDelete(program.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(program.id);
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -299,43 +260,31 @@ export default function ProgramsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-gray-700">{program.fieldOfStudy}</div>
-                      {program.subfield && (
-                        <div className="text-sm text-gray-500">{program.subfield}</div>
-                      )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Field:</span>
+                      <span className="font-medium">{program.fieldOfStudy}</span>
                     </div>
-
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {program.duration}
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="mr-1 font-bold">{getCurrencySymbol(program.tuitionFees.currency)}</span>
-                      {program.tuitionFees.international.toLocaleString()} {program.tuitionFees.currency}
-                      <span className="text-xs text-gray-500 ml-1">(International)</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {program.languages.slice(0, 2).map((language, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          <Globe className="h-3 w-3 mr-1" />
-                          {language}
-                        </Badge>
-                      ))}
-                      {program.languages.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{program.languages.length - 2} more
-                        </Badge>
-                      )}
-                    </div>
-
-                    {program.programSummary && (
-                      <div className="text-sm text-gray-600 line-clamp-2">
-                        {program.programSummary}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Duration:</span>
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1 text-gray-400" />
+                        <span>{program.duration}</span>
                       </div>
-                    )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Tuition (Int&apos;l):</span>
+                      <div className="flex items-center">
+                        <DollarSign className="h-4 w-4 mr-1 text-gray-400" />
+                        <span>
+                          {getCurrencySymbol(program.tuitionFees.currency)}
+                          {program.tuitionFees.international.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Mode:</span>
+                      <Badge variant="outline" className="text-xs">{program.mode}</Badge>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -347,19 +296,20 @@ export default function ProgramsPage() {
       {/* Empty State */}
       {!isLoading && programs.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-500 text-lg">No programs found</div>
-          <div className="text-gray-400 text-sm mt-1">
-            {searchTerm || selectedSchool !== 'all' || selectedLevel !== 'all' || selectedDegreeType !== 'all' 
-              ? 'Try adjusting your search terms or filters' 
-              : 'Create your first program to get started'
-            }
+          <div className="text-gray-500 mb-4">
+            <Globe className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">No programs found</p>
+            <p className="text-sm">Try adjusting your search criteria or add a new program.</p>
           </div>
+          <Link href="/admin/programs/create">
+            <Button>Add First Program</Button>
+          </Link>
         </div>
       )}
 
       {/* Pagination */}
       {!isLoading && pagination.totalPages > 1 && (
-        <div className="mt-8">
+        <div className="flex justify-center">
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
