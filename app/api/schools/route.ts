@@ -2,11 +2,54 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import School from '@/models/School';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    const schools = await School.find({}).sort({ createdAt: -1 });
-    return NextResponse.json(schools);
+    
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const search = searchParams.get('search') || '';
+    
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+    
+    // Build filter object
+    const filter: any = {};
+    
+    // Search filter
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { country: { $regex: search, $options: 'i' } },
+        { city: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Get total count for pagination
+    const totalCount = await School.countDocuments(filter);
+    
+    // Get paginated schools
+    const schools = await School.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    return NextResponse.json({
+      schools,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+        limit
+      }
+    });
   } catch (error) {
     console.error('Error fetching schools:', error);
     return NextResponse.json(

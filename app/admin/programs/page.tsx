@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Program, School } from '@/types';
-import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination } from '@/components/ui/pagination';
 
 // Helper to get currency symbol from code
 const getCurrencySymbol = (code: string) => {
@@ -29,53 +30,92 @@ const getCurrencySymbol = (code: string) => {
   }
 };
 
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  limit: number;
+}
+
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [schools, setSchools] = useState<School[]>([]);
-  const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedDegreeType, setSelectedDegreeType] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 12
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to first page when search changes
+      fetchPrograms();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, selectedSchool, selectedLevel, selectedDegreeType]);
+
+  // Fetch programs when page changes
+  useEffect(() => {
+    fetchPrograms();
+  }, [currentPage]);
+
   const fetchPrograms = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/programs');
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '12',
+        search: searchTerm,
+        school: selectedSchool,
+        level: selectedLevel,
+        degreeType: selectedDegreeType
+      });
+
+      const response = await fetch(`/api/programs?${params}`);
       const data = await response.json();
-      setPrograms(data);
+      
+      if (response.ok) {
+        setPrograms(data.programs || []);
+        setPagination(data.pagination || {
+          currentPage: 1,
+          totalPages: 1,
+          totalCount: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+          limit: 12
+        });
+      } else {
+        throw new Error(data.error || 'Failed to fetch programs');
+      }
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch programs',
         variant: 'destructive'
       });
+      console.error('Error fetching programs:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [toast]);
+  }, [currentPage, searchTerm, selectedSchool, selectedLevel, selectedDegreeType, toast]);
 
   useEffect(() => {
-    fetchPrograms();
     fetchSchools();
-  }, [fetchPrograms]);
-
-  useEffect(() => {
-    const filtered = programs.filter(program => {
-      const matchesSearch =
-        program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        program.fieldOfStudy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        program.degreeType.toLowerCase().includes(searchTerm.toLowerCase());
-      console.log('program.schoolId:', program.schoolId, 'selectedSchool:', selectedSchool);
-      const matchesSchool =
-        selectedSchool === 'all' ||
-        (typeof program.schoolId === 'object' && program.schoolId !== null
-          ? ((program.schoolId as { id?: string; _id?: string }).id || (program.schoolId as { id?: string; _id?: string })._id) === selectedSchool
-          : program.schoolId === selectedSchool);
-      const matchesLevel = selectedLevel === 'all' || program.programLevel === selectedLevel;
-      const matchesDegreeType = selectedDegreeType === 'all' || program.degreeType === selectedDegreeType;
-      return matchesSearch && matchesSchool && matchesLevel && matchesDegreeType;
-    });
-    setFilteredPrograms(filtered);
-  }, [programs, searchTerm, selectedSchool, selectedLevel, selectedDegreeType]);
+  }, []);
 
   const fetchSchools = async () => {
     try {
@@ -113,7 +153,7 @@ export default function ProgramsPage() {
           title: 'Success',
           description: 'Program deleted successfully'
         });
-        fetchPrograms();
+        fetchPrograms(); // Refresh current page
       } else {
         throw new Error('Failed to delete program');
       }
@@ -124,6 +164,10 @@ export default function ProgramsPage() {
         variant: 'destructive'
       });
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -192,99 +236,135 @@ export default function ProgramsPage() {
         />
       </div>
 
-      {/* Programs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPrograms.map((program) => (
-          <Link
-            key={program.id}
-            href={`/admin/programs/${program.id}`}
-            className="block group focus:outline-none"
-            aria-label={`View details for ${program.name}`}
-          >
-            <Card
-              className="hover:shadow-lg transition-shadow cursor-pointer group-focus:ring-2 group-focus:ring-blue-500 relative"
-              tabIndex={0}
-            >
-              <CardHeader className="pb-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2 group-hover:underline group-focus:underline">{program.name}</CardTitle>
-                    <div className="text-sm text-gray-600 mb-2">
-                      {getSchoolName(program.schoolId)}
-                    </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline">{program.degreeType}</Badge>
-                      <Badge variant="secondary">{program.mode}</Badge>
-                    </div>
-                  </div>
-                  <div className="flex space-x-1 z-10" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
-                    <Link href={`/admin/programs/${program.id}/edit`} tabIndex={-1} legacyBehavior>
-                      <Button size="sm" variant="ghost" onClick={e => e.stopPropagation()}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={e => { e.stopPropagation(); handleDelete(program.id); }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-sm font-medium text-gray-700">{program.fieldOfStudy}</div>
-                    {program.subfield && (
-                      <div className="text-sm text-gray-500">{program.subfield}</div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {program.duration}
-                  </div>
-
-                  <div className="flex items-center text-sm text-gray-600">
-                    <span className="mr-1 font-bold">{getCurrencySymbol(program.tuitionFees.currency)}</span>
-                    {program.tuitionFees.international.toLocaleString()} {program.tuitionFees.currency}
-                    <span className="text-xs text-gray-500 ml-1">(International)</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1">
-                    {program.languages.slice(0, 2).map((language, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        <Globe className="h-3 w-3 mr-1" />
-                        {language}
-                      </Badge>
-                    ))}
-                    {program.languages.length > 2 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{program.languages.length - 2} more
-                      </Badge>
-                    )}
-                  </div>
-
-                  {program.programSummary && (
-                    <div className="text-sm text-gray-600 line-clamp-2">
-                      {program.programSummary}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+      {/* Results Info */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{' '}
+          {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of{' '}
+          {pagination.totalCount} programs
+        </div>
       </div>
 
-      {filteredPrograms.length === 0 && (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading programs...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Programs Grid */}
+      {!isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {programs.map((program) => (
+            <Link
+              key={program.id}
+              href={`/admin/programs/${program.id}`}
+              className="block group focus:outline-none"
+              aria-label={`View details for ${program.name}`}
+            >
+              <Card
+                className="hover:shadow-lg transition-shadow cursor-pointer group-focus:ring-2 group-focus:ring-blue-500 relative"
+                tabIndex={0}
+              >
+                <CardHeader className="pb-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg mb-2 group-hover:underline group-focus:underline">{program.name}</CardTitle>
+                      <div className="text-sm text-gray-600 mb-2">
+                        {getSchoolName(program.schoolId)}
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="outline">{program.degreeType}</Badge>
+                        <Badge variant="secondary">{program.mode}</Badge>
+                      </div>
+                    </div>
+                    <div className="flex space-x-1 z-10" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+                      <Link href={`/admin/programs/${program.id}/edit`} tabIndex={-1} legacyBehavior>
+                        <Button size="sm" variant="ghost" onClick={e => e.stopPropagation()}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={e => { e.stopPropagation(); handleDelete(program.id); }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">{program.fieldOfStudy}</div>
+                      {program.subfield && (
+                        <div className="text-sm text-gray-500">{program.subfield}</div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {program.duration}
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-600">
+                      <span className="mr-1 font-bold">{getCurrencySymbol(program.tuitionFees.currency)}</span>
+                      {program.tuitionFees.international.toLocaleString()} {program.tuitionFees.currency}
+                      <span className="text-xs text-gray-500 ml-1">(International)</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1">
+                      {program.languages.slice(0, 2).map((language, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          <Globe className="h-3 w-3 mr-1" />
+                          {language}
+                        </Badge>
+                      ))}
+                      {program.languages.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{program.languages.length - 2} more
+                        </Badge>
+                      )}
+                    </div>
+
+                    {program.programSummary && (
+                      <div className="text-sm text-gray-600 line-clamp-2">
+                        {program.programSummary}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && programs.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-500 text-lg">No programs found</div>
           <div className="text-gray-400 text-sm mt-1">
-            {searchTerm ? 'Try adjusting your search terms' : 'Create your first program to get started'.replace("'", "&apos;")}
+            {searchTerm || selectedSchool !== 'all' || selectedLevel !== 'all' || selectedDegreeType !== 'all' 
+              ? 'Try adjusting your search terms or filters' 
+              : 'Create your first program to get started'
+            }
           </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && pagination.totalPages > 1 && (
+        <div className="mt-8">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </div>
