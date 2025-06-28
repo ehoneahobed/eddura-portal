@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Hero } from './Hero';
+import { ComingSoon } from './ComingSoon';
+import { config } from '@/lib/config';
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -48,6 +50,11 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // If not launched, show coming soon page
+  if (!config.isLaunched) {
+    return <ComingSoon />;
+  }
+
   const features = [
     {
       icon: Brain,
@@ -73,7 +80,7 @@ export default function LandingPage() {
     {
       icon: Network,
       title: 'Global Opportunity Network',
-      description: 'Connect with 50+ partner universities and 1000+ scholarship opportunities worldwide.',
+      description: 'Connect with 50+ universities and 1000+ scholarship opportunities worldwide.',
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     },
@@ -96,7 +103,7 @@ export default function LandingPage() {
   const stats = [
     { number: '95%', label: 'Success Rate', icon: TrendingUp, color: 'text-[#007fbd]' },
     { number: '10x', label: 'Faster Applications', icon: Zap, color: 'text-[#007fbd]' },
-    { number: '50+', label: 'Partner Universities', icon: Globe, color: 'text-[#007fbd]' },
+    { number: '50+', label: 'Universities', icon: Globe, color: 'text-[#007fbd]' },
     { number: '1000+', label: 'Scholarships Available', icon: Award, color: 'text-[#007fbd]' }
   ];
 

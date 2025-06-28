@@ -68,6 +68,10 @@
    
    Configure your environment variables:
    ```env
+   # Launch Status - Set to 'true' when ready to launch, 'false' for coming soon page
+   NEXT_PUBLIC_LAUNCHED=false
+   
+   # Database Configuration
    MONGODB_URI=your_mongodb_connection_string
    NEXTAUTH_SECRET=your_nextauth_secret
    NEXTAUTH_URL=http://localhost:3000
@@ -148,6 +152,12 @@ Eddura includes comprehensive SEO optimization:
 - Error handling
 - Toast notifications
 - Keyboard navigation
+
+### Launch Management
+- **Coming Soon Page**: Pre-launch landing page with Telegram channel integration
+- **Environment Control**: Toggle between coming soon and full application via `NEXT_PUBLIC_LAUNCHED`
+- **Early Access Collection**: Email signup for pre-launch notifications
+- **Social Integration**: Direct link to [Eddura Official Telegram Channel](https://t.me/edduraofficial)
 
 ## 🚀 Deployment
 
