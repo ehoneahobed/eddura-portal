@@ -161,7 +161,12 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="flex items-center space-x-6">
-              <Link href="#signup">
+              <Link href="/quiz">
+                <Button variant="outline" className="border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300">
+                  Take Quiz
+                </Button>
+              </Link>
+              <Link href="/auth/register">
                 <Button className="bg-[#007fbd] hover:bg-[#004d73] text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                   Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />

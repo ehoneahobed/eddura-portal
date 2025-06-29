@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoveRight } from "lucide-react";
+import { MoveRight, Brain, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
@@ -32,13 +33,14 @@ function Hero() {
     <div className="w-full">
       <div className="container mx-auto">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
-          {/* Optional: Consider if a 'launch article' button is still relevant here.
-              If not, you can remove this div or replace it with a different highlight.
-              For now, keeping it but suggesting a more relevant text. */}
+          {/* Quiz Discovery Badge */}
           <div>
-            <Button variant="secondary" size="sm" className="gap-4 bg-[#dbebfa] hover:bg-[#007fbd] hover:text-white text-[#00334e] border-[#007fbd]/30 transition-all duration-300">
-              Explore Our AI in Action <MoveRight className="w-4 h-4" />
-            </Button>
+            <Link href="/quiz">
+              <Button variant="secondary" size="sm" className="gap-4 bg-[#dbebfa] hover:bg-[#007fbd] hover:text-white text-[#00334e] border-[#007fbd]/30 transition-all duration-300">
+                <Brain className="w-4 h-4" />
+                Take Our Career Discovery Quiz <MoveRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-5xl md:text-7xl max-w-4xl tracking-tighter text-center font-regular text-[#00334e]">
@@ -70,18 +72,29 @@ function Hero() {
             </h1>
 
             <p className="text-lg md:text-xl leading-relaxed tracking-tight text-gray-600 max-w-3xl text-center">
-              Eddura is your <strong className="text-[#00334e]">AI-powered command center</strong> for academic success. Centralize documents, get <strong className="text-[#00334e]">personalized program recommendations</strong>, and craft <strong className="text-[#00334e]">winning essays</strong> for every university and scholarship application.
+              Eddura is your <strong className="text-[#00334e]">AI-powered command center</strong> for academic success. Start with our <strong className="text-[#00334e]">career discovery quiz</strong> to get <strong className="text-[#00334e]">personalized program recommendations</strong>, then craft <strong className="text-[#00334e]">winning applications</strong> for every university and scholarship.
             </p>
           </div>
-          <div className="flex flex-row gap-3">
-            {/* Removed 'Jump on a call' as it's less common for initial sign-ups in this context. */}
-            <Button size="lg" className="gap-4 bg-[#007fbd] hover:bg-[#004d73] text-white border-0 shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105">
-              Get Started for Free <MoveRight className="w-4 h-4" />
-            </Button>
-            {/* Added a secondary CTA for program discovery, aligning with a key feature. */}
-            <Button size="lg" className="gap-4 border-2 border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300" variant="outline">
-              Find Your Perfect Program
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Primary CTA - Start Quiz */}
+            <Link href="/quiz">
+              <Button size="lg" className="gap-4 bg-[#007fbd] hover:bg-[#004d73] text-white border-0 shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105">
+                <Brain className="w-4 h-4" />
+                Start Career Discovery Quiz <MoveRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            {/* Secondary CTA - Register */}
+            <Link href="/auth/register">
+              <Button size="lg" className="gap-4 border-2 border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300" variant="outline">
+                <Users className="w-4 h-4" />
+                Create Account
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Additional Info */}
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p>🎯 Get personalized recommendations in 10 minutes • 📊 No registration required to start</p>
           </div>
         </div>
       </div>
