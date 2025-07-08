@@ -688,8 +688,8 @@ export default function ApplicationTemplateForm({
             <div className="flex items-center space-x-2">
               <Switch
                 id="isActive"
-                {...register('isActive')}
-                defaultChecked={template?.isActive ?? true}
+                checked={watch('isActive') ?? true}
+                onCheckedChange={(checked) => setValue('isActive', checked)}
               />
               <Label htmlFor="isActive">Active Template</Label>
             </div>
@@ -697,8 +697,8 @@ export default function ApplicationTemplateForm({
             <div className="flex items-center space-x-2">
               <Switch
                 id="allowDraftSaving"
-                {...register('allowDraftSaving')}
-                defaultChecked={template?.allowDraftSaving ?? true}
+                checked={watch('allowDraftSaving') ?? true}
+                onCheckedChange={(checked) => setValue('allowDraftSaving', checked)}
               />
               <Label htmlFor="allowDraftSaving">Allow Draft Saving</Label>
             </div>
@@ -706,8 +706,8 @@ export default function ApplicationTemplateForm({
             <div className="flex items-center space-x-2">
               <Switch
                 id="requireEmailVerification"
-                {...register('requireEmailVerification')}
-                defaultChecked={template?.requireEmailVerification ?? false}
+                checked={watch('requireEmailVerification') ?? false}
+                onCheckedChange={(checked) => setValue('requireEmailVerification', checked)}
               />
               <Label htmlFor="requireEmailVerification">Require Email Verification</Label>
             </div>
@@ -715,8 +715,8 @@ export default function ApplicationTemplateForm({
             <div className="flex items-center space-x-2">
               <Switch
                 id="requirePhoneVerification"
-                {...register('requirePhoneVerification')}
-                defaultChecked={template?.requirePhoneVerification ?? false}
+                checked={watch('requirePhoneVerification') ?? false}
+                onCheckedChange={(checked) => setValue('requirePhoneVerification', checked)}
               />
               <Label htmlFor="requirePhoneVerification">Require Phone Verification</Label>
             </div>
@@ -898,8 +898,13 @@ export default function ApplicationTemplateForm({
 
                                           <div className="flex items-center space-x-2">
                                             <Switch
-                                              {...register(`sections.${sectionIndex}.questions.${questionIndex}.required` as const)}
-                                              defaultChecked={question.required ?? false}
+                                              checked={question.required ?? false}
+                                              onCheckedChange={(checked) => {
+                                                const currentSections = getValues('sections') || [];
+                                                const updatedSections = [...currentSections];
+                                                updatedSections[sectionIndex].questions[questionIndex].required = checked;
+                                                updateSections(updatedSections);
+                                              }}
                                             />
                                             <Label>Required</Label>
                                           </div>
