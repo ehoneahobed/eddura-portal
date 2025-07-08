@@ -125,6 +125,16 @@ export default function SearchableScholarshipSelect({
     }
   }, [value, scholarships]);
 
+  // Focus search input when dropdown opens
+  React.useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      // Small delay to ensure the dropdown is rendered
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
   // Save to recent scholarships
   const saveToRecent = React.useCallback((scholarship: Scholarship) => {
     try {
@@ -319,9 +329,9 @@ export default function SearchableScholarshipSelect({
           )}
         </SelectTrigger>
         
-        <SelectContent className="w-full p-0" align="start">
+        <SelectContent className="w-full p-0" align="start" side="bottom" sideOffset={4}>
           {/* Search and Filters */}
-          <div className="sticky top-0 bg-white border-b p-3 space-y-3">
+          <div className="sticky top-0 bg-white border-b p-3 space-y-3 z-50">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -330,7 +340,10 @@ export default function SearchableScholarshipSelect({
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search scholarships by title, provider, or description..."
                 className="pl-10 h-9"
-                onKeyDown={(e) => e.stopPropagation()}
+                onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
+                onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                onFocus={(e: React.FocusEvent) => e.stopPropagation()}
               />
             </div>
             
@@ -411,7 +424,7 @@ export default function SearchableScholarshipSelect({
                 <History className="w-3 h-3" />
                 Recent Selections
               </div>
-              {recentScholarships.map((scholarship) => (
+              {recentScholarships.map((scholarship: Scholarship) => (
                 <div 
                   key={scholarship.id}
                   onClick={() => handleRecentSelect(scholarship)}
@@ -444,7 +457,7 @@ export default function SearchableScholarshipSelect({
                   {pagination.totalCount ? `${scholarships.length} of ${pagination.totalCount} scholarships` : `${scholarships.length} scholarships`}
                 </div>
                 
-                {scholarships.map((scholarship) => (
+                {scholarships.map((scholarship: Scholarship) => (
                   <SelectItem key={scholarship.id} value={scholarship.id} className="p-0 focus:bg-transparent">
                     <div className="w-full" onClick={() => handleValueChange(scholarship.id)}>
                       {renderScholarshipCard(scholarship)}
