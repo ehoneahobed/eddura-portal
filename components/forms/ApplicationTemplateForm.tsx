@@ -360,7 +360,7 @@ export default function ApplicationTemplateForm({
   };
 
   const addQuestion = (sectionIndex: number) => {
-    const currentSections = getValues('sections') || [];
+    const currentSections = watchedSections;
     const section = currentSections[sectionIndex];
     
     if (!section) {
@@ -382,7 +382,7 @@ export default function ApplicationTemplateForm({
   };
 
   const removeQuestion = (sectionIndex: number, questionIndex: number) => {
-    const currentSections = getValues('sections') || [];
+    const currentSections = watchedSections;
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions) {
@@ -406,7 +406,7 @@ export default function ApplicationTemplateForm({
   };
 
   const duplicateQuestion = (sectionIndex: number, questionIndex: number) => {
-    const currentSections = getValues('sections') || [];
+    const currentSections = watchedSections;
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions || !section.questions[questionIndex]) {
@@ -453,7 +453,7 @@ export default function ApplicationTemplateForm({
   };
 
   const addQuestionOption = (sectionIndex: number, questionIndex: number) => {
-    const currentSections = getValues('sections') || [];
+    const currentSections = watchedSections;
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions || !section.questions[questionIndex]) {
@@ -479,7 +479,7 @@ export default function ApplicationTemplateForm({
   };
 
   const removeQuestionOption = (sectionIndex: number, questionIndex: number, optionIndex: number) => {
-    const currentSections = getValues('sections') || [];
+    const currentSections = watchedSections;
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions || !section.questions[questionIndex]) {
