@@ -287,10 +287,7 @@ export default function ApplicationTemplateForm({
     }
   };
 
-  // Helper function to handle required field changes
-  const handleRequiredChange = (sectionIndex: number, questionIndex: number, checked: boolean) => {
-    setValue(`sections.${sectionIndex}.questions.${questionIndex}.required`, checked);
-  };
+
 
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -633,8 +630,8 @@ export default function ApplicationTemplateForm({
 
                                           <div className="flex items-center space-x-2">
                                             <Switch
-                                              checked={question.required}
-                                              onCheckedChange={(checked) => handleRequiredChange(sectionIndex, questionIndex, checked)}
+                                              {...register(`sections.${sectionIndex}.questions.${questionIndex}.required` as const)}
+                                              defaultChecked={question.required ?? false}
                                             />
                                             <Label>Required</Label>
                                           </div>
