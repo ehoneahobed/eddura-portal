@@ -1002,6 +1002,20 @@ export default function ApplicationTemplateForm({
                     </Draggable>
                   ))}
                   {provided.placeholder}
+                  
+                  {/* Add Section Button at Bottom */}
+                  <div className="flex justify-center mt-8 pt-6 border-t border-gray-200">
+                    <Button
+                      type="button"
+                      onClick={addSection}
+                      variant="outline"
+                      size="default"
+                      className="flex items-center gap-2 border-dashed border-2 bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add New Section
+                    </Button>
+                  </div>
                 </div>
               )}
             </Droppable>
