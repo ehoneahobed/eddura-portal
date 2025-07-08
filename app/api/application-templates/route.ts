@@ -86,7 +86,8 @@ export async function GET(request: NextRequest) {
       .populate('scholarshipId', 'title provider')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
     
     // Get total count for pagination
     const total = await ApplicationTemplate.countDocuments(query);
@@ -167,7 +168,8 @@ export async function POST(request: NextRequest) {
     
     const savedTemplate = await template.save();
     const populatedTemplate = await ApplicationTemplate.findById(savedTemplate._id)
-      .populate('scholarshipId', 'title provider');
+      .populate('scholarshipId', 'title provider')
+      .lean();
     
     return NextResponse.json(transformTemplate(populatedTemplate), { status: 201 });
   } catch (error) {
