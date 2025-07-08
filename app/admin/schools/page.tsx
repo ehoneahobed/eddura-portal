@@ -12,6 +12,7 @@ import { Search, Plus, Edit, Trash2, Globe, MapPin, Users, Loader2 } from 'lucid
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { getHostnameFromUrl } from '@/lib/url-utils';
 
 export default function SchoolsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,7 +182,7 @@ export default function SchoolsPage() {
                       <div className="flex items-center">
                         <Globe className="h-4 w-4 mr-1 text-gray-400" />
                         <span className="text-blue-600 hover:underline">
-                          {school.websiteUrl ? new URL(school.websiteUrl).hostname : 'N/A'}
+                          {school.websiteUrl ? getHostnameFromUrl(school.websiteUrl) : 'N/A'}
                         </span>
                       </div>
                     </div>
