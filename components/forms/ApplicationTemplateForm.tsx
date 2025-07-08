@@ -928,16 +928,16 @@ export default function ApplicationTemplateForm({
                           </Droppable>
 
                           {/* Add Question Button at Bottom */}
-                          <div className="flex justify-center mt-4">
+                          <div className="flex justify-center mt-6 pt-4 border-t border-gray-200">
                             <Button
                               type="button"
                               onClick={() => addQuestion(sectionIndex)}
                               variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2 border-dashed"
+                              size="default"
+                              className="flex items-center gap-2 border-dashed border-2 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
                             >
                               <Plus className="w-4 h-4" />
-                              Add Question
+                              Add Another Question
                             </Button>
                           </div>
                         </div>
