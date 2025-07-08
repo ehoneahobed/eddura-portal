@@ -47,8 +47,16 @@ function transformTemplates(templates: any[]) {
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== APPLICATION TEMPLATES API DEBUG START ===');
+    console.log('Environment check:');
+    console.log('- NODE_ENV:', process.env.NODE_ENV);
+    console.log('- MONGODB_URI exists:', !!process.env.MONGODB_URI);
+    console.log('- MONGODB_URI length:', process.env.MONGODB_URI?.length || 0);
+    console.log('- MONGODB_URI prefix:', process.env.MONGODB_URI?.substring(0, 20) || 'Not found');
+    
+    console.log('Attempting database connection...');
     await connectDB();
-    console.log('Successfully connected to database for application templates');
+    console.log('✅ Successfully connected to database for application templates');
     
     const { searchParams } = new URL(request.url);
     const scholarshipId = searchParams.get('scholarshipId');
@@ -80,8 +88,11 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     
     console.log('Executing query with params:', { query, page, limit, skip });
+    console.log('ApplicationTemplate model check:', typeof ApplicationTemplate);
+    console.log('ApplicationTemplate.find type:', typeof ApplicationTemplate.find);
     
     // Execute query with pagination
+    console.log('About to execute ApplicationTemplate.find...');
     const templates = await ApplicationTemplate.find(query)
       .populate('scholarshipId', 'title provider')
       .sort({ createdAt: -1 })
@@ -89,8 +100,18 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
     
+    console.log('✅ Query executed successfully');
+    console.log('Templates found:', templates?.length || 0);
+    console.log('Sample template (first one):', templates?.[0] ? {
+      id: templates[0]._id,
+      title: templates[0].title,
+      scholarshipId: templates[0].scholarshipId
+    } : 'No templates found');
+    
     // Get total count for pagination
+    console.log('Getting total count...');
     const total = await ApplicationTemplate.countDocuments(query);
+    console.log('Total count:', total);
     
     return NextResponse.json({
       templates: transformTemplates(templates),
@@ -104,20 +125,49 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Error fetching application templates:', error);
+    console.error('=== APPLICATION TEMPLATES API ERROR ===');
+    console.error('Error type:', typeof error);
+    console.error('Error instanceof Error:', error instanceof Error);
+    console.error('Full error object:', error);
     
-    // Provide different error messages based on error type
     if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // Check for specific error types
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+        console.error('Database connection error detected');
         return NextResponse.json(
-          { error: 'Database connection failed. Please try again later.' },
+          { 
+            error: 'Database connection failed. Please try again later.',
+            details: error.message,
+            type: 'CONNECTION_ERROR'
+          },
           { status: 503 }
+        );
+      }
+      
+      if (error.message.includes('MONGODB_URI')) {
+        console.error('MongoDB URI error detected');
+        return NextResponse.json(
+          { 
+            error: 'Database configuration error',
+            details: error.message,
+            type: 'CONFIG_ERROR'
+          },
+          { status: 500 }
         );
       }
     }
     
     return NextResponse.json(
-      { error: 'Failed to fetch application templates' },
+      { 
+        error: 'Failed to fetch application templates',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        type: 'GENERAL_ERROR',
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }

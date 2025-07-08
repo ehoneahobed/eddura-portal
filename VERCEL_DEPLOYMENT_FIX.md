@@ -21,11 +21,25 @@ Added `.lean()` back to all MongoDB queries in:
 - Navigate to the Application Templates page
 - The 500 error should be resolved
 
-### 2. Debug Endpoint (if needed)
-If you still see issues, check: `/api/test-templates`
-This endpoint was added for debugging and will show detailed error information.
+### 2. Debug Endpoints (Enhanced Debugging)
+If you still see issues, use these debug endpoints:
+
+**🔧 Database Connection Test:**
+- URL: `/api/debug-db`
+- Tests environment variables and MongoDB connection
+- Shows detailed error information
+
+**🔧 Application Templates Test:**
+- URL: `/api/test-templates`  
+- Tests ApplicationTemplate model queries
+- Shows sample data and query results
+
+**🔧 Enhanced Error Logging:**
+- The main `/api/application-templates` endpoint now has comprehensive logging
+- Check Vercel function logs for detailed error information
 
 ### 3. Expected Behavior
+- ✅ `/api/debug-db` returns `{"success": true}`
 - ✅ Application templates page loads without errors
 - ✅ API returns templates with proper pagination
 - ✅ No more "Failed to fetch application templates" errors
