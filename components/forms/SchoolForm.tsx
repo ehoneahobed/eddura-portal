@@ -123,21 +123,44 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
   const [customAccessibility, setCustomAccessibility] = useState('');
 
   const addToArray = (field: keyof School, value: string, setter: (value: string) => void, currentArray: string[]) => {
-    if (typeof value === 'string' && value.trim() && !currentArray.includes(value.trim())) {
-      setValue(field, [...currentArray, value.trim()] as any);
+    if (typeof value === 'string' && value.trim() && !(currentArray || []).includes(value.trim())) {
+      const newArray = [...(currentArray || []), value.trim()];
+      setValue(field, newArray as any);
       setter('');
     }
   };
 
   const removeFromArray = (field: keyof School, value: string, currentArray: string[]) => {
-    setValue(field, currentArray.filter(item => item !== value) as any);
+    const newArray = (currentArray || []).filter(item => item !== value);
+    setValue(field, newArray as any);
   };
 
   const handleFormSubmit = (data: School) => {
-    onSubmit({
-      ...data,
-      campusType: selectedCampusType as School['campusType']
-    });
+    try {
+      // Validate required fields
+      if (!data.name || !data.country || !data.city) {
+        throw new Error('Name, country, and city are required');
+      }
+
+      // Clean up array fields to remove empty strings
+      const cleanData = {
+        ...data,
+        campusType: selectedCampusType as School['campusType'] || 'Unknown',
+        types: (data.types || []).filter(t => t && t.trim()),
+        contactEmails: (data.contactEmails || []).filter(e => e && e.trim()),
+        contactPhones: (data.contactPhones || []).filter(p => p && p.trim()),
+        languagesOfInstruction: (data.languagesOfInstruction || []).filter(l => l && l.trim()),
+        housingOptions: (data.housingOptions || []).filter(h => h && h.trim()),
+        supportServices: (data.supportServices || []).filter(s => s && s.trim()),
+        accreditationBodies: (data.accreditationBodies || []).filter(a => a && a.trim()),
+        campusFacilities: (data.campusFacilities || []).filter(f => f && f.trim()),
+      };
+
+      onSubmit(cleanData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // You could add toast notification here if needed
+    }
   };
 
   // Auto-focus the search input when SelectContent is rendered

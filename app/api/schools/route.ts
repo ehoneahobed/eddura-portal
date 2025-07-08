@@ -26,10 +26,10 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    // Get query parameters
+    // Get query parameters with validation
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '12')));
     const search = searchParams.get('search') || '';
     
     // Calculate skip value for pagination
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       .limit(limit);
     
     // Calculate pagination info
-    const totalPages = Math.ceil(totalCount / limit);
+    const totalPages = Math.ceil(totalCount / limit) || 1;
     
     return NextResponse.json({
       schools: transformSchools(schools),
@@ -72,6 +72,17 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching schools:', error);
+    
+    // Provide different error messages based on error type
+    if (error instanceof Error) {
+      if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+        return NextResponse.json(
+          { error: 'Database connection failed. Please try again later.' },
+          { status: 503 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch schools' },
       { status: 500 }
