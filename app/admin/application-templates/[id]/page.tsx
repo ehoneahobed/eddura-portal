@@ -49,7 +49,8 @@ const getQuestionTypeDisplayName = (type: QuestionType): string => {
     essay: 'Essay',
     statement: 'Personal Statement',
     gpa: 'GPA',
-    test_score: 'Test Score'
+    test_score: 'Test Score',
+    country: 'Country'
   };
   
   return typeNames[type] || type;

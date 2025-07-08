@@ -249,7 +249,8 @@ export function getQuestionTypeDisplayName(type: Question['type']): string {
     essay: 'Essay',
     statement: 'Personal Statement',
     gpa: 'GPA',
-    test_score: 'Test Score'
+    test_score: 'Test Score',
+    country: 'Country'
   };
   
   return typeNames[type] || type;
@@ -279,7 +280,8 @@ export function getQuestionTypeDescription(type: Question['type']): string {
     essay: 'Long-form essay response',
     statement: 'Personal statement or motivation letter',
     gpa: 'GPA input with scale validation',
-    test_score: 'Standardized test scores (SAT, GRE, etc.)'
+    test_score: 'Standardized test scores (SAT, GRE, etc.)',
+    country: 'Country selection dropdown'
   };
   
   return descriptions[type] || 'Question input field';
