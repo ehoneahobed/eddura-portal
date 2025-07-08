@@ -29,8 +29,11 @@ export interface ScholarshipsQueryParams {
   limit?: number;
   search?: string;
   provider?: string;
-  coverage?: 'full' | 'partial' | 'tuition' | 'living' | 'travel' | 'other';
-  frequency?: 'one-time' | 'annual' | 'semester' | 'monthly' | 'other';
+  coverage?: string;
+  frequency?: string;
+  degreeLevel?: string;
+  minValue?: string;
+  maxValue?: string;
   eligibleNationalities?: string[];
   countryResidency?: string[];
   sortBy?: 'title' | 'provider' | 'value' | 'deadline' | 'createdAt' | 'updatedAt';
@@ -47,6 +50,9 @@ const buildQueryString = (params: ScholarshipsQueryParams): string => {
   if (params.provider) searchParams.append('provider', params.provider);
   if (params.coverage) searchParams.append('coverage', params.coverage);
   if (params.frequency) searchParams.append('frequency', params.frequency);
+  if (params.degreeLevel) searchParams.append('degreeLevel', params.degreeLevel);
+  if (params.minValue) searchParams.append('minValue', params.minValue);
+  if (params.maxValue) searchParams.append('maxValue', params.maxValue);
   if (params.sortBy) searchParams.append('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.append('sortOrder', params.sortOrder);
   
@@ -75,6 +81,9 @@ export function useScholarships(params: ScholarshipsQueryParams = {}) {
     provider = '',
     coverage,
     frequency,
+    degreeLevel,
+    minValue,
+    maxValue,
     eligibleNationalities = [],
     countryResidency = [],
     sortBy = 'title',
@@ -88,6 +97,9 @@ export function useScholarships(params: ScholarshipsQueryParams = {}) {
     provider,
     coverage: coverage || undefined,
     frequency: frequency || undefined,
+    degreeLevel: degreeLevel || undefined,
+    minValue: minValue || undefined,
+    maxValue: maxValue || undefined,
     eligibleNationalities,
     countryResidency,
     sortBy,
