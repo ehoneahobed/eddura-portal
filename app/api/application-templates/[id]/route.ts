@@ -42,7 +42,8 @@ export async function GET(
     if (mongoose.Types.ObjectId.isValid(params.id)) {
       console.log('Trying to find by ObjectId:', params.id);
       template = await ApplicationTemplate.findById(params.id)
-        .populate('scholarshipId', 'title provider');
+        .populate('scholarshipId', 'title provider')
+        .lean();
     }
     
     // If not found, try to find by any field that might match
@@ -52,7 +53,7 @@ export async function GET(
       // Try to find by title (case-insensitive)
       template = await ApplicationTemplate.findOne({
         title: { $regex: new RegExp(params.id, 'i') }
-      }).populate('scholarshipId', 'title provider');
+      }).populate('scholarshipId', 'title provider').lean();
       
       if (!template) {
         // Try to find by any field containing the ID
@@ -62,7 +63,7 @@ export async function GET(
             { description: { $regex: new RegExp(params.id, 'i') } },
             { version: { $regex: new RegExp(params.id, 'i') } }
           ]
-        }).populate('scholarshipId', 'title provider');
+        }).populate('scholarshipId', 'title provider').lean();
       }
     }
     
@@ -72,7 +73,7 @@ export async function GET(
       console.log('Template not found in database');
       
       // Get all templates for debugging
-      const allTemplates = await ApplicationTemplate.find({}).select('_id title').limit(10);
+      const allTemplates = await ApplicationTemplate.find({}).select('_id title').limit(10).lean();
       console.log('Available templates:', allTemplates.map((t: any) => ({ id: t._id.toString(), title: t.title })));
       
       return NextResponse.json({ 
@@ -157,7 +158,7 @@ export async function PUT(
       params.id,
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
-    ).populate('scholarshipId', 'title provider');
+    ).populate('scholarshipId', 'title provider').lean();
     
     if (!updatedTemplate) {
       return NextResponse.json({ error: 'Application template not found' }, { status: 404 });
