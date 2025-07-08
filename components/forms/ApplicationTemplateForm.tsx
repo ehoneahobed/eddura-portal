@@ -331,7 +331,9 @@ export default function ApplicationTemplateForm({
 
   const addSection = () => {
     const newOrder = sections.length + 1;
-    appendSection(createDefaultSection(newOrder));
+    const newSection = createDefaultSection(newOrder);
+    appendSection(newSection);
+    toast.success('Section added successfully');
   };
 
   const removeSectionHandler = (index: number) => {
@@ -344,7 +346,8 @@ export default function ApplicationTemplateForm({
   };
 
   const duplicateSection = (index: number) => {
-    const sectionToDuplicate = watchedSections[index];
+    const currentSections = getValues('sections') || [];
+    const sectionToDuplicate = currentSections[index];
     const newSection = {
       ...sectionToDuplicate,
       id: generateId(),
@@ -360,7 +363,7 @@ export default function ApplicationTemplateForm({
   };
 
   const addQuestion = (sectionIndex: number) => {
-    const currentSections = watchedSections;
+    const currentSections = getValues('sections') || [];
     const section = currentSections[sectionIndex];
     
     if (!section) {
@@ -382,7 +385,7 @@ export default function ApplicationTemplateForm({
   };
 
   const removeQuestion = (sectionIndex: number, questionIndex: number) => {
-    const currentSections = watchedSections;
+    const currentSections = getValues('sections') || [];
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions) {
@@ -406,7 +409,7 @@ export default function ApplicationTemplateForm({
   };
 
   const duplicateQuestion = (sectionIndex: number, questionIndex: number) => {
-    const currentSections = watchedSections;
+    const currentSections = getValues('sections') || [];
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions || !section.questions[questionIndex]) {
@@ -429,7 +432,8 @@ export default function ApplicationTemplateForm({
   };
 
   const updateQuestionType = (sectionIndex: number, questionIndex: number, newType: QuestionType) => {
-    const updatedSections = [...watchedSections];
+    const currentSections = getValues('sections') || [];
+    const updatedSections = [...currentSections];
     const section = updatedSections[sectionIndex];
     const question = section.questions[questionIndex];
     
@@ -453,7 +457,7 @@ export default function ApplicationTemplateForm({
   };
 
   const addQuestionOption = (sectionIndex: number, questionIndex: number) => {
-    const currentSections = watchedSections;
+    const currentSections = getValues('sections') || [];
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions || !section.questions[questionIndex]) {
@@ -479,7 +483,7 @@ export default function ApplicationTemplateForm({
   };
 
   const removeQuestionOption = (sectionIndex: number, questionIndex: number, optionIndex: number) => {
-    const currentSections = watchedSections;
+    const currentSections = getValues('sections') || [];
     const section = currentSections[sectionIndex];
     
     if (!section || !section.questions || !section.questions[questionIndex]) {
@@ -505,24 +509,25 @@ export default function ApplicationTemplateForm({
     if (!result.destination) return;
 
     const { source, destination, type } = result;
+    const currentSections = getValues('sections') || [];
 
     if (type === 'section') {
       const newSections = reorderSections(
-        watchedSections,
+        currentSections,
         source.index,
         destination.index
       );
       setValue('sections', newSections);
     } else if (type === 'question') {
       const [sectionIndex] = source.droppableId.split('-');
-      const section = watchedSections[parseInt(sectionIndex)];
+      const section = currentSections[parseInt(sectionIndex)];
       const newSection = reorderQuestions(
         section,
         source.index,
         destination.index
       );
       
-      const updatedSections = [...watchedSections];
+      const updatedSections = [...currentSections];
       updatedSections[parseInt(sectionIndex)] = newSection;
       setValue('sections', updatedSections);
     }
