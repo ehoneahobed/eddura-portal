@@ -10,11 +10,27 @@ function transformTemplate(template: any) {
   if (!template) return template;
   
   const transformed = template.toObject ? template.toObject() : template;
+  
+  // Handle populated scholarshipId safely
+  let scholarshipId = null;
+  let scholarship = null;
+  
+  if (transformed.scholarshipId) {
+    if (typeof transformed.scholarshipId === 'string') {
+      scholarshipId = transformed.scholarshipId;
+    } else if (transformed.scholarshipId._id) {
+      scholarshipId = transformed.scholarshipId._id.toString();
+      scholarship = transformed.scholarshipId;
+    } else {
+      scholarshipId = transformed.scholarshipId.toString();
+    }
+  }
+  
   return {
     ...transformed,
     id: transformed._id?.toString(),
-    scholarshipId: transformed.scholarshipId?._id?.toString() || transformed.scholarshipId?.toString(),
-    scholarship: transformed.scholarshipId
+    scholarshipId,
+    scholarship
   };
 }
 
@@ -32,13 +48,14 @@ function transformTemplates(templates: any[]) {
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
+    console.log('Successfully connected to database for application templates');
     
     const { searchParams } = new URL(request.url);
     const scholarshipId = searchParams.get('scholarshipId');
     const isActive = searchParams.get('isActive');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const search = searchParams.get('search');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10')));
+    const search = searchParams.get('search') || '';
     
     // Build query
     const query: any = {};
@@ -51,24 +68,25 @@ export async function GET(request: NextRequest) {
       query.isActive = isActive === 'true';
     }
     
-    if (search) {
+    if (search && search.trim()) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { version: { $regex: search, $options: 'i' } }
+        { title: { $regex: search.trim(), $options: 'i' } },
+        { description: { $regex: search.trim(), $options: 'i' } },
+        { version: { $regex: search.trim(), $options: 'i' } }
       ];
     }
     
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
     
+    console.log('Executing query with params:', { query, page, limit, skip });
+    
     // Execute query with pagination
     const templates = await ApplicationTemplate.find(query)
       .populate('scholarshipId', 'title provider')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit)
-      .lean();
+      .limit(limit);
     
     // Get total count for pagination
     const total = await ApplicationTemplate.countDocuments(query);
@@ -76,14 +94,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       templates: transformTemplates(templates),
       pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalCount: total,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
+        limit
       }
     });
   } catch (error) {
     console.error('Error fetching application templates:', error);
+    
+    // Provide different error messages based on error type
+    if (error instanceof Error) {
+      if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+        return NextResponse.json(
+          { error: 'Database connection failed. Please try again later.' },
+          { status: 503 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch application templates' },
       { status: 500 }

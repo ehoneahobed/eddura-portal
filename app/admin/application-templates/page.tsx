@@ -273,23 +273,23 @@ export default function ApplicationTemplatesPage() {
       )}
 
       {/* Pagination */}
-      {pagination && pagination.pages > 1 && (
+      {pagination && pagination.totalPages > 1 && (
         <div className="mt-8 flex justify-center">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              disabled={pagination.page <= 1}
+              disabled={!pagination.hasPrevPage}
             >
               Previous
             </Button>
             <span className="text-sm text-gray-600">
-              Page {pagination.page} of {pagination.pages}
+              Page {pagination.currentPage} of {pagination.totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
-              disabled={pagination.page >= pagination.pages}
+              disabled={!pagination.hasNextPage}
             >
               Next
             </Button>

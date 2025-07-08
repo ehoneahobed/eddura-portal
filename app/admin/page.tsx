@@ -6,11 +6,27 @@ import { RecentActivityCard } from '@/components/dashboard/RecentActivityCard';
 import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
 import { TopItemsCard } from '@/components/dashboard/TopItemsCard';
 import { PageSEO } from '@/components/seo/PageSEO';
-import { School, BookOpen, GraduationCap, TrendingUp, AlertCircle } from 'lucide-react';
+import { forceRefreshDashboardStats } from '@/lib/cache-invalidation';
+import { School, BookOpen, GraduationCap, TrendingUp, AlertCircle, FileText, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react';
 
 export default function AdminDashboard() {
   const { stats, isLoading, isError, mutate } = useDashboardStats();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Force refresh the cache for real-time accuracy
+      forceRefreshDashboardStats();
+      await mutate();
+    } catch (error) {
+      console.error('Error refreshing dashboard:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isError) {
     return (
@@ -65,6 +81,14 @@ export default function AdminDashboard() {
       trend: { value: 15.3, isPositive: true }
     },
     {
+      title: 'Application Templates',
+      value: stats?.applicationTemplates || 0,
+      icon: FileText,
+      description: 'Form templates created',
+      color: 'text-indigo-600',
+      trend: { value: 10.7, isPositive: true }
+    },
+    {
       title: 'Growth Rate',
       value: `${stats?.growthRate || 0}%`,
       icon: TrendingUp,
@@ -91,15 +115,17 @@ export default function AdminDashboard() {
             </p>
           </div>
           <button
-            onClick={() => mutate()}
-            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors flex items-center gap-2"
           >
-            Refresh Data
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
           </button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {statCards.map((stat, index) => (
             <StatCard
               key={index}
@@ -167,7 +193,7 @@ export default function AdminDashboard() {
               <div>
                 <span className="font-medium">Total Data Points:</span>
                 <span className="ml-2 text-gray-600">
-                  {(stats.schools + stats.programs + stats.scholarships).toLocaleString()}
+                  {(stats.schools + stats.programs + stats.scholarships + stats.applicationTemplates).toLocaleString()}
                 </span>
               </div>
               <div>
