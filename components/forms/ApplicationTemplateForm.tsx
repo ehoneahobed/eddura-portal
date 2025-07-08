@@ -115,7 +115,13 @@ export default function ApplicationTemplateForm({
           ...parsedData,
           // Always preserve the original template ID and scholarship ID
           id: template?.id,
-          scholarshipId: scholarshipId || template?.scholarshipId
+          scholarshipId: scholarshipId || template?.scholarshipId,
+          // Ensure date format is correct for datetime-local input
+          submissionDeadline: parsedData.submissionDeadline 
+            ? (typeof parsedData.submissionDeadline === 'string' 
+                ? parsedData.submissionDeadline 
+                : new Date(parsedData.submissionDeadline).toISOString().slice(0, 16))
+            : template?.submissionDeadline
         };
       }
     } catch (error) {
@@ -132,7 +138,17 @@ export default function ApplicationTemplateForm({
       if (isLoading) return;
 
       setSaveStatus('saving');
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      
+      // Prepare data for storage with proper date handling
+      const dataToSave = {
+        ...data,
+        // Convert date to ISO string format if it exists
+        submissionDeadline: data.submissionDeadline 
+          ? new Date(data.submissionDeadline).toISOString().slice(0, 16)
+          : undefined
+      };
+      
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
       setSaveStatus('saved');
       setHasUnsavedChanges(false);
       
@@ -910,6 +926,20 @@ export default function ApplicationTemplateForm({
                               </div>
                             )}
                           </Droppable>
+
+                          {/* Add Question Button at Bottom */}
+                          <div className="flex justify-center mt-4">
+                            <Button
+                              type="button"
+                              onClick={() => addQuestion(sectionIndex)}
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2 border-dashed"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add Question
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </Draggable>
