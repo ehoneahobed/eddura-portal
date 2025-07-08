@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
 import Scholarship from '@/models/Scholarship';
+import mongoose from 'mongoose';
 
 /**
  * Transform MongoDB document to include id field
@@ -90,6 +91,18 @@ export async function GET(request: NextRequest) {
     console.log('Executing query with params:', { query, page, limit, skip });
     console.log('ApplicationTemplate model check:', typeof ApplicationTemplate);
     console.log('ApplicationTemplate.find type:', typeof ApplicationTemplate.find);
+    
+    // Ensure Scholarship model is registered (serverless fix)
+    console.log('Ensuring Scholarship model is registered...');
+    console.log('Scholarship model check:', typeof Scholarship);
+    console.log('Mongoose models list:', Object.keys(mongoose.models));
+    
+    // Force registration if not already registered
+    if (!mongoose.models.Scholarship) {
+      console.log('Scholarship model not found in mongoose.models, forcing registration...');
+      // This will trigger the model registration
+      console.log('Scholarship model after access:', Scholarship.modelName);
+    }
     
     // Execute query with pagination
     console.log('About to execute ApplicationTemplate.find...');
@@ -217,6 +230,13 @@ export async function POST(request: NextRequest) {
     });
     
     const savedTemplate = await template.save();
+    
+    // Ensure Scholarship model is registered for populate
+    if (!mongoose.models.Scholarship) {
+      console.log('Registering Scholarship model for populate...');
+      Scholarship.modelName; // Force registration
+    }
+    
     const populatedTemplate = await ApplicationTemplate.findById(savedTemplate._id)
       .populate('scholarshipId', 'title provider')
       .lean();
