@@ -14,6 +14,7 @@ export interface DashboardStats {
   schools: number;
   programs: number;
   scholarships: number;
+  applicationTemplates: number;
   recentActivity: RecentActivity[];
   topSchools: TopSchool[];
   topPrograms: TopProgram[];
@@ -23,7 +24,7 @@ export interface DashboardStats {
 
 export interface RecentActivity {
   id: string;
-  type: 'school' | 'program' | 'scholarship';
+  type: 'school' | 'program' | 'scholarship' | 'template';
   action: 'created' | 'updated' | 'deleted';
   title: string;
   timestamp: string;
@@ -65,9 +66,10 @@ export function useDashboardStats() {
     '/api/dashboard/stats',
     fetcher,
     {
-      refreshInterval: 30000, // Refresh every 30 seconds
+      refreshInterval: 10000, // Refresh every 10 seconds for more real-time updates
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
+      revalidateOnMount: true,
     }
   );
 

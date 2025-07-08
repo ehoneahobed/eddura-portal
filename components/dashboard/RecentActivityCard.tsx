@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RecentActivity } from '@/hooks/use-dashboard';
-import { School, BookOpen, GraduationCap } from 'lucide-react';
+import { School, BookOpen, GraduationCap, FileText } from 'lucide-react';
 
 interface RecentActivityCardProps {
   activities: RecentActivity[];
@@ -16,6 +16,8 @@ const getActivityIcon = (type: RecentActivity['type']) => {
       return BookOpen;
     case 'scholarship':
       return GraduationCap;
+    case 'template':
+      return FileText;
     default:
       return School;
   }
@@ -29,6 +31,8 @@ const getActivityColor = (type: RecentActivity['type']) => {
       return 'bg-green-500';
     case 'scholarship':
       return 'bg-purple-500';
+    case 'template':
+      return 'bg-indigo-500';
     default:
       return 'bg-gray-500';
   }
