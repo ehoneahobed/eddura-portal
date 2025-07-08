@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,9 @@ import {
   Calendar,
   Clock,
   Save,
-  Award
+  Award,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { 
   ApplicationTemplate, 
@@ -93,9 +95,74 @@ export default function ApplicationTemplateForm({
 }: ApplicationTemplateFormProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef(true);
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue, control } = useForm<ApplicationTemplate>({
-    defaultValues: template || {
+  // Generate a unique storage key for this form
+  const storageKey = `applicationTemplateForm_${template?.id || 'new'}_${scholarshipId || 'draft'}`;
+
+  // Function to load form data from localStorage
+  const loadFormData = useCallback(() => {
+    try {
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        // Merge with template data, giving priority to saved data for form fields
+        return {
+          ...template,
+          ...parsedData,
+          // Always preserve the original template ID and scholarship ID
+          id: template?.id,
+          scholarshipId: scholarshipId || template?.scholarshipId
+        };
+      }
+    } catch (error) {
+      console.error('Error loading form data from localStorage:', error);
+      toast.error('Failed to load saved form data');
+    }
+    return null;
+  }, [storageKey, template, scholarshipId]);
+
+  // Function to save form data to localStorage
+  const saveFormData = useCallback((data: ApplicationTemplate) => {
+    try {
+      // Don't save if we're in the middle of submitting
+      if (isLoading) return;
+
+      setSaveStatus('saving');
+      localStorage.setItem(storageKey, JSON.stringify(data));
+      setSaveStatus('saved');
+      setHasUnsavedChanges(false);
+      
+      // Clear saved status after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Error saving form data to localStorage:', error);
+      setSaveStatus('error');
+      toast.error('Failed to save form data');
+    }
+  }, [storageKey, isLoading]);
+
+  // Function to clear saved form data
+  const clearSavedData = useCallback(() => {
+    try {
+      localStorage.removeItem(storageKey);
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('Error clearing saved form data:', error);
+    }
+  }, [storageKey]);
+
+  // Initialize form with saved data or default values
+  const getInitialValues = useCallback(() => {
+    const savedData = loadFormData();
+    if (savedData) {
+      return savedData;
+    }
+    
+    return template || {
       scholarshipId,
       title: '',
       description: '',
@@ -109,7 +176,11 @@ export default function ApplicationTemplateForm({
       requirePhoneVerification: false,
       maxFileSize: 10,
       allowedFileTypes: ['pdf', 'doc', 'docx']
-    }
+    };
+  }, [loadFormData, template, scholarshipId]);
+
+  const { register, handleSubmit, formState: { errors }, watch, setValue, control, getValues, reset } = useForm<ApplicationTemplate>({
+    defaultValues: getInitialValues()
   });
 
   const { fields: sections, append: appendSection, remove: removeSection, move: moveSection } = useFieldArray({
@@ -118,6 +189,40 @@ export default function ApplicationTemplateForm({
   });
 
   const watchedSections = useMemo(() => watch('sections') || [], [watch]);
+  const allFormData = watch();
+
+  // Auto-save functionality
+  useEffect(() => {
+    // Skip auto-save on initial mount to prevent saving default values
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Skip auto-save if form is being submitted
+    if (isLoading) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
+
+    // Set up auto-save after 2 seconds of inactivity
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      const currentFormData = getValues();
+      saveFormData(currentFormData);
+    }, 2000);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [allFormData, isLoading, getValues, saveFormData]);
 
   // Ensure fileConfig is initialized for file type questions
   useEffect(() => {
@@ -138,6 +243,19 @@ export default function ApplicationTemplateForm({
     }
   }, [watchedSections, setValue]);
 
+  // Warn user about unsaved changes when leaving the page
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        event.preventDefault();
+        event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const handleFormSubmit = (data: ApplicationTemplate) => {
     // Validate that we have at least one section with questions
     if (!data.sections || data.sections.length === 0) {
@@ -152,7 +270,28 @@ export default function ApplicationTemplateForm({
       }
     }
 
+    // Clear saved data before submitting
+    clearSavedData();
     onSubmit(data);
+  };
+
+  const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      if (confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+        clearSavedData();
+        onCancel();
+      }
+    } else {
+      onCancel();
+    }
+  };
+
+  const handleRestoreFromSave = () => {
+    const savedData = loadFormData();
+    if (savedData) {
+      reset(savedData);
+      toast.success('Form data restored from saved draft');
+    }
   };
 
   const addSection = () => {
@@ -317,15 +456,59 @@ export default function ApplicationTemplateForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Basic Information
-          </CardTitle>
-        </CardHeader>
+    <div className="space-y-6">
+      {/* Save Status Indicator */}
+      {(saveStatus !== 'idle' || hasUnsavedChanges) && (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+          <div className="flex items-center gap-3">
+            {saveStatus === 'saving' && (
+              <>
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm text-gray-700">Saving draft...</span>
+              </>
+            )}
+            {saveStatus === 'saved' && (
+              <>
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-green-700">Draft saved automatically</span>
+              </>
+            )}
+            {saveStatus === 'error' && (
+              <>
+                <AlertCircle className="w-4 h-4 text-red-600" />
+                <span className="text-sm text-red-700">Failed to save draft</span>
+              </>
+            )}
+            {saveStatus === 'idle' && hasUnsavedChanges && (
+              <>
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span className="text-sm text-orange-700">Unsaved changes</span>
+              </>
+            )}
+          </div>
+          {localStorage.getItem(storageKey) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleRestoreFromSave}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Restore from draft
+            </Button>
+          )}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Basic Information
+            </CardTitle>
+          </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -763,25 +946,26 @@ export default function ApplicationTemplateForm({
         </Card>
       )}
 
-      {/* Form Actions */}
-      <div className="flex items-center justify-end gap-4">
-        <Button
-          type="button"
-          onClick={onCancel}
-          variant="outline"
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {isLoading ? 'Saving...' : 'Save Template'}
-        </Button>
-      </div>
-    </form>
+        {/* Form Actions */}
+        <div className="flex items-center justify-end gap-4">
+          <Button
+            type="button"
+            onClick={handleCancel}
+            variant="outline"
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            {isLoading ? 'Saving...' : 'Save Template'}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 } 
