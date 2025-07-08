@@ -178,7 +178,7 @@ export default function ApplicationTemplateForm({
       return savedData;
     }
     
-    return template || {
+    const initialValues = template || {
       scholarshipId,
       title: '',
       description: '',
@@ -191,8 +191,19 @@ export default function ApplicationTemplateForm({
       requireEmailVerification: false,
       requirePhoneVerification: false,
       maxFileSize: 10,
-      allowedFileTypes: ['pdf', 'doc', 'docx']
+      allowedFileTypes: ['pdf', 'doc', 'docx'],
+      submissionDeadline: undefined
     };
+
+    // Convert submissionDeadline to datetime-local format if it exists
+    if (initialValues.submissionDeadline) {
+      const date = new Date(initialValues.submissionDeadline);
+      if (!isNaN(date.getTime())) {
+        (initialValues as any).submissionDeadline = date.toISOString().slice(0, 16);
+      }
+    }
+
+    return initialValues;
   }, [loadFormData, template, scholarshipId]);
 
   const { register, handleSubmit, formState: { errors }, watch, setValue, control, getValues, reset } = useForm<ApplicationTemplate>({
@@ -286,9 +297,17 @@ export default function ApplicationTemplateForm({
       }
     }
 
+    // Prepare the data for submission
+    const submissionData = { ...data };
+    
+    // Convert submissionDeadline to proper Date object if it exists
+    if (submissionData.submissionDeadline) {
+      submissionData.submissionDeadline = new Date(submissionData.submissionDeadline);
+    }
+
     // Clear saved data before submitting
     clearSavedData();
-    onSubmit(data);
+    onSubmit(submissionData);
   };
 
   const handleCancel = () => {

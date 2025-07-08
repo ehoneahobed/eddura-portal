@@ -206,6 +206,24 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
                 </div>
               </div>
 
+              {template.submissionDeadline && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Submission Deadline</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-900">
+                      {new Date(template.submissionDeadline).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {template.createdAt && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">Created</label>
