@@ -178,7 +178,7 @@ export default function ApplicationTemplateForm({
       return savedData;
     }
     
-    return template || {
+    const initialValues = template || {
       scholarshipId,
       title: '',
       description: '',
@@ -191,8 +191,19 @@ export default function ApplicationTemplateForm({
       requireEmailVerification: false,
       requirePhoneVerification: false,
       maxFileSize: 10,
-      allowedFileTypes: ['pdf', 'doc', 'docx']
+      allowedFileTypes: ['pdf', 'doc', 'docx'],
+      submissionDeadline: undefined
     };
+
+    // Convert submissionDeadline to datetime-local format if it exists
+    if (initialValues.submissionDeadline) {
+      const date = new Date(initialValues.submissionDeadline);
+      if (!isNaN(date.getTime())) {
+        (initialValues as any).submissionDeadline = date.toISOString().slice(0, 16);
+      }
+    }
+
+    return initialValues;
   }, [loadFormData, template, scholarshipId]);
 
   const { register, handleSubmit, formState: { errors }, watch, setValue, control, getValues, reset } = useForm<ApplicationTemplate>({
@@ -286,9 +297,17 @@ export default function ApplicationTemplateForm({
       }
     }
 
+    // Prepare the data for submission
+    const submissionData = { ...data };
+    
+    // Convert submissionDeadline to proper Date object if it exists
+    if (submissionData.submissionDeadline) {
+      submissionData.submissionDeadline = new Date(submissionData.submissionDeadline);
+    }
+
     // Clear saved data before submitting
     clearSavedData();
-    onSubmit(data);
+    onSubmit(submissionData);
   };
 
   const handleCancel = () => {
@@ -341,23 +360,41 @@ export default function ApplicationTemplateForm({
   };
 
   const addQuestion = (sectionIndex: number) => {
-    const section = watchedSections[sectionIndex];
-    const newQuestionOrder = section.questions.length + 1;
+    const currentSections = getValues('sections') || [];
+    const section = currentSections[sectionIndex];
+    
+    if (!section) {
+      console.error('Section not found at index:', sectionIndex);
+      toast.error('Unable to add question. Please try again.');
+      return;
+    }
+    
+    const newQuestionOrder = section.questions?.length ? section.questions.length + 1 : 1;
     const newQuestion = createDefaultQuestion('text', newQuestionOrder);
     
-    const updatedSections = [...watchedSections];
+    const updatedSections = [...currentSections];
+    if (!updatedSections[sectionIndex].questions) {
+      updatedSections[sectionIndex].questions = [];
+    }
     updatedSections[sectionIndex].questions.push(newQuestion);
     setValue('sections', updatedSections);
+    toast.success('Question added successfully');
   };
 
   const removeQuestion = (sectionIndex: number, questionIndex: number) => {
-    const updatedSections = [...watchedSections];
-    const section = updatedSections[sectionIndex];
+    const currentSections = getValues('sections') || [];
+    const section = currentSections[sectionIndex];
+    
+    if (!section || !section.questions) {
+      toast.error('Unable to remove question. Please try again.');
+      return;
+    }
     
     if (section.questions.length > 1) {
-      section.questions.splice(questionIndex, 1);
-      // Reorder questions
-      section.questions = section.questions.map((q, index) => ({
+      const updatedSections = [...currentSections];
+      updatedSections[sectionIndex].questions.splice(questionIndex, 1);
+             // Reorder questions
+       updatedSections[sectionIndex].questions = updatedSections[sectionIndex].questions.map((q: Question, index: number) => ({
         ...q,
         order: index + 1
       }));
@@ -369,10 +406,15 @@ export default function ApplicationTemplateForm({
   };
 
   const duplicateQuestion = (sectionIndex: number, questionIndex: number) => {
-    const updatedSections = [...watchedSections];
-    const section = updatedSections[sectionIndex];
-    const questionToDuplicate = section.questions[questionIndex];
+    const currentSections = getValues('sections') || [];
+    const section = currentSections[sectionIndex];
     
+    if (!section || !section.questions || !section.questions[questionIndex]) {
+      toast.error('Unable to duplicate question. Please try again.');
+      return;
+    }
+    
+    const questionToDuplicate = section.questions[questionIndex];
     const newQuestion = {
       ...questionToDuplicate,
       id: generateId(),
@@ -380,7 +422,8 @@ export default function ApplicationTemplateForm({
       order: section.questions.length + 1
     };
     
-    section.questions.push(newQuestion);
+    const updatedSections = [...currentSections];
+    updatedSections[sectionIndex].questions.push(newQuestion);
     setValue('sections', updatedSections);
     toast.success('Question duplicated');
   };
@@ -410,9 +453,16 @@ export default function ApplicationTemplateForm({
   };
 
   const addQuestionOption = (sectionIndex: number, questionIndex: number) => {
-    const updatedSections = [...watchedSections];
-    const section = updatedSections[sectionIndex];
-    const question = section.questions[questionIndex];
+    const currentSections = getValues('sections') || [];
+    const section = currentSections[sectionIndex];
+    
+    if (!section || !section.questions || !section.questions[questionIndex]) {
+      toast.error('Unable to add option. Please try again.');
+      return;
+    }
+    
+    const updatedSections = [...currentSections];
+    const question = updatedSections[sectionIndex].questions[questionIndex];
     
     if (!question.options) {
       question.options = [];
@@ -429,9 +479,16 @@ export default function ApplicationTemplateForm({
   };
 
   const removeQuestionOption = (sectionIndex: number, questionIndex: number, optionIndex: number) => {
-    const updatedSections = [...watchedSections];
-    const section = updatedSections[sectionIndex];
-    const question = section.questions[questionIndex];
+    const currentSections = getValues('sections') || [];
+    const section = currentSections[sectionIndex];
+    
+    if (!section || !section.questions || !section.questions[questionIndex]) {
+      toast.error('Unable to remove option. Please try again.');
+      return;
+    }
+    
+    const updatedSections = [...currentSections];
+    const question = updatedSections[sectionIndex].questions[questionIndex];
     
     if (question.options && question.options.length > 1) {
       question.options.splice(optionIndex, 1);
@@ -928,16 +985,16 @@ export default function ApplicationTemplateForm({
                           </Droppable>
 
                           {/* Add Question Button at Bottom */}
-                          <div className="flex justify-center mt-4">
+                          <div className="flex justify-center mt-6 pt-4 border-t border-gray-200">
                             <Button
                               type="button"
                               onClick={() => addQuestion(sectionIndex)}
                               variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2 border-dashed"
+                              size="default"
+                              className="flex items-center gap-2 border-dashed border-2 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
                             >
                               <Plus className="w-4 h-4" />
-                              Add Question
+                              Add Another Question
                             </Button>
                           </div>
                         </div>
