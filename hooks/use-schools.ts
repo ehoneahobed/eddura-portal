@@ -75,6 +75,12 @@ export function useSchools(params: SchoolsQueryParams = {}) {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       dedupingInterval: 5000, // Dedupe requests within 5 seconds
+      errorRetryCount: 3,
+      errorRetryInterval: 2000,
+      shouldRetryOnError: (error) => {
+        // Don't retry on 4xx errors (client errors)
+        return error?.status >= 500 || !error?.status;
+      },
     }
   );
 

@@ -11,6 +11,8 @@ import { useSchools } from '@/hooks/use-schools';
 import { Search, Plus, Edit, Trash2, Globe, MapPin, Users, Loader2 } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { getHostnameFromUrl } from '@/lib/url-utils';
 
 export default function SchoolsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,19 +78,20 @@ export default function SchoolsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Schools</h1>
-          <p className="text-gray-600">Manage educational institutions</p>
+    <ErrorBoundary>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Schools</h1>
+            <p className="text-gray-600">Manage educational institutions</p>
+          </div>
+          <Link href="/admin/schools/create">
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add School
+            </Button>
+          </Link>
         </div>
-        <Link href="/admin/schools/create">
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add School
-          </Button>
-        </Link>
-      </div>
 
       {/* Search */}
       <div className="relative">
@@ -179,7 +182,7 @@ export default function SchoolsPage() {
                       <div className="flex items-center">
                         <Globe className="h-4 w-4 mr-1 text-gray-400" />
                         <span className="text-blue-600 hover:underline">
-                          {school.websiteUrl ? new URL(school.websiteUrl).hostname : 'N/A'}
+                          {school.websiteUrl ? getHostnameFromUrl(school.websiteUrl) : 'N/A'}
                         </span>
                       </div>
                     </div>
@@ -219,6 +222,7 @@ export default function SchoolsPage() {
           />
         </div>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

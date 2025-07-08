@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { headers } from 'next/headers';
 import { Globe, Mail, Phone, Home, Users, Building2, Languages, Award, Calendar, Link2, Facebook, Twitter, Linkedin, Youtube, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock } from 'lucide-react';
 import SchoolActions from '@/components/schools/SchoolActions';
+import { formatUrlForHref } from '@/lib/url-utils';
 
 /**
  * SchoolViewPage displays all details of a single school in a modern, professional layout.
@@ -58,7 +59,7 @@ const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
             <div><dt className="font-semibold text-gray-700">Accreditation Bodies</dt><dd className="text-gray-900">{show(school.accreditationBodies)}</dd></div>
             <div><dt className="font-semibold text-gray-700">Campus Type</dt><dd className="text-gray-900">{show(school.campusType)}</dd></div>
             <div><dt className="font-semibold text-gray-700">Languages of Instruction</dt><dd className="text-gray-900">{show(school.languagesOfInstruction)}</dd></div>
-            <div><dt className="font-semibold text-gray-700">Virtual Tour Link</dt><dd>{school.virtualTourLink ? <a href={school.virtualTourLink} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer"><Link2 className="inline w-4 h-4 mr-1" />View Tour</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Virtual Tour Link</dt><dd>{school.virtualTourLink ? <a href={formatUrlForHref(school.virtualTourLink)} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer"><Link2 className="inline w-4 h-4 mr-1" />View Tour</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
           </dl>
         </section>
         <hr className="my-6 border-gray-200" />
@@ -70,7 +71,7 @@ const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
             <h2 className="text-lg md:text-xl font-semibold text-blue-900">Contact Information</h2>
           </div>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div><dt className="font-semibold text-gray-700">Website</dt><dd>{school.websiteUrl ? <a href={school.websiteUrl} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer"><Globe className="inline w-4 h-4 mr-1" />{school.websiteUrl}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+            <div><dt className="font-semibold text-gray-700">Website</dt><dd>{school.websiteUrl ? <a href={formatUrlForHref(school.websiteUrl)} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer"><Globe className="inline w-4 h-4 mr-1" />{school.websiteUrl}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
             <div><dt className="font-semibold text-gray-700">Contact Email</dt><dd className="text-gray-900 flex items-center gap-1"><Mail className="inline w-4 h-4" />{show(school.contactEmail)}</dd></div>
             <div><dt className="font-semibold text-gray-700">Contact Phone</dt><dd className="text-gray-900 flex items-center gap-1"><Phone className="inline w-4 h-4" />{show(school.contactPhone)}</dd></div>
           </dl>
@@ -84,10 +85,10 @@ const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
             <h2 className="text-lg md:text-xl font-semibold text-blue-900">Social Links</h2>
           </div>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Facebook className="w-4 h-4" />Facebook</dt><dd>{school.socialLinks?.facebook ? <a href={school.socialLinks.facebook} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.facebook}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
-            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Twitter className="w-4 h-4" />Twitter</dt><dd>{school.socialLinks?.twitter ? <a href={school.socialLinks.twitter} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.twitter}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
-            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Linkedin className="w-4 h-4" />LinkedIn</dt><dd>{school.socialLinks?.linkedin ? <a href={school.socialLinks.linkedin} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.linkedin}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
-            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Youtube className="w-4 h-4" />YouTube</dt><dd>{school.socialLinks?.youtube ? <a href={school.socialLinks.youtube} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.youtube}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Facebook className="w-4 h-4" />Facebook</dt><dd>{school.socialLinks?.facebook ? <a href={formatUrlForHref(school.socialLinks.facebook)} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.facebook}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Twitter className="w-4 h-4" />Twitter</dt><dd>{school.socialLinks?.twitter ? <a href={formatUrlForHref(school.socialLinks.twitter)} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.twitter}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Linkedin className="w-4 h-4" />LinkedIn</dt><dd>{school.socialLinks?.linkedin ? <a href={formatUrlForHref(school.socialLinks.linkedin)} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.linkedin}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
+            <div><dt className="font-semibold text-gray-700 flex items-center gap-1"><Youtube className="w-4 h-4" />YouTube</dt><dd>{school.socialLinks?.youtube ? <a href={formatUrlForHref(school.socialLinks.youtube)} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer">{school.socialLinks.youtube}</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
           </dl>
         </section>
         <hr className="my-6 border-gray-200" />
