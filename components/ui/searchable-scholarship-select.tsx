@@ -125,7 +125,7 @@ export default function SearchableScholarshipSelect({
     }
   }, [value, scholarships]);
 
-  // Focus search input when dropdown opens
+  // Focus search input when dropdown opens and maintain focus
   React.useEffect(() => {
     if (isOpen && searchInputRef.current) {
       // Small delay to ensure the dropdown is rendered
@@ -134,6 +134,14 @@ export default function SearchableScholarshipSelect({
       }, 100);
     }
   }, [isOpen]);
+
+  // Maintain focus when search results update
+  React.useEffect(() => {
+    if (isOpen && searchInputRef.current && document.activeElement !== searchInputRef.current) {
+      // Re-focus if the input has lost focus but dropdown is still open
+      searchInputRef.current.focus();
+    }
+  }, [scholarships, isOpen]); // Re-focus when scholarships update
 
   // Save to recent scholarships
   const saveToRecent = React.useCallback((scholarship: Scholarship) => {
@@ -329,7 +337,13 @@ export default function SearchableScholarshipSelect({
           )}
         </SelectTrigger>
         
-        <SelectContent className="w-full p-0" align="start" side="bottom" sideOffset={4}>
+        <SelectContent 
+          className="w-full p-0" 
+          align="start" 
+          side="bottom" 
+          sideOffset={4}
+          data-radix-select-content
+        >
           {/* Search and Filters */}
           <div className="sticky top-0 bg-white border-b p-3 space-y-3 z-50">
             <div className="relative">
@@ -337,13 +351,42 @@ export default function SearchableScholarshipSelect({
               <Input
                 ref={searchInputRef}
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  // Ensure focus is maintained after state update
+                  setTimeout(() => {
+                    if (searchInputRef.current && isOpen) {
+                      searchInputRef.current.focus();
+                    }
+                  }, 0);
+                }}
                 placeholder="Search scholarships by title, provider, or description..."
                 className="pl-10 h-9"
-                onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
+                onKeyDown={(e: React.KeyboardEvent) => {
+                  e.stopPropagation();
+                  // Prevent any key that might close the dropdown
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setIsOpen(false);
+                  }
+                }}
                 onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                 onFocus={(e: React.FocusEvent) => e.stopPropagation()}
+                onBlur={(e: React.FocusEvent) => {
+                  // Only allow blur if we're clicking outside the entire dropdown
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (relatedTarget && relatedTarget.closest('[data-radix-select-content]')) {
+                    e.preventDefault();
+                    setTimeout(() => {
+                      if (searchInputRef.current && isOpen) {
+                        searchInputRef.current.focus();
+                      }
+                    }, 0);
+                  }
+                }}
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
             
@@ -353,6 +396,7 @@ export default function SearchableScholarshipSelect({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
+                onMouseDown={(e: React.MouseEvent) => e.preventDefault()} // Prevent focus loss
                 className="flex items-center gap-2"
               >
                 <Filter className="w-3 h-3" />
@@ -366,6 +410,7 @@ export default function SearchableScholarshipSelect({
                   variant="ghost"
                   size="sm"
                   onClick={resetFilters}
+                  onMouseDown={(e: React.MouseEvent) => e.preventDefault()} // Prevent focus loss
                   className="text-xs"
                 >
                   Clear
@@ -428,7 +473,8 @@ export default function SearchableScholarshipSelect({
                 <div 
                   key={scholarship.id}
                   onClick={() => handleRecentSelect(scholarship)}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-gray-50"
+                  onMouseDown={(e: React.MouseEvent) => e.preventDefault()} // Prevent focus loss
                 >
                   {renderScholarshipCard(scholarship)}
                 </div>
@@ -458,8 +504,13 @@ export default function SearchableScholarshipSelect({
                 </div>
                 
                 {scholarships.map((scholarship: Scholarship) => (
-                  <SelectItem key={scholarship.id} value={scholarship.id} className="p-0 focus:bg-transparent">
-                    <div className="w-full" onClick={() => handleValueChange(scholarship.id)}>
+                  <SelectItem 
+                    key={scholarship.id} 
+                    value={scholarship.id} 
+                    className="p-0 focus:bg-transparent data-[highlighted]:bg-gray-50"
+                    onSelect={() => handleValueChange(scholarship.id)}
+                  >
+                    <div className="w-full pointer-events-none">
                       {renderScholarshipCard(scholarship)}
                     </div>
                   </SelectItem>
@@ -473,6 +524,7 @@ export default function SearchableScholarshipSelect({
                       variant="outline"
                       size="sm"
                       onClick={loadMore}
+                      onMouseDown={(e: React.MouseEvent) => e.preventDefault()} // Prevent focus loss
                       disabled={isLoading}
                       className="w-full"
                     >
