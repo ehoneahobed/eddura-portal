@@ -97,6 +97,7 @@ export default function ApplicationTemplateForm({
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [forceRender, setForceRender] = useState(0);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialMount = useRef(true);
 
@@ -215,7 +216,7 @@ export default function ApplicationTemplateForm({
     name: 'sections'
   });
 
-  const watchedSections = useMemo(() => watch('sections') || [], [watch]);
+  const watchedSections = watch('sections') || [];
   const allFormData = watch();
 
   // Auto-save functionality
@@ -266,9 +267,9 @@ export default function ApplicationTemplateForm({
     });
 
     if (hasChanges) {
-      setValue('sections', updatedSections);
+      updateSections(updatedSections);
     }
-  }, [watchedSections, setValue]);
+  }, [watchedSections, setValue, forceRender]);
 
   // Warn user about unsaved changes when leaving the page
   useEffect(() => {
@@ -329,6 +330,12 @@ export default function ApplicationTemplateForm({
     }
   };
 
+  // Helper function to update sections and force re-render
+  const updateSections = (updatedSections: FormSection[]) => {
+    setValue('sections', updatedSections);
+    setForceRender((prev: number) => prev + 1);
+  };
+
   const addSection = () => {
     const newOrder = sections.length + 1;
     const newSection = createDefaultSection(newOrder);
@@ -380,7 +387,7 @@ export default function ApplicationTemplateForm({
       updatedSections[sectionIndex].questions = [];
     }
     updatedSections[sectionIndex].questions.push(newQuestion);
-    setValue('sections', updatedSections);
+    updateSections(updatedSections);
     toast.success('Question added successfully');
   };
 
@@ -401,7 +408,7 @@ export default function ApplicationTemplateForm({
         ...q,
         order: index + 1
       }));
-      setValue('sections', updatedSections);
+      updateSections(updatedSections);
       toast.success('Question removed');
     } else {
       toast.error('Cannot remove the last question from a section');
@@ -427,7 +434,7 @@ export default function ApplicationTemplateForm({
     
     const updatedSections = [...currentSections];
     updatedSections[sectionIndex].questions.push(newQuestion);
-    setValue('sections', updatedSections);
+    updateSections(updatedSections);
     toast.success('Question duplicated');
   };
 
@@ -453,7 +460,7 @@ export default function ApplicationTemplateForm({
     }
     
     section.questions[questionIndex] = newQuestion;
-    setValue('sections', updatedSections);
+    updateSections(updatedSections);
   };
 
   const addQuestionOption = (sectionIndex: number, questionIndex: number) => {
@@ -479,7 +486,7 @@ export default function ApplicationTemplateForm({
     };
     
     question.options.push(newOption);
-    setValue('sections', updatedSections);
+    updateSections(updatedSections);
   };
 
   const removeQuestionOption = (sectionIndex: number, questionIndex: number, optionIndex: number) => {
@@ -496,7 +503,7 @@ export default function ApplicationTemplateForm({
     
     if (question.options && question.options.length > 1) {
       question.options.splice(optionIndex, 1);
-      setValue('sections', updatedSections);
+      updateSections(updatedSections);
       toast.success('Option removed');
     } else {
       toast.error('Cannot remove the last option');
@@ -517,7 +524,7 @@ export default function ApplicationTemplateForm({
         source.index,
         destination.index
       );
-      setValue('sections', newSections);
+      updateSections(newSections);
     } else if (type === 'question') {
       const [sectionIndex] = source.droppableId.split('-');
       const section = currentSections[parseInt(sectionIndex)];
@@ -529,7 +536,7 @@ export default function ApplicationTemplateForm({
       
       const updatedSections = [...currentSections];
       updatedSections[parseInt(sectionIndex)] = newSection;
-      setValue('sections', updatedSections);
+      updateSections(updatedSections);
     }
   };
 
