@@ -208,7 +208,8 @@ export default function ApplicationTemplateForm({
   }, [loadFormData, template, scholarshipId]);
 
   const { register, handleSubmit, formState: { errors }, watch, setValue, control, getValues, reset } = useForm<ApplicationTemplate>({
-    defaultValues: getInitialValues()
+    defaultValues: getInitialValues(),
+    mode: 'onChange'
   });
 
   const { fields: sections, append: appendSection, remove: removeSection, move: moveSection } = useFieldArray({
@@ -296,6 +297,12 @@ export default function ApplicationTemplateForm({
         toast.error(`Section "${section.title}" must have at least one question`);
         return;
       }
+    }
+
+    // Validate scholarship selection if scholarship change is allowed
+    if (allowScholarshipChange && !data.scholarshipId) {
+      toast.error('Please select a scholarship for this template');
+      return;
     }
 
     // Prepare the data for submission
@@ -1053,12 +1060,16 @@ export default function ApplicationTemplateForm({
             <div className="space-y-2">
               <Label>Scholarship *</Label>
               <SearchableScholarshipSelect
-                value={scholarshipId || ''}
+                value={watch('scholarshipId') || ''}
                 onValueChange={(value: string) => {
                   setValue('scholarshipId', value);
+                  setHasUnsavedChanges(true);
                 }}
                 placeholder="Select a scholarship for this template"
               />
+              {errors.scholarshipId && (
+                <p className="text-sm text-red-600">{errors.scholarshipId.message}</p>
+              )}
             </div>
           </CardContent>
         </Card>
