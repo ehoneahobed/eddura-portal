@@ -3,7 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./mongodb-client";
 import User from "@/models/User";
-import Admin, { AdminRole } from "@/models/Admin";
+import Admin from "@/models/Admin";
+import { AdminRole } from "@/types/admin";
 import connectDB from "@/lib/mongodb";
 
 // Create NextAuth configuration

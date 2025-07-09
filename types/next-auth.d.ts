@@ -1,4 +1,4 @@
-import { AdminRole } from "@/models/Admin";
+import { AdminRole } from "@/types/admin";
 
 declare module "next-auth" {
   interface Session {

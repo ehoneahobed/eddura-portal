@@ -21,8 +21,8 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
   const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`;
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 px-6 py-4 h-16 flex items-center">
+      <div className="flex items-center justify-between w-full">
         <div className="flex items-center space-x-4">
           <Building2 className="h-8 w-8 text-blue-600" />
           <div>

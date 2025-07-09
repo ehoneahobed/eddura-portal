@@ -58,11 +58,11 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 flex flex-col">
       <AdminHeader user={session.user} />
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         <AdminSidebar user={session.user} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );

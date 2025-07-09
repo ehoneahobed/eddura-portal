@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import Admin from "@/models/Admin";
+import { AdminRole } from "@/types/admin";
 import connectDB from "@/lib/mongodb";
-import Admin, { AdminRole } from "@/models/Admin";
 import { Resend } from "resend";
 import crypto from "crypto";
 

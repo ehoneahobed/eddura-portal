@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle, UserPlus } from "lucide-react";
-import { AdminRole } from "@/models/Admin";
+import { AdminRole } from "@/types/admin";
 import { z } from "zod";
 
 const inviteSchema = z.object({

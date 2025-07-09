@@ -24,7 +24,7 @@ interface AdminSidebarProps {
 const navigationItems = [
   {
     name: "Dashboard",
-    href: "/admin/dashboard",
+    href: "/admin",
     icon: LayoutDashboard,
     permission: null, // Always visible
   },
@@ -54,7 +54,7 @@ const navigationItems = [
   },
   {
     name: "Applications",
-    href: "/admin/applications",
+    href: "/admin/application-templates",
     icon: FileText,
     permission: "content:read",
   },
@@ -97,8 +97,17 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
   );
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
-      <nav className="mt-5 px-2">
+    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
+      {/* Fixed header area */}
+      <div className="p-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">Admin Panel</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          {user?.firstName || user?.email}
+        </p>
+      </div>
+      
+      {/* Scrollable navigation area */}
+      <nav className="flex-1 overflow-y-auto p-4">
         <div className="space-y-1">
           {filteredNavigation.map((item) => {
             const isActive = pathname === item.href;

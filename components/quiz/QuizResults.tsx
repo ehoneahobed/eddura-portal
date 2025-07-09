@@ -30,7 +30,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { QUIZ_SECTIONS } from '@/lib/quiz-config';
 import { generateAllRecommendations, CareerInsight, ProgramRecommendation, PersonalityProfile, CareerPath } from '@/lib/ai-recommendations';
-import { QuizResponses } from '@/models/User';
+import { QuizResponses } from '@/types/quiz';
 import Link from 'next/link';
 
 export default function QuizResults() {

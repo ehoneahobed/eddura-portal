@@ -1,11 +1,14 @@
-import { config } from 'dotenv';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables from .env.local
-config({ path: path.resolve(process.cwd(), '.env.local') });
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, '../.env.local') });
 
 import connectDB from "../lib/mongodb";
-import Admin, { AdminRole } from "../models/Admin";
+import Admin from "../models/Admin";
+import { AdminRole } from "../types/admin";
 
 async function createSuperAdmin() {
   try {

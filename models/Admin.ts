@@ -1,15 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
-
-/**
- * Admin roles enum
- */
-export enum AdminRole {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  MODERATOR = 'moderator',
-  SUPPORT = 'support'
-}
+import { AdminRole } from '@/types/admin';
 
 /**
  * Admin interface representing an admin user in the platform
