@@ -14,9 +14,12 @@ import {
   Settings,
   Calendar,
   CheckCircle,
-  XCircle
+  XCircle,
+  Award,
+  ExternalLink
 } from 'lucide-react';
 import { useApplicationTemplate } from '@/hooks/use-application-templates';
+import { useScholarship } from '@/hooks/use-scholarships';
 import { ApplicationTemplate, QuestionType, FormSection, Question } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { deleteApplicationTemplate } from '@/hooks/use-application-templates';
@@ -58,6 +61,7 @@ const getQuestionTypeDisplayName = (type: QuestionType): string => {
 export default function ViewApplicationTemplatePage({ params }: ViewApplicationTemplatePageProps) {
   const router = useRouter();
   const { template, error, isLoading } = useApplicationTemplate(params.id);
+  const { scholarship, isLoading: isLoadingScholarship } = useScholarship(template?.scholarshipId || '');
 
   const handleEdit = () => {
     router.push(`/admin/application-templates/${params.id}/edit`);
@@ -75,6 +79,28 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
         console.error('Error deleting template:', error);
         toast.error('Failed to delete application template');
       }
+    }
+  };
+
+  const formatScholarshipValue = (scholarship: any) => {
+    if (!scholarship.value) return null;
+    
+    if (typeof scholarship.value === 'number') {
+      return `${scholarship.currency || 'USD'} ${scholarship.value.toLocaleString()}`;
+    }
+    return scholarship.value;
+  };
+
+  const formatDeadline = (deadline: string) => {
+    try {
+      const date = new Date(deadline);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return deadline;
     }
   };
 
@@ -133,7 +159,7 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{template.title}</h1>
             <p className="text-gray-600 mt-2">
-              Application form template for scholarship
+              Application form template {scholarship ? `for ${scholarship.title}` : 'for scholarship'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -159,7 +185,86 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Template Details */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-6">
+          {/* Linked Scholarship */}
+          {template.scholarshipId && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Award className="w-5 h-5" />
+                  Linked Scholarship
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isLoadingScholarship ? (
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                ) : scholarship ? (
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
+                      <p className="text-sm text-gray-600">{scholarship.provider}</p>
+                    </div>
+                    
+                    {formatScholarshipValue(scholarship) && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Value</label>
+                        <p className="text-green-600 font-semibold">{formatScholarshipValue(scholarship)}</p>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Frequency</label>
+                      <p className="text-gray-900 capitalize">{scholarship.frequency?.toLowerCase()}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Application Deadline</label>
+                      <p className="text-gray-900">{formatDeadline(scholarship.deadline)}</p>
+                    </div>
+                    
+                    {scholarship.coverage && scholarship.coverage.length > 0 && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Coverage</label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {scholarship.coverage.slice(0, 3).map((coverage: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {coverage}
+                            </Badge>
+                          ))}
+                          {scholarship.coverage.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{scholarship.coverage.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {scholarship.applicationLink && (
+                      <div className="pt-2 border-t">
+                        <a 
+                          href={scholarship.applicationLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          View Scholarship Details
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">Scholarship not found</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Template Details */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
