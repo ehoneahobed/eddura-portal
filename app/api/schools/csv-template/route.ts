@@ -88,8 +88,17 @@ export async function GET() {
       'Near subway station, 30 min to downtown'
     ];
 
-    // Create CSV content
-    const csvContent = headers.join(',') + '\n' + sampleData.join(',');
+    // Helper function to escape CSV values
+    const escapeCSVValue = (value: string) => {
+      // If value contains comma, newline, or quotes, wrap in quotes and escape internal quotes
+      if (value.includes(',') || value.includes('\n') || value.includes('"')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    // Create CSV content with properly escaped values
+    const csvContent = headers.join(',') + '\n' + sampleData.map(escapeCSVValue).join(',');
 
     // Create response with CSV content
     return new NextResponse(csvContent, {
