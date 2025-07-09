@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-database.ts",
+    "create-admin": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/create-super-admin.ts",
     "setup": "node scripts/setup-env.js"
   },
   "dependencies": {
@@ -56,6 +57,7 @@
     "csv-parse": "^5.6.0",
     "currency-codes": "^2.2.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.0",
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
@@ -63,6 +65,7 @@
     "input-otp": "^1.2.4",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.446.0",
+    "mongodb": "^6.17.0",
     "mongoose": "^8.0.3",
     "next": "13.5.1",
     "next-auth": "^5.0.0-beta.29",

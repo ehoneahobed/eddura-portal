@@ -1,6 +1,11 @@
+import { config } from 'dotenv';
+import path from 'path';
+
+// Load environment variables from .env.local
+config({ path: path.resolve(process.cwd(), '.env.local') });
+
 import connectDB from "../lib/mongodb";
 import Admin, { AdminRole } from "../models/Admin";
-import bcrypt from "bcryptjs";
 
 async function createSuperAdmin() {
   try {
@@ -18,23 +23,16 @@ async function createSuperAdmin() {
     const superAdminData = {
       firstName: "Super",
       lastName: "Admin",
-      email: "superadmin@yourdomain.com", // Change this to your email
-      password: "SuperAdmin123!", // Change this to a secure password
+      email: "obedehoneah@gmail.com", // Change this to your email
+      password: "ChangeMe123!", // Change this to a secure password
       role: AdminRole.SUPER_ADMIN,
       isEmailVerified: true,
       isActive: true,
       isInviteAccepted: true,
     };
 
-    // Hash password
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(superAdminData.password, salt);
-
-    // Create super admin
-    const superAdmin = new Admin({
-      ...superAdminData,
-      password: hashedPassword,
-    });
+    // Create super admin (password will be hashed by the model's pre-save middleware)
+    const superAdmin = new Admin(superAdminData);
 
     await superAdmin.save();
 

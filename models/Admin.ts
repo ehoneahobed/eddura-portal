@@ -170,19 +170,22 @@ AdminSchema.virtual('fullName').get(function() {
 });
 
 // Pre-save middleware to hash password and set permissions
-AdminSchema.pre('save', async function(next) {
+AdminSchema.pre('save', async function(this: any, next) {
   if (this.isModified('password')) {
-    try {
-      const salt = await bcrypt.genSalt(12);
-      this.password = await bcrypt.hash(this.password as string, salt);
-    } catch (error) {
-      return next(error as Error);
+    // Check if password is already hashed (bcrypt hashes start with $2b$)
+    if (!this.password.startsWith('$2b$')) {
+      try {
+        const salt = await bcrypt.genSalt(12);
+        this.password = await bcrypt.hash(this.password as string, salt);
+      } catch (error) {
+        return next(error as Error);
+      }
     }
   }
   
   // Set permissions based on role
   if (this.isModified('role')) {
-    this.permissions = this.getPermissionsForRole(this.role);
+    this.permissions = (this.constructor as any).getPermissionsForRole(this.role);
   }
   
   next();
@@ -251,7 +254,7 @@ const ADMIN_PERMISSIONS_MAP: Record<AdminRole, string[]> = {
 };
 
 // Indexes for better query performance
-AdminSchema.index({ email: 1 });
+// Note: email index is automatically created by unique: true constraint
 AdminSchema.index({ role: 1 });
 AdminSchema.index({ isActive: 1 });
 AdminSchema.index({ inviteToken: 1 });
