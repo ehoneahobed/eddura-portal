@@ -16,6 +16,7 @@ import {
   Users,
   Calendar
 } from 'lucide-react';
+import CSVImportModal from '@/components/admin/CSVImportModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,13 +93,24 @@ export default function ApplicationTemplatesPage() {
             Manage application form templates for scholarships
           </p>
         </div>
-        <Button
-          onClick={handleCreateTemplate}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Create Template
-        </Button>
+        <div className="flex gap-2">
+          <CSVImportModal
+            title="Import Application Templates"
+            description="Upload a CSV file to import application templates. Templates must reference existing scholarships. Download the template to see the required format."
+            importEndpoint="/api/application-templates/csv-import"
+            templateEndpoint="/api/application-templates/csv-template"
+            onImportComplete={() => {
+              mutate(); // Refresh templates data after import
+            }}
+          />
+          <Button
+            onClick={handleCreateTemplate}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Create Template
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
