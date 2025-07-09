@@ -13,6 +13,7 @@ import { Search, Plus, Edit, Trash2, Clock, DollarSign, Globe, Loader2 } from 'l
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import CSVImportModal from '@/components/admin/CSVImportModal';
 
 // Helper to get currency symbol from code
 const getCurrencySymbol = (code: string) => {
@@ -132,12 +133,27 @@ export default function ProgramsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Programs</h1>
           <p className="text-gray-600">Manage academic programs</p>
         </div>
-        <Link href="/admin/programs/create">
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Program
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <CSVImportModal
+            title="Import Programs"
+            description="Upload a CSV file to import multiple programs at once. Programs must reference existing schools. Download the template to see the required format."
+            importEndpoint="/api/programs/csv-import"
+            templateEndpoint="/api/programs/csv-template"
+            onImportComplete={() => {
+              mutate(); // Refresh programs data after import
+              toast({
+                title: 'Import Complete',
+                description: 'Programs have been imported successfully'
+              });
+            }}
+          />
+          <Link href="/admin/programs/create">
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Program
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

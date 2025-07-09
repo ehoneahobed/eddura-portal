@@ -12,6 +12,7 @@ import { Search, Plus, Edit, Trash2, Calendar, DollarSign, ExternalLink, Loader2
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
+import CSVImportModal from '@/components/admin/CSVImportModal';
 
 export default function ScholarshipsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,12 +115,27 @@ export default function ScholarshipsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Scholarships</h1>
           <p className="text-gray-600">Manage scholarship opportunities</p>
         </div>
-        <Link href="/admin/scholarships/create">
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Scholarship
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <CSVImportModal
+            title="Import Scholarships"
+            description="Upload a CSV file to import multiple scholarships at once. Download the template to see the required format."
+            importEndpoint="/api/scholarships/csv-import"
+            templateEndpoint="/api/scholarships/csv-template"
+            onImportComplete={() => {
+              mutate(); // Refresh scholarships data after import
+              toast({
+                title: 'Import Complete',
+                description: 'Scholarships have been imported successfully'
+              });
+            }}
+          />
+          <Link href="/admin/scholarships/create">
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Scholarship
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

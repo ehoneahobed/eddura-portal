@@ -13,6 +13,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { getHostnameFromUrl } from '@/lib/url-utils';
+import CSVImportModal from '@/components/admin/CSVImportModal';
 
 export default function SchoolsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,12 +86,27 @@ export default function SchoolsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Schools</h1>
             <p className="text-gray-600">Manage educational institutions</p>
           </div>
-          <Link href="/admin/schools/create">
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add School
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <CSVImportModal
+              title="Import Schools"
+              description="Upload a CSV file to import multiple schools at once. Download the template to see the required format."
+              importEndpoint="/api/schools/csv-import"
+              templateEndpoint="/api/schools/csv-template"
+              onImportComplete={() => {
+                mutate(); // Refresh schools data after import
+                toast({
+                  title: 'Import Complete',
+                  description: 'Schools have been imported successfully'
+                });
+              }}
+            />
+            <Link href="/admin/schools/create">
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add School
+              </Button>
+            </Link>
+          </div>
         </div>
 
       {/* Search */}
