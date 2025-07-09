@@ -84,7 +84,7 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'text/csv',
-        'Content-Disposition': 'attachment; filename="programs_import_template.csv"',
+        'Content-Disposition': 'attachment; filename=programs_import_template.csv',
       },
     });
   } catch (error: any) {
