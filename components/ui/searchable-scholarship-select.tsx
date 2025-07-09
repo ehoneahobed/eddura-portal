@@ -21,7 +21,7 @@ import {
   GraduationCap,
   Building
 } from 'lucide-react';
-import { useScholarships } from '@/hooks/use-scholarships';
+import { useScholarships, useScholarship } from '@/hooks/use-scholarships';
 import { Scholarship } from '@/types';
 
 interface SearchableScholarshipSelectProps {
@@ -68,6 +68,9 @@ export default function SearchableScholarshipSelect({
   const debounceTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Fetch specific scholarship if value is provided but not found in search results
+  const { scholarship: specificScholarship, isLoading: isLoadingSpecific } = useScholarship(value);
+
   // Debounce search term
   React.useEffect(() => {
     if (debounceTimeout.current) {
@@ -89,7 +92,7 @@ export default function SearchableScholarshipSelect({
   // Build query parameters for API call
   const queryParams = {
     page,
-    limit: 20,
+    limit: 50, // Increased limit to match API changes
     ...(debouncedSearchTerm && { search: debouncedSearchTerm }),
     ...(filters.coverage && { coverage: filters.coverage }),
     ...(filters.frequency && { frequency: filters.frequency }),
@@ -115,15 +118,21 @@ export default function SearchableScholarshipSelect({
     }
   }, []);
 
-  // Find selected scholarship details
+  // Find selected scholarship details with fallback to specific scholarship fetch
   React.useEffect(() => {
-    if (value && scholarships.length > 0) {
+    if (value) {
+      // First try to find in current search results
       const found = scholarships.find((s: Scholarship) => s.id === value);
       if (found) {
         setSelectedScholarship(found);
+      } else if (specificScholarship) {
+        // If not found in search results, use the specifically fetched scholarship
+        setSelectedScholarship(specificScholarship);
       }
+    } else {
+      setSelectedScholarship(null);
     }
-  }, [value, scholarships]);
+  }, [value, scholarships, specificScholarship]);
 
   // Focus search input when dropdown opens and maintain focus
   React.useEffect(() => {
@@ -169,6 +178,7 @@ export default function SearchableScholarshipSelect({
   const handleRecentSelect = (scholarship: Scholarship) => {
     onValueChange(scholarship.id);
     setSelectedScholarship(scholarship);
+    saveToRecent(scholarship);
     setIsOpen(false);
     setSearchTerm('');
   };
@@ -301,6 +311,18 @@ export default function SearchableScholarshipSelect({
     );
   };
 
+  // Show loading state while fetching specific scholarship
+  if (value && !selectedScholarship && isLoadingSpecific) {
+    return (
+      <div className="relative">
+        <div className="border rounded-md px-3 py-2 h-11 flex items-center gap-2">
+          <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
+          <span className="text-sm text-gray-500">Loading scholarship...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <Select 
@@ -360,7 +382,7 @@ export default function SearchableScholarshipSelect({
                     }
                   }, 0);
                 }}
-                placeholder="Search scholarships by title, provider, or description..."
+                placeholder="Search scholarships by title, provider, details, or school..."
                 className="pl-10 h-9"
                 onKeyDown={(e: React.KeyboardEvent) => {
                   e.stopPropagation();

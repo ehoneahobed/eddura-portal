@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '50'); // Increased default limit
     const search = searchParams.get('search') || '';
     const provider = searchParams.get('provider') || '';
     const frequency = searchParams.get('frequency') || '';
@@ -21,12 +21,18 @@ export async function GET(request: NextRequest) {
     // Build filter object
     const filter: any = {};
     
-    // Search filter
+    // Enhanced search filter - search in more fields
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
         { provider: { $regex: search, $options: 'i' } },
-        { 'eligibility.degreeLevels': { $regex: search, $options: 'i' } }
+        { scholarshipDetails: { $regex: search, $options: 'i' } }, // Added scholarshipDetails
+        { 'eligibility.degreeLevels': { $regex: search, $options: 'i' } },
+        { 'eligibility.fieldsOfStudy': { $regex: search, $options: 'i' } }, // Added fieldsOfStudy
+        { linkedSchool: { $regex: search, $options: 'i' } }, // Added linkedSchool
+        { linkedProgram: { $regex: search, $options: 'i' } }, // Added linkedProgram
+        { coverage: { $regex: search, $options: 'i' } }, // Added coverage
+        { tags: { $regex: search, $options: 'i' } } // Added tags
       ];
     }
     
@@ -48,11 +54,21 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const totalCount = await Scholarship.countDocuments(filter);
     
-    // Get paginated scholarships
-    const scholarships = await Scholarship.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    // Get paginated scholarships with sorting by relevance when searching
+    let scholarships;
+    if (search) {
+      // When searching, sort by relevance (MongoDB text search score) then by title
+      scholarships = await Scholarship.find(filter)
+        .sort({ title: 1 }) // Sort by title alphabetically when searching
+        .skip(skip)
+        .limit(limit);
+    } else {
+      // When not searching, sort by creation date (newest first)
+      scholarships = await Scholarship.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+    }
     
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / limit);
