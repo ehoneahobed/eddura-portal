@@ -14,6 +14,7 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     console.log("🔍 [ADMIN_WRAPPER] Session status:", status);
@@ -59,10 +60,35 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
-      <AdminHeader user={session.user} />
+      <AdminHeader 
+        user={session.user} 
+        onMenuClick={() => setSidebarOpen(true)}
+        sidebarOpen={sidebarOpen}
+      />
       <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar user={session.user} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
+        {/* Sidebar */}
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <AdminSidebar 
+            user={session.user} 
+            onClose={() => setSidebarOpen(false)}
+          />
+        </div>
+        
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );
