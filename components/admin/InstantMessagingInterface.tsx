@@ -199,6 +199,13 @@ export default function InstantMessagingInterface() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
+    // Validate that if we're replying, we have a valid message to reply to
+    if (replyTo && !replyTo._id) {
+      alert('Invalid message to reply to. Please try again.');
+      setReplyTo(null);
+      return;
+    }
+
     try {
       const recipients = selectedConversation.participants.map(p => p._id);
       const response = await fetch('/api/admin/messages', {
@@ -212,8 +219,7 @@ export default function InstantMessagingInterface() {
           recipients: recipients,
           messageType: "general",
           priority: "medium",
-          parentMessage: replyTo?._id,
-          threadId: selectedConversation.id
+          ...(replyTo?._id && { parentMessage: replyTo._id })
         }),
       });
 
@@ -221,9 +227,14 @@ export default function InstantMessagingInterface() {
         setNewMessage("");
         setReplyTo(null);
         fetchMessages();
+      } else {
+        const errorData = await response.json();
+        console.error('Error sending message:', errorData);
+        alert(`Failed to send message: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
     }
   };
 
@@ -486,21 +497,22 @@ export default function InstantMessagingInterface() {
                       )}
                       
                       <div
-                        className={`p-3 rounded-lg ${
-                          message.sender._id === session.user?.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        {replyTo && replyTo._id === message._id && (
-                          <div className={`text-xs mb-2 p-2 rounded ${
-                            message.sender._id === session.user?.id
-                              ? 'bg-blue-400 text-white'
-                              : 'bg-gray-200 text-gray-600'
-                          }`}>
-                            Replying to: {message.content.substring(0, 50)}...
-                          </div>
-                        )}
+                           className={`p-3 rounded-lg ${
+                             message.sender._id === session.user?.id
+                               ? 'bg-blue-500 text-white'
+                               : 'bg-gray-100 text-gray-900'
+                           }`}
+                         >
+                         {message.parentMessage && (
+                           <div className={`text-xs mb-2 p-2 rounded ${
+                             message.sender._id === session.user?.id
+                               ? 'bg-blue-400 text-white'
+                               : 'bg-gray-200 text-gray-600'
+                           }`}>
+                             <Reply className="inline h-3 w-3 mr-1" />
+                             Reply to message
+                           </div>
+                         )}
                         
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         
