@@ -142,5 +142,5 @@ export const mockDatabase = {
 
 // Re-export everything
 export * from '@testing-library/react'
-export { customRender as render, screen }
+export { customRender as render }
 export { mockSession, mockAdminSession }
