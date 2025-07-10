@@ -77,7 +77,8 @@ const questionTypes: { value: QuestionType; label: string; description: string }
   { value: 'essay', label: 'Essay', description: 'Long-form essay response' },
   { value: 'statement', label: 'Personal Statement', description: 'Personal statement' },
   { value: 'gpa', label: 'GPA', description: 'GPA with scale validation' },
-  { value: 'test_score', label: 'Test Score', description: 'Standardized test scores' }
+  { value: 'test_score', label: 'Test Score', description: 'Standardized test scores' },
+  { value: 'country', label: 'Country Selection', description: 'Dropdown for country selection with search' }
 ];
 
 const fileTypes = [
