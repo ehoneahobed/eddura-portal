@@ -1,19 +1,9 @@
-import { Metadata } from 'next';
-import AdminLayout from '@/components/layout/AdminLayout';
+import AdminLayoutWrapper from "@/components/admin/AdminLayoutWrapper";
 
-export const metadata: Metadata = {
-  title: 'Admin Dashboard',
-  description: 'Eddura admin dashboard for managing schools, programs, and scholarships. Access comprehensive educational management tools.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
-export default function Layout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AdminLayout>{children}</AdminLayout>;
+  return <AdminLayoutWrapper>{children}</AdminLayoutWrapper>;
 }

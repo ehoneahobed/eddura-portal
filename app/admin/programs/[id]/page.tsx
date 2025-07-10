@@ -9,10 +9,12 @@ import ProgramActions from '@/components/programs/ProgramActions';
  * ProgramViewPage displays all details of a single program in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const ProgramViewPage = async ({ params }: { params: { id: string } }) => {
-  const host = headers().get('host');
+const ProgramViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = await params;
+  const headersList = await headers();
+  const host = headersList.get('host');
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/programs/${params.id}`);
+  const res = await fetch(`${protocol}://${host}/api/programs/${resolvedParams.id}`);
   if (!res.ok) {
     return <div className="p-4 text-red-600">Failed to load program details.</div>;
   }

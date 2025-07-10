@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,20 +12,29 @@ import { updateApplicationTemplate } from '@/hooks/use-application-templates';
 import { toast } from 'sonner';
 
 interface EditApplicationTemplatePageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditApplicationTemplatePage({ params }: EditApplicationTemplatePageProps) {
   const router = useRouter();
-  const { template, error, isLoading } = useApplicationTemplate(params.id);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const { template, error, isLoading } = useApplicationTemplate(templateId || '');
   const [isUpdating, setIsUpdating] = useState(false);
 
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setTemplateId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
   const handleSubmit = async (data: Partial<ApplicationTemplate>) => {
+    if (!templateId) return;
+    
     setIsUpdating(true);
     try {
-      await updateApplicationTemplate(params.id, data);
+      await updateApplicationTemplate(templateId, data);
       toast.success('Application template updated successfully');
       router.push('/admin/application-templates');
     } catch (error) {
@@ -39,6 +48,22 @@ export default function EditApplicationTemplatePage({ params }: EditApplicationT
   const handleCancel = () => {
     router.push('/admin/application-templates');
   };
+
+  // Show loading state while params are being resolved
+  if (!templateId) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-10 bg-gray-200 rounded w-full"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

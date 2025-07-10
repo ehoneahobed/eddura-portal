@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { SWRProvider } from '@/components/providers/SWRProvider';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -94,10 +95,12 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={inter.className}>
-        <SWRProvider>
-          {children}
-          <Toaster />
-        </SWRProvider>
+        <SessionProvider>
+          <SWRProvider>
+            {children}
+            <Toaster />
+          </SWRProvider>
+        </SessionProvider>
       </body>
     </html>
   );
