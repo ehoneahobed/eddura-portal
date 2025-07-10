@@ -54,9 +54,10 @@ jest.mock('@/lib/mongodb', () => ({
 const mockSchoolModel = jest.fn().mockImplementation((data) => ({
   ...data,
   save: jest.fn(),
-  toObject: () => data,
+  toObject: () => ({ ...data, _id: 'test-id' }),
 }))
 
+// Add static methods to the constructor
 mockSchoolModel.find = jest.fn()
 mockSchoolModel.countDocuments = jest.fn()
 
