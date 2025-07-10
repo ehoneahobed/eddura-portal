@@ -1,12 +1,5 @@
 import { NextRequest } from 'next/server'
-import { GET, POST } from '@/app/api/schools/route'
 import { createMockSchool } from '../../utils/test-utils'
-
-import connectDB from '@/lib/mongodb'
-import School from '@/models/School'
-
-const mockConnectDB = connectDB as jest.MockedFunction<typeof connectDB>
-const mockSchool = School as jest.Mocked<typeof School>
 
 describe('Schools API', () => {
   beforeEach(() => {
@@ -20,16 +13,26 @@ describe('Schools API', () => {
         createMockSchool({ id: '2', name: 'University B' }),
       ]
 
-      mockSchool.find.mockReturnValue({
+      // Mock the modules after reset
+      jest.doMock('@/models/School', () => ({
+        __esModule: true,
+        default: jest.fn().mockImplementation(() => ({
+          save: jest.fn(),
+          toObject: () => ({ _id: 'test-id' })
+        }))
+      }))
+
+      const mockSchool = require('@/models/School').default
+      mockSchool.find = jest.fn().mockReturnValue({
         sort: jest.fn().mockReturnValue({
           skip: jest.fn().mockReturnValue({
             limit: jest.fn().mockResolvedValue(mockSchools),
           }),
         }),
-      } as any)
+      })
+      mockSchool.countDocuments = jest.fn().mockResolvedValue(2)
 
-      mockSchool.countDocuments.mockResolvedValue(2)
-
+      const { GET } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools?page=1&limit=10')
       const response = await GET(request)
       const data = await response.json()
@@ -49,16 +52,26 @@ describe('Schools API', () => {
     it('handles search parameter', async () => {
       const mockSchools = [createMockSchool({ id: '1', name: 'MIT' })]
 
-      mockSchool.find.mockReturnValue({
+      // Mock the modules after reset
+      jest.doMock('@/models/School', () => ({
+        __esModule: true,
+        default: jest.fn().mockImplementation(() => ({
+          save: jest.fn(),
+          toObject: () => ({ _id: 'test-id' })
+        }))
+      }))
+
+      const mockSchool = require('@/models/School').default
+      mockSchool.find = jest.fn().mockReturnValue({
         sort: jest.fn().mockReturnValue({
           skip: jest.fn().mockReturnValue({
             limit: jest.fn().mockResolvedValue(mockSchools),
           }),
         }),
-      } as any)
+      })
+      mockSchool.countDocuments = jest.fn().mockResolvedValue(1)
 
-      mockSchool.countDocuments.mockResolvedValue(1)
-
+      const { GET } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools?search=MIT')
       const response = await GET(request)
       const data = await response.json()
@@ -75,8 +88,13 @@ describe('Schools API', () => {
     })
 
     it('handles database connection errors', async () => {
-      mockConnectDB.mockRejectedValue(new Error('ENOTFOUND'))
+      // Mock the database connection to fail
+      jest.doMock('@/lib/mongodb', () => ({
+        __esModule: true,
+        default: jest.fn().mockRejectedValue(new Error('ENOTFOUND'))
+      }))
 
+      const { GET } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools')
       const response = await GET(request)
       const data = await response.json()
@@ -86,8 +104,13 @@ describe('Schools API', () => {
     })
 
     it('handles general errors', async () => {
-      mockConnectDB.mockRejectedValue(new Error('Unknown error'))
+      // Mock the database connection to fail
+      jest.doMock('@/lib/mongodb', () => ({
+        __esModule: true,
+        default: jest.fn().mockRejectedValue(new Error('Unknown error'))
+      }))
 
+      const { GET } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools')
       const response = await GET(request)
       const data = await response.json()
@@ -116,12 +139,16 @@ describe('Schools API', () => {
       })
 
       // Mock the School constructor to return instances with our mocked save method
-      mockSchool.mockImplementation((data) => ({
-        ...data,
-        save: mockSave,
-        toObject: () => ({ ...data, _id: 'test-id' })
+      jest.doMock('@/models/School', () => ({
+        __esModule: true,
+        default: jest.fn().mockImplementation((data) => ({
+          ...data,
+          save: mockSave,
+          toObject: () => ({ ...data, _id: 'test-id' })
+        }))
       }))
 
+      const { POST } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools', {
         method: 'POST',
         body: JSON.stringify(schoolData),
@@ -147,12 +174,16 @@ describe('Schools API', () => {
       const mockSave = jest.fn().mockRejectedValue(validationError)
       
       // Mock the School constructor to return instances with our mocked save method
-      mockSchool.mockImplementation((data) => ({
-        ...data,
-        save: mockSave,
-        toObject: () => ({ ...data, _id: 'test-id' })
+      jest.doMock('@/models/School', () => ({
+        __esModule: true,
+        default: jest.fn().mockImplementation((data) => ({
+          ...data,
+          save: mockSave,
+          toObject: () => ({ ...data, _id: 'test-id' })
+        }))
       }))
 
+      const { POST } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools', {
         method: 'POST',
         body: JSON.stringify({}),
@@ -174,12 +205,16 @@ describe('Schools API', () => {
       const mockSave = jest.fn().mockRejectedValue(new Error('Database error'))
       
       // Mock the School constructor to return instances with our mocked save method
-      mockSchool.mockImplementation((data) => ({
-        ...data,
-        save: mockSave,
-        toObject: () => ({ ...data, _id: 'test-id' })
+      jest.doMock('@/models/School', () => ({
+        __esModule: true,
+        default: jest.fn().mockImplementation((data) => ({
+          ...data,
+          save: mockSave,
+          toObject: () => ({ ...data, _id: 'test-id' })
+        }))
       }))
 
+      const { POST } = await import('@/app/api/schools/route')
       const request = new NextRequest('http://localhost:3000/api/schools', {
         method: 'POST',
         body: JSON.stringify({ name: 'Test' }),
