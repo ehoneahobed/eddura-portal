@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ interface AdminHeaderProps {
 }
 
 export default function AdminHeader({ user }: AdminHeaderProps) {
+  const router = useRouter();
   const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`;
 
   return (
@@ -61,11 +63,11 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/admin/profile")}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/admin/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>

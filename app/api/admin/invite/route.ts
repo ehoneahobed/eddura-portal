@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user || session.user.type !== "admin") {
+    if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
       return NextResponse.json(
         { message: "Unauthorized" },
         { status: 401 }
@@ -44,6 +44,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { message: "Invalid role" },
         { status: 400 }
+      );
+    }
+
+    // Only super admins can create other super admins
+    if (role === AdminRole.SUPER_ADMIN && session.user.role !== 'super_admin') {
+      return NextResponse.json(
+        { message: "Only super admins can create super admin accounts" },
+        { status: 403 }
       );
     }
 

@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  Users,
   Building2,
   GraduationCap,
   Award,
@@ -29,10 +28,10 @@ const navigationItems = [
     permission: null, // Always visible
   },
   {
-    name: "Users",
-    href: "/admin/users",
-    icon: Users,
-    permission: "user:read",
+    name: "Application Templates",
+    href: "/admin/application-templates",
+    icon: FileText,
+    permission: "content:read",
   },
   {
     name: "Schools",
@@ -52,12 +51,7 @@ const navigationItems = [
     icon: Award,
     permission: "content:read",
   },
-  {
-    name: "Applications",
-    href: "/admin/application-templates",
-    icon: FileText,
-    permission: "content:read",
-  },
+
   {
     name: "Analytics",
     href: "/admin/analytics",
@@ -71,7 +65,7 @@ const navigationItems = [
     permission: "admin:read",
   },
   {
-    name: "Invite Admin",
+    name: "Add Admin User",
     href: "/admin/invite",
     icon: UserPlus,
     permission: "admin:invite",

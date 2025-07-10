@@ -8,7 +8,7 @@ import { AdminRole } from '@/types/admin';
 export interface IAdmin extends Document {
   // Authentication & Basic Info
   email: string;
-  password: string;
+  password?: string;
   firstName: string;
   lastName: string;
   role: AdminRole;
@@ -29,6 +29,9 @@ export interface IAdmin extends Document {
   inviteToken?: string;
   inviteExpires?: Date;
   isInviteAccepted: boolean;
+  
+  // Creation tracking
+  createdBy?: mongoose.Types.ObjectId;
   
   // Permissions (calculated from role)
   permissions: string[];
@@ -59,7 +62,7 @@ const AdminSchema: Schema = new Schema<IAdmin>({
   },
   password: { 
     type: String, 
-    required: true, 
+    required: false, 
     minlength: 8 
   },
   firstName: { 
@@ -131,6 +134,12 @@ const AdminSchema: Schema = new Schema<IAdmin>({
     default: false 
   },
   
+  // Creation tracking
+  createdBy: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Admin' 
+  },
+  
   // Permissions (will be calculated based on role)
   permissions: [{ 
     type: String, 
@@ -162,7 +171,7 @@ AdminSchema.virtual('fullName').get(function() {
 
 // Pre-save middleware to hash password and set permissions
 AdminSchema.pre('save', async function(this: any, next) {
-  if (this.isModified('password')) {
+  if (this.isModified('password') && this.password) {
     // Check if password is already hashed (bcrypt hashes start with $2b$)
     if (!this.password.startsWith('$2b$')) {
       try {
@@ -184,6 +193,9 @@ AdminSchema.pre('save', async function(this: any, next) {
 
 // Method to compare password
 AdminSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  if (!this.password) {
+    return false;
+  }
   return bcrypt.compare(candidatePassword, this.password);
 };
 
