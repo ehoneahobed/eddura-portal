@@ -149,14 +149,14 @@ const MessageSchema: Schema = new Schema<IMessage>({
 });
 
 // Virtual for message preview
-MessageSchema.virtual('preview').get(function() {
+MessageSchema.virtual('preview').get(function(this: IMessage) {
   return this.content.length > 100 
     ? this.content.substring(0, 100) + '...' 
     : this.content;
 });
 
 // Virtual for unread count in thread
-MessageSchema.virtual('unreadCount').get(function() {
+MessageSchema.virtual('unreadCount').get(function(this: IMessage) {
   // This would be calculated in queries
   return 0;
 });
