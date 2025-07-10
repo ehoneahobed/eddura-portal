@@ -9,7 +9,16 @@
     "lint": "next lint",
     "seed": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-database.ts",
     "create-admin": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/create-super-admin.ts",
-    "setup": "node scripts/setup-env.js"
+    "setup": "node scripts/setup-env.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "test:performance": "k6 run tests/performance/load-test.js",
+    "test:integration": "jest --config jest.config.js --testPathPattern=tests/integration",
+    "test:unit": "jest --config jest.config.js --testPathPattern=tests/unit",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -93,6 +102,16 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/country-list": "^2.1.4"
+    "@types/country-list": "^2.1.4",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^29.5.12",
+    "cypress": "^13.6.4",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "msw": "^2.1.5",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2"
   }
 }
