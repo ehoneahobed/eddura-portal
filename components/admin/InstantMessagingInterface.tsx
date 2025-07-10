@@ -333,9 +333,9 @@ export default function InstantMessagingInterface() {
   return (
     <div className="h-screen flex bg-gray-50">
       {/* Sidebar - Conversations List */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
             <Button size="sm" onClick={startNewConversation}>
@@ -354,9 +354,8 @@ export default function InstantMessagingInterface() {
             />
           </div>
         </div>
-
-        {/* Conversations List */}
-        <ScrollArea className="flex-1">
+        {/* Scrollable Conversations List */}
+        <ScrollArea className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -417,7 +416,7 @@ export default function InstantMessagingInterface() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full">
         {selectedConversation ? (
           <>
             {/* Chat Header */}
@@ -474,7 +473,7 @@ export default function InstantMessagingInterface() {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ paddingBottom: 96 }}>
               <div className="space-y-4">
                 {getConversationMessages().map((message) => (
                   <div
@@ -547,8 +546,8 @@ export default function InstantMessagingInterface() {
               </div>
             </ScrollArea>
 
-            {/* Message Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
+            {/* Sticky Chat Input */}
+            <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0 z-10">
               {replyTo && (
                 <div className="bg-gray-50 p-2 rounded-lg mb-3 flex items-center justify-between">
                   <span className="text-sm text-gray-600">

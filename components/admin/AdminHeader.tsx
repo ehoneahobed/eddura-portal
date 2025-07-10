@@ -29,7 +29,7 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ user }: AdminHeaderProps) {
   const router = useRouter();
-  const [isMessagingOpen, setIsMessagingOpen] = useState(false);
+  // Remove isMessagingOpen state
   const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`;
 
   return (
@@ -46,7 +46,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
         </div>
 
         <div className="flex items-center space-x-4">
-          <MessagingIcon onOpenMessaging={() => setIsMessagingOpen(true)} />
+          <MessagingIcon onOpenMessaging={() => router.push("/admin/messages")}/>
           
           <Button variant="ghost" size="sm">
             <Bell className="h-5 w-5" />
@@ -92,16 +92,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Messaging Dialog */}
-      <Dialog open={isMessagingOpen} onOpenChange={setIsMessagingOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Internal Messaging</DialogTitle>
-          </DialogHeader>
-          <MessagingInterface />
-        </DialogContent>
-      </Dialog>
+      {/* Remove old Dialog/modal for MessagingInterface */}
     </header>
   );
 }
