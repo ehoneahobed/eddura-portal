@@ -10,23 +10,36 @@ import SchoolForm from '@/components/forms/SchoolForm';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface EditSchoolPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditSchoolPage({ params }: EditSchoolPageProps) {
   const [school, setSchool] = useState<School | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSchool();
-  }, [params.id]);
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setSchoolId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchSchool();
+    }
+  }, [schoolId]);
 
   const fetchSchool = async () => {
+    if (!schoolId) return;
+    
     try {
-      const response = await fetch(`/api/schools/${params.id}`);
+      const response = await fetch(`/api/schools/${schoolId}`);
       if (response.ok) {
         const data = await response.json();
         setSchool(data);
@@ -46,9 +59,11 @@ export default function EditSchoolPage({ params }: EditSchoolPageProps) {
   };
 
   const handleUpdate = async (data: Partial<School>) => {
+    if (!schoolId) return;
+    
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/schools/${params.id}`, {
+      const response = await fetch(`/api/schools/${schoolId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -77,6 +92,18 @@ export default function EditSchoolPage({ params }: EditSchoolPageProps) {
   const handleCancel = () => {
     router.push('/admin/schools');
   };
+
+  // Show loading state while params are being resolved
+  if (!schoolId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoadingData) {
     return (

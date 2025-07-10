@@ -10,23 +10,36 @@ import ScholarshipForm from '@/components/forms/ScholarshipForm';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface EditScholarshipPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditScholarshipPage({ params }: EditScholarshipPageProps) {
   const [scholarship, setScholarship] = useState<Scholarship | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [scholarshipId, setScholarshipId] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchScholarship();
-  }, [params.id]);
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setScholarshipId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (scholarshipId) {
+      fetchScholarship();
+    }
+  }, [scholarshipId]);
 
   const fetchScholarship = async () => {
+    if (!scholarshipId) return;
+    
     try {
-      const response = await fetch(`/api/scholarships/${params.id}`);
+      const response = await fetch(`/api/scholarships/${scholarshipId}`);
       if (response.ok) {
         const data = await response.json();
         setScholarship(data);
@@ -46,9 +59,11 @@ export default function EditScholarshipPage({ params }: EditScholarshipPageProps
   };
 
   const handleUpdate = async (data: Partial<Scholarship>) => {
+    if (!scholarshipId) return;
+    
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/scholarships/${params.id}`, {
+      const response = await fetch(`/api/scholarships/${scholarshipId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -77,6 +92,18 @@ export default function EditScholarshipPage({ params }: EditScholarshipPageProps
   const handleCancel = () => {
     router.push('/admin/scholarships');
   };
+
+  // Show loading state while params are being resolved
+  if (!scholarshipId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoadingData) {
     return (

@@ -5,9 +5,10 @@ import Admin from '@/models/Admin';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const session = await auth();
     
     if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
@@ -27,7 +28,7 @@ export async function GET(
 
     await connectDB();
 
-    const admin = await Admin.findById(params.id)
+    const admin = await Admin.findById(resolvedParams.id)
       .select('-password') // Exclude password from response
       .lean();
 
@@ -50,9 +51,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const session = await auth();
     
     if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
@@ -76,7 +78,7 @@ export async function PATCH(
     const { firstName, lastName, type, permissions, isActive, password } = body;
 
     // Find the admin
-    const admin = await Admin.findById(params.id);
+    const admin = await Admin.findById(resolvedParams.id);
     if (!admin) {
       return NextResponse.json(
         { message: "Admin not found" },
@@ -120,9 +122,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const session = await auth();
     
     if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
@@ -143,7 +146,7 @@ export async function DELETE(
     await connectDB();
 
     // Find the admin
-    const admin = await Admin.findById(params.id);
+    const admin = await Admin.findById(resolvedParams.id);
     if (!admin) {
       return NextResponse.json(
         { message: "Admin not found" },
@@ -168,7 +171,7 @@ export async function DELETE(
     }
 
     // Delete the admin
-    await Admin.findByIdAndDelete(params.id);
+    await Admin.findByIdAndDelete(resolvedParams.id);
 
     return NextResponse.json(
       { message: "Admin deleted successfully" }

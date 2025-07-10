@@ -18,25 +18,26 @@ function transformSchool(school: any) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid school ID' }, { status: 400 });
-    }
-    
-    const school = await School.findById(params.id);
+
+    const school = await School.findById(resolvedParams.id).lean();
+
     if (!school) {
-      return NextResponse.json({ error: 'School not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: "School not found" },
+        { status: 404 }
+      );
     }
-    
-    return NextResponse.json(transformSchool(school));
+
+    return NextResponse.json({ school });
   } catch (error) {
     console.error('Error fetching school:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch school' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -44,40 +45,34 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid school ID' }, { status: 400 });
-    }
-    
+
     const body = await request.json();
-    
-    const school = await School.findByIdAndUpdate(
-      params.id,
+    const updatedSchool = await School.findByIdAndUpdate(
+      resolvedParams.id,
       body,
       { new: true, runValidators: true }
     );
-    
-    if (!school) {
-      return NextResponse.json({ error: 'School not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json(transformSchool(school));
-  } catch (error) {
-    console.error('Error updating school:', error);
-    
-    if (error instanceof Error && error.name === 'ValidationError') {
+
+    if (!updatedSchool) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.message },
-        { status: 400 }
+        { message: "School not found" },
+        { status: 404 }
       );
     }
-    
+
+    return NextResponse.json({
+      message: "School updated successfully",
+      school: updatedSchool
+    });
+  } catch (error) {
+    console.error('Error updating school:', error);
     return NextResponse.json(
-      { error: 'Failed to update school' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -85,26 +80,28 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid school ID' }, { status: 400 });
+
+    const deletedSchool = await School.findByIdAndDelete(resolvedParams.id);
+
+    if (!deletedSchool) {
+      return NextResponse.json(
+        { message: "School not found" },
+        { status: 404 }
+      );
     }
-    
-    const school = await School.findByIdAndDelete(params.id);
-    
-    if (!school) {
-      return NextResponse.json({ error: 'School not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json({ message: 'School deleted successfully' });
+
+    return NextResponse.json({
+      message: "School deleted successfully"
+    });
   } catch (error) {
     console.error('Error deleting school:', error);
     return NextResponse.json(
-      { error: 'Failed to delete school' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

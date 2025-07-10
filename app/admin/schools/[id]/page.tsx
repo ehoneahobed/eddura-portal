@@ -9,10 +9,12 @@ import { formatUrlForHref } from '@/lib/url-utils';
  * SchoolViewPage displays all details of a single school in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
-  const host = headers().get('host');
+const SchoolViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = await params;
+  const headersList = await headers();
+  const host = headersList.get('host');
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/schools/${params.id}`);
+  const res = await fetch(`${protocol}://${host}/api/schools/${resolvedParams.id}`);
   if (!res.ok) {
     return <div className="p-4 text-red-600">Failed to load school details.</div>;
   }
@@ -42,7 +44,7 @@ const SchoolViewPage = async ({ params }: { params: { id: string } }) => {
             <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><Home className="w-5 h-5 text-blue-400" />{show(school.city)}, {show(school.country)}</div>
           </div>
           <div className="mt-4 md:mt-0 md:ml-auto">
-            <SchoolActions schoolId={params.id} />
+            <SchoolActions schoolId={resolvedParams.id} />
           </div>
         </div>
 

@@ -24,11 +24,10 @@ import { ApplicationTemplate, QuestionType, FormSection, Question } from '@/type
 import { formatDistanceToNow } from 'date-fns';
 import { deleteApplicationTemplate } from '@/hooks/use-application-templates';
 import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 interface ViewApplicationTemplatePageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 const getQuestionTypeDisplayName = (type: QuestionType): string => {
@@ -60,19 +59,29 @@ const getQuestionTypeDisplayName = (type: QuestionType): string => {
 
 export default function ViewApplicationTemplatePage({ params }: ViewApplicationTemplatePageProps) {
   const router = useRouter();
-  const { template, error, isLoading } = useApplicationTemplate(params.id);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const { template, error, isLoading } = useApplicationTemplate(templateId || '');
   const { scholarship, isLoading: isLoadingScholarship } = useScholarship(template?.scholarshipId || '');
 
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setTemplateId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
   const handleEdit = () => {
-    router.push(`/admin/application-templates/${params.id}/edit`);
+    if (!templateId) return;
+    router.push(`/admin/application-templates/${templateId}/edit`);
   };
 
   const handleDelete = async () => {
-    if (!template) return;
+    if (!template || !templateId) return;
     
     if (confirm(`Are you sure you want to delete "${template.title}"?`)) {
       try {
-        await deleteApplicationTemplate(params.id);
+        await deleteApplicationTemplate(templateId);
         toast.success('Application template deleted successfully');
         router.push('/admin/application-templates');
       } catch (error) {

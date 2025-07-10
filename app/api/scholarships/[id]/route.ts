@@ -5,25 +5,26 @@ import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid scholarship ID' }, { status: 400 });
-    }
-    
-    const scholarship = await Scholarship.findById(params.id);
+
+    const scholarship = await Scholarship.findById(resolvedParams.id).lean();
+
     if (!scholarship) {
-      return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: "Scholarship not found" },
+        { status: 404 }
+      );
     }
-    
-    return NextResponse.json(scholarship);
+
+    return NextResponse.json({ scholarship });
   } catch (error) {
     console.error('Error fetching scholarship:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch scholarship' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -31,40 +32,34 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid scholarship ID' }, { status: 400 });
-    }
-    
+
     const body = await request.json();
-    
-    const scholarship = await Scholarship.findByIdAndUpdate(
-      params.id,
+    const updatedScholarship = await Scholarship.findByIdAndUpdate(
+      resolvedParams.id,
       body,
       { new: true, runValidators: true }
     );
-    
-    if (!scholarship) {
-      return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json(scholarship);
-  } catch (error) {
-    console.error('Error updating scholarship:', error);
-    
-    if (error instanceof Error && error.name === 'ValidationError') {
+
+    if (!updatedScholarship) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.message },
-        { status: 400 }
+        { message: "Scholarship not found" },
+        { status: 404 }
       );
     }
-    
+
+    return NextResponse.json({
+      message: "Scholarship updated successfully",
+      scholarship: updatedScholarship
+    });
+  } catch (error) {
+    console.error('Error updating scholarship:', error);
     return NextResponse.json(
-      { error: 'Failed to update scholarship' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -72,26 +67,28 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid scholarship ID' }, { status: 400 });
+
+    const deletedScholarship = await Scholarship.findByIdAndDelete(resolvedParams.id);
+
+    if (!deletedScholarship) {
+      return NextResponse.json(
+        { message: "Scholarship not found" },
+        { status: 404 }
+      );
     }
-    
-    const scholarship = await Scholarship.findByIdAndDelete(params.id);
-    
-    if (!scholarship) {
-      return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json({ message: 'Scholarship deleted successfully' });
+
+    return NextResponse.json({
+      message: "Scholarship deleted successfully"
+    });
   } catch (error) {
     console.error('Error deleting scholarship:', error);
     return NextResponse.json(
-      { error: 'Failed to delete scholarship' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

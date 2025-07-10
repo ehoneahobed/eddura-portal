@@ -10,23 +10,36 @@ import ProgramForm from '@/components/forms/ProgramForm';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface EditProgramPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditProgramPage({ params }: EditProgramPageProps) {
   const [program, setProgram] = useState<Program | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [programId, setProgramId] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchProgram();
-  }, [params.id]);
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setProgramId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (programId) {
+      fetchProgram();
+    }
+  }, [programId]);
 
   const fetchProgram = async () => {
+    if (!programId) return;
+    
     try {
-      const response = await fetch(`/api/programs/${params.id}`);
+      const response = await fetch(`/api/programs/${programId}`);
       if (response.ok) {
         const data = await response.json();
         setProgram(data);
@@ -46,9 +59,11 @@ export default function EditProgramPage({ params }: EditProgramPageProps) {
   };
 
   const handleUpdate = async (data: Partial<Program>) => {
+    if (!programId) return;
+    
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/programs/${params.id}`, {
+      const response = await fetch(`/api/programs/${programId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -77,6 +92,18 @@ export default function EditProgramPage({ params }: EditProgramPageProps) {
   const handleCancel = () => {
     router.push('/admin/programs');
   };
+
+  // Show loading state while params are being resolved
+  if (!programId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoadingData) {
     return (

@@ -9,17 +9,19 @@ import { Button } from '@/components/ui/button';
  * ScholarshipViewPage displays all details of a single scholarship in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const ScholarshipViewPage = async ({ params }: { params: { id: string } }) => {
-  const host = headers().get('host');
+const ScholarshipViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = await params;
+  const headersList = await headers();
+  const host = headersList.get('host');
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/scholarships/${params.id}`);
+  const res = await fetch(`${protocol}://${host}/api/scholarships/${resolvedParams.id}`);
   if (!res.ok) {
     return <div className="p-4 text-red-600">Failed to load scholarship details.</div>;
   }
   const scholarship = await res.json();
 
   // Fetch application templates for this scholarship
-  const templatesRes = await fetch(`${protocol}://${host}/api/application-templates?scholarshipId=${params.id}`);
+  const templatesRes = await fetch(`${protocol}://${host}/api/application-templates?scholarshipId=${resolvedParams.id}`);
   const templatesData = templatesRes.ok ? await templatesRes.json() : { templates: [] };
   const templates = templatesData.templates || [];
 
@@ -51,7 +53,7 @@ const ScholarshipViewPage = async ({ params }: { params: { id: string } }) => {
             <FileText className="w-5 h-5 text-blue-700" />
             <h2 className="text-lg md:text-xl font-semibold text-blue-900">Application Templates</h2>
           </div>
-          <Link href={`/admin/application-templates/create?scholarshipId=${params.id}`}>
+          <Link href={`/admin/application-templates/create?scholarshipId=${resolvedParams.id}`}>
             <Button size="sm" className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Create Template
@@ -104,7 +106,7 @@ const ScholarshipViewPage = async ({ params }: { params: { id: string } }) => {
             <p className="text-gray-600 mb-4">
               Create an application form template to enable students to apply for this scholarship.
             </p>
-            <Link href={`/admin/application-templates/create?scholarshipId=${params.id}`}>
+            <Link href={`/admin/application-templates/create?scholarshipId=${resolvedParams.id}`}>
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Create First Template

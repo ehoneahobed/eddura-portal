@@ -5,27 +5,26 @@ import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid program ID' }, { status: 400 });
-    }
-    
-    const program = await Program.findById(params.id)
-      .populate('schoolId', 'name country city');
-    
+
+    const program = await Program.findById(resolvedParams.id).lean();
+
     if (!program) {
-      return NextResponse.json({ error: 'Program not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: "Program not found" },
+        { status: 404 }
+      );
     }
-    
-    return NextResponse.json(program);
+
+    return NextResponse.json({ program });
   } catch (error) {
     console.error('Error fetching program:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch program' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -33,40 +32,34 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid program ID' }, { status: 400 });
-    }
-    
+
     const body = await request.json();
-    
-    const program = await Program.findByIdAndUpdate(
-      params.id,
+    const updatedProgram = await Program.findByIdAndUpdate(
+      resolvedParams.id,
       body,
       { new: true, runValidators: true }
-    ).populate('schoolId', 'name country city');
-    
-    if (!program) {
-      return NextResponse.json({ error: 'Program not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json(program);
-  } catch (error) {
-    console.error('Error updating program:', error);
-    
-    if (error instanceof Error && error.name === 'ValidationError') {
+    );
+
+    if (!updatedProgram) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.message },
-        { status: 400 }
+        { message: "Program not found" },
+        { status: 404 }
       );
     }
-    
+
+    return NextResponse.json({
+      message: "Program updated successfully",
+      program: updatedProgram
+    });
+  } catch (error) {
+    console.error('Error updating program:', error);
     return NextResponse.json(
-      { error: 'Failed to update program' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -74,26 +67,28 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
-    
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: 'Invalid program ID' }, { status: 400 });
+
+    const deletedProgram = await Program.findByIdAndDelete(resolvedParams.id);
+
+    if (!deletedProgram) {
+      return NextResponse.json(
+        { message: "Program not found" },
+        { status: 404 }
+      );
     }
-    
-    const program = await Program.findByIdAndDelete(params.id);
-    
-    if (!program) {
-      return NextResponse.json({ error: 'Program not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json({ message: 'Program deleted successfully' });
+
+    return NextResponse.json({
+      message: "Program deleted successfully"
+    });
   } catch (error) {
     console.error('Error deleting program:', error);
     return NextResponse.json(
-      { error: 'Failed to delete program' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

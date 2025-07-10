@@ -25,12 +25,13 @@ function transformTemplate(template: any) {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('Fetching template with ID:', params.id);
-    console.log('ID type:', typeof params.id);
-    console.log('ID length:', params.id.length);
+    const resolvedParams = await params;
+    console.log('Fetching template with ID:', resolvedParams.id);
+    console.log('ID type:', typeof resolvedParams.id);
+    console.log('ID length:', resolvedParams.id.length);
     console.log('URL:', request.url);
     
     await connectDB();
@@ -39,9 +40,9 @@ export async function GET(
     let template = null;
     
     // First, try as ObjectId
-    if (mongoose.Types.ObjectId.isValid(params.id)) {
-      console.log('Trying to find by ObjectId:', params.id);
-      template = await ApplicationTemplate.findById(params.id)
+    if (mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+      console.log('Trying to find by ObjectId:', resolvedParams.id);
+      template = await ApplicationTemplate.findById(resolvedParams.id)
         .populate('scholarshipId', 'title provider')
         .lean();
     }
@@ -52,16 +53,16 @@ export async function GET(
       
       // Try to find by title (case-insensitive)
       template = await ApplicationTemplate.findOne({
-        title: { $regex: new RegExp(params.id, 'i') }
+        title: { $regex: new RegExp(resolvedParams.id, 'i') }
       }).populate('scholarshipId', 'title provider').lean();
       
       if (!template) {
         // Try to find by any field containing the ID
         template = await ApplicationTemplate.findOne({
           $or: [
-            { title: { $regex: new RegExp(params.id, 'i') } },
-            { description: { $regex: new RegExp(params.id, 'i') } },
-            { version: { $regex: new RegExp(params.id, 'i') } }
+            { title: { $regex: new RegExp(resolvedParams.id, 'i') } },
+            { description: { $regex: new RegExp(resolvedParams.id, 'i') } },
+            { version: { $regex: new RegExp(resolvedParams.id, 'i') } }
           ]
         }).populate('scholarshipId', 'title provider').lean();
       }
@@ -78,7 +79,7 @@ export async function GET(
       
       return NextResponse.json({ 
         error: 'Application template not found',
-        details: `No template found with ID "${params.id}"`,
+        details: `No template found with ID "${resolvedParams.id}"`,
         availableTemplates: allTemplates.map((t: any) => ({ id: t._id.toString(), title: t.title }))
       }, { status: 404 });
     }
@@ -113,12 +114,13 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
       return NextResponse.json({ error: 'Invalid template ID' }, { status: 400 });
     }
     
@@ -155,7 +157,7 @@ export async function PUT(
     }
     
     const updatedTemplate = await ApplicationTemplate.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     ).populate('scholarshipId', 'title provider').lean();
@@ -188,16 +190,17 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
       return NextResponse.json({ error: 'Invalid template ID' }, { status: 400 });
     }
     
-    const deletedTemplate = await ApplicationTemplate.findByIdAndDelete(params.id);
+    const deletedTemplate = await ApplicationTemplate.findByIdAndDelete(resolvedParams.id);
     
     if (!deletedTemplate) {
       return NextResponse.json({ error: 'Application template not found' }, { status: 404 });

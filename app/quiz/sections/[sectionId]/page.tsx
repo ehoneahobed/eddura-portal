@@ -4,13 +4,12 @@ import { QUIZ_SECTIONS, getSectionById } from '@/lib/quiz-config';
 import { notFound } from 'next/navigation';
 
 interface QuizSectionPageProps {
-  params: {
-    sectionId: string;
-  };
+  params: Promise<{ sectionId: string }>;
 }
 
 export async function generateMetadata({ params }: QuizSectionPageProps): Promise<Metadata> {
-  const section = getSectionById(params.sectionId);
+  const resolvedParams = await params;
+  const section = getSectionById(resolvedParams.sectionId);
   
   if (!section) {
     return {
@@ -30,8 +29,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function QuizSectionPage({ params }: QuizSectionPageProps) {
-  const section = getSectionById(params.sectionId);
+export default async function QuizSectionPage({ params }: QuizSectionPageProps) {
+  const resolvedParams = await params;
+  const section = getSectionById(resolvedParams.sectionId);
   
   if (!section) {
     notFound();
