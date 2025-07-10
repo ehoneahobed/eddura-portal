@@ -36,11 +36,8 @@ const customJestConfig = {
     '<rootDir>/tests/**/*.spec.{js,jsx,ts,tsx}',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
-  },
   transformIgnorePatterns: [
-    '/node_modules/(?!(next-auth|@next|react|react-dom|@radix-ui|@testing-library)/)',
+    'node_modules/(?!(next-auth|@next|react|react-dom|@radix-ui|@testing-library|next|@auth)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
 }

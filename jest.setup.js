@@ -44,6 +44,54 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
+// Mock MongoDB connection and models
+jest.mock('@/lib/mongodb', () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(true),
+}))
+
+// Mock School model with constructor and static methods
+const mockSchoolModel = jest.fn().mockImplementation((data) => ({
+  ...data,
+  save: jest.fn(),
+  toObject: () => data,
+}))
+
+mockSchoolModel.find = jest.fn()
+mockSchoolModel.countDocuments = jest.fn()
+
+jest.mock('@/models/School', () => ({
+  __esModule: true,
+  default: mockSchoolModel,
+}))
+
+// Mock Next.js server components and Request
+global.Request = class Request {
+  constructor(url, options = {}) {
+    this.url = url
+    this.method = options.method || 'GET'
+    this.body = options.body || null
+    this.headers = new Map(Object.entries(options.headers || {}))
+  }
+}
+
+// Mock NextRequest
+jest.mock('next/server', () => ({
+  NextRequest: class NextRequest extends Request {
+    constructor(url, options = {}) {
+      super(url, options)
+      this.nextUrl = new URL(url)
+    }
+  },
+  NextResponse: {
+    json: (data, options = {}) => ({
+      json: async () => data,
+      status: options.status || 200,
+      headers: new Map(),
+    }),
+  },
+}))
+
 // Mock environment variables
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 process.env.NEXTAUTH_SECRET = 'test-secret'

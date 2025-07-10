@@ -1,6 +1,24 @@
 import React, { ReactElement, ReactNode } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
-import { SessionProvider } from 'next-auth/react'
+
+// Mock next-auth/react to avoid ES module issues
+jest.mock('next-auth/react', () => ({
+  SessionProvider: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  useSession: () => ({
+    data: {
+      expires: new Date(Date.now() + 2 * 86400).toISOString(),
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'user',
+      },
+    },
+    status: 'authenticated',
+  }),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
+}))
 
 // Mock session for testing
 const mockSession = {
@@ -27,9 +45,9 @@ const mockAdminSession = {
 // Custom render function with providers
 const AllTheProviders = ({ children, session = mockSession }: { children: ReactNode; session?: any }) => {
   return (
-    <SessionProvider session={session}>
+    <div>
       {children}
-    </SessionProvider>
+    </div>
   )
 }
 

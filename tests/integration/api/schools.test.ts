@@ -2,21 +2,6 @@ import { NextRequest } from 'next/server'
 import { GET, POST } from '@/app/api/schools/route'
 import { createMockSchool } from '../../utils/test-utils'
 
-// Mock MongoDB connection and models
-jest.mock('@/lib/mongodb', () => ({
-  __esModule: true,
-  default: jest.fn().mockResolvedValue(true),
-}))
-
-jest.mock('@/models/School', () => ({
-  __esModule: true,
-  default: {
-    find: jest.fn(),
-    countDocuments: jest.fn(),
-    save: jest.fn(),
-  },
-}))
-
 import connectDB from '@/lib/mongodb'
 import School from '@/models/School'
 
@@ -123,8 +108,19 @@ describe('Schools API', () => {
         website: 'https://test.edu',
       }
 
-      const savedSchool = { ...schoolData, _id: 'test-id', toObject: () => ({ ...schoolData, _id: 'test-id' }) }
-      mockSchool.save.mockResolvedValue(savedSchool)
+      // Mock the save method to return a proper school object
+      const mockInstance = {
+        ...schoolData,
+        _id: 'test-id',
+        save: jest.fn().mockResolvedValue({
+          ...schoolData,
+          _id: 'test-id',
+          toObject: () => ({ ...schoolData, _id: 'test-id' })
+        }),
+        toObject: () => ({ ...schoolData, _id: 'test-id' })
+      }
+      
+      mockSchool.mockImplementation(() => mockInstance)
 
       const request = new NextRequest('http://localhost:3000/api/schools', {
         method: 'POST',
@@ -142,7 +138,14 @@ describe('Schools API', () => {
     it('handles validation errors', async () => {
       const validationError = new Error('Validation failed')
       validationError.name = 'ValidationError'
-      mockSchool.save.mockRejectedValue(validationError)
+      
+      // Mock the save method to throw validation error
+      const mockInstance = {
+        save: jest.fn().mockRejectedValue(validationError),
+        toObject: () => ({})
+      }
+      
+      mockSchool.mockImplementation(() => mockInstance)
 
       const request = new NextRequest('http://localhost:3000/api/schools', {
         method: 'POST',
@@ -157,7 +160,13 @@ describe('Schools API', () => {
     })
 
     it('handles general errors', async () => {
-      mockSchool.save.mockRejectedValue(new Error('Database error'))
+      // Mock the save method to throw general error
+      const mockInstance = {
+        save: jest.fn().mockRejectedValue(new Error('Database error')),
+        toObject: () => ({ name: 'Test' })
+      }
+      
+      mockSchool.mockImplementation(() => mockInstance)
 
       const request = new NextRequest('http://localhost:3000/api/schools', {
         method: 'POST',
