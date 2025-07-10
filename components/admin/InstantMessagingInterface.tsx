@@ -479,6 +479,7 @@ export default function InstantMessagingInterface() {
           )}
         </ScrollArea>
       </div>
+      </div>
 
         {/* Chat Area - Full width on mobile when conversation is selected */}
         <div className={`
