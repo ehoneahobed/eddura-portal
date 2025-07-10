@@ -446,7 +446,10 @@ export default function AdminManagementPage() {
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Admin
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            // This would open the messaging interface with the admin pre-selected
+                            window.open(`/admin/messages?recipient=${admin._id}`, '_blank');
+                          }}>
                             <Mail className="h-4 w-4 mr-2" />
                             Send Message
                           </DropdownMenuItem>

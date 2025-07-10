@@ -14,6 +14,7 @@ import {
   UserPlus,
   BarChart3,
   Shield,
+  MessageCircle,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -63,6 +64,12 @@ const navigationItems = [
     href: "/admin/admins",
     icon: Shield,
     permission: "admin:read",
+  },
+  {
+    name: "Messages",
+    href: "/admin/messages",
+    icon: MessageCircle,
+    permission: null, // All admins can access messaging
   },
   {
     name: "Add Admin User",
