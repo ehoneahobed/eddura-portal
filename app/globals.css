@@ -80,3 +80,44 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile-specific optimizations */
+@layer utilities {
+  /* Smooth transitions for mobile */
+  .mobile-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Better touch targets for mobile */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Prevent text selection on mobile */
+  .no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Smooth scrolling for mobile */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Better mobile input styling */
+  .mobile-input {
+    @apply text-base;
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Prevent zoom on input focus for mobile */
+  .mobile-input:focus {
+    font-size: 16px;
+  }
+}

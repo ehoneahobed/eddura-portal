@@ -346,16 +346,60 @@ export default function InstantMessagingInterface() {
   }
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-gray-50">
-      {/* Sidebar - Conversations List */}
-      <div className={
-        `w-full md:w-80 bg-white border-r border-gray-200 flex flex-col h-full ${selectedConversation ? 'hidden md:flex' : 'flex'}`
-      }>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Mobile Header - Only show when conversation is selected */}
+      {selectedConversation && (
+        <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedConversation(null)}
+              className="p-2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="" />
+              <AvatarFallback className="bg-blue-500 text-white">
+                {selectedConversation.isGroup 
+                  ? 'G' 
+                  : getInitials(selectedConversation.participants[0]?.firstName || '', selectedConversation.participants[0]?.lastName || '')
+                }
+              </AvatarFallback>
+            </Avatar>
+            
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">
+                {selectedConversation.isGroup 
+                  ? `${selectedConversation.participants.map(p => p.firstName).join(', ')}`
+                  : `${selectedConversation.participants[0]?.firstName} ${selectedConversation.participants[0]?.lastName}`
+                }
+              </h2>
+              <p className="text-xs text-gray-500">
+                {selectedConversation.isGroup 
+                  ? `${selectedConversation.participants.length} participants`
+                  : selectedConversation.participants[0]?.email
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Conversations List - Hidden on mobile when conversation is selected */}
+        <div className={`
+          w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col h-full 
+          ${selectedConversation ? 'hidden lg:flex' : 'flex'}
+        `}>
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
-            <Button size="sm" onClick={startNewConversation}>
+            <Button size="sm" onClick={startNewConversation} className="h-10 w-10 p-0">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -367,12 +411,13 @@ export default function InstantMessagingInterface() {
               placeholder="Search conversations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10"
             />
           </div>
         </div>
+        
         {/* Scrollable Conversations List */}
-        <ScrollArea className="flex-1 overflow-y-auto">
+        <ScrollArea className="flex-1">
           {isLoading ? (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -382,7 +427,7 @@ export default function InstantMessagingInterface() {
               {filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                  className={`p-4 rounded-lg cursor-pointer transition-colors ${
                     selectedConversation?.id === conversation.id
                       ? 'bg-blue-50 border border-blue-200'
                       : 'hover:bg-gray-50'
@@ -391,7 +436,7 @@ export default function InstantMessagingInterface() {
                 >
                   <div className="flex items-center space-x-3">
                     <div className="relative">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-12 w-12">
                         <AvatarImage src="" />
                         <AvatarFallback className="bg-blue-500 text-white">
                           {conversation.isGroup 
@@ -403,7 +448,7 @@ export default function InstantMessagingInterface() {
                       {conversation.unreadCount > 0 && (
                         <Badge 
                           variant="destructive" 
-                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                          className="absolute -top-1 -right-1 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs"
                         >
                           {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                         </Badge>
@@ -435,73 +480,64 @@ export default function InstantMessagingInterface() {
         </ScrollArea>
       </div>
 
-      {/* Main Chat Area */}
-      <div className={
-        `flex-1 flex flex-col h-full ${selectedConversation ? 'flex' : 'hidden'} md:flex`
-      }>
+        {/* Chat Area - Full width on mobile when conversation is selected */}
+        <div className={`
+          flex-1 flex flex-col h-full 
+          ${selectedConversation ? 'flex' : 'hidden lg:flex'}
+        `}>
         {selectedConversation ? (
           <>
-            {/* Chat Header */}
-            <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {/* Back button for mobile */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="md:hidden"
-                  onClick={() => setSelectedConversation(null)}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
+              {/* Desktop Chat Header */}
+              <div className="hidden lg:flex bg-white border-b border-gray-200 p-4 items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="bg-blue-500 text-white">
+                      {selectedConversation.isGroup 
+                        ? 'G' 
+                        : getInitials(selectedConversation.participants[0]?.firstName || '', selectedConversation.participants[0]?.lastName || '')
+                      }
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {selectedConversation.isGroup 
+                        ? `${selectedConversation.participants.map(p => p.firstName).join(', ')}`
+                        : `${selectedConversation.participants[0]?.firstName} ${selectedConversation.participants[0]?.lastName}`
+                      }
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {selectedConversation.isGroup 
+                        ? `${selectedConversation.participants.length} participants`
+                        : selectedConversation.participants[0]?.email
+                      }
+                    </p>
+                  </div>
+                </div>
                 
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-blue-500 text-white">
-                    {selectedConversation.isGroup 
-                      ? 'G' 
-                      : getInitials(selectedConversation.participants[0]?.firstName || '', selectedConversation.participants[0]?.lastName || '')
-                    }
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {selectedConversation.isGroup 
-                      ? `${selectedConversation.participants.map(p => p.firstName).join(', ')}`
-                      : `${selectedConversation.participants[0]?.firstName} ${selectedConversation.participants[0]?.lastName}`
-                    }
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {selectedConversation.isGroup 
-                      ? `${selectedConversation.participants.length} participants`
-                      : selectedConversation.participants[0]?.email
-                    }
-                  </p>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm">
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <Video className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <Info className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm">
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Video className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Info className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
 
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ paddingBottom: 96 }}>
-              <div className="space-y-4">
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4 overflow-y-auto">
+                <div className="space-y-4 max-w-4xl mx-auto">
                 {getConversationMessages().map((message) => (
                   <div
                     key={message._id}
                     className={`flex ${message.sender._id === session.user?.id ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-xs lg:max-w-md ${message.sender._id === session.user?.id ? 'order-2' : 'order-1'}`}>
+                    <div className={`max-w-xs sm:max-w-md lg:max-w-lg ${message.sender._id === session.user?.id ? 'order-2' : 'order-1'}`}>
                       {message.sender._id !== session.user?.id && (
                         <div className="flex items-center space-x-2 mb-1">
                           <Avatar className="h-6 w-6">
@@ -554,10 +590,10 @@ export default function InstantMessagingInterface() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0"
+                          className="h-8 w-8 p-0"
                           onClick={() => setReplyTo(message)}
                         >
-                          <Reply className="h-3 w-3" />
+                          <Reply className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -567,61 +603,66 @@ export default function InstantMessagingInterface() {
               </div>
             </ScrollArea>
 
-            {/* Sticky Chat Input */}
-            <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0 z-10">
-              {replyTo && (
-                <div className="bg-gray-50 p-2 rounded-lg mb-3 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
-                    Replying to: {replyTo.content.substring(0, 50)}...
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setReplyTo(null)}
+              {/* Sticky Chat Input */}
+              <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0 z-10">
+                {replyTo && (
+                  <div className="bg-gray-50 p-3 rounded-lg mb-3 flex items-center justify-between">
+                    <span className="text-sm text-gray-600 flex-1 truncate">
+                      Replying to: {replyTo.content.substring(0, 50)}...
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReplyTo(null)}
+                      className="ml-2 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="flex items-end space-x-2">
+                  <div className="flex-1">
+                    <Textarea
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Type a message..."
+                      className="min-h-[44px] max-h-32 resize-none text-base"
+                      rows={1}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={!newMessage.trim()}
+                    className="h-11 w-11 p-0 flex-shrink-0"
                   >
-                    <X className="h-3 w-3" />
+                    <Send className="h-4 w-4" />
                   </Button>
                 </div>
-              )}
-              
-              <div className="flex items-end space-x-2">
-                <div className="flex-1">
-                  <Textarea
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type a message..."
-                    className="min-h-[40px] max-h-32 resize-none"
-                    rows={1}
-                  />
-                </div>
-                <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
-                  <Send className="h-4 w-4" />
+              </div>
+          </>
+        ) : (
+            // Welcome screen for mobile
+            <div className="flex-1 flex items-center justify-center lg:hidden">
+              <div className="text-center px-4">
+                <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Messages</h2>
+                <p className="text-gray-500 mb-6">
+                  Select a conversation or start a new one to begin messaging
+                </p>
+                <Button onClick={startNewConversation} className="h-12 px-6">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Conversation
                 </Button>
               </div>
             </div>
-          </>
-        ) : (
-          // Welcome screen for mobile
-          <div className="flex-1 flex items-center justify-center md:hidden">
-            <div className="text-center">
-              <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Messages</h2>
-              <p className="text-gray-500 mb-4">
-                Select a conversation or start a new one to begin messaging
-              </p>
-              <Button onClick={startNewConversation}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Conversation
-              </Button>
-            </div>
-          </div>
         )}
       </div>
 
       {/* User Search Dialog */}
       <Dialog open={showUserSearch} onOpenChange={setShowUserSearch}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>New Conversation</DialogTitle>
             <DialogDescription>
@@ -629,17 +670,17 @@ export default function InstantMessagingInterface() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col h-full">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search users..."
-                className="pl-10"
+                className="pl-10 h-10"
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
-            <ScrollArea className="h-64">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="space-y-2">
                 {admins
                   .filter(admin => admin._id !== session.user?.id)
@@ -651,7 +692,7 @@ export default function InstantMessagingInterface() {
                   .map((admin) => (
                     <div
                       key={admin._id}
-                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      className={`p-4 rounded-lg cursor-pointer transition-colors ${
                         selectedUsers.some(u => u._id === admin._id)
                           ? 'bg-blue-50 border border-blue-200'
                           : 'hover:bg-gray-50'
@@ -665,20 +706,20 @@ export default function InstantMessagingInterface() {
                       }}
                     >
                       <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-10 w-10">
                           <AvatarImage src="" />
                           <AvatarFallback className="bg-blue-500 text-white">
                             {getInitials(admin.firstName, admin.lastName)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex-1">
                           <h3 className="text-sm font-medium text-gray-900">
                             {admin.firstName} {admin.lastName}
                           </h3>
                           <p className="text-xs text-gray-500">{admin.email}</p>
                         </div>
                         {selectedUsers.some(u => u._id === admin._id) && (
-                          <Check className="h-4 w-4 text-blue-500 ml-auto" />
+                          <Check className="h-5 w-5 text-blue-500 ml-auto" />
                         )}
                       </div>
                     </div>
@@ -687,7 +728,7 @@ export default function InstantMessagingInterface() {
             </ScrollArea>
           </div>
           
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={() => setShowUserSearch(false)}>
               Cancel
             </Button>

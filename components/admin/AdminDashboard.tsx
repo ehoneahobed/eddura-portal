@@ -129,34 +129,34 @@ export default function AdminDashboard() {
   const recentActivityItems = formatRecentActivity(stats);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Welcome Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
             Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 mt-1 lg:mt-2 text-sm lg:text-base">
             Here&apos;s what&apos;s happening with your educational platform today.
           </p>
         </div>
-        <Badge variant="secondary" className="text-sm">
+        <Badge variant="secondary" className="text-sm w-fit">
           {session?.user?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
         </Badge>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {statsConfig.map((stat) => (
           <Card key={stat.title} className="border-0 shadow-lg">
-            <CardContent className="p-6">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center">
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center mr-4`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                <div className={`w-10 h-10 lg:w-12 lg:h-12 ${stat.bgColor} rounded-lg flex items-center justify-center mr-3 lg:mr-4`}>
+                  <stat.icon className={`w-5 h-5 lg:w-6 lg:h-6 ${stat.color}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs lg:text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-xl lg:text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
               </div>
             </CardContent>
@@ -165,10 +165,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Plus className="w-5 h-5" />
               Quick Actions
             </CardTitle>
@@ -177,15 +177,15 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
               {quickActions.map((action) => (
                 <Link key={action.title} href={action.href}>
-                  <Button variant="outline" className="w-full h-auto p-4 flex flex-col items-start gap-2">
+                  <Button variant="outline" className="w-full h-auto p-3 lg:p-4 flex flex-col items-start gap-2 min-h-[80px]">
                     <div className="flex items-center gap-2">
                       <action.icon className={`w-4 h-4 ${action.color}`} />
-                      <span className="font-medium">{action.title}</span>
+                      <span className="font-medium text-sm lg:text-base">{action.title}</span>
                     </div>
-                    <p className="text-xs text-gray-500 text-left">{action.description}</p>
+                    <p className="text-xs text-gray-500 text-left leading-tight">{action.description}</p>
                   </Button>
                 </Link>
               ))}
@@ -194,8 +194,8 @@ export default function AdminDashboard() {
         </Card>
 
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <BarChart3 className="w-5 h-5" />
               Recent Activity
             </CardTitle>
@@ -204,9 +204,9 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 lg:space-y-4">
               {isLoading ? (
-                <div className="space-y-4">
+                <div className="space-y-3 lg:space-y-4">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg animate-pulse">
                       <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
@@ -234,8 +234,8 @@ export default function AdminDashboard() {
                     <div className={`w-8 h-8 ${item.bgColor} rounded-full flex items-center justify-center`}>
                       <item.icon className={`w-4 h-4 ${item.iconColor}`} />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{item.title}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.title}</p>
                       <p className="text-xs text-gray-500">{item.time}</p>
                     </div>
                   </div>
@@ -252,14 +252,14 @@ export default function AdminDashboard() {
 
       {/* System Status */}
       <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Settings className="w-5 h-5" />
             System Status
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
             <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <div>
@@ -274,7 +274,7 @@ export default function AdminDashboard() {
                 <p className="text-xs text-green-600">Active</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg sm:col-span-2 lg:col-span-1">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <div>
                 <p className="text-sm font-medium text-green-800">API Services</p>

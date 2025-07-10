@@ -15,10 +15,12 @@ import {
   BarChart3,
   Shield,
   MessageCircle,
+  X,
 } from "lucide-react";
 
 interface AdminSidebarProps {
   user: any;
+  onClose?: () => void;
 }
 
 const navigationItems = [
@@ -52,7 +54,6 @@ const navigationItems = [
     icon: Award,
     permission: "content:read",
   },
-
   {
     name: "Analytics",
     href: "/admin/analytics",
@@ -85,7 +86,7 @@ const navigationItems = [
   },
 ];
 
-export default function AdminSidebar({ user }: AdminSidebarProps) {
+export default function AdminSidebar({ user, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const hasPermission = (permission: string | null) => {
@@ -97,27 +98,47 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
     hasPermission(item.permission)
   );
 
+  const handleNavigation = (href: string) => {
+    // Close sidebar on mobile when navigating
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
       {/* Fixed header area */}
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Admin Panel</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          {user?.firstName || user?.email}
-        </p>
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Admin Panel</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {user?.firstName || user?.email}
+          </p>
+        </div>
+        {/* Close button for mobile */}
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="lg:hidden p-2"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       
       {/* Scrollable navigation area */}
       <nav className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-1">
+        <div className="space-y-2">
           {filteredNavigation.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link key={item.name} href={item.href}>
+              <Link key={item.name} href={item.href} onClick={() => handleNavigation(item.href)}>
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start",
+                    "w-full justify-start h-12 text-base",
                     isActive && "bg-blue-50 text-blue-700"
                   )}
                 >

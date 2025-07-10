@@ -13,42 +13,53 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Settings, LogOut, User, Building2 } from "lucide-react";
+import { Bell, Settings, LogOut, User, Building2, Menu, X } from "lucide-react";
 import MessagingIcon from "./MessagingIcon";
-import MessagingInterface from "./MessagingInterface";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface AdminHeaderProps {
   user: any;
+  onMenuClick: () => void;
+  sidebarOpen: boolean;
 }
 
-export default function AdminHeader({ user }: AdminHeaderProps) {
+export default function AdminHeader({ user, onMenuClick, sidebarOpen }: AdminHeaderProps) {
   const router = useRouter();
-  // Remove isMessagingOpen state
   const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`;
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4 h-16 flex items-center">
+    <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 h-16 flex items-center sticky top-0 z-30">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center space-x-4">
-          <Building2 className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Admin Portal</h1>
-            <p className="text-sm text-gray-500">
+          {/* Hamburger menu for mobile */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMenuClick}
+            className="lg:hidden p-2"
+          >
+            {sidebarOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+          
+          <Building2 className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
+          <div className="hidden sm:block">
+            <h1 className="text-lg lg:text-xl font-semibold text-gray-900">Admin Portal</h1>
+            <p className="text-xs lg:text-sm text-gray-500">
               Welcome back, {user.firstName} {user.lastName}
             </p>
           </div>
+          <div className="sm:hidden">
+            <h1 className="text-lg font-semibold text-gray-900">Admin</h1>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4">
           <MessagingIcon onOpenMessaging={() => router.push("/admin/messages")}/>
           
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Bell className="h-5 w-5" />
           </Button>
 
@@ -92,7 +103,6 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
-      {/* Remove old Dialog/modal for MessagingInterface */}
     </header>
   );
 }
