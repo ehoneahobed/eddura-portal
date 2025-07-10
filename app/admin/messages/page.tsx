@@ -1,5 +1,5 @@
-import MessagingInterface from "@/components/admin/MessagingInterface";
+import InstantMessagingInterface from "@/components/admin/InstantMessagingInterface";
 
 export default function MessagesPage() {
-  return <MessagingInterface />;
+  return <InstantMessagingInterface />;
 }

@@ -102,6 +102,8 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
+    console.log('Creating message with body:', body);
+    
     const { 
       subject, 
       content, 
@@ -136,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create message
-    const message = new Message({
+    const messageData: any = {
       subject,
       content,
       sender: session.user.id,
@@ -146,10 +148,20 @@ export async function POST(request: NextRequest) {
       priority: priority || 'medium',
       category,
       tags,
-      attachments,
-      parentMessage,
-      threadId
-    });
+      attachments
+    };
+
+    // Only add parentMessage if it's a valid ObjectId
+    if (parentMessage && /^[0-9a-fA-F]{24}$/.test(parentMessage)) {
+      messageData.parentMessage = parentMessage;
+    }
+
+    // Only add threadId if it's a valid ObjectId
+    if (threadId && /^[0-9a-fA-F]{24}$/.test(threadId)) {
+      messageData.threadId = threadId;
+    }
+
+    const message = new Message(messageData);
 
     await message.save();
 
@@ -165,7 +177,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating message:', error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
