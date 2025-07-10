@@ -279,6 +279,21 @@ export default function InstantMessagingInterface() {
     setSelectedUsers([]);
   };
 
+  const handleOpenConversation = async (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    // Mark all unread messages as read
+    const unreadMessages = getConversationMessages()
+      .filter((m: Message) => !m.isRead && m.sender._id !== session?.user?.id);
+    for (const msg of unreadMessages) {
+      await fetch(`/api/admin/messages/${msg._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isRead: true })
+      });
+    }
+    fetchMessages(); // Refresh messages and unread count
+  };
+
   const getConversationMessages = () => {
     if (!selectedConversation) return [];
     
@@ -331,9 +346,11 @@ export default function InstantMessagingInterface() {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="h-screen flex flex-col md:flex-row bg-gray-50">
       {/* Sidebar - Conversations List */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+      <div className={
+        `w-full md:w-80 bg-white border-r border-gray-200 flex flex-col h-full ${selectedConversation ? 'hidden md:flex' : 'flex'}`
+      }>
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
@@ -370,7 +387,7 @@ export default function InstantMessagingInterface() {
                       ? 'bg-blue-50 border border-blue-200'
                       : 'hover:bg-gray-50'
                   }`}
-                  onClick={() => setSelectedConversation(conversation)}
+                  onClick={() => handleOpenConversation(conversation)}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="relative">
@@ -384,8 +401,11 @@ export default function InstantMessagingInterface() {
                         </AvatarFallback>
                       </Avatar>
                       {conversation.unreadCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                          {conversation.unreadCount}
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                        >
+                          {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                         </Badge>
                       )}
                     </div>
@@ -416,59 +436,60 @@ export default function InstantMessagingInterface() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className={
+        `flex-1 flex flex-col h-full ${selectedConversation ? 'flex' : 'hidden'} md:flex`
+      }>
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="bg-white border-b border-gray-200 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedConversation(null)}
-                    className="md:hidden"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="bg-blue-500 text-white">
-                      {selectedConversation.isGroup 
-                        ? 'G' 
-                        : getInitials(selectedConversation.participants[0]?.firstName || '', selectedConversation.participants[0]?.lastName || '')
-                      }
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {selectedConversation.isGroup 
-                        ? `${selectedConversation.participants.map(p => p.firstName).join(', ')}`
-                        : `${selectedConversation.participants[0]?.firstName} ${selectedConversation.participants[0]?.lastName}`
-                      }
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      {selectedConversation.isGroup 
-                        ? `${selectedConversation.participants.length} participants`
-                        : selectedConversation.participants[0]?.email
-                      }
-                    </p>
-                  </div>
-                </div>
+            <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {/* Back button for mobile */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="md:hidden"
+                  onClick={() => setSelectedConversation(null)}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
                 
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Info className="h-4 w-4" />
-                  </Button>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-blue-500 text-white">
+                    {selectedConversation.isGroup 
+                      ? 'G' 
+                      : getInitials(selectedConversation.participants[0]?.firstName || '', selectedConversation.participants[0]?.lastName || '')
+                    }
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {selectedConversation.isGroup 
+                      ? `${selectedConversation.participants.map(p => p.firstName).join(', ')}`
+                      : `${selectedConversation.participants[0]?.firstName} ${selectedConversation.participants[0]?.lastName}`
+                    }
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {selectedConversation.isGroup 
+                      ? `${selectedConversation.participants.length} participants`
+                      : selectedConversation.participants[0]?.email
+                    }
+                  </p>
                 </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm">
+                  <Phone className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <Video className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <Info className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
@@ -581,8 +602,8 @@ export default function InstantMessagingInterface() {
             </div>
           </>
         ) : (
-          /* Welcome Screen */
-          <div className="flex-1 flex items-center justify-center">
+          // Welcome screen for mobile
+          <div className="flex-1 flex items-center justify-center md:hidden">
             <div className="text-center">
               <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Messages</h2>
