@@ -35,9 +35,9 @@ export async function GET(
     }
 
     // Check if user has access to this message
-    const hasAccess = message.sender._id === session.user.id ||
-                     message.recipients.some((r: any) => r._id === session.user.id) ||
-                     message.ccRecipients.some((r: any) => r._id === session.user.id);
+    const hasAccess = message.sender._id.toString() === session.user.id ||
+                     message.recipients.some((r: any) => r._id.toString() === session.user.id) ||
+                     (message.ccRecipients && message.ccRecipients.some((r: any) => r._id.toString() === session.user.id));
 
     if (!hasAccess) {
       return NextResponse.json(
@@ -47,7 +47,7 @@ export async function GET(
     }
 
     // Mark as read if user is a recipient and message is unread
-    if (!message.isRead && message.recipients.some((r: any) => r._id === session.user.id)) {
+    if (!message.isRead && message.recipients.some((r: any) => r._id.toString() === session.user.id)) {
       await Message.findByIdAndUpdate(resolvedParams.id, {
         isRead: true,
         readAt: new Date()
@@ -96,8 +96,8 @@ export async function PATCH(
 
     // Check if user has access to this message
     const hasAccess = message.sender.toString() === session.user.id ||
-                     message.recipients.includes(session.user.id) ||
-                     message.ccRecipients.includes(session.user.id);
+                     message.recipients.some((r: any) => r.toString() === session.user.id) ||
+                     (message.ccRecipients && message.ccRecipients.some((r: any) => r.toString() === session.user.id));
 
     if (!hasAccess) {
       return NextResponse.json(

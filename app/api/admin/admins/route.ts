@@ -61,10 +61,10 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { email, firstName, lastName, type, permissions, password } = body;
+    const { email, firstName, lastName, role, permissions, password } = body;
 
     // Validate required fields
-    if (!email || !type || !permissions || !password) {
+    if (!email || !role || !permissions || !password) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       email,
       firstName,
       lastName,
-      type,
+      role,
       permissions,
       password, // Will be hashed by the model
       isActive: true,

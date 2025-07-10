@@ -75,7 +75,7 @@ export async function PATCH(
     await connectDB();
 
     const body = await request.json();
-    const { firstName, lastName, type, permissions, isActive, password } = body;
+    const { firstName, lastName, role, permissions, isActive, password } = body;
 
     // Find the admin
     const admin = await Admin.findById(resolvedParams.id);
@@ -97,7 +97,7 @@ export async function PATCH(
     // Update fields
     if (firstName !== undefined) admin.firstName = firstName;
     if (lastName !== undefined) admin.lastName = lastName;
-    if (type !== undefined) admin.role = type;
+    if (role !== undefined) admin.role = role;
     if (permissions !== undefined) admin.permissions = permissions;
     if (isActive !== undefined) admin.isActive = isActive;
     if (password !== undefined) admin.password = password;
