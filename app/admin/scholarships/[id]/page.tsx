@@ -89,7 +89,7 @@ const ScholarshipViewPage = ({ params }: { params: Promise<{ id: string }> }) =>
           <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><BookOpen className="w-5 h-5 text-blue-400" />{show(scholarship.provider)}</div>
         </div>
         <div className="flex gap-2 absolute right-0 top-0 md:static md:mt-0 mt-4">
-          <ScholarshipActions scholarshipId={scholarship._id || scholarship.id} />
+          <ScholarshipActions scholarshipId={scholarship._id || scholarship.id || scholarshipId || ''} />
         </div>
       </div>
 
@@ -100,7 +100,7 @@ const ScholarshipViewPage = ({ params }: { params: Promise<{ id: string }> }) =>
             <FileText className="w-5 h-5 text-blue-700" />
             <h2 className="text-lg md:text-xl font-semibold text-blue-900">Application Templates</h2>
           </div>
-          <Link href={`/admin/application-templates/create?scholarshipId=${scholarshipId}`}>
+          <Link href={`/admin/application-templates/create?scholarshipId=${scholarshipId || ''}`}>
             <Button size="sm" className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Create Template
@@ -153,7 +153,7 @@ const ScholarshipViewPage = ({ params }: { params: Promise<{ id: string }> }) =>
             <p className="text-gray-600 mb-4">
               Create an application form template to enable students to apply for this scholarship.
             </p>
-            <Link href={`/admin/application-templates/create?scholarshipId=${scholarshipId}`}>
+            <Link href={`/admin/application-templates/create?scholarshipId=${scholarshipId || ''}`}>
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Create First Template

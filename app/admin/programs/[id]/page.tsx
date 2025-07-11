@@ -92,7 +92,7 @@ const ProgramViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
           <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><Building2 className="w-5 h-5 text-blue-400" />{show(program.fieldOfStudy)}</div>
         </div>
         <div className="flex gap-2 absolute right-0 top-0 md:static md:mt-0 mt-4">
-          <ProgramActions programId={program._id || program.id} />
+          <ProgramActions programId={program._id || program.id || programId || ''} />
         </div>
       </div>
 

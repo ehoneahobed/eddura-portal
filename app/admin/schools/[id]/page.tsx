@@ -88,7 +88,7 @@ const SchoolViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><Home className="w-5 h-5 text-blue-400" />{show(school.city)}, {show(school.country)}</div>
           </div>
           <div className="mt-4 md:mt-0 md:ml-auto">
-            <SchoolActions schoolId={schoolId} />
+            <SchoolActions schoolId={schoolId || ''} />
           </div>
         </div>
 
