@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -178,6 +178,26 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
     // Clear the value when switching types to avoid confusion
     setValue('value', '');
   };
+
+  // Reset form when scholarship data changes
+  useEffect(() => {
+    if (scholarship) {
+      // Reset the form with the scholarship data
+      Object.keys(scholarship).forEach((key) => {
+        const value = scholarship[key as keyof Scholarship];
+        if (value !== undefined && value !== null) {
+          setValue(key as keyof Scholarship, value);
+        }
+      });
+      // Also update the state variables
+      if (scholarship.frequency) {
+        setSelectedFrequency(scholarship.frequency);
+      }
+      if (scholarship.value !== undefined) {
+        setValueType(typeof scholarship.value === 'number' ? 'number' : 'text');
+      }
+    }
+  }, [scholarship, setValue]);
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">

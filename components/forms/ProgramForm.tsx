@@ -120,6 +120,35 @@ export default function ProgramForm({ program, onSubmit, onCancel, isLoading }: 
     fetchSchools();
   }, []);
 
+  // Reset form when program data changes
+  useEffect(() => {
+    if (program) {
+      // Reset the form with the program data
+      Object.keys(program).forEach((key) => {
+        const value = program[key as keyof Program];
+        if (value !== undefined && value !== null) {
+          setValue(key as keyof Program, value);
+        }
+      });
+      // Also update the state variables
+      if (program.schoolId) {
+        const schoolId = typeof program.schoolId === 'object' && program.schoolId !== null && ('_id' in program.schoolId || 'id' in program.schoolId)
+          ? ((program.schoolId as any)?._id || (program.schoolId as any)?.id)
+          : program.schoolId;
+        setSelectedSchoolId(schoolId);
+      }
+      if (program.degreeType) {
+        setSelectedDegreeType(program.degreeType);
+      }
+      if (program.mode) {
+        setSelectedMode(program.mode);
+      }
+      if (program.programLevel) {
+        setProgramLevel(program.programLevel);
+      }
+    }
+  }, [program, setValue]);
+
   const addToArray = (field: string, value: string | { name: string; minScore: number }, setter: (value: any) => void, currentArray: any[]) => {
     if (typeof value === 'string') {
       if (value.trim() && !currentArray.includes(value.trim())) {
