@@ -20,7 +20,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ scholarship });
+    return NextResponse.json(scholarship);
   } catch (error) {
     console.error('Error fetching scholarship:', error);
     return NextResponse.json(

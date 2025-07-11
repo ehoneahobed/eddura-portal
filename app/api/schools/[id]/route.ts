@@ -33,7 +33,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ school });
+    return NextResponse.json(transformSchool(school));
   } catch (error) {
     console.error('Error fetching school:', error);
     return NextResponse.json(

@@ -20,7 +20,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ program });
+    return NextResponse.json(program);
   } catch (error) {
     console.error('Error fetching program:', error);
     return NextResponse.json(
