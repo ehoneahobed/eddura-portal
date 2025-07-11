@@ -1,7 +1,8 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { headers } from 'next/headers';
-import { Globe, Mail, Phone, Home, Users, Building2, Languages, Award, Calendar, Link2, Facebook, Twitter, Linkedin, Youtube, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock } from 'lucide-react';
+import { Globe, Mail, Phone, Home, Users, Building2, Languages, Award, Calendar, Link2, Facebook, Twitter, Linkedin, Youtube, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Loader2 } from 'lucide-react';
 import SchoolActions from '@/components/schools/SchoolActions';
 import { formatUrlForHref } from '@/lib/url-utils';
 
@@ -9,16 +10,44 @@ import { formatUrlForHref } from '@/lib/url-utils';
  * SchoolViewPage displays all details of a single school in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const SchoolViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-  const headersList = await headers();
-  const host = headersList.get('host');
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/schools/${resolvedParams.id}`);
-  if (!res.ok) {
-    return <div className="p-4 text-red-600">Failed to load school details.</div>;
-  }
-  const school = await res.json();
+const SchoolViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const [school, setSchool] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setSchoolId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+  
+  useEffect(() => {
+    if (schoolId) {
+      fetchSchool();
+    }
+  }, [schoolId]);
+  
+  const fetchSchool = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/schools/${schoolId}`);
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch school: ${res.status}`);
+      }
+      
+      const schoolData = await res.json();
+      setSchool(schoolData);
+    } catch (err) {
+      console.error('Error fetching school:', err);
+      setError('Failed to load school details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper to display value or fallback
   const show = (value: any, fallback = 'Not provided') => {
@@ -27,6 +56,21 @@ const SchoolViewPage = async ({ params }: { params: Promise<{ id: string }> }) =
     if (value === undefined || value === null || value === '') return fallback;
     return value;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading school details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !school) {
+    return <div className="p-4 text-red-600">{error || 'School not found'}</div>;
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
@@ -44,7 +88,7 @@ const SchoolViewPage = async ({ params }: { params: Promise<{ id: string }> }) =
             <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><Home className="w-5 h-5 text-blue-400" />{show(school.city)}, {show(school.country)}</div>
           </div>
           <div className="mt-4 md:mt-0 md:ml-auto">
-            <SchoolActions schoolId={resolvedParams.id} />
+            <SchoolActions schoolId={schoolId} />
           </div>
         </div>
 
