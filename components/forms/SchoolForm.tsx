@@ -170,6 +170,23 @@ export default function SchoolForm({ school, onSubmit, onCancel, isLoading }: Sc
     }
   }, [countryInputRef, countrySearch]);
 
+  // Reset form when school data changes
+  useEffect(() => {
+    if (school) {
+      // Reset the form with the school data
+      Object.keys(school).forEach((key) => {
+        const value = school[key as keyof School];
+        if (value !== undefined && value !== null) {
+          setValue(key as keyof School, value);
+        }
+      });
+      // Also update the campus type state
+      if (school.campusType) {
+        setSelectedCampusType(school.campusType);
+      }
+    }
+  }, [school, setValue]);
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Basic Information */}

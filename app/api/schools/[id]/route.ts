@@ -33,7 +33,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ school });
+    return NextResponse.json(transformSchool(school));
   } catch (error) {
     console.error('Error fetching school:', error);
     return NextResponse.json(
@@ -67,7 +67,7 @@ export async function PUT(
 
     return NextResponse.json({
       message: "School updated successfully",
-      school: updatedSchool
+      school: transformSchool(updatedSchool)
     });
   } catch (error) {
     console.error('Error updating school:', error);
