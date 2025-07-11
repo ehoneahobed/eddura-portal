@@ -26,12 +26,18 @@ Meanwhile, the application templates API was correctly returning the data direct
 **Application Templates API**: `return NextResponse.json(transformTemplate(template));`
 
 ## Solution
-Updated the API endpoints to return the data directly instead of wrapped in an object:
+Updated the API endpoints to return the data directly instead of wrapped in an object, and added proper data transformation:
 
 ### Files Modified:
 1. **app/api/schools/[id]/route.ts** - Changed `return NextResponse.json({ school });` to `return NextResponse.json(transformSchool(school));`
-2. **app/api/programs/[id]/route.ts** - Changed `return NextResponse.json({ program });` to `return NextResponse.json(program);`
-3. **app/api/scholarships/[id]/route.ts** - Changed `return NextResponse.json({ scholarship });` to `return NextResponse.json(scholarship);`
+2. **app/api/programs/[id]/route.ts** - Changed `return NextResponse.json({ program });` to `return NextResponse.json(transformProgram(program));` and added `transformProgram` function
+3. **app/api/scholarships/[id]/route.ts** - Changed `return NextResponse.json({ scholarship });` to `return NextResponse.json(transformScholarship(scholarship));` and added `transformScholarship` function
+
+### Data Transformation Functions
+All three APIs now have consistent data transformation functions that:
+- Handle MongoDB lean queries properly
+- Add an `id` field from the MongoDB `_id` field
+- Return the data in the format expected by the frontend
 
 ## Impact
 With these changes:

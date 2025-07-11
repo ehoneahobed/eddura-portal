@@ -9,10 +9,9 @@ import mongoose from 'mongoose';
 function transformSchool(school: any) {
   if (!school) return school;
   
-  const transformed = school.toObject ? school.toObject() : school;
   return {
-    ...transformed,
-    id: transformed._id?.toString()
+    ...school,
+    id: school._id?.toString()
   };
 }
 
