@@ -3,6 +3,18 @@ import connectDB from '@/lib/mongodb';
 import Scholarship from '@/models/Scholarship';
 import mongoose from 'mongoose';
 
+/**
+ * Transform MongoDB document to include id field
+ */
+function transformScholarship(scholarship: any) {
+  if (!scholarship) return scholarship;
+  
+  return {
+    ...scholarship,
+    id: scholarship._id?.toString()
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,7 +32,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ scholarship });
+    return NextResponse.json(transformScholarship(scholarship));
   } catch (error) {
     console.error('Error fetching scholarship:', error);
     return NextResponse.json(

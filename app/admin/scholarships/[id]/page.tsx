@@ -1,7 +1,8 @@
-import React from 'react';
-import { headers } from 'next/headers';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import ScholarshipActions from '@/components/scholarships/ScholarshipActions';
-import { Award, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users, BookOpen, Plus } from 'lucide-react';
+import { Award, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users, BookOpen, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -9,21 +10,52 @@ import { Button } from '@/components/ui/button';
  * ScholarshipViewPage displays all details of a single scholarship in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const ScholarshipViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-  const headersList = await headers();
-  const host = headersList.get('host');
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/scholarships/${resolvedParams.id}`);
-  if (!res.ok) {
-    return <div className="p-4 text-red-600">Failed to load scholarship details.</div>;
-  }
-  const scholarship = await res.json();
-
-  // Fetch application templates for this scholarship
-  const templatesRes = await fetch(`${protocol}://${host}/api/application-templates?scholarshipId=${resolvedParams.id}`);
-  const templatesData = templatesRes.ok ? await templatesRes.json() : { templates: [] };
-  const templates = templatesData.templates || [];
+const ScholarshipViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const [scholarship, setScholarship] = useState<any>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [scholarshipId, setScholarshipId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setScholarshipId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+  
+  useEffect(() => {
+    if (scholarshipId) {
+      fetchScholarshipAndTemplates();
+    }
+  }, [scholarshipId]);
+  
+  const fetchScholarshipAndTemplates = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch scholarship
+      const scholarshipRes = await fetch(`/api/scholarships/${scholarshipId}`);
+      if (!scholarshipRes.ok) {
+        throw new Error(`Failed to fetch scholarship: ${scholarshipRes.status}`);
+      }
+      const scholarshipData = await scholarshipRes.json();
+      setScholarship(scholarshipData);
+      
+      // Fetch application templates
+      const templatesRes = await fetch(`/api/application-templates?scholarshipId=${scholarshipId}`);
+      if (templatesRes.ok) {
+        const templatesData = await templatesRes.json();
+        setTemplates(templatesData.templates || []);
+      }
+    } catch (err) {
+      console.error('Error fetching scholarship:', err);
+      setError('Failed to load scholarship details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper to display value or fallback
   const show = (value: any, fallback = 'Not provided') => {
@@ -32,6 +64,21 @@ const ScholarshipViewPage = async ({ params }: { params: Promise<{ id: string }>
     if (value === undefined || value === null || value === '') return fallback;
     return value;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading scholarship details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !scholarship) {
+    return <div className="p-4 text-red-600">{error || 'Scholarship not found'}</div>;
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
@@ -42,7 +89,7 @@ const ScholarshipViewPage = async ({ params }: { params: Promise<{ id: string }>
           <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><BookOpen className="w-5 h-5 text-blue-400" />{show(scholarship.provider)}</div>
         </div>
         <div className="flex gap-2 absolute right-0 top-0 md:static md:mt-0 mt-4">
-          <ScholarshipActions scholarshipId={scholarship._id || scholarship.id} />
+          <ScholarshipActions scholarshipId={scholarship._id || scholarship.id || scholarshipId || ''} />
         </div>
       </div>
 
@@ -53,7 +100,7 @@ const ScholarshipViewPage = async ({ params }: { params: Promise<{ id: string }>
             <FileText className="w-5 h-5 text-blue-700" />
             <h2 className="text-lg md:text-xl font-semibold text-blue-900">Application Templates</h2>
           </div>
-          <Link href={`/admin/application-templates/create?scholarshipId=${resolvedParams.id}`}>
+          <Link href={`/admin/application-templates/create?scholarshipId=${scholarshipId || ''}`}>
             <Button size="sm" className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Create Template
@@ -106,7 +153,7 @@ const ScholarshipViewPage = async ({ params }: { params: Promise<{ id: string }>
             <p className="text-gray-600 mb-4">
               Create an application form template to enable students to apply for this scholarship.
             </p>
-            <Link href={`/admin/application-templates/create?scholarshipId=${resolvedParams.id}`}>
+            <Link href={`/admin/application-templates/create?scholarshipId=${scholarshipId || ''}`}>
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Create First Template

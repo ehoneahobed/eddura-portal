@@ -1,24 +1,53 @@
-import React from 'react';
-import { headers } from 'next/headers';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Building2, BookOpen, Award, Calendar, Languages, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users } from 'lucide-react';
+import { Building2, BookOpen, Award, Calendar, Languages, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users, Loader2 } from 'lucide-react';
 import ProgramActions from '@/components/programs/ProgramActions';
 
 /**
  * ProgramViewPage displays all details of a single program in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const ProgramViewPage = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-  const headersList = await headers();
-  const host = headersList.get('host');
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/programs/${resolvedParams.id}`);
-  if (!res.ok) {
-    return <div className="p-4 text-red-600">Failed to load program details.</div>;
-  }
-  const program = await res.json();
+const ProgramViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const [program, setProgram] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [programId, setProgramId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setProgramId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+  
+  useEffect(() => {
+    if (programId) {
+      fetchProgram();
+    }
+  }, [programId]);
+  
+  const fetchProgram = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/programs/${programId}`);
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch program: ${res.status}`);
+      }
+      
+      const programData = await res.json();
+      setProgram(programData);
+    } catch (err) {
+      console.error('Error fetching program:', err);
+      setError('Failed to load program details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper to display value or fallback
   const show = (value: any, fallback = 'Not provided') => {
@@ -34,11 +63,23 @@ const ProgramViewPage = async ({ params }: { params: Promise<{ id: string }> }) 
       <div className="flex flex-wrap gap-2">{arr.map((item, i) => <span key={i} className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{item}</span>)}</div>
     ) : <span className="text-gray-400">{fallback}</span>;
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading program details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !program) {
+    return <div className="p-4 text-red-600">{error || 'Program not found'}</div>;
+  }
+
   // Optionally fetch school name if not present
   let schoolName = program.schoolName || program.school?.name || '';
-
-  // TEMP DEBUG: Output programLevel value and type
-  console.log('DEBUG programLevel:', program.programLevel, typeof program.programLevel);
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
@@ -51,7 +92,7 @@ const ProgramViewPage = async ({ params }: { params: Promise<{ id: string }> }) 
           <div className="text-gray-600 text-lg flex items-center gap-2 justify-center md:justify-start"><Building2 className="w-5 h-5 text-blue-400" />{show(program.fieldOfStudy)}</div>
         </div>
         <div className="flex gap-2 absolute right-0 top-0 md:static md:mt-0 mt-4">
-          <ProgramActions programId={program._id || program.id} />
+          <ProgramActions programId={program._id || program.id || programId || ''} />
         </div>
       </div>
 
@@ -61,7 +102,6 @@ const ProgramViewPage = async ({ params }: { params: Promise<{ id: string }> }) 
           <Info className="w-5 h-5 text-blue-700" />
           <h2 className="text-lg md:text-xl font-semibold text-blue-900">General Information</h2>
         </div>
-        <div className="mb-2 text-xs text-gray-500">DEBUG: programLevel = {JSON.stringify(program.programLevel)} (type: {typeof program.programLevel})</div>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           <div><dt className="font-semibold text-gray-700 flex items-center gap-1">Program Level <span title="Whether the program is undergraduate or postgraduate."><Info className="w-4 h-4 text-gray-400" /></span></dt><dd className="text-gray-900">{show(program.programLevel)}</dd></div>
           <div><dt className="font-semibold text-gray-700 flex items-center gap-1">Degree Type <span title="The type of degree awarded by this program."><Info className="w-4 h-4 text-gray-400" /></span></dt><dd className="text-gray-900">{show(program.degreeType)}</dd></div>

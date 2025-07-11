@@ -3,6 +3,18 @@ import connectDB from '@/lib/mongodb';
 import Program from '@/models/Program';
 import mongoose from 'mongoose';
 
+/**
+ * Transform MongoDB document to include id field
+ */
+function transformProgram(program: any) {
+  if (!program) return program;
+  
+  return {
+    ...program,
+    id: program._id?.toString()
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,7 +32,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ program });
+    return NextResponse.json(transformProgram(program));
   } catch (error) {
     console.error('Error fetching program:', error);
     return NextResponse.json(
