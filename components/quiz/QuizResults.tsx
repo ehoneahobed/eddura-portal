@@ -130,6 +130,10 @@ export default function QuizResults() {
     router.push('/quiz');
   };
 
+  const handleGoToDashboard = () => {
+    router.push('/dashboard');
+  };
+
   const getQuestionText = (questionId: string): string => {
     for (const section of QUIZ_SECTIONS) {
       const question = section.questions.find(q => q.id === questionId);
@@ -151,6 +155,24 @@ export default function QuizResults() {
       }
     }
     return value;
+  };
+
+  // Get all questions that were actually answered, regardless of conditional logic
+  const getAnsweredQuestions = () => {
+    if (!results?.quizResponses) return [];
+    
+    const answeredQuestions: Array<{id: string, title: string, answers: string[]}> = [];
+    
+    Object.entries(results.quizResponses).forEach(([questionId, answers]) => {
+      const questionText = getQuestionText(questionId);
+      answeredQuestions.push({
+        id: questionId,
+        title: questionText,
+        answers: Array.isArray(answers) ? answers : [answers as string]
+      });
+    });
+    
+    return answeredQuestions;
   };
 
   if (isLoading) {
@@ -244,6 +266,14 @@ export default function QuizResults() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
+              <Button 
+                onClick={handleGoToDashboard} 
+                variant="outline" 
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
               <div className="text-right">
                 <div className="text-2xl font-bold text-[#007fbd]">{results.matchScore}%</div>
                 <div className="text-sm text-gray-600">Match Score</div>
@@ -311,34 +341,25 @@ export default function QuizResults() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {results.quizResponses && Object.entries(results.quizResponses).map(([questionId, answers], index) => (
-                  <div key={questionId} className="border border-gray-200 rounded-lg p-4">
+                {getAnsweredQuestions().map((question, index) => (
+                  <div key={question.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-sm font-semibold text-blue-600">{index + 1}</span>
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 mb-2">
-                          {getQuestionText(questionId)}
+                          {question.title}
                         </h3>
                         <div className="space-y-2">
-                          {Array.isArray(answers) ? (
-                            answers.map((answer: string, answerIndex: number) => (
-                              <div key={answerIndex} className="flex items-center space-x-2">
-                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                                <span className="text-gray-700 bg-green-50 px-3 py-1 rounded-full text-sm">
-                                  {getOptionLabel(questionId, answer)}
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="flex items-center space-x-2">
+                          {question.answers.map((answer: string, answerIndex: number) => (
+                            <div key={answerIndex} className="flex items-center space-x-2">
                               <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                               <span className="text-gray-700 bg-green-50 px-3 py-1 rounded-full text-sm">
-                                {getOptionLabel(questionId, answers as string)}
+                                {getOptionLabel(question.id, answer)}
                               </span>
                             </div>
-                          )}
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -421,8 +442,8 @@ export default function QuizResults() {
                       Work Style
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {results.insights.workStyle.map((style, index) => (
-                        <Badge key={index} variant="secondary" className="bg-green-50 text-green-700">
+                      {results.insights.workStyle.map((style: string, index: number) => (
+                        <Badge key={index} className="bg-green-50 text-green-700 border-green-200">
                           {style}
                         </Badge>
                       ))}
@@ -438,8 +459,8 @@ export default function QuizResults() {
                       Academic Strengths
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {results.insights.academicStrengths.map((strength, index) => (
-                        <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700">
+                      {results.insights.academicStrengths.map((strength: string, index: number) => (
+                        <Badge key={index} className="bg-purple-50 text-purple-700 border-purple-200">
                           {strength}
                         </Badge>
                       ))}
@@ -463,7 +484,7 @@ export default function QuizResults() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {results.recommendedPrograms.slice(0, 3).map((program, index) => (
+                    {results.recommendedPrograms.slice(0, 3).map((program: any, index: number) => (
                       <div key={program.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <h3 className="font-semibold text-gray-900 text-sm mb-1">{program.name}</h3>
                         <p className="text-blue-600 font-medium text-xs mb-1">{program.school.name}</p>
@@ -501,7 +522,7 @@ export default function QuizResults() {
             <Brain className="w-4 h-4 mr-2" />
             Retake Quiz
           </Button>
-          <Button onClick={() => router.push('/dashboard')} className="flex-1 sm:flex-none bg-[#007fbd] hover:bg-[#005a8b]">
+          <Button onClick={handleGoToDashboard} className="flex-1 sm:flex-none bg-[#007fbd] hover:bg-[#005a8b]">
             <Target className="w-4 h-4 mr-2" />
             Go to Dashboard
           </Button>
