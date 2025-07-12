@@ -58,12 +58,12 @@ export default function ScholarshipsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
-    degreeLevel: '',
-    fieldOfStudy: '',
-    frequency: '',
+    degreeLevel: 'all',
+    fieldOfStudy: 'all',
+    frequency: 'all',
     minValue: '',
     maxValue: '',
-    nationality: '',
+    nationality: 'all',
     minGPA: '',
     hasEssay: false,
     hasCV: false,
@@ -109,14 +109,14 @@ export default function ScholarshipsPage() {
     }
 
     // Degree level filter
-    if (selectedFilters.degreeLevel) {
+    if (selectedFilters.degreeLevel && selectedFilters.degreeLevel !== 'all') {
       filtered = filtered.filter(scholarship =>
         scholarship.eligibility.degreeLevels?.includes(selectedFilters.degreeLevel)
       );
     }
 
     // Field of study filter
-    if (selectedFilters.fieldOfStudy) {
+    if (selectedFilters.fieldOfStudy && selectedFilters.fieldOfStudy !== 'all') {
       filtered = filtered.filter(scholarship =>
         scholarship.eligibility.fieldsOfStudy?.some(field =>
           field.toLowerCase().includes(selectedFilters.fieldOfStudy.toLowerCase())
@@ -125,7 +125,7 @@ export default function ScholarshipsPage() {
     }
 
     // Frequency filter
-    if (selectedFilters.frequency) {
+    if (selectedFilters.frequency && selectedFilters.frequency !== 'all') {
       filtered = filtered.filter(scholarship =>
         scholarship.frequency === selectedFilters.frequency
       );
@@ -145,7 +145,7 @@ export default function ScholarshipsPage() {
     }
 
     // Nationality filter
-    if (selectedFilters.nationality) {
+    if (selectedFilters.nationality && selectedFilters.nationality !== 'all') {
       filtered = filtered.filter(scholarship =>
         scholarship.eligibility.nationalities?.includes(selectedFilters.nationality)
       );
@@ -156,12 +156,12 @@ export default function ScholarshipsPage() {
 
   const clearFilters = () => {
     setSelectedFilters({
-      degreeLevel: '',
-      fieldOfStudy: '',
-      frequency: '',
+      degreeLevel: 'all',
+      fieldOfStudy: 'all',
+      frequency: 'all',
       minValue: '',
       maxValue: '',
-      nationality: '',
+      nationality: 'all',
       minGPA: '',
       hasEssay: false,
       hasCV: false,

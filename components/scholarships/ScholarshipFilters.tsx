@@ -86,7 +86,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
             <SelectValue placeholder="Select degree level" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Levels</SelectItem>
+            <SelectItem value="all">All Levels</SelectItem>
             {degreeLevels.map((level) => (
               <SelectItem key={level} value={level}>
                 {level}
@@ -106,7 +106,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
             <SelectValue placeholder="Select field" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Fields</SelectItem>
+            <SelectItem value="all">All Fields</SelectItem>
             {fieldsOfStudy.map((field) => (
               <SelectItem key={field} value={field}>
                 {field}
@@ -126,7 +126,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
+            <SelectItem value="all">All Types</SelectItem>
             {frequencies.map((freq) => (
               <SelectItem key={freq} value={freq}>
                 {freq}
@@ -146,7 +146,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
             <SelectValue placeholder="Select nationality" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Nationalities</SelectItem>
+            <SelectItem value="all">All Nationalities</SelectItem>
             {nationalities.map((nationality) => (
               <SelectItem key={nationality} value={nationality}>
                 {nationality}
