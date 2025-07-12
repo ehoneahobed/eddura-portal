@@ -192,7 +192,7 @@ export default function ProgramsPage() {
   }
 
   return (
-    <StudentLayout>
+    <div>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -430,6 +430,6 @@ export default function ProgramsPage() {
           </motion.div>
         )}
       </div>
-    </StudentLayout>
+    </div>
   );
 }
