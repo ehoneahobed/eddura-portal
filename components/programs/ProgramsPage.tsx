@@ -61,10 +61,10 @@ export default function ProgramsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
-    degreeType: '',
-    fieldOfStudy: '',
-    mode: '',
-    programLevel: '',
+    degreeType: 'all',
+    fieldOfStudy: 'all',
+    mode: 'all',
+    programLevel: 'all',
     country: '',
     minRanking: '',
     maxTuition: ''
@@ -107,28 +107,28 @@ export default function ProgramsPage() {
     }
 
     // Degree type filter
-    if (selectedFilters.degreeType) {
+    if (selectedFilters.degreeType && selectedFilters.degreeType !== 'all') {
       filtered = filtered.filter(program =>
         program.degreeType === selectedFilters.degreeType
       );
     }
 
     // Field of study filter
-    if (selectedFilters.fieldOfStudy) {
+    if (selectedFilters.fieldOfStudy && selectedFilters.fieldOfStudy !== 'all') {
       filtered = filtered.filter(program =>
         program.fieldOfStudy.toLowerCase().includes(selectedFilters.fieldOfStudy.toLowerCase())
       );
     }
 
     // Mode filter
-    if (selectedFilters.mode) {
+    if (selectedFilters.mode && selectedFilters.mode !== 'all') {
       filtered = filtered.filter(program =>
         program.mode === selectedFilters.mode
       );
     }
 
     // Program level filter
-    if (selectedFilters.programLevel) {
+    if (selectedFilters.programLevel && selectedFilters.programLevel !== 'all') {
       filtered = filtered.filter(program =>
         program.programLevel === selectedFilters.programLevel
       );
@@ -160,10 +160,10 @@ export default function ProgramsPage() {
 
   const clearFilters = () => {
     setSelectedFilters({
-      degreeType: '',
-      fieldOfStudy: '',
-      mode: '',
-      programLevel: '',
+      degreeType: 'all',
+      fieldOfStudy: 'all',
+      mode: 'all',
+      programLevel: 'all',
       country: '',
       minRanking: '',
       maxTuition: ''
@@ -239,7 +239,7 @@ export default function ProgramsPage() {
                       <SelectValue placeholder="Degree Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Degrees</SelectItem>
+                      <SelectItem value="all">All Degrees</SelectItem>
                       <SelectItem value="Bachelor">Bachelor</SelectItem>
                       <SelectItem value="Master">Master</SelectItem>
                       <SelectItem value="PhD">PhD</SelectItem>
@@ -252,7 +252,7 @@ export default function ProgramsPage() {
                       <SelectValue placeholder="Mode" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Modes</SelectItem>
+                      <SelectItem value="all">All Modes</SelectItem>
                       <SelectItem value="Full-time">Full-time</SelectItem>
                       <SelectItem value="Part-time">Part-time</SelectItem>
                       <SelectItem value="Online">Online</SelectItem>
@@ -294,7 +294,7 @@ export default function ProgramsPage() {
                           <SelectValue placeholder="Select field" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Fields</SelectItem>
+                          <SelectItem value="all">All Fields</SelectItem>
                           <SelectItem value="Computer Science">Computer Science</SelectItem>
                           <SelectItem value="Engineering">Engineering</SelectItem>
                           <SelectItem value="Business">Business</SelectItem>
@@ -313,7 +313,7 @@ export default function ProgramsPage() {
                           <SelectValue placeholder="Select level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Levels</SelectItem>
+                          <SelectItem value="all">All Levels</SelectItem>
                           <SelectItem value="Undergraduate">Undergraduate</SelectItem>
                           <SelectItem value="Postgraduate">Postgraduate</SelectItem>
                         </SelectContent>

@@ -253,7 +253,7 @@ export default function ScholarshipsPage() {
                       <SelectValue placeholder="Degree Level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Levels</SelectItem>
+                      <SelectItem value="all">All Levels</SelectItem>
                       <SelectItem value="Bachelor">Bachelor</SelectItem>
                       <SelectItem value="Master">Master</SelectItem>
                       <SelectItem value="PhD">PhD</SelectItem>
@@ -265,7 +265,7 @@ export default function ScholarshipsPage() {
                       <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="One-time">One-time</SelectItem>
                       <SelectItem value="Annual">Annual</SelectItem>
                       <SelectItem value="Full Duration">Full Duration</SelectItem>
