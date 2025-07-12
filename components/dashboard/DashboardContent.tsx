@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
-  User, 
   Brain, 
   GraduationCap, 
   TrendingUp, 
   Settings, 
-  LogOut,
   Sparkles,
   Calendar,
   Target,
@@ -24,10 +22,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
+import StudentLayout from '@/components/layout/StudentLayout';
 
 interface UserProfile {
   id: string;
@@ -87,9 +85,7 @@ export default function DashboardContent() {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/' });
-  };
+  // Logout is now handled by StudentLayout
 
   const handleRetakeQuiz = () => {
     router.push('/quiz');
@@ -101,19 +97,21 @@ export default function DashboardContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-white animate-pulse" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
-          <p className="text-gray-600">Preparing your personalized experience...</p>
-        </motion.div>
-      </div>
+      <StudentLayout showSidebar={false}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8 text-white animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
+            <p className="text-gray-600">Preparing your personalized experience...</p>
+          </motion.div>
+        </div>
+      </StudentLayout>
     );
   }
 
@@ -131,47 +129,8 @@ export default function DashboardContent() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-[#00334e]">Eddura</h1>
-              </Link>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-[#007fbd] text-white text-sm">
-                    {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {userProfile?.firstName} {userProfile?.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500">{userProfile?.email}</p>
-                </div>
-              </div>
-              
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <StudentLayout>
+      <div className="max-w-7xl mx-auto">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -291,21 +250,25 @@ export default function DashboardContent() {
                       </Button>
                     </Link>
                     
-                    <Button className="h-20 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
-                      <div className="text-left">
-                        <GraduationCap className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">Browse Programs</p>
-                        <p className="text-sm opacity-90">Explore universities</p>
-                      </div>
-                    </Button>
+                    <Link href="/programs">
+                      <Button className="h-20 w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
+                        <div className="text-left">
+                          <GraduationCap className="w-6 h-6 mb-2" />
+                          <p className="font-semibold">Browse Programs</p>
+                          <p className="text-sm opacity-90">Explore universities</p>
+                        </div>
+                      </Button>
+                    </Link>
                     
-                    <Button className="h-20 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                      <div className="text-left">
-                        <TrendingUp className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">Career Paths</p>
-                        <p className="text-sm opacity-90">Discover opportunities</p>
-                      </div>
-                    </Button>
+                    <Link href="/scholarships">
+                      <Button className="h-20 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
+                        <div className="text-left">
+                          <TrendingUp className="w-6 h-6 mb-2" />
+                          <p className="font-semibold">Browse Scholarships</p>
+                          <p className="text-sm opacity-90">Find funding opportunities</p>
+                        </div>
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
@@ -493,19 +456,19 @@ export default function DashboardContent() {
             </motion.div>
           </div>
         </div>
-      </main>
 
-      {/* Profile Edit Modal */}
-      {editableProfile && (
-        <ProfileEditModal
-          isOpen={showProfileModal}
-          onClose={() => setShowProfileModal(false)}
-          profile={editableProfile}
-          onUpdate={(updated) => {
-            setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
-          }}
-        />
-      )}
-    </div>
+        {/* Profile Edit Modal */}
+        {editableProfile && (
+          <ProfileEditModal
+            isOpen={showProfileModal}
+            onClose={() => setShowProfileModal(false)}
+            profile={editableProfile}
+            onUpdate={(updated) => {
+              setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
+            }}
+          />
+        )}
+      </div>
+    </StudentLayout>
   );
 } 
