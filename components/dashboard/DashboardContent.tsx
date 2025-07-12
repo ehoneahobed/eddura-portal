@@ -27,7 +27,6 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
-import StudentLayout from '@/components/layout/StudentLayout';
 
 interface UserProfile {
   id: string;
@@ -99,21 +98,19 @@ export default function DashboardContent() {
 
   if (isLoading) {
     return (
-      <StudentLayout showSidebar={false}>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
-            <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-8 h-8 text-white animate-pulse" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
-            <p className="text-gray-600">Preparing your personalized experience...</p>
-          </motion.div>
-        </div>
-      </StudentLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
+          <p className="text-gray-600">Preparing your personalized experience...</p>
+        </motion.div>
+      </div>
     );
   }
 
@@ -131,8 +128,7 @@ export default function DashboardContent() {
     : null;
 
   return (
-    <StudentLayout>
-      <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -477,6 +473,5 @@ export default function DashboardContent() {
           />
         )}
       </div>
-    </StudentLayout>
   );
 } 
