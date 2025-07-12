@@ -15,7 +15,9 @@ import {
   Star,
   Heart,
   Share2,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,9 +54,17 @@ interface Scholarship {
   tags?: string[];
 }
 
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  limit: number;
+}
+
 export default function ScholarshipsPage() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
-  const [filteredScholarships, setFilteredScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
@@ -70,21 +80,74 @@ export default function ScholarshipsPage() {
     hasRecommendations: false
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 15 // Show 15 scholarships per page
+  });
+  const [sortBy, setSortBy] = useState('relevance');
 
   useEffect(() => {
     fetchScholarships();
-  }, []);
-
-  useEffect(() => {
-    filterScholarships();
-  }, [scholarships, searchTerm, selectedFilters]);
+  }, [pagination.currentPage, searchTerm, selectedFilters, sortBy]);
 
   const fetchScholarships = async () => {
     try {
-      const response = await fetch('/api/scholarships?limit=50');
+      setIsLoading(true);
+      
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: pagination.currentPage.toString(),
+        limit: pagination.limit.toString(),
+        sortBy: getSortByParam(sortBy),
+        sortOrder: getSortOrder(sortBy)
+      });
+
+      // Add search parameter
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+
+      // Add filter parameters
+      if (selectedFilters.degreeLevel !== 'all') {
+        params.append('degreeLevel', selectedFilters.degreeLevel);
+      }
+      if (selectedFilters.fieldOfStudy !== 'all') {
+        params.append('fieldOfStudy', selectedFilters.fieldOfStudy);
+      }
+      if (selectedFilters.frequency !== 'all') {
+        params.append('frequency', selectedFilters.frequency);
+      }
+      if (selectedFilters.minValue) {
+        params.append('minValue', selectedFilters.minValue);
+      }
+      if (selectedFilters.maxValue) {
+        params.append('maxValue', selectedFilters.maxValue);
+      }
+      if (selectedFilters.nationality !== 'all') {
+        params.append('nationality', selectedFilters.nationality);
+      }
+      if (selectedFilters.minGPA) {
+        params.append('minGPA', selectedFilters.minGPA);
+      }
+      if (selectedFilters.hasEssay) {
+        params.append('hasEssay', 'true');
+      }
+      if (selectedFilters.hasCV) {
+        params.append('hasCV', 'true');
+      }
+      if (selectedFilters.hasRecommendations) {
+        params.append('hasRecommendations', 'true');
+      }
+
+      const response = await fetch(`/api/scholarships?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setScholarships(data.scholarships || []);
+        setPagination(data.pagination || pagination);
       }
     } catch (error) {
       console.error('Error fetching scholarships:', error);
@@ -93,65 +156,26 @@ export default function ScholarshipsPage() {
     }
   };
 
-  const filterScholarships = () => {
-    let filtered = [...scholarships];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(scholarship =>
-        scholarship.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scholarship.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scholarship.scholarshipDetails.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scholarship.eligibility.fieldsOfStudy?.some(field => 
-          field.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+  const getSortByParam = (sort: string) => {
+    switch (sort) {
+      case 'deadline': return 'deadline';
+      case 'value': return 'value';
+      case 'newest': return 'createdAt';
+      default: return 'createdAt'; // relevance defaults to newest
     }
+  };
 
-    // Degree level filter
-    if (selectedFilters.degreeLevel && selectedFilters.degreeLevel !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.eligibility.degreeLevels?.includes(selectedFilters.degreeLevel)
-      );
+  const getSortOrder = (sort: string) => {
+    switch (sort) {
+      case 'deadline': return 'asc';
+      case 'value': return 'desc';
+      case 'newest': return 'desc';
+      default: return 'desc';
     }
+  };
 
-    // Field of study filter
-    if (selectedFilters.fieldOfStudy && selectedFilters.fieldOfStudy !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.eligibility.fieldsOfStudy?.some(field =>
-          field.toLowerCase().includes(selectedFilters.fieldOfStudy.toLowerCase())
-        )
-      );
-    }
-
-    // Frequency filter
-    if (selectedFilters.frequency && selectedFilters.frequency !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.frequency === selectedFilters.frequency
-      );
-    }
-
-    // Value range filter
-    if (selectedFilters.minValue || selectedFilters.maxValue) {
-      filtered = filtered.filter(scholarship => {
-        if (typeof scholarship.value === 'number') {
-          const value = scholarship.value;
-          const min = selectedFilters.minValue ? parseFloat(selectedFilters.minValue) : 0;
-          const max = selectedFilters.maxValue ? parseFloat(selectedFilters.maxValue) : Infinity;
-          return value >= min && value <= max;
-        }
-        return true;
-      });
-    }
-
-    // Nationality filter
-    if (selectedFilters.nationality && selectedFilters.nationality !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.eligibility.nationalities?.includes(selectedFilters.nationality)
-      );
-    }
-
-    setFilteredScholarships(filtered);
+  const handlePageChange = (page: number) => {
+    setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: page }));
   };
 
   const clearFilters = () => {
@@ -168,6 +192,7 @@ export default function ScholarshipsPage() {
       hasRecommendations: false
     });
     setSearchTerm('');
+    setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
   };
 
   const formatValue = (value: number | string | undefined, currency?: string) => {
@@ -240,7 +265,10 @@ export default function ScholarshipsPage() {
                       type="text"
                       placeholder="Search scholarships by title, provider, or field of study..."
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setPagination(prev => ({ ...prev, currentPage: 1 }));
+                      }}
                       className="pl-10"
                     />
                   </div>
@@ -248,7 +276,13 @@ export default function ScholarshipsPage() {
 
                 {/* Quick Filters */}
                 <div className="flex gap-2">
-                  <Select value={selectedFilters.degreeLevel} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, degreeLevel: value }))}>
+                  <Select 
+                    value={selectedFilters.degreeLevel} 
+                    onValueChange={(value) => {
+                      setSelectedFilters(prev => ({ ...prev, degreeLevel: value }));
+                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                    }}
+                  >
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Degree Level" />
                     </SelectTrigger>
@@ -260,7 +294,13 @@ export default function ScholarshipsPage() {
                     </SelectContent>
                   </Select>
 
-                  <Select value={selectedFilters.frequency} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, frequency: value }))}>
+                  <Select 
+                    value={selectedFilters.frequency} 
+                    onValueChange={(value) => {
+                      setSelectedFilters(prev => ({ ...prev, frequency: value }));
+                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                    }}
+                  >
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
@@ -281,7 +321,7 @@ export default function ScholarshipsPage() {
                     Filters
                   </Button>
 
-                  {(searchTerm || Object.values(selectedFilters).some(v => v)) && (
+                  {(searchTerm || Object.values(selectedFilters).some(v => v && v !== 'all')) && (
                     <Button variant="ghost" onClick={clearFilters}>
                       Clear
                     </Button>
@@ -299,7 +339,10 @@ export default function ScholarshipsPage() {
                 >
                   <ScholarshipFilters
                     filters={selectedFilters}
-                    onFiltersChange={setSelectedFilters}
+                    onFiltersChange={(filters) => {
+                      setSelectedFilters(filters);
+                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                    }}
                   />
                 </motion.div>
               )}
@@ -316,13 +359,17 @@ export default function ScholarshipsPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-gray-600">
-              Showing <span className="font-semibold">{filteredScholarships.length}</span> scholarships
+              Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
+              <span className="font-semibold">{pagination.totalCount}</span> scholarships
               {searchTerm && ` for "${searchTerm}"`}
             </p>
             
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Sort by:</span>
-              <Select defaultValue="relevance">
+              <Select value={sortBy} onValueChange={(value) => {
+                setSortBy(value);
+                setPagination(prev => ({ ...prev, currentPage: 1 }));
+              }}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -338,14 +385,14 @@ export default function ScholarshipsPage() {
         </motion.div>
 
         {/* Scholarships Grid */}
-        {filteredScholarships.length > 0 ? (
+        {scholarships.length > 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {filteredScholarships.map((scholarship, index) => (
+            {scholarships.map((scholarship, index) => (
               <motion.div
                 key={scholarship._id}
                 initial={{ opacity: 0, y: 20 }}
@@ -373,17 +420,61 @@ export default function ScholarshipsPage() {
           </motion.div>
         )}
 
-        {/* Load More */}
-        {filteredScholarships.length >= 50 && (
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mt-8"
+            className="flex items-center justify-center mt-8"
           >
-            <Button variant="outline" size="lg">
-              Load More Scholarships
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={!pagination.hasPrevPage}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                    pageNum = pagination.totalPages - 4 + i;
+                  } else {
+                    pageNum = pagination.currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pagination.currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      className="w-10 h-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </motion.div>
         )}
       </div>
