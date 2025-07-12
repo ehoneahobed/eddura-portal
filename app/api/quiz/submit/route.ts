@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { z } from 'zod';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Validation schema for quiz submission
 const quizSubmissionSchema = z.object({
@@ -33,20 +31,9 @@ export async function POST(request: NextRequest) {
 
     const { sectionId, questionId, responses, textResponse, isCompleted, timeSpent } = validationResult.data;
 
-    // Get user from JWT token (if authenticated)
-    let userId: string | null = null;
-    const authHeader = request.headers.get('authorization');
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.substring(7);
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        userId = decoded.userId;
-      } catch (error) {
-        // Token is invalid, but we can still save anonymously
-        console.log('Invalid token, saving anonymously');
-      }
-    }
+    // Get user from NextAuth session
+    const session = await auth();
+    const userId = session?.user?.id;
 
     // If user is authenticated, save to their profile
     if (userId) {
@@ -130,44 +117,32 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get user from JWT token
-    const authHeader = request.headers.get('authorization');
+    // Get user from NextAuth session
+    const session = await auth();
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    try {
-      const token = authHeader.substring(7);
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
-      const userId = decoded.userId;
-
-      const user = await User.findById(userId);
-      if (!user) {
-        return NextResponse.json(
-          { error: 'User not found' },
-          { status: 404 }
-        );
-      }
-
+    const user = await User.findById(session.user.id);
+    if (!user) {
       return NextResponse.json(
-        { 
-          quizResponses: user.quizResponses,
-          quizCompleted: user.quizCompleted,
-          progress: user.quizResponses?.progress || 0
-        },
-        { status: 200 }
-      );
-
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
+        { error: 'User not found' },
+        { status: 404 }
       );
     }
+
+    return NextResponse.json(
+      { 
+        quizResponses: user.quizResponses,
+        quizCompleted: user.quizCompleted,
+        progress: user.quizResponses?.progress || 0
+      },
+      { status: 200 }
+    );
 
   } catch (error) {
     console.error('Quiz retrieval error:', error);

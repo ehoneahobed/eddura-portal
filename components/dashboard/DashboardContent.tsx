@@ -276,8 +276,8 @@ export default function DashboardContent() {
                     >
                       <div className="text-left">
                         <Brain className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">Retake Quiz</p>
-                        <p className="text-sm opacity-90">Update your preferences</p>
+                        <p className="font-semibold">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
+                        <p className="text-sm opacity-90">{userProfile?.quizCompleted ? 'Update your preferences' : 'Start your career discovery'}</p>
                       </div>
                     </Button>
                     
@@ -476,7 +476,7 @@ export default function DashboardContent() {
                     <Link href="/quiz" className="block">
                       <Button variant="ghost" className="w-full justify-start">
                         <Brain className="w-4 h-4 mr-2" />
-                        Retake Quiz
+                        {userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}
                       </Button>
                     </Link>
                     <Button variant="ghost" className="w-full justify-start">
