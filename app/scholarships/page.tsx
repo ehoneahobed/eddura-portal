@@ -23,6 +23,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useScholarships } from '@/hooks/use-scholarships';
 import { Scholarship } from '@/types';
@@ -34,34 +36,36 @@ function ScholarshipsContent() {
   
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [selectedProvider, setSelectedProvider] = useState(searchParams.get('provider') || '');
-  const [selectedCoverage, setSelectedCoverage] = useState(searchParams.get('coverage') || '');
-  const [selectedFrequency, setSelectedFrequency] = useState(searchParams.get('frequency') || '');
-  const [selectedDegreeLevel, setSelectedDegreeLevel] = useState(searchParams.get('degreeLevel') || '');
+  const [selectedProvider, setSelectedProvider] = useState(searchParams.get('provider') || 'all');
+  const [selectedCoverage, setSelectedCoverage] = useState(searchParams.get('coverage') || 'all');
+  const [selectedFrequency, setSelectedFrequency] = useState(searchParams.get('frequency') || 'all');
+  const [selectedDegreeLevel, setSelectedDegreeLevel] = useState(searchParams.get('degreeLevel') || 'all');
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [showFilters, setShowFilters] = useState(false);
+  const [includeExpired, setIncludeExpired] = useState(false);
 
   // Use the scholarships hook with current filters
   const { scholarships, pagination, isLoading, isError, mutate } = useScholarships({
     page: currentPage,
     limit: 12,
     search: searchTerm,
-    provider: selectedProvider,
-    coverage: selectedCoverage,
-    frequency: selectedFrequency,
-    degreeLevel: selectedDegreeLevel,
+    provider: selectedProvider !== 'all' ? selectedProvider : undefined,
+    coverage: selectedCoverage !== 'all' ? selectedCoverage : undefined,
+    frequency: selectedFrequency !== 'all' ? selectedFrequency : undefined,
+    degreeLevel: selectedDegreeLevel !== 'all' ? selectedDegreeLevel : undefined,
     sortBy: 'deadline',
-    sortOrder: 'asc' // Sort by deadline ascending to show earliest deadlines first
+    sortOrder: 'asc', // Sort by deadline ascending to show earliest deadlines first
+    includeExpired: includeExpired
   });
 
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchTerm) params.set('search', searchTerm);
-    if (selectedProvider) params.set('provider', selectedProvider);
-    if (selectedCoverage) params.set('coverage', selectedCoverage);
-    if (selectedFrequency) params.set('frequency', selectedFrequency);
-    if (selectedDegreeLevel) params.set('degreeLevel', selectedDegreeLevel);
+    if (selectedProvider !== 'all') params.set('provider', selectedProvider);
+    if (selectedCoverage !== 'all') params.set('coverage', selectedCoverage);
+    if (selectedFrequency !== 'all') params.set('frequency', selectedFrequency);
+    if (selectedDegreeLevel !== 'all') params.set('degreeLevel', selectedDegreeLevel);
     if (currentPage > 1) params.set('page', currentPage.toString());
     
     const newUrl = `/scholarships${params.toString() ? `?${params.toString()}` : ''}`;
@@ -100,15 +104,16 @@ function ScholarshipsContent() {
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedProvider('');
-    setSelectedCoverage('');
-    setSelectedFrequency('');
-    setSelectedDegreeLevel('');
+    setSelectedProvider('all');
+    setSelectedCoverage('all');
+    setSelectedFrequency('all');
+    setSelectedDegreeLevel('all');
     setCurrentPage(1);
+    setIncludeExpired(false);
   };
 
   // Check if any filters are active
-  const hasActiveFilters = searchTerm || selectedProvider || selectedCoverage || selectedFrequency || selectedDegreeLevel;
+  const hasActiveFilters = searchTerm || selectedProvider !== 'all' || selectedCoverage !== 'all' || selectedFrequency !== 'all' || selectedDegreeLevel !== 'all' || includeExpired;
 
   // Format currency
   const formatCurrency = (value: number | string, currency: string = 'USD') => {
@@ -179,38 +184,6 @@ function ScholarshipsContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Link href="/dashboard" className="flex items-center space-x-2 mr-6">
-                <ArrowLeft className="h-5 w-5 text-gray-600" />
-                <span className="text-gray-600">Back to Dashboard</span>
-              </Link>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                  <Award className="h-5 w-5 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-[#00334e]">Scholarships</h1>
-              </div>
-            </div>
-            
-            {/* User Menu */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {session?.user?.name || 'User'}
-                  </p>
-                  <p className="text-xs text-gray-500">Student</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filters */}
@@ -257,6 +230,18 @@ function ScholarshipsContent() {
               exit={{ opacity: 0, height: 0 }}
               className="bg-white rounded-lg border border-gray-200 p-6 mb-6"
             >
+              {/* Include Expired Switch - Top of filters */}
+              <div className="flex items-center space-x-2 mb-4 pb-4 border-b border-gray-200">
+                <Switch
+                  id="include-expired"
+                  checked={includeExpired}
+                  onCheckedChange={(checked) => setIncludeExpired(checked)}
+                />
+                <Label htmlFor="include-expired" className="text-sm font-medium text-gray-700">
+                  Include expired scholarships
+                </Label>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Provider Filter */}
                 <div>
@@ -266,7 +251,7 @@ function ScholarshipsContent() {
                       <SelectValue placeholder="All providers" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All providers</SelectItem>
+                      <SelectItem value="all">All providers</SelectItem>
                       <SelectItem value="university">University</SelectItem>
                       <SelectItem value="government">Government</SelectItem>
                       <SelectItem value="private">Private Organization</SelectItem>
@@ -283,7 +268,7 @@ function ScholarshipsContent() {
                       <SelectValue placeholder="All coverage types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All coverage types</SelectItem>
+                      <SelectItem value="all">All coverage types</SelectItem>
                       <SelectItem value="tuition">Tuition</SelectItem>
                       <SelectItem value="living">Living Expenses</SelectItem>
                       <SelectItem value="full">Full Coverage</SelectItem>
@@ -300,7 +285,7 @@ function ScholarshipsContent() {
                       <SelectValue placeholder="All frequencies" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All frequencies</SelectItem>
+                      <SelectItem value="all">All frequencies</SelectItem>
                       <SelectItem value="One-time">One-time</SelectItem>
                       <SelectItem value="Annual">Annual</SelectItem>
                       <SelectItem value="Full Duration">Full Duration</SelectItem>
@@ -316,7 +301,7 @@ function ScholarshipsContent() {
                       <SelectValue placeholder="All degree levels" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All degree levels</SelectItem>
+                      <SelectItem value="all">All degree levels</SelectItem>
                       <SelectItem value="Bachelor">Bachelor</SelectItem>
                       <SelectItem value="Master">Master</SelectItem>
                       <SelectItem value="PhD">PhD</SelectItem>
@@ -342,10 +327,11 @@ function ScholarshipsContent() {
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">Active filters:</span>
               {searchTerm && <Badge variant="secondary">{searchTerm}</Badge>}
-              {selectedProvider && <Badge variant="secondary">{selectedProvider}</Badge>}
-              {selectedCoverage && <Badge variant="secondary">{selectedCoverage}</Badge>}
-              {selectedFrequency && <Badge variant="secondary">{selectedFrequency}</Badge>}
-              {selectedDegreeLevel && <Badge variant="secondary">{selectedDegreeLevel}</Badge>}
+              {selectedProvider !== 'all' && <Badge variant="secondary">{selectedProvider}</Badge>}
+              {selectedCoverage !== 'all' && <Badge variant="secondary">{selectedCoverage}</Badge>}
+              {selectedFrequency !== 'all' && <Badge variant="secondary">{selectedFrequency}</Badge>}
+              {selectedDegreeLevel !== 'all' && <Badge variant="secondary">{selectedDegreeLevel}</Badge>}
+              {includeExpired && <Badge variant="secondary">Expired</Badge>}
             </div>
           )}
         </div>
@@ -409,129 +395,83 @@ function ScholarshipsContent() {
                       transition={{ duration: 0.3 }}
                       className="h-full"
                     >
-                      <Link href={`/scholarships/${scholarship.id}`}>
-                        <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-lg group hover:scale-[1.02]">
-                          {/* Header with deadline badge */}
-                          <div className="relative">
-                            <div className="absolute top-4 right-4 z-10">
-                              <Badge className={`${getDeadlineColor(scholarship.deadline)} font-semibold text-xs px-3 py-1 border`}>
-                                {deadlineInfo.text}
+                      <Card className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-lg transition group">
+                        <div className="flex flex-col flex-1 p-6 pb-4">
+                          {/* Title and Provider */}
+                          <div className="mb-2">
+                            <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2 group-hover:text-[#007fbd] transition-colors">{scholarship.title}</h3>
+                            <p className="text-xs text-gray-500 font-medium line-clamp-1">{scholarship.provider}</p>
+                          </div>
+
+                          {/* Badges Row */}
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {scholarship.value && (
+                              <Badge className="bg-green-50 text-green-700 border border-green-200 px-2 py-1 text-xs font-semibold flex items-center gap-1">
+                                <DollarSign className="h-4 w-4" />
+                                {scholarship.coverage && scholarship.coverage.length > 0 ? scholarship.coverage[0] : 'Award'}
                               </Badge>
-                            </div>
-                            
-                            {/* Provider logo/icon area */}
-                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-t-lg">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                                  <Award className="h-6 w-6 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-[#007fbd] transition-colors">
-                                    {scholarship.title}
-                                  </h3>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    {scholarship.provider}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
+                            )}
+                            {scholarship.frequency && (
+                              <Badge className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 text-xs font-semibold">
+                                {scholarship.frequency}
+                              </Badge>
+                            )}
+                            {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
+                              <Badge className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 text-xs font-semibold">
+                                {scholarship.eligibility.degreeLevels[0]}
+                              </Badge>
+                            )}
                           </div>
-                          
-                          {/* Content */}
-                          <CardContent className="p-6 pt-4">
-                            <div className="space-y-4">
-                              {/* Value - Prominent display */}
-                              {scholarship.value && (
-                                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
-                                      <DollarSign className="h-5 w-5 text-green-600" />
-                                      <span className="text-sm text-gray-600">Award Value</span>
-                                    </div>
-                                    <span className="text-lg font-bold text-green-700">
-                                      {formatCurrency(scholarship.value, scholarship.currency)}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {scholarship.frequency}
-                                  </p>
-                                </div>
-                              )}
 
-                              {/* Key details grid */}
-                              <div className="grid grid-cols-1 gap-3">
-                                {/* Coverage */}
-                                {scholarship.coverage && scholarship.coverage.length > 0 && (
-                                  <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
-                                    <Award className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                                    <div className="flex-1">
-                                      <p className="text-xs text-gray-500">Coverage</p>
-                                      <p className="text-sm font-medium text-gray-900">
-                                        {scholarship.coverage.join(', ')}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
+                          {/* Short Description */}
+                          {scholarship.scholarshipDetails && (
+                            <p className="text-xs text-gray-700 mb-3 line-clamp-3 min-h-[48px]">{scholarship.scholarshipDetails}</p>
+                          )}
 
-                                {/* Degree Levels */}
-                                {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
-                                  <div className="flex items-center space-x-3 p-2 bg-purple-50 rounded-lg">
-                                    <GraduationCap className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                                    <div className="flex-1">
-                                      <p className="text-xs text-gray-500">Degree Level</p>
-                                      <p className="text-sm font-medium text-gray-900">
-                                        {scholarship.eligibility.degreeLevels.join(', ')}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
+                          {/* Requirements & Status */}
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {scholarship.eligibility?.minGPA && (
+                              <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 text-xs font-semibold">
+                                Min GPA: {scholarship.eligibility.minGPA}
+                              </Badge>
+                            )}
+                            {scholarship.applicationRequirements?.recommendationLetters && (
+                              <Badge className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 text-xs font-semibold">
+                                {scholarship.applicationRequirements.recommendationLetters} Recommendations
+                              </Badge>
+                            )}
+                            <Badge className={`${getDeadlineColor(scholarship.deadline)} px-2 py-1 text-xs font-semibold border`}>{deadlineInfo.text}</Badge>
+                            {deadlineInfo.text === 'Open' && <Badge className="bg-green-100 text-green-700 border border-green-200 px-2 py-1 text-xs font-semibold">Open</Badge>}
+                            {deadlineInfo.text === 'Urgent' && <Badge className="bg-orange-100 text-orange-700 border border-orange-200 px-2 py-1 text-xs font-semibold">Urgent</Badge>}
+                          </div>
 
-                                {/* Location */}
-                                {scholarship.linkedSchool && (
-                                  <div className="flex items-center space-x-3 p-2 bg-orange-50 rounded-lg">
-                                    <MapPin className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                                    <div className="flex-1">
-                                      <p className="text-xs text-gray-500">Institution</p>
-                                      <p className="text-sm font-medium text-gray-900 line-clamp-1">
-                                        {scholarship.linkedSchool}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Tags */}
-                              {scholarship.tags && scholarship.tags.length > 0 && (
-                                <div className="pt-2">
-                                  <div className="flex flex-wrap gap-1">
-                                    {scholarship.tags.slice(0, 3).map((tag, index) => (
-                                      <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
-                                        {tag}
-                                      </Badge>
-                                    ))}
-                                    {scholarship.tags.length > 3 && (
-                                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
-                                        +{scholarship.tags.length - 3} more
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
+                          {/* Tags */}
+                          {scholarship.tags && scholarship.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {scholarship.tags.slice(0, 2).map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {scholarship.tags.length > 2 && (
+                                <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                                  +{scholarship.tags.length - 2}
+                                </Badge>
                               )}
                             </div>
-                          </CardContent>
-                          
-                          {/* Footer with apply button */}
-                          <div className="px-6 pb-6">
-                            <Button 
-                              className="w-full bg-[#007fbd] hover:bg-[#005a8b] text-white"
-                              size="sm"
-                            >
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 px-6 pb-6 mt-auto">
+                          <Link href={`/scholarships/${scholarship.id}`} className="w-full">
+                            <Button className="w-full bg-[#007fbd] hover:bg-[#005a8b] text-white" size="sm">
                               View Details
-                              <ArrowRight className="h-4 w-4 ml-2" />
                             </Button>
-                          </div>
-                        </Card>
-                      </Link>
+                          </Link>
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white" size="sm">
+                            Apply Now
+                          </Button>
+                        </div>
+                      </Card>
                     </motion.div>
                   );
                 })}

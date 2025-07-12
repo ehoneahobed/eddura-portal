@@ -25,7 +25,8 @@ import {
   Loader2,
   RefreshCw,
   Mail,
-  Phone
+  Phone,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -117,12 +118,8 @@ function ScholarshipDetailContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Scholarship</h2>
-          <p className="text-gray-600">Getting the details...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -134,46 +131,27 @@ function ScholarshipDetailContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="h-64 bg-gray-200 rounded"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
-                <div className="h-48 bg-gray-200 rounded"></div>
-              </div>
-              <div className="space-y-6">
-                <div className="h-32 bg-gray-200 rounded"></div>
-                <div className="h-48 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
 
   if (isError || !scholarship) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-12 text-center">
-              <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Scholarship Not Found</h3>
-              <p className="text-gray-600 mb-4">
-                The scholarship you're looking for doesn't exist or has been removed.
-              </p>
-              <Button onClick={() => router.push('/scholarships')}>
-                Back to Scholarships
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Scholarship Not Found</h3>
+            <p className="text-gray-600 mb-4">
+              The scholarship you're looking for doesn't exist or has been removed.
+            </p>
+            <Button onClick={() => router.push('/scholarships')}>
+              Back to Scholarships
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -182,574 +160,334 @@ function ScholarshipDetailContent() {
   const eligibilityCheck = checkBasicEligibility();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Link href="/scholarships" className="flex items-center space-x-2 mr-6 hover:text-[#007fbd] transition-colors">
-                <ArrowLeft className="h-5 w-5" />
-                <span>Back to Scholarships</span>
-              </Link>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                  <Award className="h-5 w-5 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-[#00334e]">Scholarship Details</h1>
+    <div className="max-w-6xl mx-auto py-6 px-2 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <section className="rounded-2xl overflow-hidden mb-8 shadow-lg animate-fade-in">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                <Award className="h-7 w-7 text-white" aria-label="Scholarship" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-1 drop-shadow">{scholarship.title}</h1>
+                <p className="text-blue-100 text-sm">{scholarship.provider}</p>
               </div>
             </div>
-            
-            {/* User Menu */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {session?.user?.name || 'User'}
-                  </p>
-                  <p className="text-xs text-gray-500">Student</p>
+            {scholarship.tags && scholarship.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {scholarship.tags.map((tag, idx) => (
+                  <Badge key={idx} className="bg-white/20 text-white border border-white/30 text-xs font-medium">{tag}</Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Key Info Stats Bar */}
+          <div className="flex flex-col gap-2 md:gap-4 md:items-end">
+            <div className="flex flex-wrap gap-3">
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${deadlineInfo.color} border shadow-sm`}>
+                <deadlineInfo.icon className="h-4 w-4" aria-label="Status" />
+                <span>{deadlineInfo.status}</span>
+              </div>
+              <div className="flex items-center gap-1 text-green-100 font-semibold bg-green-700/20 px-3 py-1 rounded-full">
+                <DollarSign className="h-4 w-4" aria-label="Value" />
+                {formatCurrency(scholarship.value ?? 0, scholarship.currency ?? 'USD')}
+              </div>
+              {scholarship.linkedSchool && (
+                <div className="flex items-center gap-1 text-purple-100 font-semibold bg-purple-700/20 px-3 py-1 rounded-full">
+                  <MapPin className="h-4 w-4" aria-label="Institution" />
+                  {scholarship.linkedSchool}
                 </div>
+              )}
+              <div className="flex items-center gap-1 text-blue-100 font-medium bg-blue-700/20 px-3 py-1 rounded-full">
+                <Calendar className="h-4 w-4" aria-label="Deadline" />
+                {formatDeadline(scholarship.deadline)}
               </div>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Main Content */}
-          <div className="xl:col-span-3 space-y-6">
-            {/* Scholarship Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <Card className="border-0 shadow-lg overflow-hidden">
-                {/* Hero Section */}
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-8">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                          <Award className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-blue-100 text-sm font-medium">Scholarship Opportunity</p>
-                          <p className="text-white/80 text-sm">{scholarship.provider}</p>
-                        </div>
-                      </div>
-                      
-                      <h1 className="text-3xl font-bold mb-4 leading-tight">
-                        {scholarship.title}
-                      </h1>
-                      
-                      {/* Tags */}
-                      {scholarship.tags && scholarship.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {scholarship.tags.map((tag, index) => (
-                            <Badge key={index} className="bg-white/20 text-white border border-white/30">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="text-right">
-                      <div className={`${deadlineInfo.color} flex items-center space-x-1 text-sm font-semibold px-3 py-1 rounded-full border`}>
-                        <deadlineInfo.icon className="h-4 w-4" />
-                        <span>{deadlineInfo.status}</span>
-                      </div>
-                      <p className="text-blue-100 text-sm mt-2">
-                        {formatDeadline(scholarship.deadline)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-10">
+          {/* Description */}
+          {scholarship.scholarshipDetails && (
+            <section aria-labelledby="desc-header" className="animate-slide-in-up">
+              <Card className="border-0 shadow">
+                <CardHeader>
+                  <CardTitle id="desc-header" className="flex items-center gap-2 text-lg">
+                    <FileText className="h-5 w-5 text-gray-600" aria-label="Description" />
+                    Description
+                  </CardTitle>
+                </CardHeader>
                 <CardContent>
-                  {/* Key Stats Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {/* Value */}
-                    {scholarship.value && (
-                      <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <DollarSign className="h-5 w-5 text-green-600" />
-                          </div>
-                          <span className="font-semibold text-green-800">Award Value</span>
-                        </div>
-                        <p className="text-2xl font-bold text-green-700 mb-1">
-                          {formatCurrency(scholarship.value, scholarship.currency)}
-                        </p>
-                        <p className="text-sm text-green-600 font-medium">{scholarship.frequency}</p>
-                      </div>
-                    )}
+                  <p className="text-gray-700 leading-relaxed text-base">
+                    {scholarship.scholarshipDetails}
+                  </p>
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
-                    {/* Deadline */}
-                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border border-orange-200 shadow-sm">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                          <Calendar className="h-5 w-5 text-orange-600" />
-                        </div>
-                        <span className="font-semibold text-orange-800">Deadline</span>
-                      </div>
-                      <p className="text-lg font-semibold text-gray-900 mb-1">
-                        {formatDeadline(scholarship.deadline)}
-                      </p>
-                      <p className="text-sm text-orange-600">
-                        {deadlineInfo.status}
-                      </p>
-                    </div>
-
-                    {/* Coverage */}
-                    {scholarship.coverage && scholarship.coverage.length > 0 && (
-                      <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Award className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <span className="font-semibold text-blue-800">Coverage</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 mb-1">
-                          {scholarship.coverage.join(', ')}
-                        </p>
-                        <p className="text-sm text-blue-600">Comprehensive support</p>
-                      </div>
-                    )}
-
-                    {/* Location */}
-                    {scholarship.linkedSchool && (
-                      <div className="p-6 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200 shadow-sm">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <MapPin className="h-5 w-5 text-purple-600" />
-                          </div>
-                          <span className="font-semibold text-purple-800">Institution</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 mb-1">
-                          {scholarship.linkedSchool}
-                        </p>
-                        <p className="text-sm text-purple-600">Partner institution</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  {scholarship.scholarshipDetails && (
-                    <div className="mb-8">
-                      <h3 className="text-xl font-semibold mb-4 flex items-center space-x-2">
-                        <FileText className="h-5 w-5 text-gray-600" />
-                        <span>Description</span>
-                      </h3>
-                      <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                        <p className="text-gray-700 leading-relaxed text-base">
-                          {scholarship.scholarshipDetails}
-                        </p>
+          {/* Eligibility Requirements */}
+          <section aria-labelledby="eligibility-header" className="animate-slide-in-up">
+            <Card className="border-0 shadow">
+              <CardHeader>
+                <CardTitle id="eligibility-header" className="flex items-center gap-2 text-lg">
+                  <Target className="h-5 w-5 text-purple-600" aria-label="Eligibility" />
+                  Eligibility Requirements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-blue-600" /> Degree Levels
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {scholarship.eligibility.degreeLevels.map((level: string, idx: number) => (
+                          <Badge key={idx} className="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-1 text-xs font-medium">{level}</Badge>
+                        ))}
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                  {scholarship.eligibility?.fieldsOfStudy && scholarship.eligibility.fieldsOfStudy.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-green-600" /> Fields of Study
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {scholarship.eligibility.fieldsOfStudy.map((field: string, idx: number) => (
+                          <Badge key={idx} className="bg-green-100 text-green-800 border border-green-200 px-2 py-1 text-xs font-medium">{field}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {scholarship.eligibility?.nationalities && scholarship.eligibility.nationalities.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-orange-600" /> Eligible Nationalities
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {scholarship.eligibility.nationalities.map((nationality: string, idx: number) => (
+                          <Badge key={idx} className="bg-orange-100 text-orange-800 border border-orange-200 px-2 py-1 text-xs font-medium">{nationality}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {scholarship.eligibility?.minGPA && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-purple-600" /> Minimum GPA
+                      </h4>
+                      <p className="text-gray-700 font-medium">{scholarship.eligibility.minGPA}</p>
+                    </div>
+                  )}
+                  {scholarship.eligibility?.ageLimit && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-red-600" /> Age Limit
+                      </h4>
+                      <p className="text-gray-700 font-medium">{scholarship.eligibility.ageLimit}</p>
+                    </div>
+                  )}
+                  {scholarship.eligibility?.additionalCriteria && (
+                    <div className="md:col-span-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-gray-600" /> Additional Criteria
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{scholarship.eligibility.additionalCriteria}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
 
-            {/* Eligibility Requirements */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50">
-                  <CardTitle className="flex items-center space-x-2">
-                    <Target className="h-5 w-5 text-purple-600" />
-                    <span>Eligibility Requirements</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Degree Levels */}
-                    {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                          <GraduationCap className="h-4 w-4 text-blue-600" />
-                          <span>Degree Levels</span>
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {scholarship.eligibility.degreeLevels.map((level: string, index: number) => (
-                            <div key={index} className="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-1 rounded-full text-xs font-medium">
-                              {level}
-                            </div>
-                          ))}
-                        </div>
+          {/* Application Requirements */}
+          <section aria-labelledby="app-req-header" className="animate-slide-in-up">
+            <Card className="border-0 shadow">
+              <CardHeader>
+                <CardTitle id="app-req-header" className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 text-indigo-600" aria-label="Application Requirements" />
+                  Application Requirements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {scholarship.applicationRequirements?.documentsToSubmit && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" /> Required Documents
+                      </h4>
+                      <ul className="space-y-2">
+                        {scholarship.applicationRequirements.documentsToSubmit.map((doc: string, idx: number) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-gray-700">{doc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {scholarship.applicationRequirements?.requirementsDescription && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-600" /> Requirements Description
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{scholarship.applicationRequirements.requirementsDescription}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {scholarship.applicationRequirements?.essay && (
+                      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <CheckCircle className="h-4 w-4 text-yellow-600" />
+                        <span className="text-gray-700 font-medium">Essay Required</span>
                       </div>
                     )}
-
-                    {/* Fields of Study */}
-                    {scholarship.eligibility?.fieldsOfStudy && scholarship.eligibility.fieldsOfStudy.length > 0 && (
-                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                          <BookOpen className="h-4 w-4 text-green-600" />
-                          <span>Fields of Study</span>
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {scholarship.eligibility.fieldsOfStudy.map((field: string, index: number) => (
-                            <div key={index} className="bg-green-100 text-green-800 border border-green-200 px-2 py-1 rounded-full text-xs font-medium">
-                              {field}
-                            </div>
-                          ))}
-                        </div>
+                    {scholarship.applicationRequirements?.cv && (
+                      <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <CheckCircle className="h-4 w-4 text-purple-600" />
+                        <span className="text-gray-700 font-medium">CV/Resume Required</span>
                       </div>
                     )}
-
-                    {/* Nationalities */}
-                    {scholarship.eligibility?.nationalities && scholarship.eligibility.nationalities.length > 0 && (
-                      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                          <Globe className="h-4 w-4 text-orange-600" />
-                          <span>Eligible Nationalities</span>
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {scholarship.eligibility.nationalities.map((nationality: string, index: number) => (
-                            <div key={index} className="bg-orange-100 text-orange-800 border border-orange-200 px-2 py-1 rounded-full text-xs font-medium">
-                              {nationality}
-                            </div>
-                          ))}
-                        </div>
+                    {scholarship.applicationRequirements?.testScores && (
+                      <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <CheckCircle className="h-4 w-4 text-orange-600" />
+                        <span className="text-gray-700 font-medium">Test Scores Required</span>
                       </div>
                     )}
-
-                    {/* GPA Requirement */}
-                    {scholarship.eligibility?.minGPA && (
-                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <h4 className="font-semibold text-gray-900 mb-2 flex items-center space-x-2">
-                          <Target className="h-4 w-4 text-purple-600" />
-                          <span>Minimum GPA</span>
-                        </h4>
-                        <p className="text-gray-700 font-medium">{scholarship.eligibility.minGPA}</p>
-                      </div>
-                    )}
-
-                    {/* Age Limit */}
-                    {scholarship.eligibility?.ageLimit && (
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                        <h4 className="font-semibold text-gray-900 mb-2 flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-red-600" />
-                          <span>Age Limit</span>
-                        </h4>
-                        <p className="text-gray-700 font-medium">{scholarship.eligibility.ageLimit}</p>
-                      </div>
-                    )}
-
-                    {/* Additional Criteria */}
-                    {scholarship.eligibility?.additionalCriteria && (
-                      <div className="md:col-span-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-gray-600" />
-                          <span>Additional Criteria</span>
-                        </h4>
-                        <p className="text-gray-700 leading-relaxed">{scholarship.eligibility.additionalCriteria}</p>
+                    {scholarship.applicationRequirements?.recommendationLetters && (
+                      <div className="flex items-center gap-2 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                        <CheckCircle className="h-4 w-4 text-indigo-600" />
+                        <span className="text-gray-700 font-medium">
+                          {scholarship.applicationRequirements.recommendationLetters} Recommendation Letter(s)
+                        </span>
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
 
-            {/* Application Requirements */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50">
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-indigo-600" />
-                    <span>Application Requirements</span>
+          {/* Selection Criteria */}
+          {scholarship.selectionCriteria && scholarship.selectionCriteria.length > 0 && (
+            <section aria-labelledby="selection-header" className="animate-slide-in-up">
+              <Card className="border-0 shadow">
+                <CardHeader>
+                  <CardTitle id="selection-header" className="flex items-center gap-2 text-lg">
+                    <Sparkles className="h-5 w-5 text-blue-600" aria-label="Selection Criteria" />
+                    Selection Criteria
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-6">
-                    {/* Required Documents */}
-                    {scholarship.applicationRequirements?.documentsToSubmit && (
-                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <span>Required Documents</span>
-                        </h4>
-                        <ul className="space-y-2">
-                          {scholarship.applicationRequirements.documentsToSubmit.map((doc: string, index: number) => (
-                            <li key={index} className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span className="text-gray-700">{doc}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Requirements Description */}
-                    {scholarship.applicationRequirements?.requirementsDescription && (
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-blue-600" />
-                          <span>Requirements Description</span>
-                        </h4>
-                        <p className="text-gray-700 leading-relaxed">{scholarship.applicationRequirements.requirementsDescription}</p>
-                      </div>
-                    )}
-
-                    {/* Specific Requirements */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {scholarship.applicationRequirements?.essay && (
-                        <div className="flex items-center space-x-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                          <CheckCircle className="h-4 w-4 text-yellow-600" />
-                          <span className="text-gray-700 font-medium">Essay Required</span>
-                        </div>
-                      )}
-                      
-                      {scholarship.applicationRequirements?.cv && (
-                        <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <CheckCircle className="h-4 w-4 text-purple-600" />
-                          <span className="text-gray-700 font-medium">CV/Resume Required</span>
-                        </div>
-                      )}
-                      
-                      {scholarship.applicationRequirements?.testScores && (
-                        <div className="flex items-center space-x-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                          <CheckCircle className="h-4 w-4 text-orange-600" />
-                          <span className="text-gray-700 font-medium">Test Scores Required</span>
-                        </div>
-                      )}
-                      
-                      {scholarship.applicationRequirements?.recommendationLetters && (
-                        <div className="flex items-center space-x-2 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                          <CheckCircle className="h-4 w-4 text-indigo-600" />
-                          <span className="text-gray-700 font-medium">
-                            {scholarship.applicationRequirements.recommendationLetters} Recommendation Letter(s)
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {scholarship.selectionCriteria.map((criterion: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Sparkles className="h-4 w-4 text-blue-600 mt-0.5" aria-label="Criterion" />
+                        <span className="text-gray-700">{criterion}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            {/* Selection Criteria */}
-            {scholarship.selectionCriteria && scholarship.selectionCriteria.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-              >
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Target className="h-5 w-5" />
-                      <span>Selection Criteria</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {scholarship.selectionCriteria.map((criterion: string, index: number) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <Sparkles className="h-4 w-4 text-blue-600 mt-0.5" />
-                          <span className="text-gray-700">{criterion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Application Status - Sticky */}
-            <div className="sticky top-24">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-                    <CardTitle className="flex items-center space-x-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span>Application Status</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className={`p-4 rounded-lg border ${eligibilityCheck.eligible ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <div className="flex items-center space-x-2 mb-3">
-                          {eligibilityCheck.eligible ? (
-                            <CheckCircle className="h-6 w-6 text-green-600" />
-                          ) : (
-                            <AlertCircle className="h-6 w-6 text-red-600" />
-                          )}
-                          <span className={`font-semibold text-lg ${eligibilityCheck.eligible ? 'text-green-800' : 'text-red-800'}`}>
-                            {eligibilityCheck.eligible ? 'Eligible to Apply' : 'Not Eligible'}
-                          </span>
-                        </div>
-                        {eligibilityCheck.reasons.length > 0 && (
-                          <ul className="text-sm space-y-1">
-                            {eligibilityCheck.reasons.map((reason, index) => (
-                              <li key={index} className="text-red-700 flex items-start space-x-2">
-                                <span className="text-red-500 mt-1">•</span>
-                                <span>{reason}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-
-                      {/* Apply Button */}
-                      <Button 
-                        className="w-full h-12 text-lg font-semibold" 
-                        size="lg"
-                        disabled={!eligibilityCheck.eligible}
-                        onClick={() => window.open(scholarship.applicationLink, '_blank')}
-                      >
-                        <ExternalLink className="h-5 w-5 mr-2" />
-                        Apply Now
-                      </Button>
-
-                      {/* Application Link */}
-                      <div className="text-center pt-2">
-                        <a 
-                          href={scholarship.applicationLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 underline font-medium"
-                        >
-                          View Application Page
-                        </a>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
-
-            {/* Key Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <CardTitle className="flex items-center space-x-2">
-                    <Target className="h-5 w-5 text-blue-600" />
-                    <span>Key Information</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Number of Awards */}
-                    {scholarship.numberOfAwardsPerYear && (
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div>
-                          <p className="text-sm text-gray-600">Awards per Year</p>
-                          <p className="font-semibold text-gray-900">{scholarship.numberOfAwardsPerYear}</p>
-                        </div>
-                        <Award className="h-5 w-5 text-green-600" />
-                      </div>
-                    )}
-
-                    {/* Decision Timeline */}
-                    {scholarship.decisionTimeline && (
-                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div>
-                          <p className="text-sm text-gray-600">Decision Timeline</p>
-                          <p className="font-semibold text-gray-900">{scholarship.decisionTimeline}</p>
-                        </div>
-                        <Clock className="h-5 w-5 text-blue-600" />
-                      </div>
-                    )}
-
-                    {/* Renewal Conditions */}
-                    {scholarship.renewalConditions && (
-                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
-                        <div>
-                          <p className="text-sm text-gray-600">Renewal Conditions</p>
-                          <p className="font-semibold text-gray-900">{scholarship.renewalConditions}</p>
-                        </div>
-                        <RefreshCw className="h-5 w-5 text-purple-600" />
-                      </div>
-                    )}
-
-                    {/* Contact Information */}
-                    {scholarship.contactInfo && (
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm font-medium text-gray-700 mb-3">Contact Information</p>
-                        {scholarship.contactInfo.email && (
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Mail className="h-4 w-4 text-gray-500" />
-                            <a href={`mailto:${scholarship.contactInfo.email}`} className="text-sm text-blue-600 hover:text-blue-800">
-                              {scholarship.contactInfo.email}
-                            </a>
-                          </div>
-                        )}
-                        {scholarship.contactInfo.phone && (
-                          <div className="flex items-center space-x-2">
-                            <Phone className="h-4 w-4 text-gray-500" />
-                            <a href={`tel:${scholarship.contactInfo.phone}`} className="text-sm text-blue-600 hover:text-blue-800">
-                              {scholarship.contactInfo.phone}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Additional Links */}
-            {(scholarship.infoPage || scholarship.faqLink) && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-              >
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle>Additional Resources</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {scholarship.infoPage && (
-                        <Button variant="outline" className="w-full" asChild>
-                          <a href={scholarship.infoPage} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            More Information
-                          </a>
-                        </Button>
-                      )}
-                      
-                      {scholarship.faqLink && (
-                        <Button variant="outline" className="w-full" asChild>
-                          <a href={scholarship.faqLink} target="_blank" rel="noopener noreferrer">
-                            <FileText className="h-4 w-4 mr-2" />
-                            FAQ
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </div>
+            </section>
+          )}
         </div>
-      </main>
+
+        {/* Sidebar Summary */}
+        <aside className="lg:col-span-1 lg:sticky top-24 h-fit animate-fade-in">
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-blue-600" aria-label="Scholarship Summary" />
+                Scholarship Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}> 
+                {eligibilityCheck.eligible ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" aria-label="Eligible" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-600" aria-label="Not Eligible" />
+                )}
+                {eligibilityCheck.eligible ? 'Eligible to Apply' : 'Not Eligible'}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" aria-label="Apply Now">Apply Now</Button>
+                <Button variant="outline" className="w-full" aria-label="Save Scholarship">Save</Button>
+                <Button variant="ghost" className="w-full" aria-label="Share Scholarship">Share</Button>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Calendar className="h-4 w-4 text-orange-600" />
+                <span className="font-medium">Deadline:</span>
+                <span>{formatDeadline(scholarship.deadline)}</span>
+              </div>
+              {scholarship.value && (
+                <div className="flex items-center gap-2 text-green-700">
+                  <DollarSign className="h-4 w-4" />
+                  <span className="font-medium">Value:</span>
+                  <span>{formatCurrency(scholarship.value ?? 0, scholarship.currency ?? 'USD')}</span>
+                </div>
+              )}
+              {scholarship.frequency && (
+                <div className="flex items-center gap-2 text-blue-700">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="font-medium">Frequency:</span>
+                  <span>{scholarship.frequency}</span>
+                </div>
+              )}
+              {scholarship.linkedSchool && (
+                <div className="flex items-center gap-2 text-purple-700">
+                  <MapPin className="h-4 w-4" />
+                  <span className="font-medium">Institution:</span>
+                  <span>{scholarship.linkedSchool}</span>
+                </div>
+              )}
+              {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
+                <div>
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4 text-blue-600" />
+                    <span>Degree Levels:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {scholarship.eligibility.degreeLevels.map((level: string, idx: number) => (
+                      <Badge key={idx} className="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-1 text-xs font-medium">{level}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {scholarship.eligibility?.minGPA && (
+                <div className="flex items-center gap-2 text-yellow-700">
+                  <Target className="h-4 w-4 text-yellow-600" />
+                  <span className="font-medium">Min GPA:</span>
+                  <span>{scholarship.eligibility.minGPA}</span>
+                </div>
+              )}
+              {scholarship.applicationRequirements?.recommendationLetters && (
+                <div className="flex items-center gap-2 text-gray-700">
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  <span className="font-medium">Recommendations:</span>
+                  <span>{scholarship.applicationRequirements.recommendationLetters}</span>
+                </div>
+              )}
+              {scholarship.tags && scholarship.tags.length > 0 && (
+                <div>
+                  <div className="font-medium mb-1">Tags:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {scholarship.tags.map((tag, idx) => (
+                      <Badge key={idx} className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 text-xs font-medium">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
     </div>
   );
 }

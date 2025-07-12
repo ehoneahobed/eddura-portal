@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const degreeLevel = searchParams.get('degreeLevel') || '';
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const includeExpired = searchParams.get('includeExpired') === 'true';
     
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
@@ -59,12 +60,36 @@ export async function GET(request: NextRequest) {
       filter['eligibility.degreeLevels'] = { $in: [degreeLevel] };
     }
     
+    // Filter out expired scholarships by default
+    if (!includeExpired) {
+      const now = new Date();
+      filter.deadline = { $gte: now.toISOString() };
+    }
+    
     // Get total count for pagination
     const totalCount = await Scholarship.countDocuments(filter);
     
-    // Build sort object
-    const sortObject: any = {};
-    sortObject[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    // Build sort object with custom logic for expired scholarships
+    let sortObject: any = {};
+    
+    if (includeExpired && sortBy === 'deadline') {
+      // When including expired and sorting by deadline, use a compound sort
+      // to show active scholarships first, then expired ones
+      const now = new Date();
+      sortObject = {
+        $expr: {
+          $cond: {
+            if: { $gte: ['$deadline', now.toISOString()] },
+            then: 0,
+            else: 1
+          }
+        },
+        deadline: sortOrder === 'asc' ? 1 : -1
+      };
+    } else {
+      // Normal sorting
+      sortObject[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    }
     
     // Get paginated scholarships with sorting
     const scholarships = await Scholarship.find(filter)
