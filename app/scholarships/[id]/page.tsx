@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
@@ -31,7 +31,7 @@ import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { useScholarship } from '@/hooks/use-scholarships';
 
-export default function ScholarshipDetailPage() {
+function ScholarshipDetailContent() {
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
@@ -664,5 +664,21 @@ export default function ScholarshipDetailPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ScholarshipDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Scholarship</h2>
+          <p className="text-gray-600">Getting the details...</p>
+        </div>
+      </div>
+    }>
+      <ScholarshipDetailContent />
+    </Suspense>
   );
 }
