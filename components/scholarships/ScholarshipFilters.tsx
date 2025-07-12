@@ -31,6 +31,11 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
     });
   };
 
+  const handleFieldOfStudyChange = (value: string) => {
+    // For field of study, we need to search within the array
+    updateFilter('fieldOfStudy', value);
+  };
+
   const degreeLevels = [
     'High School',
     'Diploma',
@@ -101,7 +106,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
         <Label htmlFor="fieldOfStudy" className="text-sm font-medium text-gray-700">
           Field of Study
         </Label>
-        <Select value={filters.fieldOfStudy} onValueChange={(value) => updateFilter('fieldOfStudy', value)}>
+        <Select value={filters.fieldOfStudy} onValueChange={handleFieldOfStudyChange}>
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Select field" />
           </SelectTrigger>

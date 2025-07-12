@@ -9,12 +9,20 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50'); // Increased default limit
+    const limit = parseInt(searchParams.get('limit') || '15'); // Default to 15 per page
     const search = searchParams.get('search') || '';
     const provider = searchParams.get('provider') || '';
     const coverage = searchParams.get('coverage') || '';
     const frequency = searchParams.get('frequency') || '';
     const degreeLevel = searchParams.get('degreeLevel') || '';
+    const fieldOfStudy = searchParams.get('fieldOfStudy') || '';
+    const minValue = searchParams.get('minValue') || '';
+    const maxValue = searchParams.get('maxValue') || '';
+    const nationality = searchParams.get('nationality') || '';
+    const minGPA = searchParams.get('minGPA') || '';
+    const hasEssay = searchParams.get('hasEssay') === 'true';
+    const hasCV = searchParams.get('hasCV') === 'true';
+    const hasRecommendations = searchParams.get('hasRecommendations') === 'true';
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     const includeExpired = searchParams.get('includeExpired') === 'true';
@@ -30,13 +38,13 @@ export async function GET(request: NextRequest) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
         { provider: { $regex: search, $options: 'i' } },
-        { scholarshipDetails: { $regex: search, $options: 'i' } }, // Added scholarshipDetails
+        { scholarshipDetails: { $regex: search, $options: 'i' } },
         { 'eligibility.degreeLevels': { $regex: search, $options: 'i' } },
-        { 'eligibility.fieldsOfStudy': { $regex: search, $options: 'i' } }, // Added fieldsOfStudy
-        { linkedSchool: { $regex: search, $options: 'i' } }, // Added linkedSchool
-        { linkedProgram: { $regex: search, $options: 'i' } }, // Added linkedProgram
-        { coverage: { $regex: search, $options: 'i' } }, // Added coverage
-        { tags: { $regex: search, $options: 'i' } } // Added tags
+        { 'eligibility.fieldsOfStudy': { $regex: search, $options: 'i' } },
+        { linkedSchool: { $regex: search, $options: 'i' } },
+        { linkedProgram: { $regex: search, $options: 'i' } },
+        { coverage: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } }
       ];
     }
     
@@ -58,6 +66,45 @@ export async function GET(request: NextRequest) {
     // Degree level filter
     if (degreeLevel && degreeLevel !== 'all') {
       filter['eligibility.degreeLevels'] = { $in: [degreeLevel] };
+    }
+
+    // Field of study filter
+    if (fieldOfStudy && fieldOfStudy !== 'all') {
+      filter['eligibility.fieldsOfStudy'] = { $regex: fieldOfStudy, $options: 'i' };
+    }
+
+    // Value range filter
+    if (minValue || maxValue) {
+      filter.value = {};
+      if (minValue) {
+        filter.value.$gte = parseFloat(minValue);
+      }
+      if (maxValue) {
+        filter.value.$lte = parseFloat(maxValue);
+      }
+    }
+
+    // Nationality filter
+    if (nationality && nationality !== 'all') {
+      filter['eligibility.nationalities'] = { $in: [nationality] };
+    }
+
+    // Min GPA filter
+    if (minGPA) {
+      filter['eligibility.minGPA'] = { $gte: parseFloat(minGPA) };
+    }
+
+    // Application requirements filters
+    if (hasEssay) {
+      filter['applicationRequirements.essay'] = true;
+    }
+
+    if (hasCV) {
+      filter['applicationRequirements.cv'] = true;
+    }
+
+    if (hasRecommendations) {
+      filter['applicationRequirements.recommendationLetters'] = { $gt: 0 };
     }
     
     // Filter out expired scholarships by default
