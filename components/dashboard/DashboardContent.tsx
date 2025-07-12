@@ -17,12 +17,14 @@ import {
   MapPin,
   Clock,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 import StudentLayout from '@/components/layout/StudentLayout';
