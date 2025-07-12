@@ -291,13 +291,15 @@ export default function DashboardContent() {
                       </Button>
                     </Link>
                     
-                    <Button className="h-20 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
-                      <div className="text-left">
-                        <GraduationCap className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">Browse Programs</p>
-                        <p className="text-sm opacity-90">Explore universities</p>
-                      </div>
-                    </Button>
+                    <Link href="/scholarships">
+                      <Button className="h-20 w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
+                        <div className="text-left">
+                          <Award className="w-6 h-6 mb-2" />
+                          <p className="font-semibold">Browse Scholarships</p>
+                          <p className="text-sm opacity-90">Find funding opportunities</p>
+                        </div>
+                      </Button>
+                    </Link>
                     
                     <Button className="h-20 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
                       <div className="text-left">
@@ -477,6 +479,12 @@ export default function DashboardContent() {
                       <Button variant="ghost" className="w-full justify-start">
                         <Brain className="w-4 h-4 mr-2" />
                         {userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}
+                      </Button>
+                    </Link>
+                    <Link href="/scholarships" className="block">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Award className="w-4 h-4 mr-2" />
+                        Browse Scholarships
                       </Button>
                     </Link>
                     <Button variant="ghost" className="w-full justify-start">

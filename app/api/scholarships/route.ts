@@ -12,8 +12,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50'); // Increased default limit
     const search = searchParams.get('search') || '';
     const provider = searchParams.get('provider') || '';
+    const coverage = searchParams.get('coverage') || '';
     const frequency = searchParams.get('frequency') || '';
     const degreeLevel = searchParams.get('degreeLevel') || '';
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
     
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
@@ -41,6 +44,11 @@ export async function GET(request: NextRequest) {
       filter.provider = { $regex: provider, $options: 'i' };
     }
     
+    // Coverage filter
+    if (coverage && coverage !== 'all') {
+      filter.coverage = { $in: [coverage] };
+    }
+    
     // Frequency filter
     if (frequency && frequency !== 'all') {
       filter.frequency = frequency;
@@ -54,21 +62,15 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const totalCount = await Scholarship.countDocuments(filter);
     
-    // Get paginated scholarships with sorting by relevance when searching
-    let scholarships;
-    if (search) {
-      // When searching, sort by relevance (MongoDB text search score) then by title
-      scholarships = await Scholarship.find(filter)
-        .sort({ title: 1 }) // Sort by title alphabetically when searching
-        .skip(skip)
-        .limit(limit);
-    } else {
-      // When not searching, sort by creation date (newest first)
-      scholarships = await Scholarship.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-    }
+    // Build sort object
+    const sortObject: any = {};
+    sortObject[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    
+    // Get paginated scholarships with sorting
+    const scholarships = await Scholarship.find(filter)
+      .sort(sortObject)
+      .skip(skip)
+      .limit(limit);
     
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / limit);
