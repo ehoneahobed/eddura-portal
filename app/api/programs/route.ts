@@ -11,9 +11,14 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
     const search = searchParams.get('search') || '';
-    const school = searchParams.get('school') || '';
+    const schoolId = searchParams.get('schoolId') || '';
     const level = searchParams.get('level') || '';
     const degreeType = searchParams.get('degreeType') || '';
+    const fieldOfStudy = searchParams.get('fieldOfStudy') || '';
+    const mode = searchParams.get('mode') || '';
+    const country = searchParams.get('country') || '';
+    const sortBy = searchParams.get('sortBy') || 'name';
+    const sortOrder = searchParams.get('sortOrder') || 'asc';
     
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
@@ -21,18 +26,19 @@ export async function GET(request: NextRequest) {
     // Build filter object
     const filter: any = {};
     
-    // Search filter
+    // Search filter - search across program name, field of study, and school name
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
         { fieldOfStudy: { $regex: search, $options: 'i' } },
-        { degreeType: { $regex: search, $options: 'i' } }
+        { degreeType: { $regex: search, $options: 'i' } },
+        { subfield: { $regex: search, $options: 'i' } }
       ];
     }
     
     // School filter
-    if (school && school !== 'all') {
-      filter.schoolId = school;
+    if (schoolId && schoolId !== 'all') {
+      filter.schoolId = schoolId;
     }
     
     // Level filter
@@ -45,6 +51,34 @@ export async function GET(request: NextRequest) {
       filter.degreeType = degreeType;
     }
     
+    // Field of study filter
+    if (fieldOfStudy && fieldOfStudy !== 'all') {
+      filter.fieldOfStudy = fieldOfStudy;
+    }
+    
+    // Mode filter
+    if (mode && mode !== 'all') {
+      filter.mode = mode;
+    }
+    
+    // Build sort object
+    const sort: any = {};
+    if (sortBy === 'name') {
+      sort.name = sortOrder === 'desc' ? -1 : 1;
+    } else if (sortBy === 'schoolName') {
+      sort['schoolId.name'] = sortOrder === 'desc' ? -1 : 1;
+    } else if (sortBy === 'degreeType') {
+      sort.degreeType = sortOrder === 'desc' ? -1 : 1;
+    } else if (sortBy === 'fieldOfStudy') {
+      sort.fieldOfStudy = sortOrder === 'desc' ? -1 : 1;
+    } else if (sortBy === 'createdAt') {
+      sort.createdAt = sortOrder === 'desc' ? -1 : 1;
+    } else if (sortBy === 'updatedAt') {
+      sort.updatedAt = sortOrder === 'desc' ? -1 : 1;
+    } else {
+      sort.name = 1; // Default sort by name ascending
+    }
+    
     // Get total count for pagination
     const totalCount = await Program.countDocuments(filter);
     
@@ -53,7 +87,7 @@ export async function GET(request: NextRequest) {
     try {
       programs = await Program.find(filter)
         .populate('schoolId', 'name country city')
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip(skip)
         .limit(limit);
     } catch (err) {
@@ -69,11 +103,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ programs: [], totalCount: 0, currentPage: page, totalPages: 0 }, { status: 200 });
     }
     
+    // Apply country filter after population (since country is in the school document)
+    let filteredPrograms = programs;
+    if (country && country !== 'all') {
+      filteredPrograms = programs.filter((program: any) => 
+        program.schoolId && 
+        typeof program.schoolId === 'object' && 
+        program.schoolId.country === country
+      );
+    }
+    
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / limit);
     
     return NextResponse.json({
-      programs,
+      programs: filteredPrograms,
       pagination: {
         currentPage: page,
         totalPages,

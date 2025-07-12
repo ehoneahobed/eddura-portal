@@ -444,6 +444,12 @@ export default function DashboardContent() {
                         {userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}
                       </Button>
                     </Link>
+                    <Link href="/scholarships" className="block">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Award className="w-4 h-4 mr-2" />
+                        Browse Scholarships
+                      </Button>
+                    </Link>
                     <Button variant="ghost" className="w-full justify-start">
                       <Settings className="w-4 h-4 mr-2" />
                       Settings

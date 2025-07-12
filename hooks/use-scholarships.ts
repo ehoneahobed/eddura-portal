@@ -38,6 +38,7 @@ export interface ScholarshipsQueryParams {
   countryResidency?: string[];
   sortBy?: 'title' | 'provider' | 'value' | 'deadline' | 'createdAt' | 'updatedAt';
   sortOrder?: 'asc' | 'desc';
+  includeExpired?: boolean;
 }
 
 // Build query string from parameters
@@ -55,6 +56,7 @@ const buildQueryString = (params: ScholarshipsQueryParams): string => {
   if (params.maxValue) searchParams.append('maxValue', params.maxValue);
   if (params.sortBy) searchParams.append('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.append('sortOrder', params.sortOrder);
+  if (params.includeExpired) searchParams.append('includeExpired', 'true');
   
   // Handle arrays
   if (params.eligibleNationalities && params.eligibleNationalities.length > 0) {
@@ -87,7 +89,8 @@ export function useScholarships(params: ScholarshipsQueryParams = {}) {
     eligibleNationalities = [],
     countryResidency = [],
     sortBy = 'title',
-    sortOrder = 'asc'
+    sortOrder = 'asc',
+    includeExpired = false
   } = params;
 
   const queryString = buildQueryString({
@@ -103,7 +106,8 @@ export function useScholarships(params: ScholarshipsQueryParams = {}) {
     eligibleNationalities,
     countryResidency,
     sortBy,
-    sortOrder
+    sortOrder,
+    includeExpired
   });
 
   const { data, error, isLoading, mutate } = useSWR<ScholarshipsData>(
