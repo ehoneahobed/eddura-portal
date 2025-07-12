@@ -63,7 +63,11 @@ export default function ScholarshipsPage() {
     frequency: '',
     minValue: '',
     maxValue: '',
-    nationality: ''
+    nationality: '',
+    minGPA: '',
+    hasEssay: false,
+    hasCV: false,
+    hasRecommendations: false
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -157,7 +161,11 @@ export default function ScholarshipsPage() {
       frequency: '',
       minValue: '',
       maxValue: '',
-      nationality: ''
+      nationality: '',
+      minGPA: '',
+      hasEssay: false,
+      hasCV: false,
+      hasRecommendations: false
     });
     setSearchTerm('');
   };
