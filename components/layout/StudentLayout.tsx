@@ -76,8 +76,8 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="flex h-screen">
-        {/* Sidebar */}
-        {showSidebar && (
+        {/* Sidebar - Only show when user is authenticated */}
+        {showSidebar && session?.user && (
           <>
             {/* Desktop Sidebar */}
             <div className="hidden lg:block">
@@ -103,7 +103,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
             <div className="flex items-center justify-between px-4 py-4">
               {/* Left side */}
               <div className="flex items-center space-x-4">
-                {showSidebar && (
+                {showSidebar && session?.user && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -140,32 +140,37 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
 
               {/* Right side */}
               <div className="flex items-center space-x-4">
-                {/* Notifications */}
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-                </Button>
+                {/* Only show user-specific elements when authenticated */}
+                {session?.user && (
+                  <>
+                    {/* Notifications */}
+                    <Button variant="ghost" size="sm" className="relative">
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+                    </Button>
 
-                {/* User Menu */}
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="bg-[#007fbd] text-white text-sm">
-                      {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="hidden md:block">
-                    <p className="text-sm font-medium text-gray-900">
-                      {userProfile?.firstName} {userProfile?.lastName}
-                    </p>
-                    <p className="text-xs text-gray-500">{userProfile?.email}</p>
-                  </div>
-                  
-                  <Button variant="ghost" size="sm" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </div>
+                    {/* User Menu */}
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-[#007fbd] text-white text-sm">
+                          {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="hidden md:block">
+                        <p className="text-sm font-medium text-gray-900">
+                          {userProfile?.firstName} {userProfile?.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500">{userProfile?.email}</p>
+                      </div>
+                      
+                      <Button variant="ghost" size="sm" onClick={handleLogout}>
+                        <LogOut className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </header>
