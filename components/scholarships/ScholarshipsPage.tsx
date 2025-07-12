@@ -206,7 +206,7 @@ export default function ScholarshipsPage() {
   }
 
   return (
-    <StudentLayout>
+    <div>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -387,6 +387,6 @@ export default function ScholarshipsPage() {
           </motion.div>
         )}
       </div>
-    </StudentLayout>
+    </div>
   );
 }
