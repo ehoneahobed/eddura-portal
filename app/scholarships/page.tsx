@@ -51,7 +51,7 @@ function ScholarshipsContent() {
     frequency: selectedFrequency,
     degreeLevel: selectedDegreeLevel,
     sortBy: 'deadline',
-    sortOrder: 'asc'
+    sortOrder: 'asc' // Sort by deadline ascending to show earliest deadlines first
   });
 
   // Update URL when filters change
@@ -121,7 +121,7 @@ function ScholarshipsContent() {
     }).format(value);
   };
 
-  // Format deadline
+  // Format deadline with days left
   const formatDeadline = (deadline: string) => {
     const date = new Date(deadline);
     const now = new Date();
@@ -129,19 +129,21 @@ function ScholarshipsContent() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) {
-      return 'Expired';
+      return { text: 'Expired', days: diffDays, urgent: false };
     } else if (diffDays === 0) {
-      return 'Today';
+      return { text: 'Today', days: diffDays, urgent: true };
     } else if (diffDays === 1) {
-      return 'Tomorrow';
+      return { text: 'Tomorrow', days: diffDays, urgent: true };
     } else if (diffDays <= 7) {
-      return `${diffDays} days left`;
+      return { text: `${diffDays} days left`, days: diffDays, urgent: true };
+    } else if (diffDays <= 30) {
+      return { text: `${diffDays} days left`, days: diffDays, urgent: false };
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
-      });
+      return { 
+        text: `${diffDays} days left`, 
+        days: diffDays, 
+        urgent: false 
+      };
     }
   };
 
@@ -152,10 +154,10 @@ function ScholarshipsContent() {
     const diffTime = date.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'bg-red-100 text-red-800';
-    if (diffDays <= 7) return 'bg-orange-100 text-orange-800';
-    if (diffDays <= 30) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
+    if (diffDays < 0) return 'bg-red-100 text-red-800 border-red-200';
+    if (diffDays <= 7) return 'bg-orange-100 text-orange-800 border-orange-200';
+    if (diffDays <= 30) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    return 'bg-green-100 text-green-800 border-green-200';
   };
 
   if (status === 'loading') {
@@ -191,6 +193,18 @@ function ScholarshipsContent() {
                   <Award className="h-5 w-5 text-white" />
                 </div>
                 <h1 className="text-2xl font-bold text-[#00334e]">Scholarships</h1>
+              </div>
+            </div>
+            
+            {/* User Menu */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">
+                    {session?.user?.name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">Student</p>
+                </div>
               </div>
             </div>
           </div>
@@ -385,97 +399,142 @@ function ScholarshipsContent() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {scholarships.map((scholarship) => (
-                  <motion.div
-                    key={scholarship.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Link href={`/scholarships/${scholarship.id}`}>
-                      <Card className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer border-0 shadow-md">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg line-clamp-2 mb-2">
-                                {scholarship.title}
-                              </CardTitle>
-                              <CardDescription className="line-clamp-1">
-                                {scholarship.provider}
-                              </CardDescription>
+                {scholarships.map((scholarship) => {
+                  const deadlineInfo = formatDeadline(scholarship.deadline);
+                  return (
+                    <motion.div
+                      key={scholarship.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full"
+                    >
+                      <Link href={`/scholarships/${scholarship.id}`}>
+                        <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-lg group hover:scale-[1.02]">
+                          {/* Header with deadline badge */}
+                          <div className="relative">
+                            <div className="absolute top-4 right-4 z-10">
+                              <Badge className={`${getDeadlineColor(scholarship.deadline)} font-semibold text-xs px-3 py-1 border`}>
+                                {deadlineInfo.text}
+                              </Badge>
                             </div>
-                            <Badge className={getDeadlineColor(scholarship.deadline)}>
-                              {formatDeadline(scholarship.deadline)}
-                            </Badge>
+                            
+                            {/* Provider logo/icon area */}
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-t-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-12 h-12 bg-[#007fbd] rounded-lg flex items-center justify-center">
+                                  <Award className="h-6 w-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-[#007fbd] transition-colors">
+                                    {scholarship.title}
+                                  </h3>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {scholarship.provider}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </CardHeader>
-                        
-                        <CardContent className="pt-0">
-                          <div className="space-y-3">
-                            {/* Value */}
-                            {scholarship.value && (
-                              <div className="flex items-center space-x-2">
-                                <DollarSign className="h-4 w-4 text-green-600" />
-                                <span className="text-sm font-medium text-gray-900">
-                                  {formatCurrency(scholarship.value, scholarship.currency)}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  ({scholarship.frequency})
-                                </span>
-                              </div>
-                            )}
+                          
+                          {/* Content */}
+                          <CardContent className="p-6 pt-4">
+                            <div className="space-y-4">
+                              {/* Value - Prominent display */}
+                              {scholarship.value && (
+                                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      <DollarSign className="h-5 w-5 text-green-600" />
+                                      <span className="text-sm text-gray-600">Award Value</span>
+                                    </div>
+                                    <span className="text-lg font-bold text-green-700">
+                                      {formatCurrency(scholarship.value, scholarship.currency)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {scholarship.frequency}
+                                  </p>
+                                </div>
+                              )}
 
-                            {/* Coverage */}
-                            {scholarship.coverage && scholarship.coverage.length > 0 && (
-                              <div className="flex items-center space-x-2">
-                                <Award className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm text-gray-700">
-                                  {scholarship.coverage.join(', ')}
-                                </span>
-                              </div>
-                            )}
+                              {/* Key details grid */}
+                              <div className="grid grid-cols-1 gap-3">
+                                {/* Coverage */}
+                                {scholarship.coverage && scholarship.coverage.length > 0 && (
+                                  <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
+                                    <Award className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      <p className="text-xs text-gray-500">Coverage</p>
+                                      <p className="text-sm font-medium text-gray-900">
+                                        {scholarship.coverage.join(', ')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
 
-                            {/* Degree Levels */}
-                            {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
-                              <div className="flex items-center space-x-2">
-                                <GraduationCap className="h-4 w-4 text-purple-600" />
-                                <span className="text-sm text-gray-700">
-                                  {scholarship.eligibility.degreeLevels.join(', ')}
-                                </span>
-                              </div>
-                            )}
+                                {/* Degree Levels */}
+                                {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
+                                  <div className="flex items-center space-x-3 p-2 bg-purple-50 rounded-lg">
+                                    <GraduationCap className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      <p className="text-xs text-gray-500">Degree Level</p>
+                                      <p className="text-sm font-medium text-gray-900">
+                                        {scholarship.eligibility.degreeLevels.join(', ')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
 
-                            {/* Location */}
-                            {scholarship.linkedSchool && (
-                              <div className="flex items-center space-x-2">
-                                <MapPin className="h-4 w-4 text-red-600" />
-                                <span className="text-sm text-gray-700 line-clamp-1">
-                                  {scholarship.linkedSchool}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Tags */}
-                            {scholarship.tags && scholarship.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-2">
-                                {scholarship.tags.slice(0, 3).map((tag, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                                {scholarship.tags.length > 3 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{scholarship.tags.length - 3} more
-                                  </Badge>
+                                {/* Location */}
+                                {scholarship.linkedSchool && (
+                                  <div className="flex items-center space-x-3 p-2 bg-orange-50 rounded-lg">
+                                    <MapPin className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      <p className="text-xs text-gray-500">Institution</p>
+                                      <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                                        {scholarship.linkedSchool}
+                                      </p>
+                                    </div>
+                                  </div>
                                 )}
                               </div>
-                            )}
+
+                              {/* Tags */}
+                              {scholarship.tags && scholarship.tags.length > 0 && (
+                                <div className="pt-2">
+                                  <div className="flex flex-wrap gap-1">
+                                    {scholarship.tags.slice(0, 3).map((tag, index) => (
+                                      <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                    {scholarship.tags.length > 3 && (
+                                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                                        +{scholarship.tags.length - 3} more
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                          
+                          {/* Footer with apply button */}
+                          <div className="px-6 pb-6">
+                            <Button 
+                              className="w-full bg-[#007fbd] hover:bg-[#005a8b] text-white"
+                              size="sm"
+                            >
+                              View Details
+                              <ArrowRight className="h-4 w-4 ml-2" />
+                            </Button>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  </motion.div>
-                ))}
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </>
