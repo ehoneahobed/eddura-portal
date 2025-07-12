@@ -428,19 +428,19 @@ export default function DashboardContent() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Link href="/dashboard/quiz/results" className="block">
+                    <Link href="/quiz/results" className="block">
                       <Button variant="ghost" className="w-full justify-start">
                         <Target className="w-4 h-4 mr-2" />
                         View Results
                       </Button>
                     </Link>
-                    <Link href="/dashboard/quiz" className="block">
+                    <Link href="/quiz" className="block">
                       <Button variant="ghost" className="w-full justify-start">
                         <Brain className="w-4 h-4 mr-2" />
                         {userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}
                       </Button>
                     </Link>
-                    <Link href="/dashboard/scholarships" className="block">
+                    <Link href="/scholarships" className="block">
                       <Button variant="ghost" className="w-full justify-start">
                         <Award className="w-4 h-4 mr-2" />
                         Browse Scholarships
