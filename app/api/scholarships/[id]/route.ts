@@ -1,42 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Scholarship from '@/models/Scholarship';
-import mongoose from 'mongoose';
-
-/**
- * Transform MongoDB document to include id field
- */
-function transformScholarship(scholarship: any) {
-  if (!scholarship) return scholarship;
-  
-  return {
-    ...scholarship,
-    id: scholarship._id?.toString()
-  };
-}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params;
     await connectDB();
-
-    const scholarship = await Scholarship.findById(resolvedParams.id).lean();
-
+    
+    const resolvedParams = await params;
+    const scholarship = await Scholarship.findById(resolvedParams.id);
+    
     if (!scholarship) {
       return NextResponse.json(
-        { message: "Scholarship not found" },
+        { error: 'Scholarship not found' },
         { status: 404 }
       );
     }
-
-    return NextResponse.json(transformScholarship(scholarship));
+    
+    return NextResponse.json(scholarship);
   } catch (error) {
     console.error('Error fetching scholarship:', error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: 'Failed to fetch scholarship' },
       { status: 500 }
     );
   }
@@ -47,31 +34,36 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params;
     await connectDB();
-
     const body = await request.json();
-    const updatedScholarship = await Scholarship.findByIdAndUpdate(
+    
+    const resolvedParams = await params;
+    const scholarship = await Scholarship.findByIdAndUpdate(
       resolvedParams.id,
       body,
       { new: true, runValidators: true }
     );
-
-    if (!updatedScholarship) {
+    
+    if (!scholarship) {
       return NextResponse.json(
-        { message: "Scholarship not found" },
+        { error: 'Scholarship not found' },
         { status: 404 }
       );
     }
-
-    return NextResponse.json({
-      message: "Scholarship updated successfully",
-      scholarship: updatedScholarship
-    });
+    
+    return NextResponse.json(scholarship);
   } catch (error) {
     console.error('Error updating scholarship:', error);
+    
+    if (error instanceof Error && error.name === 'ValidationError') {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.message },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: 'Failed to update scholarship' },
       { status: 500 }
     );
   }
@@ -82,25 +74,23 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params;
     await connectDB();
-
-    const deletedScholarship = await Scholarship.findByIdAndDelete(resolvedParams.id);
-
-    if (!deletedScholarship) {
+    
+    const resolvedParams = await params;
+    const scholarship = await Scholarship.findByIdAndDelete(resolvedParams.id);
+    
+    if (!scholarship) {
       return NextResponse.json(
-        { message: "Scholarship not found" },
+        { error: 'Scholarship not found' },
         { status: 404 }
       );
     }
-
-    return NextResponse.json({
-      message: "Scholarship deleted successfully"
-    });
+    
+    return NextResponse.json({ message: 'Scholarship deleted successfully' });
   } catch (error) {
     console.error('Error deleting scholarship:', error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: 'Failed to delete scholarship' },
       { status: 500 }
     );
   }

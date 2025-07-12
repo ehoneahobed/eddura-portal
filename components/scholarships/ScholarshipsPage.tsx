@@ -70,89 +70,54 @@ export default function ScholarshipsPage() {
     hasRecommendations: false
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     fetchScholarships();
   }, []);
 
   useEffect(() => {
-    filterScholarships();
-  }, [scholarships, searchTerm, selectedFilters]);
+    // Reset to page 1 when filters change
+    setCurrentPage(1);
+    fetchScholarships(1, false);
+  }, [searchTerm, selectedFilters.degreeLevel, selectedFilters.frequency]);
 
-  const fetchScholarships = async () => {
+  const fetchScholarships = async (page = 1, append = false) => {
     try {
-      const response = await fetch('/api/scholarships?limit=50');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '12'
+      });
+
+      // Add search and filter parameters
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedFilters.degreeLevel !== 'all') params.append('degreeLevel', selectedFilters.degreeLevel);
+      if (selectedFilters.frequency !== 'all') params.append('frequency', selectedFilters.frequency);
+
+      const response = await fetch(`/api/scholarships?${params}`);
       if (response.ok) {
         const data = await response.json();
-        setScholarships(data.scholarships || []);
+        
+        if (append) {
+          setScholarships((prev: Scholarship[]) => [...prev, ...data.scholarships]);
+        } else {
+          setScholarships(data.scholarships || []);
+        }
+        
+        setHasMore(data.pagination?.hasNextPage || false);
+        setCurrentPage(page);
       }
     } catch (error) {
       console.error('Error fetching scholarships:', error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
-  const filterScholarships = () => {
-    let filtered = [...scholarships];
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(scholarship =>
-        scholarship.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scholarship.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scholarship.scholarshipDetails.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scholarship.eligibility.fieldsOfStudy?.some(field => 
-          field.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-
-    // Degree level filter
-    if (selectedFilters.degreeLevel && selectedFilters.degreeLevel !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.eligibility.degreeLevels?.includes(selectedFilters.degreeLevel)
-      );
-    }
-
-    // Field of study filter
-    if (selectedFilters.fieldOfStudy && selectedFilters.fieldOfStudy !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.eligibility.fieldsOfStudy?.some(field =>
-          field.toLowerCase().includes(selectedFilters.fieldOfStudy.toLowerCase())
-        )
-      );
-    }
-
-    // Frequency filter
-    if (selectedFilters.frequency && selectedFilters.frequency !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.frequency === selectedFilters.frequency
-      );
-    }
-
-    // Value range filter
-    if (selectedFilters.minValue || selectedFilters.maxValue) {
-      filtered = filtered.filter(scholarship => {
-        if (typeof scholarship.value === 'number') {
-          const value = scholarship.value;
-          const min = selectedFilters.minValue ? parseFloat(selectedFilters.minValue) : 0;
-          const max = selectedFilters.maxValue ? parseFloat(selectedFilters.maxValue) : Infinity;
-          return value >= min && value <= max;
-        }
-        return true;
-      });
-    }
-
-    // Nationality filter
-    if (selectedFilters.nationality && selectedFilters.nationality !== 'all') {
-      filtered = filtered.filter(scholarship =>
-        scholarship.eligibility.nationalities?.includes(selectedFilters.nationality)
-      );
-    }
-
-    setFilteredScholarships(filtered);
-  };
 
   const clearFilters = () => {
     setSelectedFilters({
@@ -168,6 +133,8 @@ export default function ScholarshipsPage() {
       hasRecommendations: false
     });
     setSearchTerm('');
+    setCurrentPage(1);
+    fetchScholarships(1, false);
   };
 
   const formatValue = (value: number | string | undefined, currency?: string) => {
@@ -248,7 +215,7 @@ export default function ScholarshipsPage() {
 
                 {/* Quick Filters */}
                 <div className="flex gap-2">
-                  <Select value={selectedFilters.degreeLevel} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, degreeLevel: value }))}>
+                  <Select value={selectedFilters.degreeLevel} onValueChange={(value: string) => setSelectedFilters((prev: any) => ({ ...prev, degreeLevel: value }))}>
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Degree Level" />
                     </SelectTrigger>
@@ -260,7 +227,7 @@ export default function ScholarshipsPage() {
                     </SelectContent>
                   </Select>
 
-                  <Select value={selectedFilters.frequency} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, frequency: value }))}>
+                  <Select value={selectedFilters.frequency} onValueChange={(value: string) => setSelectedFilters((prev: any) => ({ ...prev, frequency: value }))}>
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
@@ -316,7 +283,7 @@ export default function ScholarshipsPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-gray-600">
-              Showing <span className="font-semibold">{filteredScholarships.length}</span> scholarships
+              Showing <span className="font-semibold">{scholarships.length}</span> scholarships
               {searchTerm && ` for "${searchTerm}"`}
             </p>
             
@@ -338,14 +305,14 @@ export default function ScholarshipsPage() {
         </motion.div>
 
         {/* Scholarships Grid */}
-        {filteredScholarships.length > 0 ? (
+        {scholarships.length > 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {filteredScholarships.map((scholarship, index) => (
+            {scholarships.map((scholarship: Scholarship, index: number) => (
               <motion.div
                 key={scholarship._id}
                 initial={{ opacity: 0, y: 20 }}
@@ -374,14 +341,22 @@ export default function ScholarshipsPage() {
         )}
 
         {/* Load More */}
-        {filteredScholarships.length >= 50 && (
+        {hasMore && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center mt-8"
           >
-            <Button variant="outline" size="lg">
-              Load More Scholarships
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => {
+                setIsLoadingMore(true);
+                fetchScholarships(currentPage + 1, true);
+              }}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load More Scholarships'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
