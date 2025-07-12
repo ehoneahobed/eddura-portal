@@ -30,31 +30,31 @@ const navigation = [
   },
   { 
     name: 'Scholarships', 
-    href: '/scholarships', 
+    href: '/dashboard/scholarships', 
     icon: Award,
     description: 'Find and apply for scholarships'
   },
   { 
     name: 'Schools & Programs', 
-    href: '/programs', 
+    href: '/dashboard/programs', 
     icon: GraduationCap,
     description: 'Explore universities and programs'
   },
   { 
     name: 'Applications', 
-    href: '/applications', 
+    href: '/dashboard/applications', 
     icon: FileText,
     description: 'Track your applications'
   },
   { 
     name: 'Documents', 
-    href: '/documents', 
+    href: '/dashboard/documents', 
     icon: Folder,
     description: 'Manage your documents'
   },
   { 
     name: 'Settings', 
-    href: '/settings', 
+    href: '/dashboard/settings', 
     icon: Settings,
     description: 'Account and preferences'
   }
@@ -162,13 +162,13 @@ export default function StudentSidebar({ className }: StudentSidebarProps) {
             Quick Actions
           </h3>
           <div className="space-y-2">
-            <Link href="/quiz">
+            <Link href="/dashboard/quiz">
               <Button variant="outline" size="sm" className="w-full justify-start">
                 <Target className="h-4 w-4 mr-2" />
                 Take Quiz
               </Button>
             </Link>
-            <Link href="/quiz/results">
+            <Link href="/dashboard/quiz/results">
               <Button variant="outline" size="sm" className="w-full justify-start">
                 <BookOpen className="h-4 w-4 mr-2" />
                 View Results

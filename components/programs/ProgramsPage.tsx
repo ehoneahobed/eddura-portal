@@ -23,6 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import StudentLayout from '@/components/layout/StudentLayout';
 import ProgramCard from './ProgramCard';
 
 interface Program {
@@ -172,23 +173,26 @@ export default function ProgramsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
-            <GraduationCap className="w-8 h-8 text-white animate-pulse" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Programs</h2>
-          <p className="text-gray-600">Finding the best academic opportunities...</p>
-        </motion.div>
-      </div>
+      <StudentLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
+              <GraduationCap className="w-8 h-8 text-white animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Programs</h2>
+            <p className="text-gray-600">Finding the best academic opportunities...</p>
+          </motion.div>
+        </div>
+      </StudentLayout>
     );
   }
 
   return (
+    <StudentLayout>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -426,5 +430,6 @@ export default function ProgramsPage() {
           </motion.div>
         )}
       </div>
+    </StudentLayout>
   );
 }
