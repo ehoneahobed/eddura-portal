@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
-interface UserProfile {
+export interface EditableUserProfile {
   id: string;
   firstName: string;
   lastName: string;
@@ -23,8 +23,8 @@ interface UserProfile {
 interface ProfileEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  profile: UserProfile;
-  onUpdate: (updatedProfile: UserProfile) => void;
+  profile: EditableUserProfile;
+  onUpdate: (updatedProfile: EditableUserProfile) => void;
 }
 
 export default function ProfileEditModal({ isOpen, onClose, profile, onUpdate }: ProfileEditModalProps) {

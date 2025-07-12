@@ -27,7 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import ProfileEditModal from './ProfileEditModal';
+import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 
 interface UserProfile {
   id: string;
@@ -116,6 +116,19 @@ export default function DashboardContent() {
       </div>
     );
   }
+
+  const editableProfile: EditableUserProfile | null = userProfile
+    ? {
+        id: userProfile.id,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+        email: userProfile.email,
+        dateOfBirth: userProfile.dateOfBirth,
+        phoneNumber: userProfile.phoneNumber,
+        country: userProfile.country,
+        city: userProfile.city,
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -483,12 +496,14 @@ export default function DashboardContent() {
       </main>
 
       {/* Profile Edit Modal */}
-      {userProfile && (
+      {editableProfile && (
         <ProfileEditModal
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
-          profile={userProfile}
-          onUpdate={handleProfileUpdate}
+          profile={editableProfile}
+          onUpdate={(updated) => {
+            setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
+          }}
         />
       )}
     </div>
