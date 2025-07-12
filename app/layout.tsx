@@ -4,8 +4,6 @@ import { Inter } from 'next/font/google';
 import { SWRProvider } from '@/components/providers/SWRProvider';
 import SessionProvider from '@/components/providers/SessionProvider';
 import { Toaster } from '@/components/ui/toaster';
-import StudentLayout from '@/components/layout/StudentLayout';
-import { usePathname } from 'next/navigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -85,13 +83,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Only wrap user-facing routes with StudentLayout (not /admin or /admin-auth)
-  // This is a workaround for Next.js layouts; in a real app, use per-route layouts.
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isUserRoute =
-    !pathname.startsWith('/admin') &&
-    !pathname.startsWith('/admin-auth');
-
   return (
     <html lang="en">
       <head>
@@ -106,11 +97,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SessionProvider>
           <SWRProvider>
-            {isUserRoute ? (
-              <StudentLayout>{children}</StudentLayout>
-            ) : (
-              children
-            )}
+            {children}
             <Toaster />
           </SWRProvider>
         </SessionProvider>
