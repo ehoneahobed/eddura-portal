@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
-  User, 
   Brain, 
   GraduationCap, 
   TrendingUp, 
   Settings, 
-  LogOut,
   Sparkles,
   Calendar,
   Target,
@@ -19,15 +17,17 @@ import {
   MapPin,
   Clock,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
+import StudentLayout from '@/components/layout/StudentLayout';
 
 interface UserProfile {
   id: string;
@@ -87,9 +87,7 @@ export default function DashboardContent() {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/' });
-  };
+  // Logout is now handled by StudentLayout
 
   const handleRetakeQuiz = () => {
     router.push('/quiz');
@@ -101,19 +99,21 @@ export default function DashboardContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-white animate-pulse" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
-          <p className="text-gray-600">Preparing your personalized experience...</p>
-        </motion.div>
-      </div>
+      <StudentLayout showSidebar={false}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8 text-white animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
+            <p className="text-gray-600">Preparing your personalized experience...</p>
+          </motion.div>
+        </div>
+      </StudentLayout>
     );
   }
 
@@ -131,9 +131,8 @@ export default function DashboardContent() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Remove the custom header here. Only keep the main content. */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <StudentLayout>
+      <div className="max-w-7xl mx-auto">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -253,23 +252,25 @@ export default function DashboardContent() {
                       </Button>
                     </Link>
                     
-                    <Link href="/scholarships">
+                    <Link href="/programs">
                       <Button className="h-20 w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
                         <div className="text-left">
-                          <Award className="w-6 h-6 mb-2" />
+                          <GraduationCap className="w-6 h-6 mb-2" />
+                          <p className="font-semibold">Browse Programs</p>
+                          <p className="text-sm opacity-90">Explore universities</p>
+                        </div>
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/scholarships">
+                      <Button className="h-20 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
+                        <div className="text-left">
+                          <TrendingUp className="w-6 h-6 mb-2" />
                           <p className="font-semibold">Browse Scholarships</p>
                           <p className="text-sm opacity-90">Find funding opportunities</p>
                         </div>
                       </Button>
                     </Link>
-                    
-                    <Button className="h-20 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                      <div className="text-left">
-                        <TrendingUp className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">Career Paths</p>
-                        <p className="text-sm opacity-90">Discover opportunities</p>
-                      </div>
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -463,19 +464,19 @@ export default function DashboardContent() {
             </motion.div>
           </div>
         </div>
-      </main>
 
-      {/* Profile Edit Modal */}
-      {editableProfile && (
-        <ProfileEditModal
-          isOpen={showProfileModal}
-          onClose={() => setShowProfileModal(false)}
-          profile={editableProfile}
-          onUpdate={(updated) => {
-            setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
-          }}
-        />
-      )}
-    </div>
+        {/* Profile Edit Modal */}
+        {editableProfile && (
+          <ProfileEditModal
+            isOpen={showProfileModal}
+            onClose={() => setShowProfileModal(false)}
+            profile={editableProfile}
+            onUpdate={(updated) => {
+              setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
+            }}
+          />
+        )}
+      </div>
+    </StudentLayout>
   );
 } 
