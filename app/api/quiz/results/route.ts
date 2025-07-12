@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Program from '@/models/Program';
 import School from '@/models/School';
-import { authConfig } from '@/lib/auth';
+
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(

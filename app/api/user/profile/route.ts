@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { authConfig } from '@/lib/auth';
+
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -104,20 +104,20 @@ export async function PUT(request: NextRequest) {
 
     await user.save();
 
-    return NextResponse.json({
-      message: 'Profile updated successfully',
-      user: {
-        id: user._id.toString(),
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        dateOfBirth: user.dateOfBirth,
-        phoneNumber: user.phoneNumber,
-        country: user.country,
-        city: user.city,
-        profilePicture: user.profilePicture
-      }
-    });
+          return NextResponse.json({
+        message: 'Profile updated successfully',
+        user: {
+          id: user._id?.toString() || '',
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          dateOfBirth: user.dateOfBirth,
+          phoneNumber: user.phoneNumber,
+          country: user.country,
+          city: user.city,
+          profilePicture: user.profilePicture
+        }
+      });
   } catch (error) {
     console.error('Error updating user profile:', error);
     return NextResponse.json(
