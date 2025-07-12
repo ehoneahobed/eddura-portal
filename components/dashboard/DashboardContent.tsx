@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -26,14 +27,23 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
+import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 
 interface UserProfile {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
+  dateOfBirth?: string;
+  phoneNumber?: string;
+  country?: string;
+  city?: string;
   quizCompleted: boolean;
-  quizCompletedAt?: Date;
-  lastLoginAt?: Date;
+  quizCompletedAt?: string;
+  lastLoginAt?: string;
+  createdAt: string;
+  stats: DashboardStats;
+  careerPreferences?: any;
 }
 
 interface DashboardStats {
@@ -45,45 +55,48 @@ interface DashboardStats {
 
 export default function DashboardContent() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [stats, setStats] = useState<DashboardStats>({
-    quizScore: 0,
-    recommendationsCount: 0,
-    programsViewed: 0,
-    applicationsStarted: 0
-  });
   const [isLoading, setIsLoading] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    // Simulate loading user data
-    setTimeout(() => {
-      setUserProfile({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        quizCompleted: true,
-        quizCompletedAt: new Date('2024-01-15'),
-        lastLoginAt: new Date()
-      });
-      
-      setStats({
-        quizScore: 85,
-        recommendationsCount: 5,
-        programsViewed: 12,
-        applicationsStarted: 2
-      });
-      
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    if (status === 'loading') return;
+    
+    if (!session?.user?.id) {
+      router.push('/auth/signin');
+      return;
+    }
 
-  const handleLogout = () => {
-    // Clear authentication and redirect to home
-    router.push('/');
+    fetchUserProfile();
+  }, [session, status, router]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      
+      const profile = await response.json();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
   };
 
   const handleRetakeQuiz = () => {
     router.push('/quiz');
+  };
+
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+    setUserProfile(updatedProfile);
   };
 
   if (isLoading) {
@@ -103,6 +116,19 @@ export default function DashboardContent() {
       </div>
     );
   }
+
+  const editableProfile: EditableUserProfile | null = userProfile
+    ? {
+        id: userProfile.id,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+        email: userProfile.email,
+        dateOfBirth: userProfile.dateOfBirth,
+        phoneNumber: userProfile.phoneNumber,
+        country: userProfile.country,
+        city: userProfile.city,
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -176,7 +202,7 @@ export default function DashboardContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Quiz Score</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.quizScore}%</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.quizScore || 0}%</p>
                 </div>
               </div>
             </CardContent>
@@ -190,7 +216,7 @@ export default function DashboardContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Recommendations</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.recommendationsCount}</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.recommendationsCount || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -204,7 +230,7 @@ export default function DashboardContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Programs Viewed</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.programsViewed}</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.programsViewed || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -218,7 +244,7 @@ export default function DashboardContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.applicationsStarted}</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.applicationsStarted || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -250,8 +276,8 @@ export default function DashboardContent() {
                     >
                       <div className="text-left">
                         <Brain className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">Retake Quiz</p>
-                        <p className="text-sm opacity-90">Update your preferences</p>
+                        <p className="font-semibold">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
+                        <p className="text-sm opacity-90">{userProfile?.quizCompleted ? 'Update your preferences' : 'Start your career discovery'}</p>
                       </div>
                     </Button>
                     
@@ -377,7 +403,11 @@ export default function DashboardContent() {
                     
                     <Separator />
                     
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowProfileModal(true)}
+                    >
                       <Settings className="w-4 h-4 mr-2" />
                       Edit Profile
                     </Button>
@@ -411,11 +441,11 @@ export default function DashboardContent() {
                       
                       <div className="grid grid-cols-2 gap-4 text-center">
                         <div>
-                          <p className="text-2xl font-bold text-gray-900">{stats.quizScore}%</p>
+                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.quizScore || 0}%</p>
                           <p className="text-xs text-gray-500">Match Score</p>
                         </div>
                         <div>
-                          <p className="text-2xl font-bold text-gray-900">{stats.recommendationsCount}</p>
+                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.recommendationsCount || 0}</p>
                           <p className="text-xs text-gray-500">Programs</p>
                         </div>
                       </div>
@@ -446,7 +476,7 @@ export default function DashboardContent() {
                     <Link href="/quiz" className="block">
                       <Button variant="ghost" className="w-full justify-start">
                         <Brain className="w-4 h-4 mr-2" />
-                        Retake Quiz
+                        {userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}
                       </Button>
                     </Link>
                     <Button variant="ghost" className="w-full justify-start">
@@ -464,6 +494,18 @@ export default function DashboardContent() {
           </div>
         </div>
       </main>
+
+      {/* Profile Edit Modal */}
+      {editableProfile && (
+        <ProfileEditModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          profile={editableProfile}
+          onUpdate={(updated) => {
+            setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
+          }}
+        />
+      )}
     </div>
   );
 } 

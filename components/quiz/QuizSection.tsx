@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
@@ -37,6 +38,7 @@ interface QuizSectionProps {
 
 export default function QuizSection({ section }: QuizSectionProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string[] | string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,6 +96,34 @@ export default function QuizSection({ section }: QuizSectionProps) {
   // Ensure progress is a valid number between 0 and 100
   const overallProgress = isNaN(rawOverallProgress) || !isFinite(rawOverallProgress) ? 0 : Math.max(0, Math.min(100, rawOverallProgress));
 
+  // Save response to database if user is authenticated
+  const saveResponseToDatabase = async (questionId: string, value: string | string[]) => {
+    if (!session?.user?.id) return;
+    
+    try {
+      const response = await fetch('/api/quiz/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sectionId: section.id,
+          questionId,
+          responses: Array.isArray(value) ? value : undefined,
+          textResponse: !Array.isArray(value) ? value : undefined,
+          isCompleted: false,
+          timeSpent: 0
+        }),
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save response to database');
+      }
+    } catch (error) {
+      console.error('Error saving response to database:', error);
+    }
+  };
+
   // When saving, update the merged responses object and localStorage
   const handleResponseChange = (questionId: string, value: string | string[]) => {
     // Load all responses, update this question, and save
@@ -101,6 +131,10 @@ export default function QuizSection({ section }: QuizSectionProps) {
     const newResponses = { ...allResponses, [questionId]: value };
     setResponses(newResponses);
     localStorage.setItem(`quiz_${section.id}`, JSON.stringify({ ...responses, [questionId]: value }));
+    
+    // Save to database if authenticated
+    saveResponseToDatabase(questionId, value);
+    
     // Update completed sections if this is the last question
     if (isLastQuestion) {
       let updatedCompletedSections = [...completedSections];
@@ -144,6 +178,26 @@ export default function QuizSection({ section }: QuizSectionProps) {
       });
 
       if (isLastSection) {
+        // Mark quiz as completed in database if authenticated
+        if (session?.user?.id) {
+          try {
+            await fetch('/api/quiz/submit', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                sectionId: section.id,
+                questionId: 'quiz_completion',
+                isCompleted: true,
+                timeSpent: 0
+              }),
+            });
+          } catch (error) {
+            console.error('Error marking quiz as completed:', error);
+          }
+        }
+        
         router.push('/quiz/results');
       } else if (next) {
         router.push(`/quiz/sections/${next.id}`);

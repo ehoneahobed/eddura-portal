@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
   Brain, 
@@ -23,7 +24,29 @@ import Link from 'next/link';
 
 export default function QuizIntro() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isStarting, setIsStarting] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (session?.user?.id) {
+      fetchUserProfile();
+    }
+  }, [session, status]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const profile = await response.json();
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const features = [
     {
@@ -66,8 +89,22 @@ export default function QuizIntro() {
 
   const handleStartQuiz = () => {
     setIsStarting(true);
-    // Navigate to the first quiz section
-    router.push('/quiz/sections/education-aspirations');
+    
+    // If user is authenticated and hasn't completed the quiz, go directly to first section
+    if (session?.user?.id && !userProfile?.quizCompleted) {
+      router.push('/quiz/sections/education-aspirations');
+    } else if (session?.user?.id && userProfile?.quizCompleted) {
+      // If user has completed the quiz, ask if they want to retake
+      if (confirm('You have already completed the quiz. Would you like to retake it? Your previous answers will be replaced.')) {
+        router.push('/quiz/sections/education-aspirations');
+      } else {
+        setIsStarting(false);
+        router.push('/quiz/results');
+      }
+    } else {
+      // Not authenticated, go to first section (they'll be prompted to register later)
+      router.push('/quiz/sections/education-aspirations');
+    }
   };
 
   return (
