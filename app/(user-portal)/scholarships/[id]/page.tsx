@@ -43,6 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Link from 'next/link';
 import { useScholarship } from '@/hooks/use-scholarships';
 import { toast } from 'sonner';
+import { getScholarshipStatus, formatDeadline, formatOpeningDate } from '@/lib/scholarship-status';
 
 function ScholarshipDetailContent() {
   const router = useRouter();
@@ -77,96 +78,8 @@ function ScholarshipDetailContent() {
     }).format(value);
   };
 
-  // Format deadline
-  const formatDeadline = (deadline: string) => {
-    const date = new Date(deadline);
-    const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return 'Expired';
-    } else if (diffDays === 0) {
-      return 'Today';
-    } else if (diffDays === 1) {
-      return 'Tomorrow';
-    } else if (diffDays <= 7) {
-      return `${diffDays} days left`;
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'long',
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric'
-      });
-    }
-  };
-  // Format opening date
-  const formatOpeningDate = (openingDate: string) => {
-    const date = new Date(openingDate);
-    const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return 'Opened';
-    } else if (diffDays === 0) {
-      return 'Opens today';
-    } else if (diffDays === 1) {
-      return 'Opens tomorrow';
-    } else if (diffDays <= 7) {
-      return `Opens in ${diffDays} days`;
-    } else {
-      return `Opens ${date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
-      })}`;
-    }
-  };
-
-  // Get opening date color and status
-  const getOpeningDateInfo = (openingDate?: string) => {
-    if (!openingDate) {
-      return { color: 'bg-gray-100 text-gray-800', status: 'Opening date not specified', icon: HelpCircle };
-    }
-    
-    const date = new Date(openingDate);
-    const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return { color: 'bg-green-100 text-green-800', status: 'Open', icon: CheckCircle };
-    }
-    if (diffDays <= 7) {
-      return { color: 'bg-blue-100 text-blue-800', status: 'Opening Soon', icon: Clock };
-    }
-    if (diffDays <= 30) {
-      return { color: 'bg-yellow-100 text-yellow-800', status: 'Opening in ' + diffDays + ' days', icon: Calendar };
-    }
-    return { color: 'bg-gray-100 text-gray-800', status: 'Opens in ' + diffDays + ' days', icon: Calendar };
-  };
-  
-  
-  // Get deadline color and status
-  const getDeadlineInfo = (deadline: string) => {
-    const date = new Date(deadline);
-    const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) {
-      return { color: 'bg-red-100 text-red-800', status: 'Expired', icon: AlertCircle };
-    }
-    if (diffDays <= 7) {
-      return { color: 'bg-orange-100 text-orange-800', status: 'Urgent', icon: Clock };
-    }
-    if (diffDays <= 30) {
-      return { color: 'bg-yellow-100 text-yellow-800', status: 'Soon', icon: Clock };
-    }
-    return { color: 'bg-green-100 text-green-800', status: 'Open', icon: CheckCircle };
-  };
+  // Get scholarship status using the unified utility
+  const scholarshipStatus = scholarship ? getScholarshipStatus(scholarship.deadline, scholarship.openingDate) : null;
 
   // Check if user is eligible based on basic criteria
   const checkBasicEligibility = () => {
@@ -175,21 +88,10 @@ function ScholarshipDetailContent() {
     const reasons = [];
     let eligible = true;
 
-    // Check if expired - only deadline matters for eligibility
-    const deadline = new Date(scholarship.deadline);
-    const now = new Date();
-    if (deadline < now) {
+    // Only deadline matters for eligibility - students can start applications even if not yet open
+    if (scholarshipStatus?.isExpired) {
       eligible = false;
       reasons.push('Application deadline has passed');
-    }
-
-    // Check if not yet opened
-    if (scholarship.openingDate) {
-      const openingDate = new Date(scholarship.openingDate);
-      if (openingDate > now) {
-        eligible = false;
-        reasons.push('Applications are not yet open');
-      }
     }
 
     return { eligible, reasons };
@@ -432,7 +334,6 @@ function ScholarshipDetailContent() {
     );
   }
 
-  const deadlineInfo = getDeadlineInfo(scholarship.deadline);
   const eligibilityCheck = checkBasicEligibility();
 
   return (
@@ -461,36 +362,29 @@ function ScholarshipDetailContent() {
           {/* Key Info Stats Bar */}
           <div className="flex flex-col gap-2 md:gap-4 md:items-end">
             <div className="flex flex-wrap gap-3">
-              {(() => {
-                const openingDateInfo = getOpeningDateInfo(scholarship.openingDate);
-                return (
-                  <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${openingDateInfo.color} border shadow-sm`}>
-                    <openingDateInfo.icon className="h-4 w-4" aria-label="Opening Status" />
-                    <span>{openingDateInfo.status}</span>
-                  </div>
-                );
-              })()}
-              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${deadlineInfo.color} border shadow-sm`}>
-                <deadlineInfo.icon className="h-4 w-4" aria-label="Deadline Status" />
-                <span>{deadlineInfo.status}</span>
-              </div>
-              {scholarship.openingDate && (() => {
-                const openingInfo = getOpeningDateInfo(scholarship.openingDate);
-                return (
-                  <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${openingInfo.color} border shadow-sm`}>
-                    {openingInfo.icon === CheckCircle ? (
-                      <CheckCircle className="h-4 w-4" aria-label="Opening Status" />
-                    ) : (
-                      <Clock className="h-4 w-4" aria-label="Opening Status" />
-                    )}
-                    <span>{openingInfo.status}</span>
-                  </div>
-                );
-              })()}
+              {/* Opening Date Status */}
+              {scholarshipStatus && (
+                <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${scholarshipStatus.openingDateInfo.color} border shadow-sm`}>
+                  <scholarshipStatus.openingDateInfo.icon className="h-4 w-4" aria-label="Opening Status" />
+                  <span>{scholarshipStatus.openingDateInfo.status}</span>
+                </div>
+              )}
+              
+              {/* Deadline Status */}
+              {scholarshipStatus && (
+                <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${scholarshipStatus.deadlineInfo.color} border shadow-sm`}>
+                  <scholarshipStatus.deadlineInfo.icon className="h-4 w-4" aria-label="Deadline Status" />
+                  <span>{scholarshipStatus.deadlineInfo.status}</span>
+                </div>
+              )}
+              
+              {/* Value */}
               <div className="flex items-center gap-1 text-green-100 font-semibold bg-green-700/20 px-3 py-1 rounded-full">
                 <DollarSign className="h-4 w-4" aria-label="Value" />
                 {formatCurrency(scholarship.value ?? 0, scholarship.currency ?? 'USD')}
               </div>
+              
+              {/* Institution */}
               {scholarship.linkedSchool && (
                 <div className="flex items-center gap-1 text-purple-100 font-semibold bg-purple-700/20 px-3 py-1 rounded-full">
                   <MapPin className="h-4 w-4" aria-label="Institution" />
@@ -727,15 +621,20 @@ function ScholarshipDetailContent() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {/* Opening Date Status */}
-              {(() => {
-                const openingDateInfo = getOpeningDateInfo(scholarship.openingDate);
-                return (
-                  <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${openingDateInfo.color}`}> 
-                    <openingDateInfo.icon className="h-5 w-5" aria-label="Opening Status" />
-                    <span>{openingDateInfo.status}</span>
-                  </div>
-                );
-              })()}
+              {scholarshipStatus && (
+                <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${scholarshipStatus.openingDateInfo.color}`}> 
+                  <scholarshipStatus.openingDateInfo.icon className="h-5 w-5" aria-label="Opening Status" />
+                  <span>{scholarshipStatus.openingDateInfo.status}</span>
+                </div>
+              )}
+              
+              {/* Deadline Status */}
+              {scholarshipStatus && (
+                <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${scholarshipStatus.deadlineInfo.color}`}> 
+                  <scholarshipStatus.deadlineInfo.icon className="h-5 w-5" aria-label="Deadline Status" />
+                  <span>{scholarshipStatus.deadlineInfo.status}</span>
+                </div>
+              )}
               
               {/* Eligibility Status */}
               <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}> 
@@ -756,11 +655,11 @@ function ScholarshipDetailContent() {
                 {hasApplicationForm ? (
                   <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
-                    aria-label="Apply Now"
+                    aria-label={scholarshipStatus?.applyButtonText || "Apply Now"}
                     onClick={handleApply}
-                    disabled={!eligibilityCheck.eligible}
+                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible}
                   >
-                    Apply Now
+                    {scholarshipStatus?.applyButtonText || "Apply Now"}
                   </Button>
                 ) : hasRequestedForm ? (
                   <Button 
@@ -776,7 +675,7 @@ function ScholarshipDetailContent() {
                     className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-all" 
                     aria-label="Request Application Form"
                     onClick={() => setIsRequestDialogOpen(true)}
-                    disabled={!eligibilityCheck.eligible}
+                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible}
                   >
                     Request Application Form
                   </Button>
@@ -812,6 +711,7 @@ function ScholarshipDetailContent() {
                   Share
                 </Button>
               </div>
+              {/* Opening Date */}
               {scholarship.openingDate && (
                 <div className="flex items-center gap-2 text-blue-700">
                   <Calendar className="h-4 w-4 text-blue-600" />
@@ -824,18 +724,13 @@ function ScholarshipDetailContent() {
                   })}</span>
                 </div>
               )}
+              
+              {/* Deadline */}
               <div className="flex items-center gap-2 text-gray-700">
                 <Calendar className="h-4 w-4 text-orange-600" />
                 <span className="font-medium">Deadline:</span>
                 <span>{formatDeadline(scholarship.deadline)}</span>
               </div>
-              {scholarship.openingDate && (
-                <div className="flex items-center gap-2 text-blue-700">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium">Opens:</span>
-                  <span>{formatOpeningDate(scholarship.openingDate)}</span>
-                </div>
-              )}
               {scholarship.value && (
                 <div className="flex items-center gap-2 text-green-700">
                   <DollarSign className="h-4 w-4" />
