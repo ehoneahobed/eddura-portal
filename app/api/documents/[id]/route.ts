@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Document, { DocumentType } from '@/models/Document';
+import Document from '@/models/Document';
+import { DocumentType } from '@/types/documents';
 import { z } from 'zod';
 
 // Validation schema for updating documents

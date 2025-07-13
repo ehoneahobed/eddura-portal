@@ -7,29 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, FileText, Edit, Trash2, Eye, Copy, Download } from 'lucide-react';
-import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/models/Document';
+import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import CreateDocumentDialog from '@/components/documents/CreateDocumentDialog';
 import DocumentCard from '@/components/documents/DocumentCard';
 import { toast } from 'sonner';
 
-interface Document {
-  _id: string;
-  title: string;
-  type: DocumentType;
-  content: string;
-  version: number;
-  isActive: boolean;
-  description?: string;
-  tags?: string[];
-  targetProgram?: string;
-  targetScholarship?: string;
-  targetInstitution?: string;
-  wordCount?: number;
-  characterCount?: number;
-  lastEditedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 export default function DocumentsPage() {
   const { data: session } = useSession();

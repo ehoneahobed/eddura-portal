@@ -10,27 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText } from 'lucide-react';
-import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/models/Document';
+import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
 
-interface Document {
-  _id: string;
-  title: string;
-  type: DocumentType;
-  content: string;
-  version: number;
-  isActive: boolean;
-  description?: string;
-  tags?: string[];
-  targetProgram?: string;
-  targetScholarship?: string;
-  targetInstitution?: string;
-  wordCount?: number;
-  characterCount?: number;
-  lastEditedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 interface DocumentCardProps {
   document: Document;

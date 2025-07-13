@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/models/Document';
+import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 
 // GET /api/documents/types - Get all document types and their configurations
 export async function GET() {

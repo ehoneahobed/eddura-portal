@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/models/Document';
+import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { toast } from 'sonner';
 
 interface CreateDocumentDialogProps {
