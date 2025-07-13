@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -69,6 +69,8 @@ export default function ScholarshipsPage() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedFilters, setSelectedFilters] = useState({
     degreeLevel: 'all',
     fieldOfStudy: 'all',
@@ -93,9 +95,26 @@ export default function ScholarshipsPage() {
   });
   const [sortBy, setSortBy] = useState('relevance');
 
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Focus restoration effect
+  useEffect(() => {
+    if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+      // Re-focus if the input has lost focus but we're still typing
+      searchInputRef.current.focus();
+    }
+  }, [scholarships]);
+
   useEffect(() => {
     fetchScholarships();
-  }, [pagination.currentPage, searchTerm, selectedFilters, sortBy, selectedStatus]);
+  }, [pagination.currentPage, debouncedSearchTerm, selectedFilters, sortBy, selectedStatus]);
 
   const fetchScholarships = async () => {
     try {
@@ -110,8 +129,8 @@ export default function ScholarshipsPage() {
       });
 
       // Add search parameter
-      if (searchTerm) {
-        params.append('search', searchTerm);
+      if (debouncedSearchTerm) {
+        params.append('search', debouncedSearchTerm);
       }
 
       // Add filter parameters
@@ -268,7 +287,7 @@ export default function ScholarshipsPage() {
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* Search */}
-                <div className="flex-1">
+                <div className="flex-1" data-search-container>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -277,9 +296,40 @@ export default function ScholarshipsPage() {
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
-                        setPagination(prev => ({ ...prev, currentPage: 1 }));
+                        // Ensure focus is maintained after state update
+                        setTimeout(() => {
+                          if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                          }
+                        }, 0);
                       }}
+                      onBlur={(e: React.FocusEvent) => {
+                        // Only allow blur if we're clicking outside the search area
+                        const relatedTarget = e.relatedTarget as HTMLElement;
+                        if (relatedTarget && !relatedTarget.closest('[data-search-container]')) {
+                          // Allow normal blur behavior
+                        } else {
+                          // Prevent blur and restore focus
+                          e.preventDefault();
+                          setTimeout(() => {
+                            if (searchInputRef.current) {
+                              searchInputRef.current.focus();
+                            }
+                          }, 0);
+                        }
+                      }}
+                      onKeyDown={(e: React.KeyboardEvent) => {
+                        e.stopPropagation();
+                        // Prevent any key that might close the search
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          setSearchTerm('');
+                        }
+                      }}
+                      autoComplete="off"
+                      spellCheck={false}
                       className="pl-10"
+                      ref={searchInputRef}
                     />
                   </div>
                 </div>
@@ -291,6 +341,14 @@ export default function ScholarshipsPage() {
                     onValueChange={(value) => {
                       setSelectedFilters(prev => ({ ...prev, degreeLevel: value }));
                       setPagination(prev => ({ ...prev, currentPage: 1 }));
+                    }}
+                    onOpenChange={(open) => {
+                      if (!open && searchInputRef.current) {
+                        // Restore focus to search input when select closes
+                        setTimeout(() => {
+                          searchInputRef.current?.focus();
+                        }, 0);
+                      }
                     }}
                   >
                     <SelectTrigger className="w-[140px]">
@@ -310,6 +368,14 @@ export default function ScholarshipsPage() {
                       setSelectedFilters(prev => ({ ...prev, frequency: value }));
                       setPagination(prev => ({ ...prev, currentPage: 1 }));
                     }}
+                    onOpenChange={(open) => {
+                      if (!open && searchInputRef.current) {
+                        // Restore focus to search input when select closes
+                        setTimeout(() => {
+                          searchInputRef.current?.focus();
+                        }, 0);
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Frequency" />
@@ -328,6 +394,14 @@ export default function ScholarshipsPage() {
                       setSelectedStatus(value);
                       setPagination(prev => ({ ...prev, currentPage: 1 }));
                     }}
+                    onOpenChange={(open) => {
+                      if (!open && searchInputRef.current) {
+                        // Restore focus to search input when select closes
+                        setTimeout(() => {
+                          searchInputRef.current?.focus();
+                        }, 0);
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Status" />
@@ -344,6 +418,7 @@ export default function ScholarshipsPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
+                    onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                     className="flex items-center gap-2"
                   >
                     <Filter className="h-4 w-4" />
@@ -351,7 +426,11 @@ export default function ScholarshipsPage() {
                   </Button>
 
                   {(searchTerm || Object.values(selectedFilters).some(v => v && v !== 'all') || selectedStatus !== 'all') && (
-                    <Button variant="ghost" onClick={clearFilters}>
+                    <Button 
+                      variant="ghost" 
+                      onClick={clearFilters}
+                      onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
+                    >
                       Clear
                     </Button>
                   )}
@@ -399,6 +478,14 @@ export default function ScholarshipsPage() {
               <Select value={sortBy} onValueChange={(value) => {
                 setSortBy(value);
                 setPagination(prev => ({ ...prev, currentPage: 1 }));
+              }}
+              onOpenChange={(open) => {
+                if (!open && searchInputRef.current) {
+                  // Restore focus to search input when select closes
+                  setTimeout(() => {
+                    searchInputRef.current?.focus();
+                  }, 0);
+                }
               }}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
@@ -444,7 +531,11 @@ export default function ScholarshipsPage() {
             <p className="text-gray-600 mb-4">
               Try adjusting your search terms or filters to find more opportunities.
             </p>
-            <Button onClick={clearFilters} variant="outline">
+            <Button 
+              onClick={clearFilters} 
+              variant="outline"
+              onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
+            >
               Clear all filters
             </Button>
           </motion.div>
@@ -462,6 +553,7 @@ export default function ScholarshipsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(pagination.currentPage - 1)}
+                onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                 disabled={!pagination.hasPrevPage}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -487,6 +579,7 @@ export default function ScholarshipsPage() {
                       variant={pagination.currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(pageNum)}
+                      onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                       className="w-10 h-10"
                     >
                       {pageNum}
@@ -499,6 +592,7 @@ export default function ScholarshipsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(pagination.currentPage + 1)}
+                onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                 disabled={!pagination.hasNextPage}
               >
                 Next
