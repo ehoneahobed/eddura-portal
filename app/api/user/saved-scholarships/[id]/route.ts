@@ -6,7 +6,7 @@ import SavedScholarship from '@/models/SavedScholarship';
 // DELETE /api/user/saved-scholarships/[id] - Unsave a scholarship
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -17,9 +17,10 @@ export async function DELETE(
 
     await connectDB();
 
+    const resolvedParams = await params;
     const savedScholarship = await SavedScholarship.findOneAndDelete({
       userId: session.user.id,
-      scholarshipId: params.id
+      scholarshipId: resolvedParams.id
     });
 
     if (!savedScholarship) {
@@ -45,7 +46,7 @@ export async function DELETE(
 // PATCH /api/user/saved-scholarships/[id] - Update saved scholarship
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -59,9 +60,10 @@ export async function PATCH(
 
     await connectDB();
 
+    const resolvedParams = await params;
     const savedScholarship = await SavedScholarship.findOne({
       userId: session.user.id,
-      scholarshipId: params.id
+      scholarshipId: resolvedParams.id
     });
 
     if (!savedScholarship) {
