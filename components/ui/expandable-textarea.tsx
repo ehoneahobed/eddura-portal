@@ -118,7 +118,7 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
       return null;
     };
 
-    const getCountMessage = (count: number, min?: number, max?: number, type: 'characters' | 'words') => {
+    const getCountMessage = (count: number, type: 'characters' | 'words', min?: number, max?: number) => {
       if (max && count > max) {
         return `${count - max} ${type} over limit`;
       }
@@ -188,9 +188,9 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
                   </span>
                   <span className="text-gray-500">characters</span>
                 </div>
-                {getCountMessage(charCount, minLength, maxLength, 'characters') && (
+                {getCountMessage(charCount, 'characters', minLength, maxLength) && (
                   <span className={cn('text-xs', getCountColor(charCount, minLength, maxLength))}>
-                    {getCountMessage(charCount, minLength, maxLength, 'characters')}
+                    {getCountMessage(charCount, 'characters', minLength, maxLength)}
                   </span>
                 )}
               </div>
@@ -207,9 +207,9 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
                   </span>
                   <span className="text-gray-500">words</span>
                 </div>
-                {getCountMessage(wordCount, minWords, maxWords, 'words') && (
+                {getCountMessage(wordCount, 'words', minWords, maxWords) && (
                   <span className={cn('text-xs', getCountColor(wordCount, minWords, maxWords))}>
-                    {getCountMessage(wordCount, minWords, maxWords, 'words')}
+                    {getCountMessage(wordCount, 'words', minWords, maxWords)}
                   </span>
                 )}
               </div>
