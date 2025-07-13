@@ -16,6 +16,8 @@ import {
   Shield,
   MessageCircle,
   X,
+  ClipboardList,
+  AlertCircle,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -52,6 +54,18 @@ const navigationItems = [
     name: "Scholarships",
     href: "/admin/scholarships",
     icon: Award,
+    permission: "content:read",
+  },
+  {
+    name: "Application Form Requests",
+    href: "/admin/application-form-requests",
+    icon: ClipboardList,
+    permission: "content:read",
+  },
+  {
+    name: "Scholarships Without Forms",
+    href: "/admin/scholarships/without-application-forms",
+    icon: AlertCircle,
     permission: "content:read",
   },
   {
