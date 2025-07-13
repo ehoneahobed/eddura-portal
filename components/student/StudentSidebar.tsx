@@ -16,7 +16,8 @@ import {
   User,
   Target,
   BookOpen,
-  School
+  School,
+  Bookmark
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -33,6 +34,12 @@ const navigation = [
     href: '/scholarships', 
     icon: Award,
     description: 'Find and apply for scholarships'
+  },
+  { 
+    name: 'Saved Scholarships', 
+    href: '/saved-scholarships', 
+    icon: Bookmark,
+    description: 'Your saved scholarships'
   },
   { 
     name: 'Schools & Programs', 
