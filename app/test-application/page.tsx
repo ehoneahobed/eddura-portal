@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { ExpandableTextarea } from '@/components/ui/expandable-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -133,6 +134,27 @@ const mockApplication = {
             required: true,
             order: 1,
             maxLength: 1000,
+            minLength: 500,
+            helpText: "Be specific about your achievements and future goals. Show how this scholarship will help you achieve them."
+          }
+        ]
+      },
+      {
+        id: "essay-section",
+        title: "Essay Questions",
+        description: "Answer the following essay questions",
+        order: 4,
+        questions: [
+          {
+            id: "essay-question",
+            type: "essay",
+            title: "Why do you deserve this scholarship?",
+            description: "Write a detailed essay explaining why you deserve this scholarship. Include specific examples of your achievements and how this scholarship will help you achieve your goals.",
+            placeholder: "Write your essay here... You can use **bold**, *italic*, and `code` formatting.",
+            required: true,
+            order: 1,
+            maxLength: 2000,
+            minLength: 800,
             helpText: "Be specific about your achievements and future goals. Show how this scholarship will help you achieve them."
           }
         ]
@@ -245,12 +267,16 @@ export default function TestApplicationPage() {
       case 'textarea':
         return (
           <div className="space-y-4">
-            <Textarea
+            <ExpandableTextarea
               placeholder={question.placeholder}
               value={(responses[question.id] as string) || ''}
               onChange={(e) => handleResponseChange(question.id, e.target.value)}
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
+              minLength={question.minLength}
+              showCharacterCount={true}
+              expandable={true}
+              defaultExpanded={false}
             />
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
@@ -617,13 +643,17 @@ export default function TestApplicationPage() {
                   Code
                 </button>
               </div>
-              <Textarea
+              <ExpandableTextarea
                 id="essay"
                 value={(responses[question.id] as string) || ''}
                 onChange={(e) => handleResponseChange(question.id, e.target.value)}
                 placeholder="Write your essay here... You can use **bold**, *italic*, and `code` formatting."
                 className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
                 maxLength={question.maxLength}
+                minLength={question.minLength}
+                showCharacterCount={true}
+                expandable={true}
+                defaultExpanded={false}
               />
             </div>
             {question.helpText && (
@@ -635,13 +665,17 @@ export default function TestApplicationPage() {
         return (
           <div className="space-y-4">
             <Label htmlFor="statement">Personal Statement</Label>
-            <Textarea
+            <ExpandableTextarea
               id="statement"
               value={(responses[question.id] as string) || ''}
               onChange={(e) => handleResponseChange(question.id, e.target.value)}
               placeholder="Write your personal statement here..."
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
+              minLength={question.minLength}
+              showCharacterCount={true}
+              expandable={true}
+              defaultExpanded={false}
             />
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
