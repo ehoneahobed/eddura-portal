@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import SavedScholarship from '@/models/SavedScholarship';
 import Scholarship from '@/models/Scholarship';
@@ -8,7 +7,7 @@ import Scholarship from '@/models/Scholarship';
 // GET /api/user/saved-scholarships - Get user's saved scholarships
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
 // POST /api/user/saved-scholarships - Save a scholarship
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
