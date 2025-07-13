@@ -32,6 +32,7 @@ export interface IScholarship extends Document {
     documentsToSubmit?: string[];
   };
   deadline: string;
+  openingDate?: string; // When applications open
   applicationLink: string;
   selectionCriteria: string[];
   renewalConditions?: string;
@@ -106,6 +107,7 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
       documentsToSubmit: [{ type: String, trim: true }],
     },
     deadline: { type: String, required: true },
+    openingDate: { type: String, trim: true }, // When applications open
     applicationLink: { 
       type: String, 
       required: true, 
@@ -143,6 +145,7 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
 // Indexes for better query performance
 ScholarshipSchema.index({ provider: 1 });
 ScholarshipSchema.index({ deadline: 1 });
+ScholarshipSchema.index({ openingDate: 1 });
 ScholarshipSchema.index({ value: -1 });
 ScholarshipSchema.index({ 'eligibility.degreeLevels': 1 });
 
