@@ -1,9 +1,9 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document as MongooseDocument, Model, CallbackWithoutResult } from 'mongoose';
 
 /**
  * StudentDocument interface representing a student document in the Eddura platform
  */
-export interface IStudentDocument extends Document {
+export interface IStudentDocument extends MongooseDocument {
   // Basic Information
   userId: mongoose.Types.ObjectId;
   title: string;
@@ -347,8 +347,8 @@ DocumentSchema.virtual('category').get(function() {
 });
 
 // Pre-save middleware to update word and character counts
-DocumentSchema.pre('save', function(next) {
-  if (this.isModified('content')) {
+DocumentSchema.pre('save', function(this: IStudentDocument, next: any) {
+  if ((this as any).isModified('content')) {
     this.wordCount = this.content.trim().split(/\s+/).filter(word => word.length > 0).length;
     this.characterCount = this.content.length;
     this.lastEditedAt = new Date();
