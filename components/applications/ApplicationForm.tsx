@@ -14,7 +14,15 @@ import {
   Award,
   FileText,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CalendarIcon,
+  Upload,
+  Trash2,
+  GraduationCap,
+  Briefcase,
+  User,
+  MapPin,
+  Calculator
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,13 +32,24 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import ApplicationStatusBanner from './ApplicationStatusBanner';
+import dynamic from 'next/dynamic';
+// Remove React-Quill and use a simpler solution
+// const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// import 'react-quill/dist/quill.snow.css';
+import countries from 'world-countries';
 
 interface Question {
   id: string;
-  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'multiselect' | 'radio' | 'checkbox' | 'file' | 'url' | 'address' | 'education' | 'experience' | 'reference' | 'essay' | 'statement' | 'gpa' | 'test_score';
+  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'multiselect' | 'radio' | 'checkbox' | 'file' | 'url' | 'address' | 'education' | 'experience' | 'reference' | 'essay' | 'statement' | 'gpa' | 'test_score' | 'country';
   title: string;
   description?: string;
   placeholder?: string;
@@ -364,6 +383,472 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
             )}
+          </div>
+        );
+      case 'date':
+        return (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !responses[question.id] && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {responses[question.id] ? format(responses[question.id] as Date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={responses[question.id] as Date}
+                onSelect={(date) => handleResponseChange(question.id, date ?? '')}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        );
+      case 'radio':
+        return (
+          <RadioGroup onValueChange={(value) => handleResponseChange(question.id, value)} value={responses[question.id] as string}>
+            <div className="grid grid-cols-2 gap-4">
+              {question.options?.map((option) => (
+                <div key={option.value} className="flex items-center">
+                  <RadioGroupItem value={option.value} id={option.value} />
+                  <Label htmlFor={option.value} className="ml-3 text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </RadioGroup>
+        );
+      case 'checkbox':
+        return (
+          <div className="space-y-4">
+            {question.options?.map((option) => (
+              <div key={option.value} className="flex items-center">
+                <Checkbox
+                  id={option.value}
+                  checked={(responses[question.id] as string[])?.includes(option.value) || false}
+                  onCheckedChange={(checked) => 
+                    handleMultiSelectChange(question.id, option.value, checked as boolean)
+                  }
+                />
+                <Label htmlFor={option.value} className="ml-3 text-base font-medium leading-none">
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </div>
+        );
+      case 'file':
+        return (
+          <div className="space-y-4">
+            <Input
+              type="file"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    handleResponseChange(question.id, reader.result as string);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
+            )}
+          </div>
+        );
+      case 'address':
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="street">Street Address</Label>
+              <Input
+                id="street"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter street address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter city"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Input
+                id="state"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter state"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zip">Zip Code</Label>
+              <Input
+                id="zip"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter zip code"
+              />
+            </div>
+          </div>
+        );
+      case 'education':
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="school">School Name</Label>
+              <Input
+                id="school"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter school name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="degree">Degree</Label>
+              <Input
+                id="degree"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter degree"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="field">Field of Study</Label>
+              <Input
+                id="field"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter field of study"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="graduation">Graduation Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !responses[question.id] && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {responses[question.id] ? format(responses[question.id] as Date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={responses[question.id] as Date}
+                    onSelect={(date) => handleResponseChange(question.id, date ?? '')}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        );
+      case 'experience':
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="company">Company Name</Label>
+              <Input
+                id="company"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter company name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="position">Position</Label>
+              <Input
+                id="position"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter position"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration</Label>
+              <Input
+                id="duration"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="e.g., 2020-2023"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Describe your responsibilities and achievements"
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+        );
+      case 'reference':
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="refName">Reference Name</Label>
+              <Input
+                id="refName"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter reference name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="refTitle">Reference Title</Label>
+              <Input
+                id="refTitle"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter reference title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="refEmail">Reference Email</Label>
+              <Input
+                id="refEmail"
+                type="email"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter reference email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="refPhone">Reference Phone</Label>
+              <Input
+                id="refPhone"
+                type="tel"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Enter reference phone"
+              />
+            </div>
+          </div>
+        );
+      case 'essay':
+        return (
+          <div className="space-y-4">
+            <Label htmlFor="essay">Essay</Label>
+            <div className="border rounded-md">
+              <div className="flex border-b bg-gray-50 p-2 space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const before = text.substring(0, start);
+                      const selection = text.substring(start, end);
+                      const after = text.substring(end);
+                      const newText = before + '**' + selection + '**' + after;
+                      handleResponseChange(question.id, newText);
+                      // Set cursor position after the bold text
+                      setTimeout(() => {
+                        textarea.setSelectionRange(start + 2, end + 2);
+                        textarea.focus();
+                      }, 0);
+                    }
+                  }}
+                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const before = text.substring(0, start);
+                      const selection = text.substring(start, end);
+                      const after = text.substring(end);
+                      const newText = before + '*' + selection + '*' + after;
+                      handleResponseChange(question.id, newText);
+                      setTimeout(() => {
+                        textarea.setSelectionRange(start + 1, end + 1);
+                        textarea.focus();
+                      }, 0);
+                    }
+                  }}
+                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100 italic"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const before = text.substring(0, start);
+                      const selection = text.substring(start, end);
+                      const after = text.substring(end);
+                      const newText = before + '`' + selection + '`' + after;
+                      handleResponseChange(question.id, newText);
+                      setTimeout(() => {
+                        textarea.setSelectionRange(start + 1, end + 1);
+                        textarea.focus();
+                      }, 0);
+                    }
+                  }}
+                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100 font-mono"
+                >
+                  Code
+                </button>
+              </div>
+              <Textarea
+                id="essay"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Write your essay here... You can use **bold**, *italic*, and `code` formatting."
+                className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
+                maxLength={question.maxLength}
+              />
+            </div>
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
+            )}
+          </div>
+        );
+      case 'country':
+        return (
+          <div className="space-y-4">
+            <Label htmlFor="country">Country</Label>
+            <Select
+              value={(responses[question.id] as string) || ''}
+              onValueChange={(value) => handleResponseChange(question.id, value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a country" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72 overflow-y-auto">
+                {countries.map((country) => (
+                  <SelectItem key={country.cca2} value={country.name.common}>
+                    {country.flag} {country.name.common}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
+            )}
+          </div>
+        );
+      case 'statement':
+        return (
+          <div className="space-y-4">
+            <Label htmlFor="statement">Personal Statement</Label>
+            <Textarea
+              id="statement"
+              value={(responses[question.id] as string) || ''}
+              onChange={(e) => handleResponseChange(question.id, e.target.value)}
+              placeholder="Write your personal statement here..."
+              className="min-h-[200px] resize-none text-base leading-relaxed p-4"
+              maxLength={question.maxLength}
+            />
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
+            )}
+          </div>
+        );
+      case 'gpa':
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="gpa">GPA/CWA</Label>
+              <Input
+                id="gpa"
+                type="number"
+                value={(responses[question.id] as number) || ''}
+                onChange={(e) => handleResponseChange(question.id, parseFloat(e.target.value))}
+                placeholder="Enter GPA/CWA (e.g., 3.5 or 85.5)"
+                step="0.01"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gpaScale">Scale</Label>
+              <Select
+                value={(responses[question.id] as string) || ''}
+                onValueChange={(value) => handleResponseChange(question.id, value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select scale" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="4.0">4.0 Scale</SelectItem>
+                  <SelectItem value="4.3">4.3 Scale</SelectItem>
+                  <SelectItem value="4.5">4.5 Scale</SelectItem>
+                  <SelectItem value="5.0">5.0 Scale</SelectItem>
+                  <SelectItem value="CWA">CWA (0-100)</SelectItem>
+                  <SelectItem value="Percentage">Percentage (0-100)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+      case 'test_score':
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="testScore">Test Score</Label>
+              <Input
+                id="testScore"
+                type="number"
+                value={(responses[question.id] as number) || ''}
+                onChange={(e) => handleResponseChange(question.id, parseFloat(e.target.value))}
+                placeholder="Enter test score (e.g., 1500)"
+                step="1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="testType">Test Type</Label>
+              <Select
+                value={(responses[question.id] as string) || ''}
+                onValueChange={(value) => handleResponseChange(question.id, value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select test type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SAT">SAT</SelectItem>
+                  <SelectItem value="ACT">ACT</SelectItem>
+                  <SelectItem value="GRE">GRE</SelectItem>
+                  <SelectItem value="GMAT">GMAT</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         );
       default:
