@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import ApplicationFormRequest from '@/models/ApplicationFormRequest';
 import { auth } from '@/lib/auth';
 import { isAdmin } from '@/lib/auth';
+import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
@@ -80,7 +81,7 @@ export async function PATCH(
 
     // Set processed information
     applicationFormRequest.processedAt = new Date();
-    applicationFormRequest.processedBy = session.user.id;
+    applicationFormRequest.processedBy = new mongoose.Types.ObjectId(session.user.id);
 
     const updatedRequest = await applicationFormRequest.save();
     
