@@ -7,8 +7,9 @@ import DocumentLibrary from '@/components/documents/DocumentLibrary';
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; type?: string; category?: string; status?: string; search?: string };
+  searchParams: Promise<{ page?: string; type?: string; category?: string; status?: string; search?: string }>;
 }) {
+  const params = await searchParams;
   const session = await auth();
   
   if (!session?.user?.id) {
@@ -17,7 +18,7 @@ export default async function DocumentsPage({
 
   await connectDB();
 
-  const page = parseInt(searchParams.page || '1');
+  const page = parseInt(params.page || '1');
   const limit = 12;
   const skip = (page - 1) * limit;
 
@@ -27,14 +28,14 @@ export default async function DocumentsPage({
     isLatestVersion: true // Only get latest versions
   };
 
-  if (searchParams.type) query.type = searchParams.type;
-  if (searchParams.category) query.category = searchParams.category;
-  if (searchParams.status) query.status = searchParams.status;
-  if (searchParams.search) {
+  if (params.type) query.type = params.type;
+  if (params.category) query.category = params.category;
+  if (params.status) query.status = params.status;
+  if (params.search) {
     query.$or = [
-      { title: { $regex: searchParams.search, $options: 'i' } },
-      { description: { $regex: searchParams.search, $options: 'i' } },
-      { tags: { $in: [new RegExp(searchParams.search, 'i')] } }
+      { title: { $regex: params.search, $options: 'i' } },
+      { description: { $regex: params.search, $options: 'i' } },
+      { tags: { $in: [new RegExp(params.search, 'i')] } }
     ];
   }
 
