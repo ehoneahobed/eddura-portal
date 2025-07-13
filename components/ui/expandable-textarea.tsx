@@ -9,7 +9,10 @@ export interface ExpandableTextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   minLength?: number;
   maxLength?: number;
+  minWords?: number;
+  maxWords?: number;
   showCharacterCount?: boolean;
+  showWordCount?: boolean;
   expandable?: boolean;
   defaultExpanded?: boolean;
   onValidationChange?: (isValid: boolean, message?: string) => void;
@@ -20,7 +23,10 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
     className, 
     minLength, 
     maxLength, 
+    minWords,
+    maxWords,
     showCharacterCount = true, 
+    showWordCount = true,
     expandable = true,
     defaultExpanded = false,
     onValidationChange,
@@ -30,18 +36,28 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
   }, ref) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
     const [charCount, setCharCount] = useState((value as string)?.length || 0);
+    const [wordCount, setWordCount] = useState(0);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Update character count when value changes
+    // Helper function to calculate word count
+    const calculateWordCount = (text: string): number => {
+      if (!text || text.trim().length === 0) return 0;
+      return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    };
+
+    // Update character and word count when value changes
     useEffect(() => {
       const currentLength = (value as string)?.length || 0;
+      const currentWordCount = calculateWordCount(value as string);
       setCharCount(currentLength);
+      setWordCount(currentWordCount);
       
       // Validate and notify parent component
       if (onValidationChange) {
         let isValid = true;
         let message = '';
         
+        // Check character limits
         if (minLength && currentLength < minLength) {
           isValid = false;
           message = `At least ${minLength} characters required`;
@@ -50,9 +66,18 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
           message = `Maximum ${maxLength} characters allowed`;
         }
         
+        // Check word limits
+        if (minWords && currentWordCount < minWords) {
+          isValid = false;
+          message = `At least ${minWords} words required`;
+        } else if (maxWords && currentWordCount > maxWords) {
+          isValid = false;
+          message = `Maximum ${maxWords} words allowed`;
+        }
+        
         onValidationChange(isValid, message);
       }
-    }, [value, minLength, maxLength, onValidationChange]);
+    }, [value, minLength, maxLength, minWords, maxWords, onValidationChange]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (onChange) {
@@ -70,38 +95,38 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
       }, 100);
     };
 
-    const getCharacterCountColor = () => {
-      if (maxLength && charCount > maxLength) {
+    const getCountColor = (count: number, min?: number, max?: number) => {
+      if (max && count > max) {
         return 'text-red-600';
       }
-      if (minLength && charCount < minLength) {
+      if (min && count < min) {
         return 'text-orange-600';
       }
       return 'text-gray-500';
     };
 
-    const getCharacterCountIcon = () => {
-      if (maxLength && charCount > maxLength) {
+    const getCountIcon = (count: number, min?: number, max?: number) => {
+      if (max && count > max) {
         return <AlertCircle className="w-4 h-4 text-red-600" />;
       }
-      if (minLength && charCount < minLength) {
+      if (min && count < min) {
         return <AlertCircle className="w-4 h-4 text-orange-600" />;
       }
-      if (minLength && charCount >= minLength) {
+      if (min && count >= min) {
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       }
       return null;
     };
 
-    const getCharacterCountMessage = () => {
-      if (maxLength && charCount > maxLength) {
-        return `${charCount - maxLength} characters over limit`;
+    const getCountMessage = (count: number, type: 'characters' | 'words', min?: number, max?: number) => {
+      if (max && count > max) {
+        return `${count - max} ${type} over limit`;
       }
-      if (minLength && charCount < minLength) {
-        return `${minLength - charCount} more characters needed`;
+      if (min && count < min) {
+        return `${min - count} more ${type} needed`;
       }
-      if (minLength && charCount >= minLength) {
-        return 'Minimum requirement met';
+      if (min && count >= min) {
+        return `Minimum ${type} requirement met`;
       }
       return '';
     };
@@ -150,19 +175,44 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
           )}
         </div>
 
-        {showCharacterCount && (minLength || maxLength) && (
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center space-x-2">
-              {getCharacterCountIcon()}
-              <span className={cn('font-medium', getCharacterCountColor())}>
-                {charCount}
-                {maxLength && ` / ${maxLength}`}
-              </span>
-            </div>
-            {getCharacterCountMessage() && (
-              <span className={cn('text-xs', getCharacterCountColor())}>
-                {getCharacterCountMessage()}
-              </span>
+        {((showCharacterCount && (minLength || maxLength)) || (showWordCount && (minWords || maxWords))) && (
+          <div className="space-y-2">
+            {/* Character Count */}
+            {showCharacterCount && (minLength || maxLength) && (
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-2">
+                  {getCountIcon(charCount, minLength, maxLength)}
+                  <span className={cn('font-medium', getCountColor(charCount, minLength, maxLength))}>
+                    {charCount}
+                    {maxLength && ` / ${maxLength}`}
+                  </span>
+                  <span className="text-gray-500">characters</span>
+                </div>
+                {getCountMessage(charCount, 'characters', minLength, maxLength) && (
+                  <span className={cn('text-xs', getCountColor(charCount, minLength, maxLength))}>
+                    {getCountMessage(charCount, 'characters', minLength, maxLength)}
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {/* Word Count */}
+            {showWordCount && (minWords || maxWords) && (
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-2">
+                  {getCountIcon(wordCount, minWords, maxWords)}
+                  <span className={cn('font-medium', getCountColor(wordCount, minWords, maxWords))}>
+                    {wordCount}
+                    {maxWords && ` / ${maxWords}`}
+                  </span>
+                  <span className="text-gray-500">words</span>
+                </div>
+                {getCountMessage(wordCount, 'words', minWords, maxWords) && (
+                  <span className={cn('text-xs', getCountColor(wordCount, minWords, maxWords))}>
+                    {getCountMessage(wordCount, 'words', minWords, maxWords)}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         )}

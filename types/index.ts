@@ -232,6 +232,8 @@ export interface Question {
   helpText?: string;
   maxLength?: number;
   minLength?: number;
+  maxWords?: number;
+  minWords?: number;
   defaultValue?: string | number | boolean;
   group?: string;  // For grouping related questions
 }
