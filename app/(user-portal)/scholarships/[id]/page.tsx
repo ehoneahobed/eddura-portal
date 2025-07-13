@@ -161,7 +161,7 @@ function ScholarshipDetailContent() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          scholarshipId: scholarship._id,
+          scholarshipId: scholarshipId,
           notes: saveNotes,
           status: saveStatus
         })
@@ -188,7 +188,7 @@ function ScholarshipDetailContent() {
     if (!scholarship) return;
 
     try {
-      const response = await fetch(`/api/user/saved-scholarships/${scholarship._id}`, {
+      const response = await fetch(`/api/user/saved-scholarships/${scholarshipId}`, {
         method: 'DELETE'
       });
 
@@ -207,7 +207,7 @@ function ScholarshipDetailContent() {
   const handleShare = async () => {
     if (!scholarship) return;
 
-    const url = `${window.location.origin}/scholarships/${scholarship._id}`;
+    const url = `${window.location.origin}/scholarships/${scholarshipId}`;
     
     if (navigator.share) {
       try {
