@@ -30,7 +30,8 @@ import {
   Bookmark,
   Share2,
   BookmarkPlus,
-  BookmarkCheck
+  BookmarkCheck,
+  HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -100,7 +101,6 @@ function ScholarshipDetailContent() {
       });
     }
   };
-
   // Format opening date
   const formatOpeningDate = (openingDate: string) => {
     const date = new Date(openingDate);
@@ -126,7 +126,11 @@ function ScholarshipDetailContent() {
   };
 
   // Get opening date color and status
-  const getOpeningDateInfo = (openingDate: string) => {
+  const getOpeningDateInfo = (openingDate?: string) => {
+    if (!openingDate) {
+      return { color: 'bg-gray-100 text-gray-800', status: 'Opening date not specified', icon: HelpCircle };
+    }
+    
     const date = new Date(openingDate);
     const now = new Date();
     const diffTime = date.getTime() - now.getTime();
@@ -138,9 +142,13 @@ function ScholarshipDetailContent() {
     if (diffDays <= 7) {
       return { color: 'bg-blue-100 text-blue-800', status: 'Opening Soon', icon: Clock };
     }
-    return { color: 'bg-gray-100 text-gray-800', status: 'Not Yet Open', icon: Clock };
+    if (diffDays <= 30) {
+      return { color: 'bg-yellow-100 text-yellow-800', status: 'Opening in ' + diffDays + ' days', icon: Calendar };
+    }
+    return { color: 'bg-gray-100 text-gray-800', status: 'Opens in ' + diffDays + ' days', icon: Calendar };
   };
-
+  
+  
   // Get deadline color and status
   const getDeadlineInfo = (deadline: string) => {
     const date = new Date(deadline);
@@ -167,7 +175,7 @@ function ScholarshipDetailContent() {
     const reasons = [];
     let eligible = true;
 
-    // Check if expired
+    // Check if expired - only deadline matters for eligibility
     const deadline = new Date(scholarship.deadline);
     const now = new Date();
     if (deadline < now) {
@@ -453,8 +461,17 @@ function ScholarshipDetailContent() {
           {/* Key Info Stats Bar */}
           <div className="flex flex-col gap-2 md:gap-4 md:items-end">
             <div className="flex flex-wrap gap-3">
+              {(() => {
+                const openingDateInfo = getOpeningDateInfo(scholarship.openingDate);
+                return (
+                  <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${openingDateInfo.color} border shadow-sm`}>
+                    <openingDateInfo.icon className="h-4 w-4" aria-label="Opening Status" />
+                    <span>{openingDateInfo.status}</span>
+                  </div>
+                );
+              })()}
               <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${deadlineInfo.color} border shadow-sm`}>
-                <deadlineInfo.icon className="h-4 w-4" aria-label="Status" />
+                <deadlineInfo.icon className="h-4 w-4" aria-label="Deadline Status" />
                 <span>{deadlineInfo.status}</span>
               </div>
               {scholarship.openingDate && (() => {
@@ -480,10 +497,6 @@ function ScholarshipDetailContent() {
                   {scholarship.linkedSchool}
                 </div>
               )}
-              <div className="flex items-center gap-1 text-blue-100 font-medium bg-blue-700/20 px-3 py-1 rounded-full">
-                <Calendar className="h-4 w-4" aria-label="Deadline" />
-                {formatDeadline(scholarship.deadline)}
-              </div>
             </div>
           </div>
         </div>
@@ -713,6 +726,18 @@ function ScholarshipDetailContent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
+              {/* Opening Date Status */}
+              {(() => {
+                const openingDateInfo = getOpeningDateInfo(scholarship.openingDate);
+                return (
+                  <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${openingDateInfo.color}`}> 
+                    <openingDateInfo.icon className="h-5 w-5" aria-label="Opening Status" />
+                    <span>{openingDateInfo.status}</span>
+                  </div>
+                );
+              })()}
+              
+              {/* Eligibility Status */}
               <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}> 
                 {eligibilityCheck.eligible ? (
                   <CheckCircle className="h-5 w-5 text-green-600" aria-label="Eligible" />
@@ -720,7 +745,13 @@ function ScholarshipDetailContent() {
                   <AlertCircle className="h-5 w-5 text-red-600" aria-label="Not Eligible" />
                 )}
                 {eligibilityCheck.eligible ? 'Eligible to Apply' : 'Not Eligible'}
+                {!eligibilityCheck.eligible && eligibilityCheck.reasons.length > 0 && (
+                  <div className="text-xs mt-1">
+                    {eligibilityCheck.reasons.join(', ')}
+                  </div>
+                )}
               </div>
+              
               <div className="flex flex-col gap-2">
                 {hasApplicationForm ? (
                   <Button 
@@ -781,6 +812,18 @@ function ScholarshipDetailContent() {
                   Share
                 </Button>
               </div>
+              {scholarship.openingDate && (
+                <div className="flex items-center gap-2 text-blue-700">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium">Opens:</span>
+                  <span>{new Date(scholarship.openingDate).toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                  })}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-gray-700">
                 <Calendar className="h-4 w-4 text-orange-600" />
                 <span className="font-medium">Deadline:</span>
