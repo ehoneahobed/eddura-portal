@@ -42,8 +42,9 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import ApplicationStatusBanner from './ApplicationStatusBanner';
 import dynamic from 'next/dynamic';
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css';
+// Remove React-Quill and use a simpler solution
+// const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// import 'react-quill/dist/quill.snow.css';
 import countries from 'world-countries';
 
 interface Question {
@@ -652,13 +653,88 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         return (
           <div className="space-y-4">
             <Label htmlFor="essay">Essay</Label>
-            <ReactQuill
-              id="essay"
-              value={(responses[question.id] as string) || ''}
-              onChange={(value) => handleResponseChange(question.id, value)}
-              theme="snow"
-              className="bg-white"
-            />
+            <div className="border rounded-md">
+              <div className="flex border-b bg-gray-50 p-2 space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const before = text.substring(0, start);
+                      const selection = text.substring(start, end);
+                      const after = text.substring(end);
+                      const newText = before + '**' + selection + '**' + after;
+                      handleResponseChange(question.id, newText);
+                      // Set cursor position after the bold text
+                      setTimeout(() => {
+                        textarea.setSelectionRange(start + 2, end + 2);
+                        textarea.focus();
+                      }, 0);
+                    }
+                  }}
+                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const before = text.substring(0, start);
+                      const selection = text.substring(start, end);
+                      const after = text.substring(end);
+                      const newText = before + '*' + selection + '*' + after;
+                      handleResponseChange(question.id, newText);
+                      setTimeout(() => {
+                        textarea.setSelectionRange(start + 1, end + 1);
+                        textarea.focus();
+                      }, 0);
+                    }
+                  }}
+                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100 italic"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const before = text.substring(0, start);
+                      const selection = text.substring(start, end);
+                      const after = text.substring(end);
+                      const newText = before + '`' + selection + '`' + after;
+                      handleResponseChange(question.id, newText);
+                      setTimeout(() => {
+                        textarea.setSelectionRange(start + 1, end + 1);
+                        textarea.focus();
+                      }, 0);
+                    }
+                  }}
+                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100 font-mono"
+                >
+                  Code
+                </button>
+              </div>
+              <Textarea
+                id="essay"
+                value={(responses[question.id] as string) || ''}
+                onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                placeholder="Write your essay here... You can use **bold**, *italic*, and `code` formatting."
+                className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
+                maxLength={question.maxLength}
+              />
+            </div>
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
             )}
@@ -709,14 +785,16 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         return (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="gpa">GPA</Label>
+              <Label htmlFor="gpa">GPA/CWA</Label>
               <Input
                 id="gpa"
                 type="number"
                 value={(responses[question.id] as number) || ''}
                 onChange={(e) => handleResponseChange(question.id, parseFloat(e.target.value))}
-                placeholder="Enter GPA (e.g., 3.5)"
+                placeholder="Enter GPA/CWA (e.g., 3.5 or 85.5)"
                 step="0.01"
+                min="0"
+                max="100"
               />
             </div>
             <div className="space-y-2">
@@ -729,10 +807,12 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                   <SelectValue placeholder="Select scale" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="4.0">4.0</SelectItem>
-                  <SelectItem value="4.3">4.3</SelectItem>
-                  <SelectItem value="4.5">4.5</SelectItem>
-                  <SelectItem value="5.0">5.0</SelectItem>
+                  <SelectItem value="4.0">4.0 Scale</SelectItem>
+                  <SelectItem value="4.3">4.3 Scale</SelectItem>
+                  <SelectItem value="4.5">4.5 Scale</SelectItem>
+                  <SelectItem value="5.0">5.0 Scale</SelectItem>
+                  <SelectItem value="CWA">CWA (0-100)</SelectItem>
+                  <SelectItem value="Percentage">Percentage (0-100)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

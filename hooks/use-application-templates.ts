@@ -277,9 +277,9 @@ export function getQuestionTypeDescription(type: Question['type']): string {
     education: 'Education history with institution details',
     experience: 'Work experience with company details',
     reference: 'Reference contact information',
-    essay: 'Long-form essay response with rich text editor',
+    essay: 'Long-form essay response with rich text formatting',
     statement: 'Personal statement or motivation letter',
-    gpa: 'GPA input with scale validation',
+    gpa: 'GPA/CWA input with scale validation',
     test_score: 'Standardized test scores (SAT, GRE, etc.)',
     country: 'Country selection from a comprehensive list'
   };
