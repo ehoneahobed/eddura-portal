@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-database.ts",
+    "seed:programs": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-programs.ts",
     "create-admin": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/create-super-admin.ts",
     "setup": "node scripts/setup-env.js",
     "test": "jest",

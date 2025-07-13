@@ -3,6 +3,11 @@ import School from '../models/School';
 import Program from '../models/Program';
 import Scholarship from '../models/Scholarship';
 
+// Add Node.js types for process
+declare const process: {
+  exit: (code: number) => never;
+};
+
 const seedSchools = [
   {
     name: 'Stanford University',
