@@ -163,6 +163,7 @@ const seedScholarships = [
       documentsToSubmit: ['Personal essays', 'CV/Resume', 'Recommendation letters', 'Academic transcripts', 'Stanford application']
     },
     deadline: '2024-10-10',
+    openingDate: '2024-08-01',
     applicationLink: 'https://knight-hennessy.stanford.edu/apply',
     selectionCriteria: ['Leadership', 'Independence', 'Purpose'],
     renewalConditions: 'Maintain good academic standing and participate in leadership development activities',
