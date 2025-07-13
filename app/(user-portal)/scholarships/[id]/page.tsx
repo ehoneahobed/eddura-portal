@@ -204,6 +204,45 @@ function ScholarshipDetailContent() {
     }
   };
 
+  const handleApply = async () => {
+    if (!scholarship || !eligibilityCheck.eligible) return;
+
+    try {
+      // Check if application already exists
+      const existingResponse = await fetch(`/api/applications/check?scholarshipId=${scholarshipId}`);
+      if (existingResponse.ok) {
+        const existingData = await existingResponse.json();
+        if (existingData.exists) {
+          // Application exists, redirect to continue
+          router.push(`/applications/${existingData.applicationId}`);
+          return;
+        }
+      }
+
+      // Create new application
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scholarshipId: scholarshipId,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success('Application started successfully!');
+        router.push(`/applications/${data.applicationId}`);
+      } else {
+        toast.error('Failed to start application');
+      }
+    } catch (error) {
+      console.error('Error starting application:', error);
+      toast.error('Failed to start application');
+    }
+  };
+
   const handleShare = async () => {
     if (!scholarship) return;
 
@@ -531,7 +570,14 @@ function ScholarshipDetailContent() {
                 {eligibilityCheck.eligible ? 'Eligible to Apply' : 'Not Eligible'}
               </div>
               <div className="flex flex-col gap-2">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" aria-label="Apply Now">Apply Now</Button>
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
+                  aria-label="Apply Now"
+                  onClick={handleApply}
+                  disabled={!eligibilityCheck.eligible}
+                >
+                  Apply Now
+                </Button>
                 {isSaved ? (
                   <Button 
                     variant="outline" 
