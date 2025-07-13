@@ -26,14 +26,22 @@ import {
   RefreshCw,
   Mail,
   Phone,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight,
+  Bookmark,
+  Share2,
+  BookmarkPlus,
+  BookmarkCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { useScholarship } from '@/hooks/use-scholarships';
+import { toast } from 'sonner';
 
 function ScholarshipDetailContent() {
   const router = useRouter();
@@ -42,6 +50,13 @@ function ScholarshipDetailContent() {
   const scholarshipId = params.id as string;
   
   const { scholarship, isLoading, isError, mutate } = useScholarship(scholarshipId);
+  
+  // Save/Share state
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [saveNotes, setSaveNotes] = useState('');
+  const [saveStatus, setSaveStatus] = useState('saved');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Format currency
   const formatCurrency = (value: number | string, currency: string = 'USD') => {
@@ -114,6 +129,105 @@ function ScholarshipDetailContent() {
     }
 
     return { eligible, reasons };
+  };
+
+  // Check if scholarship is saved
+  useEffect(() => {
+    if (scholarship && session?.user?.id) {
+      checkIfSaved();
+    }
+  }, [scholarship, session?.user?.id]);
+
+  const checkIfSaved = async () => {
+    try {
+      const response = await fetch(`/api/user/saved-scholarships?scholarshipId=${scholarshipId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsSaved(data.savedScholarships.length > 0);
+      }
+    } catch (error) {
+      console.error('Error checking saved status:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!scholarship) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/user/saved-scholarships', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          scholarshipId: scholarship._id,
+          notes: saveNotes,
+          status: saveStatus
+        })
+      });
+
+      if (response.ok) {
+        setIsSaved(true);
+        toast.success('Scholarship saved successfully!');
+        setIsSaveDialogOpen(false);
+        setSaveNotes('');
+        setSaveStatus('saved');
+      } else {
+        toast.error('Failed to save scholarship');
+      }
+    } catch (error) {
+      console.error('Error saving scholarship:', error);
+      toast.error('Failed to save scholarship');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUnsave = async () => {
+    if (!scholarship) return;
+
+    try {
+      const response = await fetch(`/api/user/saved-scholarships/${scholarship._id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setIsSaved(false);
+        toast.success('Scholarship removed from saved list');
+      } else {
+        toast.error('Failed to remove scholarship');
+      }
+    } catch (error) {
+      console.error('Error unsaving scholarship:', error);
+      toast.error('Failed to remove scholarship');
+    }
+  };
+
+  const handleShare = async () => {
+    if (!scholarship) return;
+
+    const url = `${window.location.origin}/scholarships/${scholarship._id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: scholarship.title,
+          text: `Check out this scholarship: ${scholarship.title} - ${scholarship.provider}`,
+          url: url
+        });
+      } catch (error) {
+        // User cancelled sharing
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard!');
+      } catch (error) {
+        toast.error('Failed to copy link');
+      }
+    }
   };
 
   if (status === 'loading') {
@@ -418,8 +532,36 @@ function ScholarshipDetailContent() {
               </div>
               <div className="flex flex-col gap-2">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" aria-label="Apply Now">Apply Now</Button>
-                <Button variant="outline" className="w-full" aria-label="Save Scholarship">Save</Button>
-                <Button variant="ghost" className="w-full" aria-label="Share Scholarship">Share</Button>
+                {isSaved ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100" 
+                    onClick={handleUnsave}
+                    aria-label="Unsave Scholarship"
+                  >
+                    <BookmarkCheck className="h-4 w-4 mr-2" />
+                    Saved
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => setIsSaveDialogOpen(true)}
+                    aria-label="Save Scholarship"
+                  >
+                    <BookmarkPlus className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                )}
+                <Button 
+                  variant="ghost" 
+                  className="w-full" 
+                  onClick={handleShare}
+                  aria-label="Share Scholarship"
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <Calendar className="h-4 w-4 text-orange-600" />
@@ -488,6 +630,61 @@ function ScholarshipDetailContent() {
           </Card>
         </aside>
       </div>
+
+      {/* Save Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Scholarship</DialogTitle>
+            <DialogDescription>
+              Add this scholarship to your saved list with notes and status.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Status</label>
+              <Select value={saveStatus} onValueChange={setSaveStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="saved">Saved</SelectItem>
+                  <SelectItem value="interested">Interested</SelectItem>
+                  <SelectItem value="applied">Applied</SelectItem>
+                  <SelectItem value="not-interested">Not Interested</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">Notes (Optional)</label>
+              <Textarea
+                placeholder="Add your notes about this scholarship..."
+                value={saveNotes}
+                onChange={(e) => setSaveNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSaveDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Scholarship'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
