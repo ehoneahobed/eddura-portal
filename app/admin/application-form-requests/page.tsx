@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination } from '@/components/ui/pagination';
 import { format } from 'date-fns';
 import { Search, Filter, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
 
@@ -118,20 +118,20 @@ export default function ApplicationFormRequestsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { variant: 'secondary' as const, icon: Clock, text: 'Pending' },
-      approved: { variant: 'default' as const, icon: CheckCircle, text: 'Approved' },
-      rejected: { variant: 'destructive' as const, icon: XCircle, text: 'Rejected' },
-      completed: { variant: 'default' as const, icon: CheckCircle, text: 'Completed' }
+      pending: { className: 'bg-gray-100 text-gray-800', icon: Clock, text: 'Pending' },
+      approved: { className: 'bg-green-100 text-green-800', icon: CheckCircle, text: 'Approved' },
+      rejected: { className: 'bg-red-100 text-red-800', icon: XCircle, text: 'Rejected' },
+      completed: { className: 'bg-blue-100 text-blue-800', icon: CheckCircle, text: 'Completed' }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="w-3 h-3" />
+      <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.className}`}>
+        <Icon className="w-3 h-3 mr-1" />
         {config.text}
-      </Badge>
+      </div>
     );
   };
 
@@ -238,33 +238,11 @@ export default function ApplicationFormRequestsPage() {
 
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                onClick={() => fetchRequests(pagination.currentPage - 1)}
-                className={!pagination.hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-            </PaginationItem>
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => fetchRequests(page)}
-                  isActive={page === pagination.currentPage}
-                  className="cursor-pointer"
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext 
-                onClick={() => fetchRequests(pagination.currentPage + 1)}
-                className={!pagination.hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={fetchRequests}
+        />
       )}
 
       {/* Update Dialog */}

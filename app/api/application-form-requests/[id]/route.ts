@@ -6,7 +6,7 @@ import { isAdmin } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -16,7 +16,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const request = await ApplicationFormRequest.findById(params.id)
+    const resolvedParams = await params;
+    const request = await ApplicationFormRequest.findById(resolvedParams.id)
       .populate('user', 'firstName lastName email')
       .populate('scholarship', 'title provider')
       .populate('admin', 'firstName lastName email')
@@ -41,7 +42,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -54,7 +55,8 @@ export async function PATCH(
     const body = await request.json();
     const { status, adminNotes, applicationTemplateId } = body;
 
-    const applicationFormRequest = await ApplicationFormRequest.findById(params.id);
+    const resolvedParams = await params;
+    const applicationFormRequest = await ApplicationFormRequest.findById(resolvedParams.id);
     
     if (!applicationFormRequest) {
       return NextResponse.json(
