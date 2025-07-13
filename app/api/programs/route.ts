@@ -4,7 +4,9 @@ import Program from '@/models/Program';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('API: Connecting to database...');
     await connectDB();
+    console.log('API: Database connected successfully');
     
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -81,15 +83,17 @@ export async function GET(request: NextRequest) {
     
     // Get total count for pagination
     const totalCount = await Program.countDocuments(filter);
+    console.log('API: Total programs count:', totalCount);
     
     // Get paginated programs
     let programs;
     try {
       programs = await Program.find(filter)
-        .populate('schoolId', 'name country city')
+        .populate('schoolId', 'name country city globalRanking')
         .sort(sort)
         .skip(skip)
         .limit(limit);
+      console.log('API: Found programs:', programs.length);
     } catch (err) {
       console.error('Error during Program.find/populate:', err);
       return NextResponse.json(
@@ -113,11 +117,37 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Transform the data to match frontend expectations
+    const transformedPrograms = filteredPrograms.map((program: any) => ({
+      _id: program._id,
+      name: program.name,
+      degreeType: program.degreeType,
+      fieldOfStudy: program.fieldOfStudy,
+      subfield: program.subfield,
+      mode: program.mode,
+      duration: program.duration,
+      languages: program.languages,
+      applicationDeadlines: program.applicationDeadlines,
+      intakeSessions: program.intakeSessions,
+      tuitionFees: program.tuitionFees,
+      availableScholarships: program.availableScholarships,
+      applicationFee: program.applicationFee,
+      employabilityRank: program.employabilityRank,
+      programLevel: program.programLevel,
+      school: {
+        _id: program.schoolId?._id || '',
+        name: program.schoolId?.name || 'Unknown School',
+        country: program.schoolId?.country || 'Unknown',
+        city: program.schoolId?.city || 'Unknown',
+        globalRanking: program.schoolId?.globalRanking
+      }
+    }));
+    
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / limit);
     
     return NextResponse.json({
-      programs: filteredPrograms,
+      programs: transformedPrograms,
       pagination: {
         currentPage: page,
         totalPages,

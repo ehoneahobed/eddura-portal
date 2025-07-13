@@ -81,10 +81,18 @@ export default function ProgramsPage() {
 
   const fetchPrograms = async () => {
     try {
+      console.log('Fetching programs...');
       const response = await fetch('/api/programs?limit=50');
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Programs data:', data);
         setPrograms(data.programs || []);
+      } else {
+        console.error('Response not ok:', response.status, response.statusText);
+        const errorData = await response.text();
+        console.error('Error data:', errorData);
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
@@ -192,7 +200,7 @@ export default function ProgramsPage() {
   }
 
   return (
-    <div>
+    <StudentLayout>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -430,6 +438,6 @@ export default function ProgramsPage() {
           </motion.div>
         )}
       </div>
-    </div>
+    </StudentLayout>
   );
 }
