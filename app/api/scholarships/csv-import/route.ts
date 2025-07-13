@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
           eligibility,
           applicationRequirements,
           deadline: record.deadline,
+          startDate: record.startDate,
           applicationLink: record.applicationLink,
           selectionCriteria: processArrayField(record.selectionCriteria),
           renewalConditions: record.renewalConditions,

@@ -32,6 +32,7 @@ interface Scholarship {
   currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   deadline: string;
+  startDate?: string;
   eligibility: {
     degreeLevels?: string[];
     fieldsOfStudy?: string[];
@@ -77,6 +78,19 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
     if (days <= 7) return { status: 'urgent', color: 'bg-orange-100 text-orange-800', icon: Clock };
     if (days <= 30) return { status: 'soon', color: 'bg-yellow-100 text-yellow-800', icon: Calendar };
     return { status: 'normal', color: 'bg-green-100 text-green-800', icon: CheckCircle };
+  };
+
+  const getStartDateInfo = (startDate?: string) => {
+    if (!startDate) return null;
+    
+    const startDateObj = new Date(startDate);
+    const today = new Date();
+    const diffTime = startDateObj.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return null; // Already open
+    if (diffDays <= 7) return { status: 'opens-soon', color: 'bg-cyan-100 text-cyan-800', text: `Opens in ${diffDays} days` };
+    return { status: 'not-open', color: 'bg-gray-100 text-gray-800', text: `Opens ${startDateObj.toLocaleDateString()}` };
   };
 
   const daysUntilDeadline = getDaysUntilDeadline(scholarship.deadline);
@@ -192,6 +206,24 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             </div>
           )}
 
+          {/* Start Date */}
+          {(() => {
+            const startDateInfo = getStartDateInfo(scholarship.startDate);
+            return startDateInfo && (
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-xs text-gray-600">
+                    {startDateInfo.text}
+                  </span>
+                </div>
+                <Badge className={`text-xs ${startDateInfo.color}`}>
+                  {startDateInfo.status === 'opens-soon' ? 'Opens Soon' : 'Not Open'}
+                </Badge>
+              </div>
+            );
+          })()}
+
           {/* Deadline */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
@@ -241,11 +273,17 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
                 </Button>
               </Link>
               
-              {daysUntilDeadline >= 0 && (
-                <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                  Apply Now
-                </Button>
-              )}
+              {(() => {
+                const startDateInfo = getStartDateInfo(scholarship.startDate);
+                const isOpen = !startDateInfo; // If no start date info, it's open
+                const isNotExpired = daysUntilDeadline >= 0;
+                
+                return isOpen && isNotExpired && (
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    Apply Now
+                  </Button>
+                );
+              })()}
             </div>
           </div>
         </CardContent>

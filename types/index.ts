@@ -144,6 +144,7 @@ export interface Scholarship {
     documentsToSubmit?: string[];
   };
   deadline: string;
+  startDate?: string;
   applicationLink: string;
   selectionCriteria: string[];
   renewalConditions?: string;

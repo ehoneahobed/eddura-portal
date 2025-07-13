@@ -267,6 +267,15 @@ export default function ScholarshipsPage() {
                         </span>
                       </div>
                     </div>
+                    {scholarship.startDate && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Opens:</span>
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                          <span>{formatDate(scholarship.startDate)}</span>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Deadline:</span>
                       <div className="flex items-center">

@@ -32,6 +32,7 @@ export interface IScholarship extends Document {
     documentsToSubmit?: string[];
   };
   deadline: string;
+  startDate?: string;
   applicationLink: string;
   selectionCriteria: string[];
   renewalConditions?: string;
@@ -106,6 +107,7 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
       documentsToSubmit: [{ type: String, trim: true }],
     },
     deadline: { type: String, required: true },
+    startDate: { type: String, trim: true },
     applicationLink: { 
       type: String, 
       required: true, 

@@ -46,6 +46,7 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
       currency: 'USD',
       frequency: 'Annual',
       deadline: '',
+      startDate: '',
       applicationLink: '',
       tags: [],
       eligibility: {
@@ -323,6 +324,17 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
                 placeholder="Awards per year"
                 className="h-11"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Application Start Date</Label>
+              <Input
+                id="startDate"
+                type="date"
+                {...register('startDate')}
+                className="h-11"
+              />
+              <p className="text-xs text-gray-500">When applications open (optional)</p>
             </div>
 
             <div className="space-y-2">

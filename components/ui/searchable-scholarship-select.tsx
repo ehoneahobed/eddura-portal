@@ -285,9 +285,15 @@ export default function SearchableScholarshipSelect({
         
         <div className="flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-3">
+            {scholarship.startDate && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                <span>Opens: {formatDeadline(scholarship.startDate)}</span>
+              </div>
+            )}
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              <span>{deadline}</span>
+              <span>Deadline: {deadline}</span>
             </div>
             {scholarship.eligibility.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
               <div className="flex items-center gap-1">

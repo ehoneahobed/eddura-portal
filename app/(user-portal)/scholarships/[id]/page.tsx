@@ -79,6 +79,33 @@ function ScholarshipDetailContent() {
     }
   };
 
+  // Format start date
+  const formatStartDate = (startDate?: string) => {
+    if (!startDate) return 'Not specified';
+    
+    const date = new Date(startDate);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return 'Already open';
+    } else if (diffDays === 0) {
+      return 'Opens today';
+    } else if (diffDays === 1) {
+      return 'Opens tomorrow';
+    } else if (diffDays <= 7) {
+      return `Opens in ${diffDays} days`;
+    } else {
+      return `Opens ${date.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric'
+      })}`;
+    }
+  };
+
   // Get deadline color and status
   const getDeadlineInfo = (deadline: string) => {
     const date = new Date(deadline);
@@ -111,6 +138,15 @@ function ScholarshipDetailContent() {
     if (deadline < now) {
       eligible = false;
       reasons.push('Application deadline has passed');
+    }
+
+    // Check if not yet open
+    if (scholarship.startDate) {
+      const startDate = new Date(scholarship.startDate);
+      if (startDate > now) {
+        eligible = false;
+        reasons.push('Applications not yet open');
+      }
     }
 
     return { eligible, reasons };
@@ -197,6 +233,12 @@ function ScholarshipDetailContent() {
                 <div className="flex items-center gap-1 text-purple-100 font-semibold bg-purple-700/20 px-3 py-1 rounded-full">
                   <MapPin className="h-4 w-4" aria-label="Institution" />
                   {scholarship.linkedSchool}
+                </div>
+              )}
+              {scholarship.startDate && (
+                <div className="flex items-center gap-1 text-cyan-100 font-medium bg-cyan-700/20 px-3 py-1 rounded-full">
+                  <Calendar className="h-4 w-4" aria-label="Start Date" />
+                  {formatStartDate(scholarship.startDate)}
                 </div>
               )}
               <div className="flex items-center gap-1 text-blue-100 font-medium bg-blue-700/20 px-3 py-1 rounded-full">
@@ -421,6 +463,13 @@ function ScholarshipDetailContent() {
                 <Button variant="outline" className="w-full" aria-label="Save Scholarship">Save</Button>
                 <Button variant="ghost" className="w-full" aria-label="Share Scholarship">Share</Button>
               </div>
+              {scholarship.startDate && (
+                <div className="flex items-center gap-2 text-cyan-700">
+                  <Calendar className="h-4 w-4 text-cyan-600" />
+                  <span className="font-medium">Opens:</span>
+                  <span>{formatStartDate(scholarship.startDate)}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-gray-700">
                 <Calendar className="h-4 w-4 text-orange-600" />
                 <span className="font-medium">Deadline:</span>
