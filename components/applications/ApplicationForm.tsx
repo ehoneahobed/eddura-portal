@@ -42,6 +42,8 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import ApplicationStatusBanner from './ApplicationStatusBanner';
 import dynamic from 'next/dynamic';
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import 'react-quill/dist/quill.snow.css';
 import countries from 'world-countries';
 
 interface Question {
