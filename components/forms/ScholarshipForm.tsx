@@ -45,6 +45,7 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
       value: '',
       currency: 'USD',
       frequency: 'Annual',
+      openingDate: '',
       deadline: '',
       applicationLink: '',
       tags: [],
@@ -336,6 +337,19 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
               {errors.deadline && (
                 <p className="text-sm text-red-600">{errors.deadline.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="openingDate">Application Opening Date</Label>
+              <Input
+                id="openingDate"
+                type="date"
+                {...register('openingDate')}
+                className="h-11"
+              />
+              <p className="text-xs text-gray-500">
+                When applications can start being submitted. Leave empty if applications are already open.
+              </p>
             </div>
 
             <div className="space-y-2">

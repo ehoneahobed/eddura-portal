@@ -94,6 +94,46 @@ function ScholarshipDetailContent() {
     }
   };
 
+  // Format opening date
+  const formatOpeningDate = (openingDate: string) => {
+    const date = new Date(openingDate);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return 'Opened';
+    } else if (diffDays === 0) {
+      return 'Opens today';
+    } else if (diffDays === 1) {
+      return 'Opens tomorrow';
+    } else if (diffDays <= 7) {
+      return `Opens in ${diffDays} days`;
+    } else {
+      return `Opens ${date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      })}`;
+    }
+  };
+
+  // Get opening date color and status
+  const getOpeningDateInfo = (openingDate: string) => {
+    const date = new Date(openingDate);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return { color: 'bg-green-100 text-green-800', status: 'Open', icon: CheckCircle };
+    }
+    if (diffDays <= 7) {
+      return { color: 'bg-blue-100 text-blue-800', status: 'Opening Soon', icon: Clock };
+    }
+    return { color: 'bg-gray-100 text-gray-800', status: 'Not Yet Open', icon: Clock };
+  };
+
   // Get deadline color and status
   const getDeadlineInfo = (deadline: string) => {
     const date = new Date(deadline);
@@ -126,6 +166,15 @@ function ScholarshipDetailContent() {
     if (deadline < now) {
       eligible = false;
       reasons.push('Application deadline has passed');
+    }
+
+    // Check if not yet opened
+    if (scholarship.openingDate) {
+      const openingDate = new Date(scholarship.openingDate);
+      if (openingDate > now) {
+        eligible = false;
+        reasons.push('Applications are not yet open');
+      }
     }
 
     return { eligible, reasons };
@@ -342,6 +391,19 @@ function ScholarshipDetailContent() {
                 <deadlineInfo.icon className="h-4 w-4" aria-label="Status" />
                 <span>{deadlineInfo.status}</span>
               </div>
+              {scholarship.openingDate && (() => {
+                const openingInfo = getOpeningDateInfo(scholarship.openingDate);
+                return (
+                  <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${openingInfo.color} border shadow-sm`}>
+                    {openingInfo.icon === CheckCircle ? (
+                      <CheckCircle className="h-4 w-4" aria-label="Opening Status" />
+                    ) : (
+                      <Clock className="h-4 w-4" aria-label="Opening Status" />
+                    )}
+                    <span>{openingInfo.status}</span>
+                  </div>
+                );
+              })()}
               <div className="flex items-center gap-1 text-green-100 font-semibold bg-green-700/20 px-3 py-1 rounded-full">
                 <DollarSign className="h-4 w-4" aria-label="Value" />
                 {formatCurrency(scholarship.value ?? 0, scholarship.currency ?? 'USD')}
@@ -378,6 +440,30 @@ function ScholarshipDetailContent() {
                   <p className="text-gray-700 leading-relaxed text-base">
                     {scholarship.scholarshipDetails}
                   </p>
+                </CardContent>
+              </Card>
+            </section>
+          )}
+
+          {/* Coverage */}
+          {scholarship.coverage && scholarship.coverage.length > 0 && (
+            <section aria-labelledby="coverage-header" className="animate-slide-in-up">
+              <Card className="border-0 shadow">
+                <CardHeader>
+                  <CardTitle id="coverage-header" className="flex items-center gap-2 text-lg">
+                    <DollarSign className="h-5 w-5 text-green-600" aria-label="Coverage" />
+                    What This Scholarship Covers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {scholarship.coverage.map((item: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700 font-medium">{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </section>
@@ -614,6 +700,13 @@ function ScholarshipDetailContent() {
                 <span className="font-medium">Deadline:</span>
                 <span>{formatDeadline(scholarship.deadline)}</span>
               </div>
+              {scholarship.openingDate && (
+                <div className="flex items-center gap-2 text-blue-700">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium">Opens:</span>
+                  <span>{formatOpeningDate(scholarship.openingDate)}</span>
+                </div>
+              )}
               {scholarship.value && (
                 <div className="flex items-center gap-2 text-green-700">
                   <DollarSign className="h-4 w-4" />
@@ -669,6 +762,26 @@ function ScholarshipDetailContent() {
                     {scholarship.tags.map((tag, idx) => (
                       <Badge key={idx} className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 text-xs font-medium">{tag}</Badge>
                     ))}
+                  </div>
+                </div>
+              )}
+              {scholarship.coverage && scholarship.coverage.length > 0 && (
+                <div>
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    <span>Covers:</span>
+                  </div>
+                  <div className="space-y-1">
+                    {scholarship.coverage.slice(0, 3).map((item: string, idx: number) => (
+                      <div key={idx} className="text-sm text-gray-700 bg-green-50 px-2 py-1 rounded border border-green-200">
+                        {item}
+                      </div>
+                    ))}
+                    {scholarship.coverage.length > 3 && (
+                      <div className="text-xs text-gray-500 italic">
+                        +{scholarship.coverage.length - 3} more items
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

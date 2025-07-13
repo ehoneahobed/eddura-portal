@@ -143,6 +143,7 @@ export interface Scholarship {
     requirementsDescription?: string;
     documentsToSubmit?: string[];
   };
+  openingDate?: string;
   deadline: string;
   applicationLink: string;
   selectionCriteria: string[];
