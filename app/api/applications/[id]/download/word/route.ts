@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Application from '@/models/Application';
+import Application, { IApplication } from '@/models/Application';
+import { IScholarship } from '@/models/Scholarship';
+import { IApplicationTemplate } from '@/models/ApplicationTemplate';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
+
+// Type for populated application
+interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'applicationTemplateId'> {
+  scholarshipId: IScholarship;
+  applicationTemplateId: IApplicationTemplate;
+}
 
 export async function POST(
   request: NextRequest,
@@ -26,7 +34,7 @@ export async function POST(
       isActive: true
     })
     .populate('scholarshipId', 'title value currency deadline')
-    .populate('applicationTemplateId', 'title sections estimatedTime instructions');
+    .populate('applicationTemplateId', 'title sections estimatedTime instructions') as PopulatedApplication | null;
 
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
@@ -49,7 +57,7 @@ export async function POST(
   }
 }
 
-function generateWordDocument(application: any): Buffer {
+function generateWordDocument(application: PopulatedApplication): Buffer {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -68,7 +76,10 @@ function generateWordDocument(application: any): Buffer {
     });
   };
 
-  const formatCurrency = (value: number, currency: string = 'USD') => {
+  const formatCurrency = (value: number | string, currency: string = 'USD') => {
+    if (typeof value === 'string') {
+      return value; // Return as-is if it's already a string
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency || 'USD',
@@ -230,7 +241,7 @@ function generateWordDocument(application: any): Buffer {
             <w:tc>
               <w:p>
                 <w:r>
-                  <w:t>${formatDate(application.startedAt)}</w:t>
+                  <w:t>${formatDate(application.startedAt.toISOString())}</w:t>
                 </w:r>
               </w:p>
             </w:tc>
@@ -246,7 +257,7 @@ function generateWordDocument(application: any): Buffer {
             <w:tc>
               <w:p>
                 <w:r>
-                  <w:t>${application.submittedAt ? formatDateTime(application.submittedAt) : 'Not submitted'}</w:t>
+                  <w:t>${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}</w:t>
                 </w:r>
               </w:p>
             </w:tc>
@@ -352,8 +363,8 @@ Scholarship: ${application.scholarshipId.title}
 Amount: ${application.scholarshipId.value ? formatCurrency(application.scholarshipId.value, application.scholarshipId.currency) : 'Not specified'}
 Deadline: ${formatDate(application.scholarshipId.deadline)}
 Status: ${application.status.charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ')}
-Started: ${formatDate(application.startedAt)}
-Submitted: ${application.submittedAt ? formatDateTime(application.submittedAt) : 'Not submitted'}
+Started: ${formatDate(application.startedAt.toISOString())}
+Submitted: ${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}
 
 ${application.applicationTemplateId.sections.map((section: any) => `
 ${section.title}
