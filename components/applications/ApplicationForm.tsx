@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import ApplicationStatusBanner from './ApplicationStatusBanner';
 
 interface Question {
   id: string;
@@ -440,6 +441,18 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
           </div>
           <Progress value={overallProgress} className="h-2" />
         </div>
+      </div>
+
+      {/* Application Status Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <ApplicationStatusBanner 
+          scholarship={{
+            title: application.scholarshipId.title,
+            deadline: application.scholarshipId.deadline,
+            value: application.scholarshipId.value,
+            currency: application.scholarshipId.currency
+          }}
+        />
       </div>
 
       {/* Main Content */}

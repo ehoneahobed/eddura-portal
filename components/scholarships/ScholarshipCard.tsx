@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getScholarshipStatus } from '@/lib/scholarship-status';
 
 interface Scholarship {
   _id: string;
@@ -32,6 +33,7 @@ interface Scholarship {
   currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   deadline: string;
+  openingDate?: string;
   eligibility: {
     degreeLevels?: string[];
     fieldsOfStudy?: string[];
@@ -64,24 +66,8 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
     return value || 'Varies';
   };
 
-  const getDaysUntilDeadline = (deadline: string) => {
-    const deadlineDate = new Date(deadline);
-    const today = new Date();
-    const diffTime = deadlineDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const getDeadlineStatus = (days: number) => {
-    if (days < 0) return { status: 'expired', color: 'bg-red-100 text-red-800', icon: AlertCircle };
-    if (days <= 7) return { status: 'urgent', color: 'bg-orange-100 text-orange-800', icon: Clock };
-    if (days <= 30) return { status: 'soon', color: 'bg-yellow-100 text-yellow-800', icon: Calendar };
-    return { status: 'normal', color: 'bg-green-100 text-green-800', icon: CheckCircle };
-  };
-
-  const daysUntilDeadline = getDaysUntilDeadline(scholarship.deadline);
-  const deadlineStatus = getDeadlineStatus(daysUntilDeadline);
-  const DeadlineIcon = deadlineStatus.icon;
+  // Get unified scholarship status
+  const scholarshipStatus = getScholarshipStatus(scholarship.deadline, scholarship.openingDate);
 
   const requirements = [];
   if (scholarship.applicationRequirements.essay) requirements.push('Essay');
@@ -192,19 +178,26 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             </div>
           )}
 
-          {/* Deadline */}
+          {/* Status and Deadline */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <DeadlineIcon className="h-4 w-4 text-gray-400" />
+              <scholarshipStatus.deadlineInfo.icon className="h-4 w-4 text-gray-400" />
               <span className="text-xs text-gray-600">
-                {daysUntilDeadline >= 0 ? `${daysUntilDeadline} days left` : 'Expired'}
+                {scholarshipStatus.deadlineInfo.daysLeft >= 0 ? `${scholarshipStatus.deadlineInfo.daysLeft} days left` : 'Expired'}
               </span>
             </div>
-            <Badge className={`text-xs ${deadlineStatus.color}`}>
-              {deadlineStatus.status === 'expired' ? 'Expired' : 
-               deadlineStatus.status === 'urgent' ? 'Urgent' :
-               deadlineStatus.status === 'soon' ? 'Soon' : 'Open'}
-            </Badge>
+            <div className="flex gap-1">
+              {/* Opening Date Status */}
+              {scholarship.openingDate && (
+                <Badge className={`text-xs ${scholarshipStatus.openingDateInfo.color}`}>
+                  {scholarshipStatus.openingDateInfo.status}
+                </Badge>
+              )}
+              {/* Deadline Status */}
+              <Badge className={`text-xs ${scholarshipStatus.deadlineInfo.color}`}>
+                {scholarshipStatus.deadlineInfo.status}
+              </Badge>
+            </div>
           </div>
 
           {/* Tags */}
@@ -241,9 +234,13 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
                 </Button>
               </Link>
               
-              {daysUntilDeadline >= 0 && (
-                <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                  Apply Now
+              {scholarshipStatus.canApply && (
+                <Button 
+                  size="sm" 
+                  className={scholarshipStatus.isExpired ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}
+                  disabled={scholarshipStatus.applyButtonDisabled}
+                >
+                  {scholarshipStatus.applyButtonText}
                 </Button>
               )}
             </div>
