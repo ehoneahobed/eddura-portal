@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,13 +30,34 @@ import { formatDistanceToNow } from 'date-fns';
 export default function ApplicationTemplatesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const { templates, pagination, error, isLoading, mutate } = useApplicationTemplates({
-    search: searchTerm || undefined,
+    search: debouncedSearchTerm || undefined,
     isActive: isActiveFilter === null ? undefined : isActiveFilter,
-    page: 1,
-    limit: 20
+    page: currentPage,
+    limit: 15
+  });
+
+  // Debug logging
+  console.log('Application Templates Debug:', {
+    templates: templates.length,
+    pagination,
+    currentPage,
+    searchTerm: debouncedSearchTerm,
+    isActiveFilter
   });
 
   const handleSearch = (value: string) => {
@@ -45,6 +66,11 @@ export default function ApplicationTemplatesPage() {
 
   const handleFilterChange = (value: boolean | null) => {
     setIsActiveFilter(value);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   const handleCreateTemplate = () => {
@@ -112,6 +138,15 @@ export default function ApplicationTemplatesPage() {
           </Button>
         </div>
       </div>
+
+      {/* Total Count Display */}
+      {!isLoading && pagination && (
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Showing {templates.length} of {pagination.totalCount} application templates
+          </p>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <Card className="mb-6">
@@ -285,27 +320,41 @@ export default function ApplicationTemplatesPage() {
       )}
 
       {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && (
         <div className="mt-8 flex justify-center">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!pagination.hasPrevPage}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600">
-              Page {pagination.currentPage} of {pagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!pagination.hasNextPage}
-            >
-              Next
-            </Button>
-          </div>
+          {pagination.totalPages > 1 ? (
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.hasPrevPage}
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+              >
+                Previous
+              </Button>
+              
+              <div className="text-sm text-gray-600">
+                <span>Page {pagination.currentPage} of {pagination.totalPages}</span>
+                <span className="mx-2">•</span>
+                <span>
+                  Showing {((pagination.currentPage - 1) * 15) + 1} to {Math.min(pagination.currentPage * 15, pagination.totalCount)} of {pagination.totalCount} templates
+                </span>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.hasNextPage}
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-600">
+              Showing all {pagination.totalCount} templates
+            </div>
+          )}
         </div>
       )}
     </div>
