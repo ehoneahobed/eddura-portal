@@ -146,8 +146,11 @@ export default function ScholarshipsPage() {
         params.append('hasRecommendations', 'true');
       }
 
-      // Include expired scholarships if status filter allows it
-      if (selectedStatus === 'all' || selectedStatus === 'expired') {
+      // Add status filter for server-side filtering
+      if (selectedStatus !== 'all') {
+        params.append('status', selectedStatus);
+      } else {
+        // Include expired scholarships when showing all statuses
         params.append('includeExpired', 'true');
       }
 
@@ -181,36 +184,6 @@ export default function ScholarshipsPage() {
       default: return 'desc';
     }
   };
-
-  // Filter scholarships by status on the client side
-  const getFilteredScholarships = () => {
-    if (selectedStatus === 'all') return scholarships;
-    
-    const now = new Date();
-    const sixMonthsFromNow = new Date();
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    
-    return scholarships.filter((scholarship: any) => {
-      const deadline = new Date(scholarship.deadline);
-      
-      switch (selectedStatus) {
-        case 'active':
-          return deadline >= now;
-        case 'expired':
-          return deadline < now;
-        case 'coming-soon':
-          return deadline > now && deadline <= sixMonthsFromNow;
-        case 'urgent':
-          const thirtyDaysFromNow = new Date();
-          thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-          return deadline >= now && deadline <= thirtyDaysFromNow;
-        default:
-          return true;
-      }
-    });
-  };
-
-  const filteredScholarships = getFilteredScholarships();
 
   const handlePageChange = (page: number) => {
     setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: page }));
@@ -415,7 +388,7 @@ export default function ScholarshipsPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-gray-600">
-              Showing <span className="font-semibold">{filteredScholarships.length}</span> of{' '}
+              Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
               <span className="font-semibold">{pagination.totalCount}</span> scholarships
               {searchTerm && ` for "${searchTerm}"`}
               {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
@@ -442,14 +415,14 @@ export default function ScholarshipsPage() {
         </motion.div>
 
         {/* Scholarships Grid */}
-        {filteredScholarships.length > 0 ? (
+        {scholarships.length > 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {filteredScholarships.map((scholarship, index) => (
+            {scholarships.map((scholarship, index) => (
               <motion.div
                 key={scholarship._id}
                 initial={{ opacity: 0, y: 20 }}

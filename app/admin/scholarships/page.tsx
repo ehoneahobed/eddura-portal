@@ -39,38 +39,9 @@ export default function ScholarshipsPage() {
        selectedFrequency === 'Full Duration' ? 'other' : 'other') : undefined,
     sortBy: 'title',
     sortOrder: 'asc',
-    includeExpired
+    includeExpired,
+    status: selectedStatus !== 'all' ? selectedStatus : undefined
   });
-
-  // Filter scholarships by status on the client side
-  const getFilteredScholarships = () => {
-    if (selectedStatus === 'all') return scholarships;
-    
-    const now = new Date();
-    const sixMonthsFromNow = new Date();
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    
-    return scholarships.filter((scholarship: any) => {
-      const deadline = new Date(scholarship.deadline);
-      
-      switch (selectedStatus) {
-        case 'active':
-          return deadline >= now;
-        case 'expired':
-          return deadline < now;
-        case 'coming-soon':
-          return deadline > now && deadline <= sixMonthsFromNow;
-        case 'urgent':
-          const thirtyDaysFromNow = new Date();
-          thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-          return deadline >= now && deadline <= thirtyDaysFromNow;
-        default:
-          return true;
-      }
-    });
-  };
-
-  const filteredScholarships = getFilteredScholarships();
 
   // Handle search and filter changes
   const handleSearchChange = (value: string) => {
@@ -262,7 +233,7 @@ export default function ScholarshipsPage() {
       {/* Results Info */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Showing {filteredScholarships.length} of {pagination.totalCount} scholarships
+          Showing {scholarships.length} of {pagination.totalCount} scholarships
           {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
         </div>
       </div>
@@ -280,7 +251,7 @@ export default function ScholarshipsPage() {
       {/* Scholarships Grid */}
       {!isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredScholarships.map((scholarship) => (
+          {scholarships.map((scholarship) => (
             <Link
               key={scholarship.id}
               href={`/admin/scholarships/${scholarship.id}`}
@@ -363,7 +334,7 @@ export default function ScholarshipsPage() {
       )}
 
       {/* Empty State */}
-      {!isLoading && filteredScholarships.length === 0 && (
+      {!isLoading && scholarships.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-500 mb-4">
             <ExternalLink className="h-12 w-12 mx-auto mb-4 text-gray-300" />

@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     const includeExpired = searchParams.get('includeExpired') === 'true';
+    const status = searchParams.get('status') || '';
     
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
@@ -107,9 +108,35 @@ export async function GET(request: NextRequest) {
       filter['applicationRequirements.recommendationLetters'] = { $gt: 0 };
     }
     
-    // Filter out expired scholarships by default
-    if (!includeExpired) {
-      const now = new Date();
+    // Status-based deadline filtering
+    const now = new Date();
+    if (status) {
+      switch (status) {
+        case 'active':
+          filter.deadline = { $gte: now.toISOString() };
+          break;
+        case 'expired':
+          filter.deadline = { $lt: now.toISOString() };
+          break;
+        case 'coming-soon':
+          const sixMonthsFromNow = new Date();
+          sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+          filter.deadline = { 
+            $gte: now.toISOString(),
+            $lte: sixMonthsFromNow.toISOString()
+          };
+          break;
+        case 'urgent':
+          const thirtyDaysFromNow = new Date();
+          thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+          filter.deadline = { 
+            $gte: now.toISOString(),
+            $lte: thirtyDaysFromNow.toISOString()
+          };
+          break;
+      }
+    } else if (!includeExpired) {
+      // Default behavior: filter out expired scholarships unless explicitly included
       filter.deadline = { $gte: now.toISOString() };
     }
     
