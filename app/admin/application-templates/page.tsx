@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,19 +30,38 @@ import { formatDistanceToNow } from 'date-fns';
 export default function ApplicationTemplatesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const { templates, pagination, error, isLoading, mutate } = useApplicationTemplates({
-    search: searchTerm || undefined,
+    search: debouncedSearchTerm || undefined,
     isActive: isActiveFilter === null ? undefined : isActiveFilter,
     page: currentPage,
     limit: 15
   });
 
+  // Debug logging
+  console.log('Application Templates Debug:', {
+    templates: templates.length,
+    pagination,
+    currentPage,
+    searchTerm: debouncedSearchTerm,
+    isActiveFilter
+  });
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handleFilterChange = (value: boolean | null) => {
@@ -121,10 +140,10 @@ export default function ApplicationTemplatesPage() {
       </div>
 
       {/* Total Count Display */}
-      {!isLoading && (
+      {!isLoading && pagination && (
         <div className="mb-4">
           <p className="text-sm text-gray-600">
-            Showing {templates.length} of {pagination?.totalCount || 0} application templates
+            Showing {templates.length} of {pagination.totalCount} application templates
           </p>
         </div>
       )}

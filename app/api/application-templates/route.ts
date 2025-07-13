@@ -44,31 +44,95 @@ function transformTemplates(templates: any[]) {
 
 /**
  * GET /api/application-templates
- * Retrieve all application templates with optional filtering
+ * Retrieve all application templates with optional filtering and pagination
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('Connecting to database...');
     await connectDB();
+    console.log('Database connected successfully');
     
     const { searchParams } = new URL(request.url);
     const scholarshipId = searchParams.get('scholarshipId');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '15');
+    const search = searchParams.get('search') || '';
+    const isActive = searchParams.get('isActive');
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    
+    // Build query
+    let query: any = {};
     
     if (scholarshipId) {
-      // Get templates for a specific scholarship
-      const templates = await ApplicationTemplate.find({
-        scholarshipId: scholarshipId,
-        isActive: true
-      }).sort({ createdAt: -1 });
-      
-      return NextResponse.json({ templates });
+      query.scholarshipId = scholarshipId;
     }
     
-    // Get all active templates
-    const templates = await ApplicationTemplate.find({ isActive: true })
-      .populate('scholarship', 'title provider')
-      .sort({ createdAt: -1 });
+    // Handle isActive filter
+    if (isActive !== null && isActive !== undefined && isActive !== '') {
+      // If isActive is explicitly provided, filter by it
+      query.isActive = isActive === 'true';
+    }
+    // If isActive is null, undefined, or empty string, don't filter by isActive (show all templates)
     
-    return NextResponse.json({ templates });
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    
+    // Get total count for pagination
+    console.log('Executing count query with:', query);
+    const totalCount = await ApplicationTemplate.countDocuments(query);
+    console.log('Total count result:', totalCount);
+    
+    // Calculate pagination values
+    const skip = (page - 1) * limit;
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+    
+    // Get templates with pagination
+    console.log('Executing find query with:', { query, sort, skip, limit });
+    const templates = await ApplicationTemplate.find(query)
+      .populate('scholarshipId', 'title provider')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+    console.log('Find query result count:', templates.length);
+    
+    // Transform templates
+    const transformedTemplates = transformTemplates(templates);
+    
+    // Debug logging
+    console.log('API Debug:', {
+      query,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      templatesCount: transformedTemplates.length,
+      hasNextPage,
+      hasPrevPage,
+      searchParams: Object.fromEntries(searchParams.entries())
+    });
+
+    // Return with pagination info
+    return NextResponse.json({
+      templates: transformedTemplates,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasNextPage,
+        hasPrevPage,
+        limit
+      }
+    });
   } catch (error) {
     console.error('Error fetching application templates:', error);
     return NextResponse.json(
