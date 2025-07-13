@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
-import dbConnect from '@/lib/dbConnect';
+import connectDB from '@/lib/mongodb';
 import SavedScholarship from '@/models/SavedScholarship';
 
 // DELETE /api/user/saved-scholarships/[id] - Unsave a scholarship
@@ -16,7 +16,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await dbConnect();
+    await connectDB();
 
     const savedScholarship = await SavedScholarship.findOneAndDelete({
       userId: session.user.id,
@@ -58,7 +58,7 @@ export async function PATCH(
     const body = await request.json();
     const { notes, status, reminderDate } = body;
 
-    await dbConnect();
+    await connectDB();
 
     const savedScholarship = await SavedScholarship.findOne({
       userId: session.user.id,

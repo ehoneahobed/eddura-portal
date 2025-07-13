@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
-import dbConnect from '@/lib/dbConnect';
+import connectDB from '@/lib/mongodb';
 import SavedScholarship from '@/models/SavedScholarship';
 import Scholarship from '@/models/Scholarship';
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await dbConnect();
+    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await dbConnect();
+    await connectDB();
 
     // Check if scholarship exists
     const scholarship = await Scholarship.findById(scholarshipId);
