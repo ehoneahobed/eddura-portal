@@ -401,7 +401,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
               <Calendar
                 mode="single"
                 selected={responses[question.id] as Date}
-                onSelect={(date) => handleResponseChange(question.id, date)}
+                onSelect={(date) => handleResponseChange(question.id, date ?? '')}
                 initialFocus
               />
             </PopoverContent>
@@ -553,7 +553,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                   <Calendar
                     mode="single"
                     selected={responses[question.id] as Date}
-                    onSelect={(date) => handleResponseChange(question.id, date)}
+                    onSelect={(date) => handleResponseChange(question.id, date ?? '')}
                     initialFocus
                   />
                 </PopoverContent>
