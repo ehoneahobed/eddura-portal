@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Document, { IDocument, IDocumentModel } from '@/models/Document';
+import Document, { IDocument } from '@/models/Document';
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Check if document with same title exists and get next version
-    const nextVersion = await Document.getNextVersion(session.user.id, title);
+    const nextVersion = await (Document as any).getNextVersion(session.user.id, title);
 
     // Create new document
     const document = new Document({

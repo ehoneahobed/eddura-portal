@@ -181,7 +181,7 @@ DocumentSchema.pre('save', function(this: any, next: () => void) {
 });
 
 // Static method to get next version number for a document
-DocumentSchema.statics.getNextVersion = async function(userId: string, title: string): Promise<number> {
+(DocumentSchema.statics as any).getNextVersion = async function(userId: string, title: string): Promise<number> {
   const existingDoc = await this.findOne({ 
     userId, 
     title, 
@@ -192,7 +192,7 @@ DocumentSchema.statics.getNextVersion = async function(userId: string, title: st
 };
 
 // Static method to create a new version
-DocumentSchema.statics.createNewVersion = async function(userId: string, documentId: string, updates: Partial<IDocument>): Promise<IDocument> {
+(DocumentSchema.statics as any).createNewVersion = async function(userId: string, documentId: string, updates: Partial<IDocument>): Promise<IDocument> {
   const originalDoc = await this.findById(documentId);
   if (!originalDoc || originalDoc.userId.toString() !== userId) {
     throw new Error('Document not found or access denied');
@@ -213,6 +213,6 @@ DocumentSchema.statics.createNewVersion = async function(userId: string, documen
   return await newVersion.save();
 };
 
-const Document: IDocumentModel = mongoose.models.Document || mongoose.model<IDocument, IDocumentModel>('Document', DocumentSchema);
+const Document = mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);
 
 export default Document;

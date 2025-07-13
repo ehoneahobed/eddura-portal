@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Document, { IDocument, IDocumentModel } from '@/models/Document';
+import Document, { IDocument } from '@/models/Document';
 
 export async function GET(
   request: NextRequest,
@@ -63,7 +63,7 @@ export async function PUT(
 
     // If createNewVersion is true, create a new version instead of updating
     if (createNewVersion) {
-      const newVersion = await Document.createNewVersion(
+      const newVersion = await (Document as any).createNewVersion(
         session.user.id,
         id,
         {
