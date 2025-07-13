@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Application from '@/models/Application';
+import Application, { IApplication } from '@/models/Application';
+import { IScholarship } from '@/models/Scholarship';
+import { IApplicationTemplate } from '@/models/ApplicationTemplate';
 import puppeteer from 'puppeteer';
+
+// Type for populated application
+interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'applicationTemplateId'> {
+  scholarshipId: IScholarship;
+  applicationTemplateId: IApplicationTemplate;
+}
 
 export async function POST(
   request: NextRequest,
@@ -25,7 +33,7 @@ export async function POST(
       isActive: true
     })
     .populate('scholarshipId', 'title value currency deadline')
-    .populate('applicationTemplateId', 'title sections estimatedTime instructions');
+    .populate('applicationTemplateId', 'title sections estimatedTime instructions') as PopulatedApplication | null;
 
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
@@ -71,7 +79,7 @@ export async function POST(
   }
 }
 
-function generatePDFHTML(application: any): string {
+function generatePDFHTML(application: PopulatedApplication): string {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -90,7 +98,10 @@ function generatePDFHTML(application: any): string {
     });
   };
 
-  const formatCurrency = (value: number, currency: string = 'USD') => {
+  const formatCurrency = (value: number | string, currency: string = 'USD') => {
+    if (typeof value === 'string') {
+      return value; // Return as-is if it's already a string
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency || 'USD',
@@ -268,11 +279,11 @@ function generatePDFHTML(application: any): string {
           </div>
           <div class="overview-item">
             <span class="overview-label">Started:</span>
-            <span>${formatDate(application.startedAt)}</span>
+            <span>${formatDate(application.startedAt.toISOString())}</span>
           </div>
           <div class="overview-item">
             <span class="overview-label">Submitted:</span>
-            <span>${application.submittedAt ? formatDateTime(application.submittedAt) : 'Not submitted'}</span>
+            <span>${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}</span>
           </div>
         </div>
       </div>
