@@ -24,7 +24,7 @@ export async function GET(
       isActive: true
     })
     .populate('scholarshipId', 'title value currency deadline')
-    .populate('applicationTemplateId', 'title sections estimatedTime');
+    .populate('applicationTemplateId', 'title sections estimatedTime instructions');
 
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
