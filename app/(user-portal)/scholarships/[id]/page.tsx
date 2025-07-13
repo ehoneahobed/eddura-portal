@@ -224,14 +224,14 @@ function ScholarshipDetailContent() {
 
       if (response.ok) {
         const data = await response.json();
-        toast.success('Application started successfully!');
+        toast.success('Application preparation started successfully!');
         router.push(`/applications/${data.applicationId}`);
       } else {
-        toast.error('Failed to start application');
+        toast.error('Failed to prepare application');
       }
     } catch (error) {
-      console.error('Error starting application:', error);
-      toast.error('Failed to start application');
+      console.error('Error preparing application:', error);
+      toast.error('Failed to prepare application');
     }
   };
 

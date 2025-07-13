@@ -94,7 +94,7 @@ export function getScholarshipStatus(
       }
     } else {
       return {
-        status: 'Applications Open',
+        status: 'Currently Accepting',
         color: 'bg-green-100 text-green-800 border-green-200',
         icon: CheckCircle,
         description: 'Applications are currently being accepted'
@@ -149,7 +149,7 @@ export function getScholarshipStatus(
     }
     
     return {
-      status: 'Applications Open',
+      status: 'Currently Accepting',
       color: 'bg-green-100 text-green-800 border-green-200',
       icon: CheckCircle,
       description: `Application deadline: ${deadlineDate.toLocaleDateString('en-US', { 
@@ -173,7 +173,7 @@ export function getScholarshipStatus(
     
     if (isNotYetOpen) {
       return {
-        text: 'Start Application',
+        text: 'Prepare Application',
         disabled: false
       };
     }
