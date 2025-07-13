@@ -60,6 +60,8 @@ interface Question {
   helpText?: string;
   maxLength?: number;
   minLength?: number;
+  maxWords?: number;
+  minWords?: number;
   defaultValue?: string | number | boolean;
   group?: string;
 }
@@ -362,7 +364,10 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
               minLength={question.minLength}
+              maxWords={question.maxWords}
+              minWords={question.minWords}
               showCharacterCount={true}
+              showWordCount={true}
               expandable={true}
               defaultExpanded={false}
             />
@@ -739,7 +744,10 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                 className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
                 maxLength={question.maxLength}
                 minLength={question.minLength}
+                maxWords={question.maxWords}
+                minWords={question.minWords}
                 showCharacterCount={true}
+                showWordCount={true}
                 expandable={true}
                 defaultExpanded={false}
               />
@@ -785,7 +793,10 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
               minLength={question.minLength}
+              maxWords={question.maxWords}
+              minWords={question.minWords}
               showCharacterCount={true}
+              showWordCount={true}
               expandable={true}
               defaultExpanded={false}
             />
