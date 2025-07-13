@@ -16,11 +16,13 @@ interface Document {
   _id: string;
   title: string;
   description?: string;
-  type: string;
-  category: string;
+  content: string;
+  type: 'cv' | 'resume' | 'personal_statement' | 'essay' | 'cover_letter' | 'recommendation' | 'transcript' | 'certificate' | 'other';
+  category: 'academic' | 'professional' | 'personal' | 'certification' | 'other';
   tags: string[];
   version: number;
   isPublic: boolean;
+  language: string;
   metadata: {
     wordCount: number;
     characterCount: number;
@@ -388,7 +390,16 @@ export default function DocumentsPage() {
               <DocumentForm 
                 mode="edit"
                 documentId={selectedDocument._id}
-                initialData={selectedDocument}
+                initialData={{
+                  title: selectedDocument.title,
+                  description: selectedDocument.description,
+                  content: selectedDocument.content,
+                  type: selectedDocument.type,
+                  category: selectedDocument.category,
+                  tags: selectedDocument.tags,
+                  language: selectedDocument.language,
+                  isPublic: selectedDocument.isPublic
+                }}
               />
             </DialogContent>
           </Dialog>
