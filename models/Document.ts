@@ -31,6 +31,11 @@ export interface IDocument extends Document {
   updatedAt: Date;
 }
 
+export interface IDocumentModel extends Model<IDocument> {
+  getNextVersion(userId: string, title: string): Promise<number>;
+  createNewVersion(userId: string, documentId: string, updates: Partial<IDocument>): Promise<IDocument>;
+}
+
 const DocumentSchema = new Schema<IDocument>({
   userId: {
     type: Schema.Types.ObjectId,
@@ -208,6 +213,6 @@ DocumentSchema.statics.createNewVersion = async function(userId: string, documen
   return await newVersion.save();
 };
 
-const Document: Model<IDocument> = mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);
+const Document: IDocumentModel = mongoose.models.Document || mongoose.model<IDocument, IDocumentModel>('Document', DocumentSchema);
 
 export default Document;

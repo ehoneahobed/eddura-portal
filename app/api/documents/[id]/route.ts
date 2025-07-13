@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Document, { IDocument } from '@/models/Document';
+import Document, { IDocument, IDocumentModel } from '@/models/Document';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -17,7 +18,7 @@ export async function GET(
     await connectDB();
 
     const document = await Document.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id,
       isActive: true
     }).lean();
@@ -35,8 +36,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -50,7 +52,7 @@ export async function PUT(
     await connectDB();
 
     const existingDocument = await Document.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id,
       isActive: true
     });
@@ -63,7 +65,7 @@ export async function PUT(
     if (createNewVersion) {
       const newVersion = await Document.createNewVersion(
         session.user.id,
-        params.id,
+        id,
         {
           title: title || existingDocument.title,
           description: description !== undefined ? description : existingDocument.description,
@@ -84,7 +86,7 @@ export async function PUT(
 
     // Update existing document
     const updatedDocument = await Document.findByIdAndUpdate(
-      params.id,
+      id,
       {
         title: title || existingDocument.title,
         description: description !== undefined ? description : existingDocument.description,
@@ -111,8 +113,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -123,7 +126,7 @@ export async function DELETE(
     await connectDB();
 
     const document = await Document.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id,
       isActive: true
     });
@@ -133,7 +136,7 @@ export async function DELETE(
     }
 
     // Soft delete by setting isActive to false
-    await Document.findByIdAndUpdate(params.id, { isActive: false });
+    await Document.findByIdAndUpdate(id, { isActive: false });
 
     return NextResponse.json({ message: 'Document deleted successfully' });
   } catch (error) {

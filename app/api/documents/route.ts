@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Document, { IDocument } from '@/models/Document';
+import Document, { IDocument, IDocumentModel } from '@/models/Document';
 
 export async function GET(request: NextRequest) {
   try {
