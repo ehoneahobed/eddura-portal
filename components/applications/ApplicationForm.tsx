@@ -30,6 +30,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { ExpandableTextarea } from '@/components/ui/expandable-textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -354,12 +355,16 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
       case 'textarea':
         return (
           <div className="space-y-4">
-            <Textarea
+            <ExpandableTextarea
               placeholder={question.placeholder}
               value={(responses[question.id] as string) || ''}
               onChange={(e) => handleResponseChange(question.id, e.target.value)}
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
+              minLength={question.minLength}
+              showCharacterCount={true}
+              expandable={true}
+              defaultExpanded={false}
             />
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
@@ -726,13 +731,17 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                   Code
                 </button>
               </div>
-              <Textarea
+              <ExpandableTextarea
                 id="essay"
                 value={(responses[question.id] as string) || ''}
                 onChange={(e) => handleResponseChange(question.id, e.target.value)}
                 placeholder="Write your essay here... You can use **bold**, *italic*, and `code` formatting."
                 className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
                 maxLength={question.maxLength}
+                minLength={question.minLength}
+                showCharacterCount={true}
+                expandable={true}
+                defaultExpanded={false}
               />
             </div>
             {question.helpText && (
@@ -768,13 +777,17 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         return (
           <div className="space-y-4">
             <Label htmlFor="statement">Personal Statement</Label>
-            <Textarea
+            <ExpandableTextarea
               id="statement"
               value={(responses[question.id] as string) || ''}
               onChange={(e) => handleResponseChange(question.id, e.target.value)}
               placeholder="Write your personal statement here..."
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
+              minLength={question.minLength}
+              showCharacterCount={true}
+              expandable={true}
+              defaultExpanded={false}
             />
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
