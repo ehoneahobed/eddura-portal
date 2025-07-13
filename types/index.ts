@@ -191,7 +191,8 @@ export type QuestionType =
   | 'essay'          // Essay/long form response
   | 'statement'      // Personal statement
   | 'gpa'            // GPA input with validation
-  | 'test_score';    // Test scores (SAT, GRE, etc.)
+  | 'test_score'     // Test scores (SAT, GRE, etc.)
+  | 'country';      // Country selection
 
 export interface QuestionOption {
   value: string;

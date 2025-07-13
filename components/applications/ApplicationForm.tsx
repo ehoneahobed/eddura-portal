@@ -41,10 +41,12 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import ApplicationStatusBanner from './ApplicationStatusBanner';
+import dynamic from 'next/dynamic';
+import countries from 'world-countries';
 
 interface Question {
   id: string;
-  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'multiselect' | 'radio' | 'checkbox' | 'file' | 'url' | 'address' | 'education' | 'experience' | 'reference' | 'essay' | 'statement' | 'gpa' | 'test_score';
+  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'multiselect' | 'radio' | 'checkbox' | 'file' | 'url' | 'address' | 'education' | 'experience' | 'reference' | 'essay' | 'statement' | 'gpa' | 'test_score' | 'country';
   title: string;
   description?: string;
   placeholder?: string;
@@ -648,14 +650,37 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         return (
           <div className="space-y-4">
             <Label htmlFor="essay">Essay</Label>
-            <Textarea
+            <ReactQuill
               id="essay"
               value={(responses[question.id] as string) || ''}
-              onChange={(e) => handleResponseChange(question.id, e.target.value)}
-              placeholder="Write your essay here..."
-              className="min-h-[200px] resize-none text-base leading-relaxed p-4"
-              maxLength={question.maxLength}
+              onChange={(value) => handleResponseChange(question.id, value)}
+              theme="snow"
+              className="bg-white"
             />
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
+            )}
+          </div>
+        );
+      case 'country':
+        return (
+          <div className="space-y-4">
+            <Label htmlFor="country">Country</Label>
+            <Select
+              value={(responses[question.id] as string) || ''}
+              onValueChange={(value) => handleResponseChange(question.id, value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a country" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72 overflow-y-auto">
+                {countries.map((country) => (
+                  <SelectItem key={country.cca2} value={country.name.common}>
+                    {country.flag} {country.name.common}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
             )}
