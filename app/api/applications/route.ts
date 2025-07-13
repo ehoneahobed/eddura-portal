@@ -167,8 +167,7 @@ export async function POST(request: NextRequest) {
                 required: true,
                 order: 1,
                 placeholder: 'Write your personal statement here...',
-                maxLength: 1000,
-                helpText: 'Maximum 1000 characters'
+                helpText: 'Write as much as you need - no character limits'
               }
             ]
           }
