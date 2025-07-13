@@ -37,7 +37,7 @@ export default function ApplicationTemplatesPage() {
     search: searchTerm || undefined,
     isActive: isActiveFilter === null ? undefined : isActiveFilter,
     page: currentPage,
-    limit: 20
+    limit: 15
   });
 
   const handleSearch = (value: string) => {
@@ -119,6 +119,15 @@ export default function ApplicationTemplatesPage() {
           </Button>
         </div>
       </div>
+
+      {/* Total Count Display */}
+      {!isLoading && (
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Showing {templates.length} of {pagination?.totalCount || 0} application templates
+          </p>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <Card className="mb-6">
@@ -292,29 +301,41 @@ export default function ApplicationTemplatesPage() {
       )}
 
       {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && (
         <div className="mt-8 flex justify-center">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!pagination.hasPrevPage}
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600">
-              Page {pagination.currentPage} of {pagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!pagination.hasNextPage}
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-            >
-              Next
-            </Button>
-          </div>
+          {pagination.totalPages > 1 ? (
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.hasPrevPage}
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+              >
+                Previous
+              </Button>
+              
+              <div className="text-sm text-gray-600">
+                <span>Page {pagination.currentPage} of {pagination.totalPages}</span>
+                <span className="mx-2">•</span>
+                <span>
+                  Showing {((pagination.currentPage - 1) * 15) + 1} to {Math.min(pagination.currentPage * 15, pagination.totalCount)} of {pagination.totalCount} templates
+                </span>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.hasNextPage}
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-600">
+              Showing all {pagination.totalCount} templates
+            </div>
+          )}
         </div>
       )}
     </div>
