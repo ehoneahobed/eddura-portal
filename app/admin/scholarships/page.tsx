@@ -40,7 +40,7 @@ export default function ScholarshipsPage() {
     sortBy: 'title',
     sortOrder: 'asc',
     includeExpired,
-    status: selectedStatus !== 'all' ? selectedStatus : undefined
+    status: selectedStatus !== 'all' ? selectedStatus as 'active' | 'expired' | 'coming-soon' | 'urgent' : undefined
   });
 
   // Handle search and filter changes
