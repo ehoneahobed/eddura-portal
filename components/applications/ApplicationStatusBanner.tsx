@@ -71,7 +71,7 @@ export default function ApplicationStatusBanner({ scholarship }: ApplicationStat
                   <div className="text-sm">
                     <p className="font-medium text-yellow-800 mb-1">Application Period Not Yet Open</p>
                     <p className="text-yellow-700">
-                      You can start your application now, but it won't be reviewed until the application period opens.
+                      You can prepare your application now, but applications won't be accepted until the opening date. Your work will be saved.
                     </p>
                   </div>
                 </div>

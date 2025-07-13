@@ -183,7 +183,12 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             <div className="flex items-center space-x-2">
               <scholarshipStatus.deadlineInfo.icon className="h-4 w-4 text-gray-400" />
               <span className="text-xs text-gray-600">
-                {scholarshipStatus.deadlineInfo.daysLeft >= 0 ? `${scholarshipStatus.deadlineInfo.daysLeft} days left` : 'Expired'}
+                {scholarshipStatus.isNotYetOpen && scholarship.openingDate 
+                  ? `${Math.ceil((new Date(scholarship.openingDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days to opening`
+                  : scholarshipStatus.deadlineInfo.daysLeft >= 0 
+                    ? `${scholarshipStatus.deadlineInfo.daysLeft} days to close` 
+                    : 'Expired'
+                }
               </span>
             </div>
             <div className="flex gap-1">
@@ -199,6 +204,15 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
               </Badge>
             </div>
           </div>
+
+          {/* Preparation Message for Not Yet Open Scholarships */}
+          {scholarshipStatus.isNotYetOpen && scholarship.openingDate && (
+            <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-xs text-blue-700">
+                💡 You can start preparing your application now, even though applications haven't opened yet.
+              </p>
+            </div>
+          )}
 
           {/* Tags */}
           {scholarship.tags && scholarship.tags.length > 0 && (
@@ -228,21 +242,11 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             
             <div className="flex items-center space-x-2">
               <Link href={`/scholarships/${scholarship._id}`}>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
                   View Details
                   <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </Link>
-              
-              {scholarshipStatus.canApply && (
-                <Button 
-                  size="sm" 
-                  className={scholarshipStatus.isExpired ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}
-                  disabled={scholarshipStatus.applyButtonDisabled}
-                >
-                  {scholarshipStatus.applyButtonText}
-                </Button>
-              )}
             </div>
           </div>
         </CardContent>
