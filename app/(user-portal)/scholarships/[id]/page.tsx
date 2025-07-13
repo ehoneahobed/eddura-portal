@@ -58,6 +58,13 @@ function ScholarshipDetailContent() {
   const [saveStatus, setSaveStatus] = useState('saved');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Application form request state
+  const [hasApplicationForm, setHasApplicationForm] = useState(false);
+  const [hasRequestedForm, setHasRequestedForm] = useState(false);
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  const [requestReason, setRequestReason] = useState('');
+  const [isRequesting, setIsRequesting] = useState(false);
+
   // Format currency
   const formatCurrency = (value: number | string, currency: string = 'USD') => {
     if (typeof value === 'string') return value;
@@ -131,10 +138,12 @@ function ScholarshipDetailContent() {
     return { eligible, reasons };
   };
 
-  // Check if scholarship is saved
+  // Check if scholarship is saved and has application form
   useEffect(() => {
     if (scholarship && session?.user?.id) {
       checkIfSaved();
+      checkApplicationFormStatus();
+      checkIfRequestedForm();
     }
   }, [scholarship, session?.user?.id]);
 
@@ -147,6 +156,30 @@ function ScholarshipDetailContent() {
       }
     } catch (error) {
       console.error('Error checking saved status:', error);
+    }
+  };
+
+  const checkApplicationFormStatus = async () => {
+    try {
+      const response = await fetch(`/api/application-templates?scholarshipId=${scholarshipId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setHasApplicationForm(data.templates && data.templates.length > 0);
+      }
+    } catch (error) {
+      console.error('Error checking application form status:', error);
+    }
+  };
+
+  const checkIfRequestedForm = async () => {
+    try {
+      const response = await fetch(`/api/application-form-requests?scholarshipId=${scholarshipId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setHasRequestedForm(data.requests && data.requests.length > 0);
+      }
+    } catch (error) {
+      console.error('Error checking if form was requested:', error);
     }
   };
 
@@ -266,6 +299,39 @@ function ScholarshipDetailContent() {
       } catch (error) {
         toast.error('Failed to copy link');
       }
+    }
+  };
+
+  const handleRequestApplicationForm = async () => {
+    if (!scholarship) return;
+
+    setIsRequesting(true);
+    try {
+      const response = await fetch('/api/application-form-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          scholarshipId: scholarshipId,
+          requestReason: requestReason
+        })
+      });
+
+      if (response.ok) {
+        setHasRequestedForm(true);
+        toast.success('Application form request submitted successfully!');
+        setIsRequestDialogOpen(false);
+        setRequestReason('');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to submit request');
+      }
+    } catch (error) {
+      console.error('Error requesting application form:', error);
+      toast.error('Failed to submit request');
+    } finally {
+      setIsRequesting(false);
     }
   };
 
@@ -570,14 +636,34 @@ function ScholarshipDetailContent() {
                 {eligibilityCheck.eligible ? 'Eligible to Apply' : 'Not Eligible'}
               </div>
               <div className="flex flex-col gap-2">
-                <Button 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
-                  aria-label="Apply Now"
-                  onClick={handleApply}
-                  disabled={!eligibilityCheck.eligible}
-                >
-                  Apply Now
-                </Button>
+                {hasApplicationForm ? (
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
+                    aria-label="Apply Now"
+                    onClick={handleApply}
+                    disabled={!eligibilityCheck.eligible}
+                  >
+                    Apply Now
+                  </Button>
+                ) : hasRequestedForm ? (
+                  <Button 
+                    variant="outline"
+                    className="w-full bg-yellow-50 border-yellow-200 text-yellow-700" 
+                    disabled
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Request Submitted
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-all" 
+                    aria-label="Request Application Form"
+                    onClick={() => setIsRequestDialogOpen(true)}
+                    disabled={!eligibilityCheck.eligible}
+                  >
+                    Request Application Form
+                  </Button>
+                )}
                 {isSaved ? (
                   <Button 
                     variant="outline" 
@@ -726,6 +812,46 @@ function ScholarshipDetailContent() {
                 </>
               ) : (
                 'Save Scholarship'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Request Application Form Dialog */}
+      <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Application Form</DialogTitle>
+            <DialogDescription>
+              This scholarship doesn't have an application form yet. Request one and we'll notify you when it's available.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Reason for Request (Optional)</label>
+              <Textarea
+                placeholder="Tell us why you're interested in this scholarship..."
+                value={requestReason}
+                onChange={(e) => setRequestReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRequestApplicationForm} disabled={isRequesting}>
+              {isRequesting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Request'
               )}
             </Button>
           </DialogFooter>
