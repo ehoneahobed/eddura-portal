@@ -31,20 +31,27 @@ export default function ApplicationTemplatesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { templates, pagination, error, isLoading, mutate } = useApplicationTemplates({
     search: searchTerm || undefined,
     isActive: isActiveFilter === null ? undefined : isActiveFilter,
-    page: 1,
+    page: currentPage,
     limit: 20
   });
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handleFilterChange = (value: boolean | null) => {
     setIsActiveFilter(value);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   const handleCreateTemplate = () => {
@@ -292,6 +299,7 @@ export default function ApplicationTemplatesPage() {
               variant="outline"
               size="sm"
               disabled={!pagination.hasPrevPage}
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
             >
               Previous
             </Button>
@@ -302,6 +310,7 @@ export default function ApplicationTemplatesPage() {
               variant="outline"
               size="sm"
               disabled={!pagination.hasNextPage}
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
             >
               Next
             </Button>
