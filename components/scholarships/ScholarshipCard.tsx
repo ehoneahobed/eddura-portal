@@ -205,6 +205,15 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             </div>
           </div>
 
+          {/* Preparation Message for Not Yet Open Scholarships */}
+          {scholarshipStatus.isNotYetOpen && scholarship.openingDate && (
+            <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-xs text-blue-700">
+                💡 You can start preparing your application now, even though applications haven't opened yet.
+              </p>
+            </div>
+          )}
+
           {/* Tags */}
           {scholarship.tags && scholarship.tags.length > 0 && (
             <div className="mb-4">

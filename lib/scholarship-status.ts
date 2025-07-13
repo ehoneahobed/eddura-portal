@@ -148,6 +148,22 @@ export function getScholarshipStatus(
       };
     }
     
+    // If scholarship hasn't opened yet, show "Prepare Application" instead of "Currently Accepting"
+    if (isNotYetOpen) {
+      return {
+        status: 'Prepare Application',
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        icon: Calendar,
+        description: `Application deadline: ${deadlineDate.toLocaleDateString('en-US', { 
+          weekday: 'long',
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric'
+        })}`,
+        daysLeft: daysUntilDeadline
+      };
+    }
+    
     return {
       status: 'Currently Accepting',
       color: 'bg-green-100 text-green-800 border-green-200',
