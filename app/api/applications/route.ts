@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import { auth } from '@/lib/auth';
+import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
 import Scholarship from '@/models/Scholarship';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const applications = await Application.find({ 
       userId: session.user.id,
@@ -33,7 +32,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Scholarship ID is required' }, { status: 400 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     // Check if application already exists
     const existingApplication = await Application.findOne({
@@ -187,7 +186,7 @@ export async function POST(request: NextRequest) {
       scholarshipId: scholarshipId,
       applicationTemplateId: applicationTemplate._id,
       status: 'draft',
-      sections: applicationTemplate.sections.map(section => ({
+      sections: applicationTemplate.sections.map((section: any) => ({
         sectionId: section.id,
         responses: [],
         isComplete: false,

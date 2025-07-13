@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import { auth } from '@/lib/auth';
+import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
+    
+    const resolvedParams = await params;
 
     const application = await Application.findOne({
-      _id: params.id,
+      _id: resolvedParams.id,
       userId: session.user.id,
       isActive: true
     });
@@ -28,11 +29,11 @@ export async function POST(
     }
 
     // Check if all sections are complete
-    const incompleteSections = application.sections.filter(section => !section.isComplete);
+    const incompleteSections = application.sections.filter((section: any) => !section.isComplete);
     if (incompleteSections.length > 0) {
       return NextResponse.json({ 
         error: 'Cannot submit application with incomplete sections',
-        incompleteSections: incompleteSections.map(section => section.sectionId)
+        incompleteSections: incompleteSections.map((section: any) => section.sectionId)
       }, { status: 400 });
     }
 

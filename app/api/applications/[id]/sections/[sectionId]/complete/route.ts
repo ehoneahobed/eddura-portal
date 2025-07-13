@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import { auth } from '@/lib/auth';
+import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; sectionId: string } }
+  { params }: { params: Promise<{ id: string; sectionId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
+    
+    const resolvedParams = await params;
 
     const application = await Application.findOne({
-      _id: params.id,
+      _id: resolvedParams.id,
       userId: session.user.id,
       isActive: true
     });
@@ -28,7 +29,7 @@ export async function POST(
     }
 
     // Find the section
-    const sectionIndex = application.sections.findIndex(section => section.sectionId === params.sectionId);
+    const sectionIndex = application.sections.findIndex((section: any) => section.sectionId === resolvedParams.sectionId);
     if (sectionIndex === -1) {
       return NextResponse.json({ error: 'Section not found' }, { status: 404 });
     }
@@ -38,7 +39,7 @@ export async function POST(
     application.sections[sectionIndex].completedAt = new Date();
 
     // Calculate progress
-    const completedSections = application.sections.filter(section => section.isComplete).length;
+    const completedSections = application.sections.filter((section: any) => section.isComplete).length;
     const totalSections = application.sections.length;
     application.progress = Math.round((completedSections / totalSections) * 100);
 

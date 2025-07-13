@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import { auth } from '@/lib/auth';
+import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,10 +20,12 @@ export async function POST(
       return NextResponse.json({ error: 'Section ID and Question ID are required' }, { status: 400 });
     }
 
-    await connectToDatabase();
+    await connectDB();
+    
+    const resolvedParams = await params;
 
     const application = await Application.findOne({
-      _id: params.id,
+      _id: resolvedParams.id,
       userId: session.user.id,
       isActive: true
     });
@@ -34,14 +35,14 @@ export async function POST(
     }
 
     // Find the section
-    const sectionIndex = application.sections.findIndex(section => section.sectionId === sectionId);
+    const sectionIndex = application.sections.findIndex((section: any) => section.sectionId === sectionId);
     if (sectionIndex === -1) {
       return NextResponse.json({ error: 'Section not found' }, { status: 404 });
     }
 
     // Find or create the response
     const responseIndex = application.sections[sectionIndex].responses.findIndex(
-      response => response.questionId === questionId
+      (response: any) => response.questionId === questionId
     );
 
     const responseData = {
