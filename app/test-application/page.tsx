@@ -155,6 +155,8 @@ const mockApplication = {
             order: 1,
             maxLength: 2000,
             minLength: 800,
+            maxWords: 300,
+            minWords: 150,
             helpText: "Be specific about your achievements and future goals. Show how this scholarship will help you achieve them."
           }
         ]
@@ -274,7 +276,10 @@ export default function TestApplicationPage() {
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
               minLength={question.minLength}
+              maxWords={question.maxWords}
+              minWords={question.minWords}
               showCharacterCount={true}
+              showWordCount={true}
               expandable={true}
               defaultExpanded={false}
             />
@@ -651,7 +656,10 @@ export default function TestApplicationPage() {
                 className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
                 maxLength={question.maxLength}
                 minLength={question.minLength}
+                maxWords={question.maxWords}
+                minWords={question.minWords}
                 showCharacterCount={true}
+                showWordCount={true}
                 expandable={true}
                 defaultExpanded={false}
               />
@@ -673,7 +681,10 @@ export default function TestApplicationPage() {
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
               maxLength={question.maxLength}
               minLength={question.minLength}
+              maxWords={question.maxWords}
+              minWords={question.minWords}
               showCharacterCount={true}
+              showWordCount={true}
               expandable={true}
               defaultExpanded={false}
             />
