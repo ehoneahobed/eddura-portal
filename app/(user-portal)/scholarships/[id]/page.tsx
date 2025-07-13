@@ -88,13 +88,26 @@ function ScholarshipDetailContent() {
     const reasons = [];
     let eligible = true;
 
-    // Only deadline matters for eligibility - students can start applications even if not yet open
+    // Check if application deadline has passed
     if (scholarshipStatus?.isExpired) {
       eligible = false;
       reasons.push('Application deadline has passed');
     }
 
-    return { eligible, reasons };
+    // Note: This is a basic eligibility check that only verifies the deadline
+    // For a complete eligibility assessment, we would need to check:
+    // - User's nationality vs scholarship requirements
+    // - User's age vs age limits
+    // - User's GPA vs minimum GPA requirements
+    // - User's degree level vs required degree levels
+    // - User's field of study vs required fields
+    // - Other specific criteria like gender, disability status, etc.
+    
+    return { 
+      eligible, 
+      reasons,
+      isBasicCheck: true // Flag to indicate this is only a basic check
+    };
   };
 
   // Check if scholarship is saved and has application form
@@ -450,6 +463,9 @@ function ScholarshipDetailContent() {
                   <Target className="h-5 w-5 text-purple-600" aria-label="Eligibility" />
                   Eligibility Requirements
                 </CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  Please review these requirements carefully. You must meet all applicable criteria to be considered for this scholarship.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -637,16 +653,21 @@ function ScholarshipDetailContent() {
               )}
               
               {/* Eligibility Status */}
-              <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}> 
+              <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'}`}> 
                 {eligibilityCheck.eligible ? (
-                  <CheckCircle className="h-5 w-5 text-green-600" aria-label="Eligible" />
+                  <CheckCircle className="h-5 w-5 text-blue-600" aria-label="Can Apply" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 text-red-600" aria-label="Not Eligible" />
+                  <AlertCircle className="h-5 w-5 text-red-600" aria-label="Cannot Apply" />
                 )}
-                {eligibilityCheck.eligible ? 'Eligible to Apply' : 'Not Eligible'}
+                {eligibilityCheck.eligible ? 'Can Start Application' : 'Cannot Apply'}
                 {!eligibilityCheck.eligible && eligibilityCheck.reasons.length > 0 && (
                   <div className="text-xs mt-1">
                     {eligibilityCheck.reasons.join(', ')}
+                  </div>
+                )}
+                {eligibilityCheck.eligible && (
+                  <div className="text-xs mt-1 text-blue-600">
+                    Note: This only checks if the deadline hasn't passed. Review eligibility requirements below.
                   </div>
                 )}
               </div>
