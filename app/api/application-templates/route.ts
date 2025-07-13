@@ -48,139 +48,31 @@ function transformTemplates(templates: any[]) {
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== APPLICATION TEMPLATES API DEBUG START ===');
-    console.log('Environment check:');
-    console.log('- NODE_ENV:', process.env.NODE_ENV);
-    console.log('- MONGODB_URI exists:', !!process.env.MONGODB_URI);
-    console.log('- MONGODB_URI length:', process.env.MONGODB_URI?.length || 0);
-    console.log('- MONGODB_URI prefix:', process.env.MONGODB_URI?.substring(0, 20) || 'Not found');
-    
-    console.log('Attempting database connection...');
     await connectDB();
-    console.log('✅ Successfully connected to database for application templates');
     
     const { searchParams } = new URL(request.url);
     const scholarshipId = searchParams.get('scholarshipId');
-    const isActive = searchParams.get('isActive');
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10')));
-    const search = searchParams.get('search') || '';
-    
-    // Build query
-    const query: any = {};
     
     if (scholarshipId) {
-      query.scholarshipId = scholarshipId;
+      // Get templates for a specific scholarship
+      const templates = await ApplicationTemplate.find({
+        scholarshipId: scholarshipId,
+        isActive: true
+      }).sort({ createdAt: -1 });
+      
+      return NextResponse.json({ templates });
     }
     
-    if (isActive !== null) {
-      query.isActive = isActive === 'true';
-    }
+    // Get all active templates
+    const templates = await ApplicationTemplate.find({ isActive: true })
+      .populate('scholarship', 'title provider')
+      .sort({ createdAt: -1 });
     
-    if (search && search.trim()) {
-      query.$or = [
-        { title: { $regex: search.trim(), $options: 'i' } },
-        { description: { $regex: search.trim(), $options: 'i' } },
-        { version: { $regex: search.trim(), $options: 'i' } }
-      ];
-    }
-    
-    // Calculate skip value for pagination
-    const skip = (page - 1) * limit;
-    
-    console.log('Executing query with params:', { query, page, limit, skip });
-    console.log('ApplicationTemplate model check:', typeof ApplicationTemplate);
-    console.log('ApplicationTemplate.find type:', typeof ApplicationTemplate.find);
-    
-    // Ensure Scholarship model is registered (serverless fix)
-    console.log('Ensuring Scholarship model is registered...');
-    console.log('Scholarship model check:', typeof Scholarship);
-    console.log('Mongoose models list:', Object.keys(mongoose.models));
-    
-    // Force registration if not already registered
-    if (!mongoose.models.Scholarship) {
-      console.log('Scholarship model not found in mongoose.models, forcing registration...');
-      // This will trigger the model registration
-      console.log('Scholarship model after access:', Scholarship.modelName);
-    }
-    
-    // Execute query with pagination
-    console.log('About to execute ApplicationTemplate.find...');
-    const templates = await ApplicationTemplate.find(query)
-      .populate('scholarshipId', 'title provider')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-    
-    console.log('✅ Query executed successfully');
-    console.log('Templates found:', templates?.length || 0);
-    console.log('Sample template (first one):', templates?.[0] ? {
-      id: templates[0]._id,
-      title: templates[0].title,
-      scholarshipId: templates[0].scholarshipId
-    } : 'No templates found');
-    
-    // Get total count for pagination
-    console.log('Getting total count...');
-    const total = await ApplicationTemplate.countDocuments(query);
-    console.log('Total count:', total);
-    
-    return NextResponse.json({
-      templates: transformTemplates(templates),
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalCount: total,
-        hasNextPage: page < Math.ceil(total / limit),
-        hasPrevPage: page > 1,
-        limit
-      }
-    });
+    return NextResponse.json({ templates });
   } catch (error) {
-    console.error('=== APPLICATION TEMPLATES API ERROR ===');
-    console.error('Error type:', typeof error);
-    console.error('Error instanceof Error:', error instanceof Error);
-    console.error('Full error object:', error);
-    
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      
-      // Check for specific error types
-      if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-        console.error('Database connection error detected');
-        return NextResponse.json(
-          { 
-            error: 'Database connection failed. Please try again later.',
-            details: error.message,
-            type: 'CONNECTION_ERROR'
-          },
-          { status: 503 }
-        );
-      }
-      
-      if (error.message.includes('MONGODB_URI')) {
-        console.error('MongoDB URI error detected');
-        return NextResponse.json(
-          { 
-            error: 'Database configuration error',
-            details: error.message,
-            type: 'CONFIG_ERROR'
-          },
-          { status: 500 }
-        );
-      }
-    }
-    
+    console.error('Error fetching application templates:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to fetch application templates',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        type: 'GENERAL_ERROR',
-        timestamp: new Date().toISOString()
-      },
+      { error: 'Failed to fetch application templates' },
       { status: 500 }
     );
   }

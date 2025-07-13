@@ -236,6 +236,7 @@ const ScholarshipViewPage = ({ params }: { params: Promise<{ id: string }> }) =>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           <div><dt className="font-semibold text-gray-700">Opening Date</dt><dd className="text-gray-900">{show(scholarship.openingDate)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Deadline</dt><dd className="text-gray-900">{show(scholarship.deadline)}</dd></div>
+          <div><dt className="font-semibold text-gray-700">Opening Date</dt><dd className="text-gray-900">{show(scholarship.openingDate)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Application Link</dt><dd>{scholarship.applicationLink ? <a href={scholarship.applicationLink} className="text-blue-600 underline hover:text-blue-800 transition" target="_blank" rel="noopener noreferrer"><Link2 className="inline w-4 h-4 mr-1" />Apply Here</a> : <span className="text-gray-400">Not provided</span>}</dd></div>
           <div><dt className="font-semibold text-gray-700">Selection Criteria</dt><dd className="text-gray-900">{show(scholarship.selectionCriteria)}</dd></div>
           <div><dt className="font-semibold text-gray-700">Renewal Conditions</dt><dd className="text-gray-900">{show(scholarship.renewalConditions)}</dd></div>
