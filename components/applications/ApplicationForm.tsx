@@ -100,7 +100,6 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
   const { data: session } = useSession();
   const [application, setApplication] = useState<Application | null>(null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string[] | string | number | boolean | Date>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -184,15 +183,12 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
   }
 
   const currentSection = application.applicationTemplateId.sections[currentSectionIndex];
-  const currentQuestion = currentSection?.questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === (currentSection?.questions.length || 0) - 1;
-  const isFirstQuestion = currentQuestionIndex === 0;
   const isLastSection = currentSectionIndex === application.applicationTemplateId.sections.length - 1;
   const isFirstSection = currentSectionIndex === 0;
 
   // Calculate progress
   const sectionProgress = currentSection?.questions.length > 0 
-    ? ((currentQuestionIndex + 1) / currentSection.questions.length) * 100 
+    ? (currentSection.questions.filter((q: Question) => responses[q.id]).length / currentSection.questions.length) * 100 
     : 0;
   
   const overallProgress = application.progress;
@@ -235,78 +231,70 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
   };
 
   const handleNext = async () => {
-    if (isLastQuestion) {
-      // Mark section as complete
-      try {
-        await fetch(`/api/applications/${applicationId}/sections/${currentSection.id}/complete`, {
+    // Mark section as complete
+    try {
+      await fetch(`/api/applications/${applicationId}/sections/${currentSection.id}/complete`, {
+        method: 'POST',
+      });
+      
+      if (isLastSection) {
+        // Submit application
+        await fetch(`/api/applications/${applicationId}/submit`, {
           method: 'POST',
         });
-        
-        if (isLastSection) {
-          // Submit application
-          await fetch(`/api/applications/${applicationId}/submit`, {
-            method: 'POST',
-          });
-          toast.success('Application submitted successfully!');
-          router.push('/applications');
-        } else {
-          // Move to next section
-          setCurrentSectionIndex(prev => prev + 1);
-          setCurrentQuestionIndex(0);
-        }
-      } catch (error) {
-        console.error('Error completing section:', error);
-        toast.error('Failed to complete section');
+        toast.success('Application submitted successfully!');
+        router.push('/applications');
+      } else {
+        // Move to next section
+        setCurrentSectionIndex((prev: number) => prev + 1);
       }
-    } else {
-      setCurrentQuestionIndex(prev => prev + 1);
+    } catch (error) {
+      console.error('Error completing section:', error);
+      toast.error('Failed to complete section');
     }
   };
 
   const handlePrevious = () => {
-    if (isFirstQuestion) {
-      if (isFirstSection) {
-        router.push('/applications');
-      } else {
-        setCurrentSectionIndex(prev => prev - 1);
-        setCurrentQuestionIndex(0);
-      }
+    if (isFirstSection) {
+      router.push('/applications');
     } else {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentSectionIndex(prev => prev - 1);
     }
   };
 
   const canProceed = () => {
-    if (!currentQuestion?.required) return true;
+    if (!currentSection) return false;
     
-    const response = responses[currentQuestion.id];
-    if (!response) return false;
-    
-    if (Array.isArray(response)) {
-      return response.length > 0;
-    }
-    
-    if (typeof response === 'string') {
-      return response.trim().length > 0;
-    }
-    
-    return true;
+    // Check if all required questions in the section are answered
+    const requiredQuestions = currentSection.questions.filter((q: Question) => q.required);
+    return requiredQuestions.every((question: Question) => {
+      const response = responses[question.id];
+      if (!response) return false;
+      
+      if (Array.isArray(response)) {
+        return response.length > 0;
+      }
+      
+      if (typeof response === 'string') {
+        return response.trim().length > 0;
+      }
+      
+      return true;
+    });
   };
 
-  const renderQuestion = () => {
-    if (!currentQuestion) return null;
-    
-    switch (currentQuestion.type) {
+  const renderQuestion = (question: Question) => {
+    switch (question.type) {
       case 'multiselect':
         return (
           <div className="space-y-4">
-            {currentQuestion.options?.map((option) => (
+            {question.options?.map((option) => (
               <div key={option.value} className="flex items-start space-x-4 p-5 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer group">
                 <Checkbox
                   id={option.value}
-                  checked={(responses[currentQuestion.id] as string[])?.includes(option.value) || false}
+                  checked={(responses[question.id] as string[])?.includes(option.value) || false}
                   onCheckedChange={(checked) => 
-                    handleMultiSelectChange(currentQuestion.id, option.value, checked as boolean)
+                    handleMultiSelectChange(question.id, option.value, checked as boolean)
                   }
                   className="mt-1"
                 />
@@ -328,14 +316,14 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
       case 'select':
         return (
           <Select 
-            value={(responses[currentQuestion.id] as string) || ''} 
-            onValueChange={(value) => handleResponseChange(currentQuestion.id, value)}
+            value={(responses[question.id] as string) || ''} 
+            onValueChange={(value) => handleResponseChange(question.id, value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder={currentQuestion.placeholder || "Select an option"} />
+              <SelectValue placeholder={question.placeholder || "Select an option"} />
             </SelectTrigger>
             <SelectContent>
-              {currentQuestion.options?.map((option) => (
+              {question.options?.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -347,14 +335,14 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         return (
           <div className="space-y-4">
             <Textarea
-              placeholder={currentQuestion.placeholder}
-              value={(responses[currentQuestion.id] as string) || ''}
-              onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+              placeholder={question.placeholder}
+              value={(responses[question.id] as string) || ''}
+              onChange={(e) => handleResponseChange(question.id, e.target.value)}
               className="min-h-[200px] resize-none text-base leading-relaxed p-4"
-              maxLength={currentQuestion.maxLength}
+              maxLength={question.maxLength}
             />
-            {currentQuestion.helpText && (
-              <p className="text-sm text-gray-500">{currentQuestion.helpText}</p>
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
             )}
           </div>
         );
@@ -365,22 +353,22 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         return (
           <div className="space-y-4">
             <Input
-              type={currentQuestion.type === 'email' ? 'email' : 'text'}
-              placeholder={currentQuestion.placeholder}
-              value={(responses[currentQuestion.id] as string) || ''}
-              onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+              type={question.type === 'email' ? 'email' : 'text'}
+              placeholder={question.placeholder}
+              value={(responses[question.id] as string) || ''}
+              onChange={(e) => handleResponseChange(question.id, e.target.value)}
               className="text-base p-4"
-              maxLength={currentQuestion.maxLength}
+              maxLength={question.maxLength}
             />
-            {currentQuestion.helpText && (
-              <p className="text-sm text-gray-500">{currentQuestion.helpText}</p>
+            {question.helpText && (
+              <p className="text-sm text-gray-500">{question.helpText}</p>
             )}
           </div>
         );
       default:
         return (
           <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <p className="text-gray-600">Question type "{currentQuestion.type}" not yet implemented.</p>
+            <p className="text-gray-600">Question type "{question.type}" not yet implemented.</p>
           </div>
         );
     }
@@ -397,7 +385,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                 <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
-                <h1 className="text-xl font-bold text-[#00334e]">Eddura</h1>
+                <h1 className="text-xl font-bold text-[#00334e]">{application.scholarshipId.title}</h1>
               </Link>
               <div className="hidden sm:block">
                 <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -420,7 +408,15 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleResponseChange(currentQuestion.id, responses[currentQuestion.id])}
+                onClick={() => {
+                  // Save all responses in current section
+                  currentSection?.questions.forEach(question => {
+                    if (responses[question.id]) {
+                      handleResponseChange(question.id, responses[question.id]);
+                    }
+                  });
+                  toast.success('Section saved!');
+                }}
                 className="text-gray-600 hover:text-gray-900"
               >
                 <Save className="w-4 h-4 mr-1" />
@@ -470,7 +466,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                   </div>
                   
                   <div className="text-sm text-gray-600">
-                    <p>Question {currentQuestionIndex + 1} of {currentSection?.questions.length}</p>
+                    <p>{currentSection?.questions.length} questions in this section</p>
                     <p className="mt-1">Scholarship: {application.scholarshipId.title}</p>
                   </div>
                 </div>
@@ -478,11 +474,11 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
             </Card>
           </div>
 
-          {/* Right Content - Question */}
+          {/* Right Content - All Questions in Section */}
           <div className="lg:col-span-4">
             <AnimatePresence mode="wait">
               <motion.div
-                key={`${currentSection?.id}-${currentQuestionIndex}`}
+                key={currentSection?.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -491,39 +487,56 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl">
-                        {currentQuestion?.title}
+                      <CardTitle className="text-2xl">
+                        {currentSection?.title}
                       </CardTitle>
-                      {currentQuestion?.required && (
-                        <Badge variant="destructive" className="text-xs">
-                          Required
-                        </Badge>
-                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        {currentSection?.questions.length} questions
+                      </Badge>
                     </div>
-                    {currentQuestion?.description && (
+                    {currentSection?.description && (
                       <CardDescription className="text-base">
-                        {currentQuestion.description}
+                        {currentSection.description}
                       </CardDescription>
                     )}
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    {renderQuestion()}
+                  <CardContent className="space-y-8">
+                    {currentSection?.questions.map((question, index) => (
+                      <div key={question.id} className="space-y-4 p-6 border border-gray-200 rounded-lg bg-white">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {index + 1}. {question.title}
+                          </h3>
+                          {question.required && (
+                            <Badge variant="destructive" className="text-xs">
+                              Required
+                            </Badge>
+                          )}
+                        </div>
+                        {question.description && (
+                          <p className="text-gray-600">{question.description}</p>
+                        )}
+                        <div className="mt-4">
+                          {renderQuestion(question)}
+                        </div>
+                      </div>
+                    ))}
                     
                     {/* Navigation */}
                     <div className="flex justify-between items-center pt-6 border-t border-gray-200">
                       <Button
                         variant="outline"
                         onClick={handlePrevious}
-                        disabled={isFirstQuestion && isFirstSection}
+                        disabled={isFirstSection}
                         className="flex items-center space-x-2"
                       >
                         <ArrowLeft className="w-4 h-4" />
-                        <span>Previous</span>
+                        <span>Previous Section</span>
                       </Button>
                       
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-500">
-                          {currentQuestionIndex + 1} of {currentSection?.questions.length}
+                          Section {currentSectionIndex + 1} of {application.applicationTemplateId.sections.length}
                         </span>
                       </div>
                       
@@ -533,10 +546,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                         className="flex items-center space-x-2 bg-[#007fbd] hover:bg-[#004d73] text-white"
                       >
                         <span>
-                          {isLastQuestion 
-                            ? (isLastSection ? 'Submit Application' : 'Next Section')
-                            : 'Next Question'
-                          }
+                          {isLastSection ? 'Submit Application' : 'Next Section'}
                         </span>
                         <ArrowRight className="w-4 h-4" />
                       </Button>
@@ -563,7 +573,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                   <li>• Answer all required questions to proceed</li>
                   <li>• You can select multiple options where allowed</li>
                   <li>• Your progress is automatically saved</li>
-                  <li>• You can go back to previous questions</li>
+                  <li>• You can go back to previous sections</li>
                   <li>• You can pause and resume anytime</li>
                 </ul>
               </div>
