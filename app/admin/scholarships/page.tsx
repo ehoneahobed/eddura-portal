@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useScholarships } from '@/hooks/use-scholarships';
-import { Search, Plus, Edit, Trash2, Calendar, DollarSign, ExternalLink, Loader2 } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Calendar, DollarSign, ExternalLink, Loader2, Clock, AlertCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -19,9 +19,13 @@ export default function ScholarshipsPage() {
   const [selectedProvider, setSelectedProvider] = useState('all');
   const [selectedFrequency, setSelectedFrequency] = useState('all');
   const [selectedDegreeLevel, setSelectedDegreeLevel] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const debouncedSearch = useDebounce(searchTerm, 300);
   const { toast } = useToast();
+
+  // Determine if we should include expired scholarships based on status filter
+  const includeExpired = selectedStatus === 'all' || selectedStatus === 'expired';
 
   // Use SWR hook for scholarships data
   const { scholarships, pagination, isLoading, isError, mutate } = useScholarships({
@@ -34,8 +38,39 @@ export default function ScholarshipsPage() {
        selectedFrequency === 'Annual' ? 'annual' : 
        selectedFrequency === 'Full Duration' ? 'other' : 'other') : undefined,
     sortBy: 'title',
-    sortOrder: 'asc'
+    sortOrder: 'asc',
+    includeExpired
   });
+
+  // Filter scholarships by status on the client side
+  const getFilteredScholarships = () => {
+    if (selectedStatus === 'all') return scholarships;
+    
+    const now = new Date();
+    const sixMonthsFromNow = new Date();
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    
+    return scholarships.filter((scholarship: any) => {
+      const deadline = new Date(scholarship.deadline);
+      
+      switch (selectedStatus) {
+        case 'active':
+          return deadline >= now;
+        case 'expired':
+          return deadline < now;
+        case 'coming-soon':
+          return deadline > now && deadline <= sixMonthsFromNow;
+        case 'urgent':
+          const thirtyDaysFromNow = new Date();
+          thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+          return deadline >= now && deadline <= thirtyDaysFromNow;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredScholarships = getFilteredScholarships();
 
   // Handle search and filter changes
   const handleSearchChange = (value: string) => {
@@ -55,6 +90,11 @@ export default function ScholarshipsPage() {
 
   const handleDegreeLevelChange = (value: string) => {
     setSelectedDegreeLevel(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
     setCurrentPage(1);
   };
 
@@ -90,6 +130,25 @@ export default function ScholarshipsPage() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const getStatusBadge = (deadline: string) => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const sixMonthsFromNow = new Date();
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    if (deadlineDate < now) {
+      return <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800 border-red-200"><AlertCircle className="h-3 w-3 mr-1" />Expired</span>;
+    } else if (deadlineDate <= thirtyDaysFromNow) {
+      return <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-orange-100 text-orange-800 border-orange-200"><Clock className="h-3 w-3 mr-1" />Urgent</span>;
+    } else if (deadlineDate <= sixMonthsFromNow) {
+      return <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 border-blue-200"><Clock className="h-3 w-3 mr-1" />Coming Soon</span>;
+    } else {
+      return <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800 border-green-200">Active</span>;
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -175,6 +234,18 @@ export default function ScholarshipsPage() {
             <SelectItem value="Diploma">Diploma</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={selectedStatus} onValueChange={handleStatusChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="expired">Expired</SelectItem>
+            <SelectItem value="coming-soon">Coming Soon (6 months)</SelectItem>
+            <SelectItem value="urgent">Urgent (30 days)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Search */}
@@ -191,9 +262,8 @@ export default function ScholarshipsPage() {
       {/* Results Info */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{' '}
-          {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of{' '}
-          {pagination.totalCount} scholarships
+          Showing {filteredScholarships.length} of {pagination.totalCount} scholarships
+          {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
         </div>
       </div>
 
@@ -210,7 +280,7 @@ export default function ScholarshipsPage() {
       {/* Scholarships Grid */}
       {!isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {scholarships.map((scholarship) => (
+          {filteredScholarships.map((scholarship) => (
             <Link
               key={scholarship.id}
               href={`/admin/scholarships/${scholarship.id}`}
@@ -230,6 +300,7 @@ export default function ScholarshipsPage() {
                       </div>
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="secondary">{scholarship.frequency}</Badge>
+                        {getStatusBadge(scholarship.deadline)}
                       </div>
                     </div>
                     <div className="flex space-x-1 z-10" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
@@ -292,7 +363,7 @@ export default function ScholarshipsPage() {
       )}
 
       {/* Empty State */}
-      {!isLoading && scholarships.length === 0 && (
+      {!isLoading && filteredScholarships.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-500 mb-4">
             <ExternalLink className="h-12 w-12 mx-auto mb-4 text-gray-300" />

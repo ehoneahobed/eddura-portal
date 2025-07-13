@@ -17,7 +17,9 @@ import {
   Share2,
   ArrowRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,6 +81,7 @@ export default function ScholarshipsPage() {
     hasCV: false,
     hasRecommendations: false
   });
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
@@ -92,7 +95,7 @@ export default function ScholarshipsPage() {
 
   useEffect(() => {
     fetchScholarships();
-  }, [pagination.currentPage, searchTerm, selectedFilters, sortBy]);
+  }, [pagination.currentPage, searchTerm, selectedFilters, sortBy, selectedStatus]);
 
   const fetchScholarships = async () => {
     try {
@@ -143,6 +146,11 @@ export default function ScholarshipsPage() {
         params.append('hasRecommendations', 'true');
       }
 
+      // Include expired scholarships if status filter allows it
+      if (selectedStatus === 'all' || selectedStatus === 'expired') {
+        params.append('includeExpired', 'true');
+      }
+
       const response = await fetch(`/api/scholarships?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
@@ -174,6 +182,36 @@ export default function ScholarshipsPage() {
     }
   };
 
+  // Filter scholarships by status on the client side
+  const getFilteredScholarships = () => {
+    if (selectedStatus === 'all') return scholarships;
+    
+    const now = new Date();
+    const sixMonthsFromNow = new Date();
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+    
+    return scholarships.filter((scholarship: any) => {
+      const deadline = new Date(scholarship.deadline);
+      
+      switch (selectedStatus) {
+        case 'active':
+          return deadline >= now;
+        case 'expired':
+          return deadline < now;
+        case 'coming-soon':
+          return deadline > now && deadline <= sixMonthsFromNow;
+        case 'urgent':
+          const thirtyDaysFromNow = new Date();
+          thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+          return deadline >= now && deadline <= thirtyDaysFromNow;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredScholarships = getFilteredScholarships();
+
   const handlePageChange = (page: number) => {
     setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: page }));
   };
@@ -191,6 +229,7 @@ export default function ScholarshipsPage() {
       hasCV: false,
       hasRecommendations: false
     });
+    setSelectedStatus('all');
     setSearchTerm('');
     setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
   };
@@ -310,6 +349,25 @@ export default function ScholarshipsPage() {
                     </SelectContent>
                   </Select>
 
+                  <Select 
+                    value={selectedStatus} 
+                    onValueChange={(value) => {
+                      setSelectedStatus(value);
+                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
+                      <SelectItem value="coming-soon">Coming Soon</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
@@ -319,7 +377,7 @@ export default function ScholarshipsPage() {
                     Filters
                   </Button>
 
-                  {(searchTerm || Object.values(selectedFilters).some(v => v && v !== 'all')) && (
+                  {(searchTerm || Object.values(selectedFilters).some(v => v && v !== 'all') || selectedStatus !== 'all') && (
                     <Button variant="ghost" onClick={clearFilters}>
                       Clear
                     </Button>
@@ -357,9 +415,10 @@ export default function ScholarshipsPage() {
         >
           <div className="flex items-center justify-between">
             <p className="text-gray-600">
-              Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
+              Showing <span className="font-semibold">{filteredScholarships.length}</span> of{' '}
               <span className="font-semibold">{pagination.totalCount}</span> scholarships
               {searchTerm && ` for "${searchTerm}"`}
+              {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
             </p>
             
             <div className="flex items-center gap-2">
@@ -383,14 +442,14 @@ export default function ScholarshipsPage() {
         </motion.div>
 
         {/* Scholarships Grid */}
-        {scholarships.length > 0 ? (
+        {filteredScholarships.length > 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {scholarships.map((scholarship, index) => (
+            {filteredScholarships.map((scholarship, index) => (
               <motion.div
                 key={scholarship._id}
                 initial={{ opacity: 0, y: 20 }}
