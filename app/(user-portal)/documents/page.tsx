@@ -23,10 +23,10 @@ interface Document {
   version: number;
   isPublic: boolean;
   language: string;
-  metadata: {
-    wordCount: number;
-    characterCount: number;
-    lastEdited: string;
+  metadata?: {
+    wordCount?: number;
+    characterCount?: number;
+    lastEdited?: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -125,11 +125,19 @@ export default function DocumentsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -251,14 +259,14 @@ export default function DocumentsPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {documents.map((document) => (
+            {documents.filter(Boolean).map((document) => (
               <Card key={document._id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
                       {getTypeIcon(document.type)}
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">{document.title}</CardTitle>
+                        <CardTitle className="text-lg truncate">{document.title || 'Untitled Document'}</CardTitle>
                         <CardDescription className="truncate">
                           {document.description || 'No description'}
                         </CardDescription>
@@ -266,7 +274,7 @@ export default function DocumentsPage() {
                     </div>
                     <div className="flex items-center space-x-1">
                       <Badge variant="outline" className="text-xs">
-                        v{document.version}
+                        v{document.version || 1}
                       </Badge>
                       {document.isPublic && (
                         <Badge variant="secondary" className="text-xs">
@@ -280,12 +288,12 @@ export default function DocumentsPage() {
                   {/* Metadata */}
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <div className="flex items-center space-x-4">
-                      <span>{document.metadata.wordCount} words</span>
-                      <span>{document.metadata.characterCount} chars</span>
+                      <span>{document.metadata?.wordCount || 0} words</span>
+                      <span>{document.metadata?.characterCount || 0} chars</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDate(document.metadata.lastEdited)}</span>
+                      <span>{formatDate(document.metadata?.lastEdited || document.updatedAt)}</span>
                     </div>
                   </div>
 
@@ -293,16 +301,16 @@ export default function DocumentsPage() {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-2">
                       <Type className="h-3 w-3 text-gray-400" />
-                      <span className="text-gray-600">{getTypeLabel(document.type)}</span>
+                      <span className="text-gray-600">{getTypeLabel(document.type || 'other')}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Folder className="h-3 w-3 text-gray-400" />
-                      <span className="text-gray-600">{getCategoryLabel(document.category)}</span>
+                      <span className="text-gray-600">{getCategoryLabel(document.category || 'other')}</span>
                     </div>
                   </div>
 
                   {/* Tags */}
-                  {document.tags.length > 0 && (
+                  {document.tags && document.tags.length > 0 && (
                     <div className="flex items-center space-x-2">
                       <Tag className="h-3 w-3 text-gray-400" />
                       <div className="flex flex-wrap gap-1">
