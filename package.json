@@ -19,7 +19,8 @@
     "test:integration": "jest --config jest.config.js --testPathPattern=tests/integration",
     "test:unit": "jest --config jest.config.js --testPathPattern=tests/unit",
     "test:all": "npm run test && npm run test:e2e",
-    "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js"
+    "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js",
+    "seed:content": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-content.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
