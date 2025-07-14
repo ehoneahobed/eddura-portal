@@ -231,7 +231,7 @@ export default function AdminSidebar({ user, onClose }: AdminSidebarProps) {
                   <Button
                     variant={hasActiveChild ? "secondary" : "ghost"}
                     className={cn(
-                      "w-full justify-between h-12 text-base",
+                      "w-full justify-between h-10 text-sm",
                       hasActiveChild && "bg-blue-50 text-blue-700"
                     )}
                     onClick={() => toggleGroup(item.name)}
@@ -258,7 +258,7 @@ export default function AdminSidebar({ user, onClose }: AdminSidebarProps) {
                               <Button
                                 variant={isActive ? "secondary" : "ghost"}
                                 className={cn(
-                                  "w-full justify-start h-10 text-sm",
+                                  "w-full justify-start h-8 text-xs",
                                   isActive && "bg-blue-50 text-blue-700"
                                 )}
                               >
@@ -281,7 +281,7 @@ export default function AdminSidebar({ user, onClose }: AdminSidebarProps) {
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
                     className={cn(
-                      "w-full justify-start h-12 text-base",
+                      "w-full justify-start h-10 text-sm",
                       isActive && "bg-blue-50 text-blue-700"
                     )}
                   >
