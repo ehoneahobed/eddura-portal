@@ -9,11 +9,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
 
-
+// Tooltip component for version explanation
+const VersionTooltip = ({ children }: { children: React.ReactNode }) => (
+  <div className="group relative inline-block">
+    {children}
+    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+      Version automatically increments when content is modified
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
+);
 
 interface DocumentCardProps {
   document: Document;
@@ -175,9 +184,13 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
             <Badge variant={document.isActive ? "default" : "secondary"}>
               {document.isActive ? 'Active' : 'Inactive'}
             </Badge>
-            <Badge variant="outline">
-              v{document.version}
-            </Badge>
+            <VersionTooltip>
+              <Badge variant="outline" className="flex items-center gap-1 cursor-help">
+                <Clock className="h-3 w-3" />
+                v{document.version}
+                <HelpCircle className="h-3 w-3" />
+              </Badge>
+            </VersionTooltip>
             {typeConfig && (
               <Badge variant="outline" className="capitalize">
                 {typeConfig.category}
@@ -204,9 +217,9 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
                 <FileText className="h-3 w-3" />
-                {wordCount} words
+                <span className="font-medium">{wordCount.toLocaleString()}</span> words
               </span>
-              <span>{characterCount} chars</span>
+              <span><span className="font-medium">{characterCount.toLocaleString()}</span> chars</span>
             </div>
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
@@ -217,13 +230,13 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
           {(document.targetProgram || document.targetScholarship || document.targetInstitution) && (
             <div className="text-xs text-muted-foreground space-y-1">
               {document.targetProgram && (
-                <div>Program: {document.targetProgram}</div>
+                <div className="truncate">Program: {document.targetProgram}</div>
               )}
               {document.targetScholarship && (
-                <div>Scholarship: {document.targetScholarship}</div>
+                <div className="truncate">Scholarship: {document.targetScholarship}</div>
               )}
               {document.targetInstitution && (
-                <div>Institution: {document.targetInstitution}</div>
+                <div className="truncate">Institution: {document.targetInstitution}</div>
               )}
             </div>
           )}
@@ -236,7 +249,7 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
           <DialogHeader>
             <DialogTitle>Edit Document</DialogTitle>
             <DialogDescription>
-              Update your document content and metadata.
+              Update your document content and metadata. Note: Changing the content will automatically increment the version number.
             </DialogDescription>
           </DialogHeader>
 
@@ -249,6 +262,9 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
                 onChange={(e) => setEditData(prev => ({ ...prev, title: e.target.value }))}
                 maxLength={200}
               />
+              <div className="text-xs text-muted-foreground">
+                {editData.title.length}/200 characters
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -260,17 +276,32 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
                 maxLength={500}
                 rows={2}
               />
+              <div className="text-xs text-muted-foreground">
+                {editData.description.length}/500 characters
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-content">Content</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="edit-content">Content</Label>
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">{editData.content.trim().split(/\s+/).filter(word => word.length > 0).length}</span> words, 
+                  <span className="font-medium"> {editData.content.length.toLocaleString()}</span> characters
+                </div>
+              </div>
               <Textarea
                 id="edit-content"
                 value={editData.content}
                 onChange={(e) => setEditData(prev => ({ ...prev, content: e.target.value }))}
                 rows={12}
-                className="font-mono text-sm"
+                className="font-mono text-sm resize-y"
               />
+              {editData.content !== document.content && (
+                <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  Changing the content will increment the version number from v{document.version} to v{document.version + 1}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -366,10 +397,10 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={loading}>
+            <Button onClick={handleDelete} disabled={loading} variant="destructive">
               {loading ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
