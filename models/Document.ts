@@ -1,42 +1,57 @@
-import mongoose, { Schema, Document as MongooseDocument, Model } from 'mongoose';
+import mongoose, { Schema, Document as MongooseDocument, Model, CallbackWithoutResult } from 'mongoose';
+import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 
-export interface IDocument extends MongooseDocument {
+/**
+ * StudentDocument interface representing a student document in the Eddura platform
+ */
+export interface IStudentDocument extends MongooseDocument {
+  // Basic Information
   userId: mongoose.Types.ObjectId;
   title: string;
-  description?: string;
+  type: DocumentType;
   content: string;
-  type: 'cv' | 'resume' | 'personal_statement' | 'essay' | 'cover_letter' | 'recommendation' | 'transcript' | 'certificate' | 'other';
-  category: 'academic' | 'professional' | 'personal' | 'certification' | 'other';
-  tags: string[];
   version: number;
   isActive: boolean;
-  isPublic: boolean;
-  language: string;
+  
+  // Metadata
+  description?: string;
+  tags?: string[];
+  targetProgram?: string;
+  targetScholarship?: string;
+  targetInstitution?: string;
+  
+  // Document-specific fields
+  wordCount?: number;
+  characterCount?: number;
+  lastEditedAt: Date;
+  
+  // Enhanced features from our branch
+  category?: 'academic' | 'professional' | 'personal' | 'certification' | 'other';
+  isPublic?: boolean;
+  language?: string;
   fileUrl?: string;
   fileSize?: number;
   fileType?: string;
-  metadata: {
-    wordCount: number;
-    characterCount: number;
-    readingTime?: number;
-    lastEdited: Date;
-    createdFromTemplate?: string;
-  };
-  permissions: {
+  readingTime?: number;
+  createdFromTemplate?: string;
+  permissions?: {
     canEdit: boolean;
     canShare: boolean;
     canDelete: boolean;
   };
+  
+  // Timestamps
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IDocumentModel extends Model<IDocument> {
+export interface IDocumentModel extends Model<IStudentDocument> {
   getNextVersion(userId: string, title: string): Promise<number>;
-  createNewVersion(userId: string, documentId: string, updates: Partial<IDocument>): Promise<IDocument>;
+  createNewVersion(userId: string, documentId: string, updates: Partial<IStudentDocument>): Promise<IStudentDocument>;
 }
 
-const DocumentSchema = new Schema<IDocument>({
+const DocumentSchema: Schema = new Schema<IStudentDocument>({
+  // Basic Information
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -49,33 +64,16 @@ const DocumentSchema = new Schema<IDocument>({
     trim: true,
     maxlength: 200
   },
-  description: {
+  type: {
     type: String,
-    trim: true,
-    maxlength: 500
+    enum: Object.values(DocumentType),
+    required: true
   },
   content: {
     type: String,
     required: true,
-    default: ''
+    trim: true
   },
-  type: {
-    type: String,
-    enum: ['cv', 'resume', 'personal_statement', 'essay', 'cover_letter', 'recommendation', 'transcript', 'certificate', 'other'],
-    required: true,
-    default: 'other'
-  },
-  category: {
-    type: String,
-    enum: ['academic', 'professional', 'personal', 'certification', 'other'],
-    required: true,
-    default: 'other'
-  },
-  tags: [{
-    type: String,
-    trim: true,
-    maxlength: 50
-  }],
   version: {
     type: Number,
     required: true,
@@ -85,6 +83,53 @@ const DocumentSchema = new Schema<IDocument>({
   isActive: {
     type: Boolean,
     default: true
+  },
+  
+  // Metadata
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 500
+  },
+  tags: [{
+    type: String,
+    trim: true,
+    maxlength: 50
+  }],
+  targetProgram: {
+    type: String,
+    trim: true
+  },
+  targetScholarship: {
+    type: String,
+    trim: true
+  },
+  targetInstitution: {
+    type: String,
+    trim: true
+  },
+  
+  // Document-specific fields
+  wordCount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  characterCount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  lastEditedAt: {
+    type: Date,
+    default: Date.now
+  },
+  
+  // Enhanced features from our branch
+  category: {
+    type: String,
+    enum: ['academic', 'professional', 'personal', 'certification', 'other'],
+    default: 'other'
   },
   isPublic: {
     type: Boolean,
@@ -107,29 +152,13 @@ const DocumentSchema = new Schema<IDocument>({
     type: String,
     trim: true
   },
-  metadata: {
-    wordCount: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    characterCount: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    readingTime: {
-      type: Number,
-      min: 0
-    },
-    lastEdited: {
-      type: Date,
-      default: Date.now
-    },
-    createdFromTemplate: {
-      type: String,
-      trim: true
-    }
+  readingTime: {
+    type: Number,
+    min: 0
+  },
+  createdFromTemplate: {
+    type: String,
+    trim: true
   },
   permissions: {
     canEdit: {
@@ -159,7 +188,7 @@ DocumentSchema.index({ userId: 1, tags: 1 });
 DocumentSchema.index({ userId: 1, version: 1 });
 
 // Virtual for full version string
-DocumentSchema.virtual('versionString').get(function(this: IDocument) {
+DocumentSchema.virtual('versionString').get(function(this: IStudentDocument) {
   return `v${this.version}`;
 });
 
@@ -168,14 +197,14 @@ DocumentSchema.pre('save', function(this: any, next: () => void) {
   if (this.isModified('content')) {
     // Calculate word and character count
     const content = this.content || '';
-    this.metadata.characterCount = content.length;
-    this.metadata.wordCount = content.trim().split(/\s+/).filter((word: string) => word.length > 0).length;
+    this.characterCount = content.length;
+    this.wordCount = content.trim().split(/\s+/).filter((word: string) => word.length > 0).length;
     
     // Calculate reading time (average 200 words per minute)
-    this.metadata.readingTime = Math.ceil(this.metadata.wordCount / 200);
+    this.readingTime = Math.ceil(this.wordCount / 200);
     
     // Update last edited timestamp
-    this.metadata.lastEdited = new Date();
+    this.lastEditedAt = new Date();
   }
   next();
 });
@@ -192,7 +221,7 @@ DocumentSchema.pre('save', function(this: any, next: () => void) {
 };
 
 // Static method to create a new version
-(DocumentSchema.statics as any).createNewVersion = async function(userId: string, documentId: string, updates: Partial<IDocument>): Promise<IDocument> {
+(DocumentSchema.statics as any).createNewVersion = async function(userId: string, documentId: string, updates: Partial<IStudentDocument>): Promise<IStudentDocument> {
   const originalDoc = await this.findById(documentId);
   if (!originalDoc || originalDoc.userId.toString() !== userId) {
     throw new Error('Document not found or access denied');
@@ -204,15 +233,12 @@ DocumentSchema.pre('save', function(this: any, next: () => void) {
     _id: undefined, // Remove the original _id
     version: originalDoc.version + 1,
     ...updates,
-    metadata: {
-      ...originalDoc.metadata,
-      lastEdited: new Date()
-    }
+    lastEditedAt: new Date()
   });
 
   return await newVersion.save();
 };
 
-const Document = mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);
+const Document = mongoose.models.Document || mongoose.model<IStudentDocument>('Document', DocumentSchema);
 
 export default Document;
