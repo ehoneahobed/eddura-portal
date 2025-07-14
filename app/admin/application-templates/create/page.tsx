@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
@@ -12,7 +12,11 @@ import { toast } from 'sonner';
 
 export default function CreateApplicationTemplatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isCreating, setIsCreating] = useState(false);
+
+  // Get scholarshipId from URL parameters
+  const scholarshipId = searchParams.get('scholarshipId');
 
   const handleSubmit = async (data: Partial<ApplicationTemplate>) => {
     if (!data.scholarshipId) {
@@ -60,6 +64,7 @@ export default function CreateApplicationTemplatePage() {
         onCancel={handleCancel}
         isLoading={isCreating}
         allowScholarshipChange={true}
+        scholarshipId={scholarshipId || undefined}
       />
     </div>
   );
