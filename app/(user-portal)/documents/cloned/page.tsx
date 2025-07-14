@@ -36,8 +36,7 @@ import {
   Download,
   Share2,
   Trash2,
-  FileText,
-  Bookmark
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -61,7 +60,6 @@ interface ClonedDocument {
   updatedAt: string;
   lastAccessedAt?: string;
   accessCount: number;
-  isBookmarked: boolean;
 }
 
 export default function MyClonedDocumentsPage() {
@@ -78,6 +76,16 @@ export default function MyClonedDocumentsPage() {
     total: 0,
     pages: 0
   });
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPagination(prev => ({ ...prev, page: 1 }));
+      fetchClonedDocuments();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchClonedDocuments();
@@ -116,27 +124,19 @@ export default function MyClonedDocumentsPage() {
     fetchClonedDocuments();
   };
 
-  const handleBookmark = async (documentId: string, currentStatus: boolean) => {
-    try {
-      const response = await fetch(`/api/user/cloned-documents/${documentId}/bookmark`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isBookmarked: !currentStatus }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success(data.message || 'Bookmark status updated');
-        fetchClonedDocuments(); // Refresh the list
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to update bookmark status');
-      }
-    } catch (error) {
-      console.error('Error updating bookmark status:', error);
-      toast.error('Failed to update bookmark status');
+  const handleFilterChange = (filterType: 'category' | 'type' | 'sort', value: string) => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+    
+    switch (filterType) {
+      case 'category':
+        setCategoryFilter(value);
+        break;
+      case 'type':
+        setTypeFilter(value);
+        break;
+      case 'sort':
+        setSortBy(value);
+        break;
     }
   };
 
@@ -172,19 +172,18 @@ export default function MyClonedDocumentsPage() {
     });
   };
 
-  const getRelativeTime = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return formatDate(dateString);
+  const getCategories = () => {
+    const categories = new Set(documents.map(doc => doc.originalDocument.category));
+    return Array.from(categories).sort();
+  };
+
+  const getTypes = () => {
+    const types = new Set(documents.map(doc => doc.originalDocument.type));
+    return Array.from(types).sort();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -193,126 +192,117 @@ export default function MyClonedDocumentsPage() {
             Manage your cloned documents from the library
           </p>
         </div>
-        <Button onClick={() => window.open('/library', '_blank')}>
-          <Copy className="mr-2 h-4 w-4" />
-          Clone More Documents
-        </Button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Cloned</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{documents.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <Filter className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getCategories().length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Document Types</CardTitle>
             <Copy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pagination.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bookmarked</CardTitle>
-            <Bookmark className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {documents.filter(d => d.isBookmarked).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recently Accessed</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {documents.filter(d => d.lastAccessedAt && 
-                new Date(d.lastAccessedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-              ).length}
-            </div>
+            <div className="text-2xl font-bold">{getTypes().length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Access</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documents.reduce((sum, d) => sum + d.accessCount, 0)}
+              {documents.reduce((sum, doc) => sum + doc.accessCount, 0)}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>Search & Filter</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
+            <div className="flex-1">
               <label className="text-sm font-medium">Search</label>
-              <div className="flex space-x-2">
+              <div className="flex gap-2 mt-1">
                 <Input
-                  placeholder="Search documents..."
+                  placeholder="Search documents by title, description, or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="flex-1"
                 />
-                <Button onClick={handleSearch} size="sm">
-                  <Search className="h-4 w-4" />
-                </Button>
               </div>
+              {searchTerm && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Search will automatically trigger as you type
+                </p>
+              )}
             </div>
-            <div className="space-y-2">
+            <div>
               <label className="text-sm font-medium">Category</label>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
+              <Select value={categoryFilter} onValueChange={(value) => handleFilterChange('category', value)}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="personal">Personal</SelectItem>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="academic">Academic</SelectItem>
-                  <SelectItem value="experience">Experience</SelectItem>
-                  <SelectItem value="reference">Reference</SelectItem>
+                  {getCategories().map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Document Type</label>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
+            <div>
+              <label className="text-sm font-medium">Type</label>
+              <Select value={typeFilter} onValueChange={(value) => handleFilterChange('type', value)}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="Personal Statement">Personal Statement</SelectItem>
-                  <SelectItem value="Statement of Purpose">Statement of Purpose</SelectItem>
-                  <SelectItem value="Research Proposal">Research Proposal</SelectItem>
-                  <SelectItem value="Academic CV">Academic CV</SelectItem>
-                  <SelectItem value="Cover Letter">Cover Letter</SelectItem>
-                  <SelectItem value="Scholarship Essay">Scholarship Essay</SelectItem>
+                  {getTypes().map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div>
               <label className="text-sm font-medium">Sort By</label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
+              <Select value={sortBy} onValueChange={(value) => handleFilterChange('sort', value)}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recent">Most Recent</SelectItem>
                   <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="accessed">Recently Accessed</SelectItem>
+                  <SelectItem value="accessed">Last Accessed</SelectItem>
                   <SelectItem value="title">Title A-Z</SelectItem>
-                  <SelectItem value="type">Document Type</SelectItem>
+                  <SelectItem value="type">Type A-Z</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -323,27 +313,31 @@ export default function MyClonedDocumentsPage() {
       {/* Documents Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Cloned Documents</CardTitle>
+          <CardTitle>Documents</CardTitle>
           <CardDescription>
-            Your personalized copies of library documents
+            {documents.length} document{documents.length !== 1 ? 's' : ''} found
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center h-32">
+            <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : documents.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-8">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No cloned documents yet</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
               <p className="text-gray-500 mb-4">
-                Start by cloning documents from the library to create your personalized copies.
+                {searchTerm || categoryFilter !== 'all' || typeFilter !== 'all'
+                  ? 'Try adjusting your search or filters'
+                  : 'You haven\'t cloned any documents yet. Visit the library to get started.'
+                }
               </p>
-              <Button onClick={() => window.open('/library', '_blank')}>
-                <Copy className="mr-2 h-4 w-4" />
-                Browse Library
-              </Button>
+              {!searchTerm && categoryFilter === 'all' && typeFilter === 'all' && (
+                <Button onClick={() => window.location.href = '/library'}>
+                  Browse Library
+                </Button>
+              )}
             </div>
           ) : (
             <Table>
@@ -366,51 +360,34 @@ export default function MyClonedDocumentsPage() {
                         <div className="font-medium">
                           {document.customizations?.title || document.originalDocument.title}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-muted-foreground">
                           {document.customizations?.description || document.originalDocument.description}
                         </div>
-                        {document.isBookmarked && (
-                          <Badge variant="outline" className="mt-1">
-                            <Bookmark className="h-3 w-3 mr-1" />
-                            Bookmarked
-                          </Badge>
+                        {document.customizations?.tags && document.customizations.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {document.customizations.tags.slice(0, 3).map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {document.customizations.tags.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{document.customizations.tags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{document.originalDocument.type}</Badge>
                     </TableCell>
+                    <TableCell>{document.originalDocument.category}</TableCell>
+                    <TableCell>{formatDate(document.createdAt)}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{document.originalDocument.category}</div>
+                      {document.lastAccessedAt ? formatDate(document.lastAccessedAt) : 'Never'}
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{formatDate(document.createdAt)}</div>
-                        <div className="text-gray-500">
-                          {getRelativeTime(document.createdAt)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {document.lastAccessedAt ? (
-                          <>
-                            <div>{formatDate(document.lastAccessedAt)}</div>
-                            <div className="text-gray-500">
-                              {getRelativeTime(document.lastAccessedAt)}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-gray-500">Never</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <Eye className="h-4 w-4 text-gray-400" />
-                        <span>{document.accessCount}</span>
-                      </div>
-                    </TableCell>
+                    <TableCell>{document.accessCount}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -435,22 +412,6 @@ export default function MyClonedDocumentsPage() {
                           <DropdownMenuItem>
                             <Share2 className="mr-2 h-4 w-4" />
                             Share
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleBookmark(document._id, document.isBookmarked)}
-                          >
-                            {document.isBookmarked ? (
-                              <>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Remove Bookmark
-                              </>
-                            ) : (
-                              <>
-                                <Bookmark className="mr-2 h-4 w-4" />
-                                Bookmark
-                              </>
-                            )}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 

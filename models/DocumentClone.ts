@@ -16,7 +16,6 @@ export interface IDocumentClone extends MongooseDocument {
   clonedAt: Date;
   lastAccessedAt?: Date;
   accessCount: number;
-  isBookmarked: boolean;
   userDocumentId?: mongoose.Types.ObjectId; // Reference to user's personal Document
   createdAt: Date;
   updatedAt: Date;
@@ -35,7 +34,6 @@ const DocumentCloneSchema: Schema = new Schema<IDocumentClone>({
   clonedAt: { type: Date, default: Date.now },
   lastAccessedAt: { type: Date },
   accessCount: { type: Number, default: 0 },
-  isBookmarked: { type: Boolean, default: false },
   userDocumentId: { type: Schema.Types.ObjectId, ref: 'Document' },
 }, {
   timestamps: true,
@@ -43,8 +41,9 @@ const DocumentCloneSchema: Schema = new Schema<IDocumentClone>({
 
 // Indexes for performance and analytics
 DocumentCloneSchema.index({ originalDocumentId: 1 });
+DocumentCloneSchema.index({ userId: 1 });
 DocumentCloneSchema.index({ clonedBy: 1 });
-DocumentCloneSchema.index({ clonedAt: -1 });
+DocumentCloneSchema.index({ createdAt: -1 });
 
 const DocumentClone: Model<IDocumentClone> = mongoose.models.DocumentClone || mongoose.model<IDocumentClone>('DocumentClone', DocumentCloneSchema);
 

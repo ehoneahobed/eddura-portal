@@ -14,8 +14,7 @@ import {
   X, 
   Copy, 
   Download, 
-  Share2, 
-  Bookmark,
+  Share2,
   Eye,
   Calendar,
   FileText,
@@ -51,7 +50,6 @@ interface ClonedDocument {
   updatedAt: string;
   lastAccessedAt?: string;
   accessCount: number;
-  isBookmarked: boolean;
 }
 
 export default function DocumentViewer({ documentId, onBack }: DocumentViewerProps) {
@@ -126,36 +124,10 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
     }
   };
 
-  const handleBookmark = async () => {
-    if (!document) return;
-    
-    try {
-      const response = await fetch(`/api/user/cloned-documents/${documentId}/bookmark`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isBookmarked: !document.isBookmarked }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDocument(prev => prev ? { ...prev, isBookmarked: data.document.isBookmarked } : null);
-        toast.success(data.message || 'Bookmark status updated');
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to update bookmark status');
-      }
-    } catch (error) {
-      console.error('Error updating bookmark status:', error);
-      toast.error('Failed to update bookmark status');
-    }
-  };
-
   const addTag = () => {
     if (newTag.trim() && !editedTags.includes(newTag.trim())) {
       setEditedTags([...editedTags, newTag.trim()]);
-      setNewTag('');
+      setNewTag("");
     }
   };
 
@@ -163,27 +135,16 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
     setEditedTags(editedTags.filter(tag => tag !== tagToRemove));
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getWordCount = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
-  };
-
-  const getCharacterCount = (text: string) => {
-    return text.length;
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -191,18 +152,8 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
 
   if (!document) {
     return (
-      <div className="text-center py-12">
-        <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Document not found</h3>
-        <p className="text-gray-500 mb-4">
-          The document you're looking for doesn't exist or you don't have access to it.
-        </p>
-        {onBack && (
-          <Button onClick={onBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
-          </Button>
-        )}
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Document not found</p>
       </div>
     );
   }
@@ -228,14 +179,6 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={handleBookmark}
-            className={document.isBookmarked ? "bg-yellow-50 border-yellow-200" : ""}
-          >
-            <Bookmark className={`h-4 w-4 mr-2 ${document.isBookmarked ? "fill-current text-yellow-600" : ""}`} />
-            {document.isBookmarked ? "Bookmarked" : "Bookmark"}
-          </Button>
           {!isEditing ? (
             <Button onClick={() => setIsEditing(true)}>
               <Edit className="h-4 w-4 mr-2" />
@@ -263,77 +206,59 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
       {/* Document Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Document Information</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Document Information
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <Label className="text-sm font-medium">Type</Label>
-              <Badge variant="outline">{document.originalDocument.type}</Badge>
+              <p className="text-sm text-muted-foreground">{document.originalDocument.type}</p>
             </div>
-            <div className="space-y-2">
+            <div>
               <Label className="text-sm font-medium">Category</Label>
-              <Badge variant="outline">{document.originalDocument.category}</Badge>
+              <p className="text-sm text-muted-foreground">{document.originalDocument.category}</p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Cloned</Label>
-              <div className="text-sm text-gray-600">{formatDate(document.createdAt)}</div>
+            <div>
+              <Label className="text-sm font-medium">Created</Label>
+              <p className="text-sm text-muted-foreground">
+                {new Date(document.createdAt).toLocaleDateString()}
+              </p>
             </div>
-            <div className="space-y-2">
+            <div>
               <Label className="text-sm font-medium">Last Accessed</Label>
-              <div className="text-sm text-gray-600">
-                {document.lastAccessedAt ? formatDate(document.lastAccessedAt) : 'Never'}
-              </div>
+              <p className="text-sm text-muted-foreground">
+                {document.lastAccessedAt 
+                  ? new Date(document.lastAccessedAt).toLocaleDateString()
+                  : 'Never'
+                }
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Access Count</Label>
+              <p className="text-sm text-muted-foreground">{document.accessCount}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Word Count</Label>
+              <p className="text-sm text-muted-foreground">
+                {document.clonedContent.split(/\s+/).filter(word => word.length > 0).length}
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Tags */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tags</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Add a tag"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                />
-                <Button onClick={addTag} variant="outline">
-                  Add
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {editedTags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                    {tag}
-                    <button
-                      onClick={() => removeTag(tag)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+          {/* Tags */}
+          <div>
+            <Label className="text-sm font-medium">Tags</Label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {(document.customizations?.tags || document.originalDocument.tags).map((tag, index) => (
+                <Badge key={index} variant="secondary">
+                  {tag}
+                </Badge>
+              ))}
             </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {document.customizations?.tags?.length ? 
-                document.customizations.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary">{tag}</Badge>
-                )) :
-                document.originalDocument.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary">{tag}</Badge>
-                ))
-              }
-            </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
@@ -342,23 +267,13 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
         <CardHeader>
           <CardTitle>Content</CardTitle>
           <CardDescription>
-            {isEditing ? (
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <span>{getWordCount(editedContent)} words</span>
-                <span>{getCharacterCount(editedContent)} characters</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <span>{getWordCount(document.clonedContent)} words</span>
-                <span>{getCharacterCount(document.clonedContent)} characters</span>
-              </div>
-            )}
+            {isEditing ? 'Edit the document content below' : 'View the document content'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isEditing ? (
             <div className="space-y-4">
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
@@ -367,7 +282,7 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
                   placeholder="Document title"
                 />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="description">Description</Label>
                 <Input
                   id="description"
@@ -376,47 +291,44 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
                   placeholder="Document description"
                 />
               </div>
-              <div className="space-y-2">
+              <div>
+                <Label htmlFor="tags">Tags</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    id="tags"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Add a tag"
+                  />
+                  <Button type="button" onClick={addTag} variant="outline">
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {editedTags.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
+                      {tag} ×
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <Label htmlFor="content">Content</Label>
                 <Textarea
                   id="content"
                   value={editedContent}
                   onChange={(e) => setEditedContent(e.target.value)}
                   placeholder="Document content"
-                  className="min-h-[400px] font-mono text-sm"
+                  className="min-h-[400px]"
                 />
               </div>
             </div>
           ) : (
             <div className="prose max-w-none">
-              <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed bg-gray-50 p-4 rounded-lg">
-                {document.clonedContent}
-              </pre>
+              <div className="whitespace-pre-wrap">{document.clonedContent}</div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline">
-              <Copy className="h-4 w-4 mr-2" />
-              Copy Content
-            </Button>
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            <Button variant="outline">
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

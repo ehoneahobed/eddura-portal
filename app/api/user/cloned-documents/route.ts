@@ -24,58 +24,115 @@ export async function GET(request: NextRequest) {
     // Build query
     const query: any = { userId: session.user.id };
     
+    // Handle search across multiple fields
     if (search) {
       query.$or = [
-        { 'originalDocument.title': { $regex: search, $options: 'i' } },
-        { 'originalDocument.description': { $regex: search, $options: 'i' } },
         { 'clonedContent': { $regex: search, $options: 'i' } },
         { 'customizations.title': { $regex: search, $options: 'i' } },
         { 'customizations.description': { $regex: search, $options: 'i' } }
       ];
     }
 
-    if (category && category !== 'all') {
-      query['originalDocument.category'] = category;
-    }
-
-    if (type && type !== 'all') {
-      query['originalDocument.type'] = type;
-    }
-
-    // Build sort
-    let sort: any = {};
-    switch (sortBy) {
-      case 'recent':
-        sort = { createdAt: -1 };
-        break;
-      case 'oldest':
-        sort = { createdAt: 1 };
-        break;
-      case 'accessed':
-        sort = { lastAccessedAt: -1 };
-        break;
-      case 'title':
-        sort = { 'originalDocument.title': 1 };
-        break;
-      case 'type':
-        sort = { 'originalDocument.type': 1 };
-        break;
-      default:
-        sort = { createdAt: -1 };
-    }
-
     // Calculate pagination
     const skip = (page - 1) * limit;
     
     // Get cloned documents with populated original document info
-    const documents = await DocumentClone.find(query)
+    let documents = await DocumentClone.find(query)
       .populate('originalDocumentId', 'title type description category tags')
-      .sort(sort)
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    // Get total count for pagination
-    const total = await DocumentClone.countDocuments(query);
+    // Apply category and type filters after population
+    if (category && category !== 'all') {
+      documents = documents.filter(doc => 
+        (doc.originalDocumentId as any)?.category === category
+      );
+    }
+
+    if (type && type !== 'all') {
+      documents = documents.filter(doc => 
+        (doc.originalDocumentId as any)?.type === type
+      );
+    }
+
+    // Apply search filter on populated data if needed
+    if (search) {
+      documents = documents.filter(doc => {
+        const originalDoc = doc.originalDocumentId as any;
+        return (
+          originalDoc?.title?.toLowerCase().includes(search.toLowerCase()) ||
+          originalDoc?.description?.toLowerCase().includes(search.toLowerCase()) ||
+          doc.clonedContent?.toLowerCase().includes(search.toLowerCase()) ||
+          doc.customizations?.title?.toLowerCase().includes(search.toLowerCase()) ||
+          doc.customizations?.description?.toLowerCase().includes(search.toLowerCase())
+        );
+      });
+    }
+
+    // Apply sorting after filtering
+    switch (sortBy) {
+      case 'recent':
+        documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case 'oldest':
+        documents.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case 'accessed':
+        documents.sort((a, b) => {
+          const aDate = a.lastAccessedAt ? new Date(a.lastAccessedAt).getTime() : 0;
+          const bDate = b.lastAccessedAt ? new Date(b.lastAccessedAt).getTime() : 0;
+          return bDate - aDate;
+        });
+        break;
+      case 'title':
+        documents.sort((a, b) => {
+          const aTitle = (a.originalDocumentId as any)?.title || '';
+          const bTitle = (b.originalDocumentId as any)?.title || '';
+          return aTitle.localeCompare(bTitle);
+        });
+        break;
+      case 'type':
+        documents.sort((a, b) => {
+          const aType = (a.originalDocumentId as any)?.type || '';
+          const bType = (b.originalDocumentId as any)?.type || '';
+          return aType.localeCompare(bType);
+        });
+        break;
+    }
+
+    // Get total count for pagination (we need to apply the same filters)
+    let totalQuery = { userId: session.user.id };
+    let totalDocuments = await DocumentClone.find(totalQuery)
+      .populate('originalDocumentId', 'title type description category tags');
+
+    // Apply the same filters to get accurate total count
+    if (category && category !== 'all') {
+      totalDocuments = totalDocuments.filter(doc => 
+        (doc.originalDocumentId as any)?.category === category
+      );
+    }
+
+    if (type && type !== 'all') {
+      totalDocuments = totalDocuments.filter(doc => 
+        (doc.originalDocumentId as any)?.type === type
+      );
+    }
+
+    if (search) {
+      totalDocuments = totalDocuments.filter(doc => {
+        const originalDoc = doc.originalDocumentId as any;
+        return (
+          originalDoc?.title?.toLowerCase().includes(search.toLowerCase()) ||
+          originalDoc?.description?.toLowerCase().includes(search.toLowerCase()) ||
+          doc.clonedContent?.toLowerCase().includes(search.toLowerCase()) ||
+          doc.customizations?.title?.toLowerCase().includes(search.toLowerCase()) ||
+          doc.customizations?.description?.toLowerCase().includes(search.toLowerCase())
+        );
+      });
+    }
+
+    const total = totalDocuments.length;
     const pages = Math.ceil(total / limit);
 
     return NextResponse.json({
@@ -94,8 +151,7 @@ export async function GET(request: NextRequest) {
         createdAt: doc.createdAt,
         updatedAt: doc.updatedAt,
         lastAccessedAt: doc.lastAccessedAt,
-        accessCount: doc.accessCount || 0,
-        isBookmarked: doc.isBookmarked || false
+        accessCount: doc.accessCount || 0
       })),
       pagination: {
         page,
@@ -107,7 +163,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching cloned documents:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch cloned documents' },
+      { error: 'Failed to fetch documents' },
       { status: 500 }
     );
   }

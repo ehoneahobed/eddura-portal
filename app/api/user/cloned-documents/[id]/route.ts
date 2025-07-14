@@ -51,8 +51,7 @@ export async function GET(
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
         lastAccessedAt: document.lastAccessedAt,
-        accessCount: document.accessCount || 0,
-        isBookmarked: document.isBookmarked || false
+        accessCount: document.accessCount || 0
       }
     });
   } catch (error) {
@@ -115,8 +114,7 @@ export async function PUT(
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
         lastAccessedAt: document.lastAccessedAt,
-        accessCount: document.accessCount || 0,
-        isBookmarked: document.isBookmarked || false
+        accessCount: document.accessCount || 0
       }
     });
   } catch (error) {

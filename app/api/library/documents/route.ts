@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import LibraryDocument from '@/models/LibraryDocument';
+import DocumentClone from '@/models/DocumentClone';
+import DocumentRating from '@/models/DocumentRating';
 
 // GET /api/library/documents - Browse published library documents
 export async function GET(request: NextRequest) {
@@ -81,18 +83,68 @@ export async function GET(request: NextRequest) {
       LibraryDocument.countDocuments(query)
     ]);
 
+    // Get user's cloned documents to check clone status
+    const userClonedDocuments = await DocumentClone.find(
+      { userId: session.user.id },
+      { originalDocumentId: 1, createdAt: 1 }
+    ).lean();
+
+    const clonedDocumentIds = new Set(
+      userClonedDocuments.map(doc => doc.originalDocumentId.toString())
+    );
+
+    // Calculate user statistics
+    const totalCloned = userClonedDocuments.length;
+    const recentlyCloned = userClonedDocuments.filter(doc => {
+      const clonedDate = new Date(doc.createdAt);
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      return clonedDate > weekAgo;
+    }).length;
+
+    // Get user's favorite category
+    const clonedDocumentsWithDetails = await DocumentClone.find(
+      { userId: session.user.id }
+    ).populate('originalDocumentId', 'category').lean();
+
+    const categoryCounts = clonedDocumentsWithDetails.reduce((acc, doc) => {
+      const category = (doc.originalDocumentId as any)?.category;
+      if (category) {
+        acc[category] = (acc[category] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    const favoriteCategory = Object.keys(categoryCounts).length > 0 
+      ? Object.entries(categoryCounts).sort(([,a], [,b]) => b - a)[0][0]
+      : '';
+
+    // Get user's rated documents count
+    const totalRated = await DocumentRating.countDocuments({ userId: session.user.id });
+
+    // Add clone status to each document
+    const documentsWithCloneStatus = documents.map(doc => ({
+      ...doc,
+      isCloned: clonedDocumentIds.has(doc._id.toString())
+    }));
+
     // Increment view count for each document (async, don't wait)
     documents.forEach(doc => {
       LibraryDocument.findByIdAndUpdate(doc._id, { $inc: { viewCount: 1 } }).catch(console.error);
     });
 
     return NextResponse.json({
-      documents,
+      documents: documentsWithCloneStatus,
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit)
+      },
+      userStats: {
+        totalCloned,
+        recentlyCloned,
+        favoriteCategory,
+        totalRated
       }
     });
   } catch (error) {

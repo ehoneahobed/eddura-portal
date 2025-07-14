@@ -30,7 +30,9 @@ import {
   GraduationCap,
   Award,
   Users,
-  Clock
+  Clock,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdvancedSearchFilters from '@/components/library/AdvancedSearchFilters';
@@ -55,6 +57,7 @@ interface LibraryDocument {
   source?: string;
   publishedAt?: string;
   createdAt: string;
+  isCloned?: boolean;
 }
 
 export default function LibraryPage() {
@@ -74,6 +77,12 @@ export default function LibraryPage() {
     limit: 12,
     total: 0,
     pages: 0
+  });
+  const [userStats, setUserStats] = useState({
+    totalCloned: 0,
+    recentlyCloned: 0,
+    favoriteCategory: '',
+    totalRated: 0
   });
 
   useEffect(() => {
@@ -98,6 +107,12 @@ export default function LibraryPage() {
         const data = await response.json();
         setDocuments(data.documents || []);
         setPagination(data.pagination || pagination);
+        setUserStats(data.userStats || {
+          totalCloned: 0,
+          recentlyCloned: 0,
+          favoriteCategory: '',
+          totalRated: 0
+        });
       } else {
         toast.error('Failed to fetch documents');
       }
@@ -124,14 +139,20 @@ export default function LibraryPage() {
       if (response.ok) {
         const data = await response.json();
         toast.success('Document cloned successfully! You can find it in your Documents section.');
-        // Update the clone count in the UI
+        
+        // Update the clone count and mark as cloned in the UI
         setDocuments(docs => 
           docs.map(doc => 
             doc._id === documentId 
-              ? { ...doc, cloneCount: doc.cloneCount + 1 }
+              ? { ...doc, cloneCount: doc.cloneCount + 1, isCloned: true }
               : doc
           )
         );
+        
+        // Also update the selected document if it's the same one
+        if (selectedDocument && selectedDocument._id === documentId) {
+          setSelectedDocument(prev => prev ? { ...prev, isCloned: true } : null);
+        }
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to clone document');
@@ -242,50 +263,108 @@ export default function LibraryPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+            <CardTitle className="text-sm font-medium">Available Documents</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pagination.total}</div>
+            <p className="text-xs text-muted-foreground">
+              Total documents in library
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Most Viewed</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {documents.length > 0 ? Math.max(...documents.map(d => d.viewCount)) : 0}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Most Cloned</CardTitle>
+            <CardTitle className="text-sm font-medium">My Cloned Documents</CardTitle>
             <Copy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {documents.length > 0 ? Math.max(...documents.map(d => d.cloneCount)) : 0}
-            </div>
+            <div className="text-2xl font-bold">{userStats.totalCloned}</div>
+            <p className="text-xs text-muted-foreground">
+              {userStats.recentlyCloned} cloned this week
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Rating</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Favorite Category</CardTitle>
+            <Filter className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documents.length > 0 
-                ? (documents.reduce((sum, d) => sum + d.averageRating, 0) / documents.length).toFixed(1)
-                : '0.0'
-              }
+              {userStats.favoriteCategory || 'None'}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Most cloned category
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Documents Rated</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{userStats.totalRated}</div>
+            <p className="text-xs text-muted-foreground">
+              Your ratings submitted
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>
+            Quick access to your documents and common actions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Button
+              variant="outline"
+              onClick={() => window.open('/documents/cloned', '_blank')}
+              className="h-auto p-4 flex flex-col items-center space-y-2"
+            >
+              <Copy className="h-6 w-6" />
+              <div className="text-center">
+                <div className="font-medium">My Cloned Documents</div>
+                <div className="text-sm text-muted-foreground">
+                  {userStats.totalCloned} documents
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open('/documents', '_blank')}
+              className="h-auto p-4 flex flex-col items-center space-y-2"
+            >
+              <FileText className="h-6 w-6" />
+              <div className="text-center">
+                <div className="font-medium">My Documents</div>
+                <div className="text-sm text-muted-foreground">
+                  Create new documents
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open('/applications', '_blank')}
+              className="h-auto p-4 flex flex-col items-center space-y-2"
+            >
+              <Award className="h-6 w-6" />
+              <div className="text-center">
+                <div className="font-medium">My Applications</div>
+                <div className="text-sm text-muted-foreground">
+                  Track applications
+                </div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Advanced Search Filters */}
       <AdvancedSearchFilters
@@ -387,19 +466,35 @@ export default function LibraryPage() {
                         <Eye className="h-4 w-4 mr-1" />
                         Preview
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleCloneDocument(document._id)}
-                        disabled={isCloning === document._id}
-                        className="flex-1"
-                      >
-                        {isCloning === document._id ? (
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        ) : (
-                          <Copy className="h-4 w-4 mr-1" />
-                        )}
-                        Clone
-                      </Button>
+                      {document.isCloned ? (
+                        <div className="flex-1 flex items-center justify-center">
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                            <Check className="h-3 w-3 mr-1" /> Cloned
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open('/documents/cloned', '_blank')}
+                            className="ml-2 h-6 px-2"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => handleCloneDocument(document._id)}
+                          disabled={isCloning === document._id}
+                          className="flex-1"
+                        >
+                          {isCloning === document._id ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Copy className="h-4 w-4 mr-1" />
+                          )}
+                          Clone
+                        </Button>
+                      )}
                     </div>
 
                     {/* Rating */}
@@ -465,17 +560,32 @@ export default function LibraryPage() {
             )}
           </div>
           <DialogFooter>
-            <Button
-              onClick={() => selectedDocument && handleCloneDocument(selectedDocument._id)}
-              disabled={!!(selectedDocument && isCloning === selectedDocument._id)}
-            >
-              {selectedDocument && isCloning === selectedDocument._id ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Copy className="h-4 w-4 mr-2" />
-              )}
-              Clone Document
-            </Button>
+            {selectedDocument?.isCloned ? (
+              <div className="flex items-center space-x-2">
+                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                  <Check className="h-4 w-4 mr-2" /> Already Cloned
+                </Badge>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open('/documents/cloned', '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Cloned Document
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => selectedDocument && handleCloneDocument(selectedDocument._id)}
+                disabled={!!(selectedDocument && isCloning === selectedDocument._id)}
+              >
+                {selectedDocument && isCloning === selectedDocument._id ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Copy className="h-4 w-4 mr-2" />
+                )}
+                Clone Document
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
