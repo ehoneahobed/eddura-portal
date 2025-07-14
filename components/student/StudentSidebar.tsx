@@ -17,7 +17,9 @@ import {
   Target,
   BookOpen,
   School,
-  Bookmark
+  Bookmark,
+  Library,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -58,6 +60,18 @@ const navigation = [
     href: '/documents', 
     icon: Folder,
     description: 'Manage your documents'
+  },
+  { 
+    name: 'Document Library', 
+    href: '/library', 
+    icon: Library,
+    description: 'Browse and clone documents'
+  },
+  { 
+    name: 'My Cloned Documents', 
+    href: '/documents/cloned', 
+    icon: Copy,
+    description: 'Your cloned documents'
   },
   { 
     name: 'Settings', 

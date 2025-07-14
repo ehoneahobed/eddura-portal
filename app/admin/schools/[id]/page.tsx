@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import { Globe, Mail, Phone, Home, Users, Building2, Languages, Award, Calendar, Link2, Facebook, Twitter, Linkedin, Youtube, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Loader2 } from 'lucide-react';
 import SchoolActions from '@/components/schools/SchoolActions';
 import { formatUrlForHref } from '@/lib/url-utils';
@@ -10,19 +11,12 @@ import { formatUrlForHref } from '@/lib/url-utils';
  * SchoolViewPage displays all details of a single school in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const SchoolViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
+const SchoolViewPage = () => {
+  const params = useParams();
   const [school, setSchool] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [schoolId, setSchoolId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params;
-      setSchoolId(resolvedParams.id);
-    };
-    getParams();
-  }, [params]);
+  const schoolId = params.id as string;
   
   useEffect(() => {
     if (schoolId) {

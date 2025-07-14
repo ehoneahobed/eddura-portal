@@ -18,6 +18,7 @@ import {
   X,
   ClipboardList,
   AlertCircle,
+  Library,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -35,6 +36,18 @@ const navigationItems = [
   {
     name: "Application Templates",
     href: "/admin/application-templates",
+    icon: FileText,
+    permission: "content:read",
+  },
+  {
+    name: "Document Library",
+    href: "/admin/library",
+    icon: Library,
+    permission: "content:read",
+  },
+  {
+    name: "Templates",
+    href: "/admin/library/templates",
     icon: FileText,
     permission: "content:read",
   },
