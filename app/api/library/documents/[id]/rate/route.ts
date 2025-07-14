@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import LibraryDocument from '@/models/LibraryDocument';
 import DocumentRating from '@/models/DocumentRating';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 
 // Validation schema for rating documents
 const RateDocumentSchema = z.object({
@@ -22,6 +23,11 @@ export async function POST(
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+      return NextResponse.json({ error: 'Invalid document ID format' }, { status: 400 });
     }
 
     await connectDB();
@@ -87,6 +93,17 @@ export async function POST(
     }
     
     console.error('Error rating library document:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('Cast to ObjectId failed')) {
+        return NextResponse.json({ error: 'Invalid document ID format' }, { status: 400 });
+      }
+      if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+        return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
