@@ -117,7 +117,7 @@ export default function LibraryPage() {
   const handleCloneDocument = async (documentId: string) => {
     setIsCloning(documentId);
     try {
-      const response = await fetch(`/api/library/documents/${documentId}/clone`, {
+      const response = await fetch(`/api/library/documents/${documentId}`, {
         method: 'POST',
       });
       

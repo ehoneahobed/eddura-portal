@@ -98,6 +98,8 @@ export async function POST(
       originalDocumentId: libraryDoc._id,
       clonedBy: session.user.id,
       userDocumentId: userDoc._id,
+      clonedContent: libraryDoc.content,
+      userId: session.user.id,
     });
 
     // Update library document stats
