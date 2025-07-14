@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import ScholarshipActions from '@/components/scholarships/ScholarshipActions';
 import { Award, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users, BookOpen, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -10,20 +11,13 @@ import { Button } from '@/components/ui/button';
  * ScholarshipViewPage displays all details of a single scholarship in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const ScholarshipViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
+const ScholarshipViewPage = () => {
+  const params = useParams();
   const [scholarship, setScholarship] = useState<any>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [scholarshipId, setScholarshipId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params;
-      setScholarshipId(resolvedParams.id);
-    };
-    getParams();
-  }, [params]);
+  const scholarshipId = params.id as string;
   
   useEffect(() => {
     if (scholarshipId) {

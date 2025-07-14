@@ -5,7 +5,7 @@ import LibraryDocument from '@/models/LibraryDocument';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -16,7 +16,7 @@ export async function POST(
 
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
     const { isTemplate } = await request.json();
 
     // Find and update the document

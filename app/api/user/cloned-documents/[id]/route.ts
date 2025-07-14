@@ -5,7 +5,7 @@ import DocumentClone from '@/models/DocumentClone';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -16,7 +16,7 @@ export async function GET(
 
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Find the cloned document and populate original document info
     const document = await DocumentClone.findOne({ _id: id, userId: session.user.id })
@@ -66,7 +66,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -77,7 +77,7 @@ export async function PUT(
 
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
     const { clonedContent, customizations } = await request.json();
 
     // Find and update the cloned document
@@ -130,7 +130,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -141,7 +141,7 @@ export async function DELETE(
 
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Find and delete the cloned document
     const document = await DocumentClone.findOneAndDelete({

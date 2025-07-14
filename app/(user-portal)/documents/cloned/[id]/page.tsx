@@ -1,16 +1,12 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import DocumentViewer from '@/components/library/DocumentViewer';
 
-interface ClonedDocumentPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function ClonedDocumentPage({ params }: ClonedDocumentPageProps) {
+export default function ClonedDocumentPage() {
+  const params = useParams();
   const router = useRouter();
+  const id = params.id as string;
 
   const handleBack = () => {
     router.push('/documents/cloned');
@@ -19,7 +15,7 @@ export default function ClonedDocumentPage({ params }: ClonedDocumentPageProps) 
   return (
     <div className="container mx-auto py-6">
       <DocumentViewer 
-        documentId={params.id} 
+        documentId={id} 
         onBack={handleBack}
       />
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Building2, BookOpen, Award, Calendar, Languages, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users, Loader2 } from 'lucide-react';
@@ -10,19 +11,12 @@ import ProgramActions from '@/components/programs/ProgramActions';
  * ProgramViewPage displays all details of a single program in a modern, professional layout.
  * All fields are shown, including those not provided, for completeness.
  */
-const ProgramViewPage = ({ params }: { params: Promise<{ id: string }> }) => {
+const ProgramViewPage = () => {
+  const params = useParams();
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [programId, setProgramId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params;
-      setProgramId(resolvedParams.id);
-    };
-    getParams();
-  }, [params]);
+  const programId = params.id as string;
   
   useEffect(() => {
     if (programId) {
