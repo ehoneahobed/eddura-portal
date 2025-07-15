@@ -147,8 +147,10 @@ export default function CreateContentPage() {
   };
 
   const onSubmit = async (data: ContentFormData) => {
+    console.log('Form submitted with data:', data);
     try {
       setLoading(true);
+      console.log('Sending POST request to /api/content...');
       
       const response = await fetch('/api/content', {
         method: 'POST',
@@ -158,11 +160,16 @@ export default function CreateContentPage() {
         body: JSON.stringify(data),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('Success response:', result);
         router.push('/admin/content');
       } else {
         const error = await response.json();
+        console.error('Error response:', error);
         alert(error.error || 'Failed to create content');
       }
     } catch (error) {
@@ -182,14 +189,16 @@ export default function CreateContentPage() {
             <Eye className="w-4 h-4 mr-2" />
             {previewMode ? 'Edit' : 'Preview'}
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={loading}>
-            <Save className="w-4 h-4 mr-2" />
-            {loading ? 'Saving...' : 'Save Content'}
-          </Button>
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex justify-end mb-4">
+          <Button type="submit" disabled={loading}>
+            <Save className="w-4 h-4 mr-2" />
+            {loading ? 'Saving...' : 'Save Content'}
+          </Button>
+        </div>
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="content">Content</TabsTrigger>
