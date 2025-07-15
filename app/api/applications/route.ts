@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
 import Scholarship from '@/models/Scholarship';
+import School from '@/models/School';
+import Program from '@/models/Program';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
 
 export async function GET(request: NextRequest) {
@@ -20,6 +22,8 @@ export async function GET(request: NextRequest) {
       isActive: true 
     })
     .populate('scholarshipId', 'title value currency deadline')
+    .populate('schoolId', 'name country city')
+    .populate('programId', 'title school degree')
     .populate('applicationTemplateId', 'title estimatedTime')
     .sort({ lastActivityAt: -1 });
 
@@ -38,20 +42,83 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { scholarshipId } = await request.json();
+    const { 
+      applicationType, 
+      scholarshipId, 
+      schoolId, 
+      programId, 
+      title, 
+      description, 
+      applicationDeadline, 
+      priority = 'medium',
+      tags = [],
+      notes 
+    } = await request.json();
 
-    if (!scholarshipId) {
-      return NextResponse.json({ error: 'Scholarship ID is required' }, { status: 400 });
+    if (!applicationType) {
+      return NextResponse.json({ error: 'Application type is required' }, { status: 400 });
+    }
+
+    if (!title) {
+      return NextResponse.json({ error: 'Application title is required' }, { status: 400 });
+    }
+
+    if (!applicationDeadline) {
+      return NextResponse.json({ error: 'Application deadline is required' }, { status: 400 });
     }
 
     await connectDB();
 
-    // Check if application already exists
-    const existingApplication = await Application.findOne({
-      userId: session.user.id,
-      scholarshipId: scholarshipId,
-      isActive: true
-    });
+    // Check if application already exists based on type and related entity
+    let existingApplication;
+    let relatedEntity;
+    
+    switch (applicationType) {
+      case 'scholarship':
+        if (!scholarshipId) {
+          return NextResponse.json({ error: 'Scholarship ID is required for scholarship applications' }, { status: 400 });
+        }
+        existingApplication = await Application.findOne({
+          userId: session.user.id,
+          scholarshipId: scholarshipId,
+          isActive: true
+        });
+        relatedEntity = await Scholarship.findById(scholarshipId);
+        if (!relatedEntity) {
+          return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
+        }
+        break;
+      case 'school':
+        if (!schoolId) {
+          return NextResponse.json({ error: 'School ID is required for school applications' }, { status: 400 });
+        }
+        existingApplication = await Application.findOne({
+          userId: session.user.id,
+          schoolId: schoolId,
+          isActive: true
+        });
+        relatedEntity = await School.findById(schoolId);
+        if (!relatedEntity) {
+          return NextResponse.json({ error: 'School not found' }, { status: 404 });
+        }
+        break;
+      case 'program':
+        if (!programId) {
+          return NextResponse.json({ error: 'Program ID is required for program applications' }, { status: 400 });
+        }
+        existingApplication = await Application.findOne({
+          userId: session.user.id,
+          programId: programId,
+          isActive: true
+        });
+        relatedEntity = await Program.findById(programId);
+        if (!relatedEntity) {
+          return NextResponse.json({ error: 'Program not found' }, { status: 404 });
+        }
+        break;
+      default:
+        return NextResponse.json({ error: 'Invalid application type' }, { status: 400 });
+    }
 
     if (existingApplication) {
       return NextResponse.json({ 
@@ -60,144 +127,56 @@ export async function POST(request: NextRequest) {
       }, { status: 409 });
     }
 
-    // Get scholarship and application template
-    const scholarship = await Scholarship.findById(scholarshipId);
-    if (!scholarship) {
-      return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
-    }
-
-    // Get or create application template
-    let applicationTemplate = await ApplicationTemplate.findOne({
-      scholarshipId: scholarshipId,
-      isActive: true
-    });
-
-    if (!applicationTemplate) {
-      // Create a default application template
-      applicationTemplate = new ApplicationTemplate({
+    // For now, we'll create applications without application templates for schools and programs
+    // In the future, we can extend this to support application templates for different types
+    let applicationTemplate = null;
+    
+    if (applicationType === 'scholarship') {
+      applicationTemplate = await ApplicationTemplate.findOne({
         scholarshipId: scholarshipId,
-        title: `${scholarship.title} Application`,
-        description: `Application form for ${scholarship.title}`,
-        version: '1.0.0',
-        isActive: true,
-        sections: [
-          {
-            id: 'personal-info',
-            title: 'Personal Information',
-            description: 'Basic personal and contact information',
-            order: 1,
-            questions: [
-              {
-                id: 'first-name',
-                type: 'text',
-                title: 'First Name',
-                required: true,
-                order: 1,
-                placeholder: 'Enter your first name'
-              },
-              {
-                id: 'last-name',
-                type: 'text',
-                title: 'Last Name',
-                required: true,
-                order: 2,
-                placeholder: 'Enter your last name'
-              },
-              {
-                id: 'email',
-                type: 'email',
-                title: 'Email Address',
-                required: true,
-                order: 3,
-                placeholder: 'Enter your email address'
-              },
-              {
-                id: 'phone',
-                type: 'phone',
-                title: 'Phone Number',
-                required: false,
-                order: 4,
-                placeholder: 'Enter your phone number'
-              }
-            ]
-          },
-          {
-            id: 'academic-info',
-            title: 'Academic Information',
-            description: 'Your educational background and achievements',
-            order: 2,
-            questions: [
-              {
-                id: 'current-school',
-                type: 'text',
-                title: 'Current School/University',
-                required: true,
-                order: 1,
-                placeholder: 'Enter your current school or university'
-              },
-              {
-                id: 'gpa',
-                type: 'gpa',
-                title: 'Current GPA',
-                required: true,
-                order: 2,
-                placeholder: 'Enter your current GPA (e.g., 3.8)'
-              },
-              {
-                id: 'major',
-                type: 'text',
-                title: 'Major/Field of Study',
-                required: true,
-                order: 3,
-                placeholder: 'Enter your major or field of study'
-              }
-            ]
-          },
-          {
-            id: 'essay',
-            title: 'Personal Statement',
-            description: 'Tell us about yourself and why you deserve this scholarship',
-            order: 3,
-            questions: [
-              {
-                id: 'personal-statement',
-                type: 'textarea',
-                title: 'Personal Statement',
-                description: 'Please write a personal statement explaining your academic goals, achievements, and why you deserve this scholarship.',
-                required: true,
-                order: 1,
-                placeholder: 'Write your personal statement here...',
-                maxLength: 1000,
-                helpText: 'Maximum 1000 characters'
-              }
-            ]
-          }
-        ],
-        estimatedTime: 30,
-        allowDraftSaving: true
+        isActive: true
       });
-
-      await applicationTemplate.save();
     }
 
     // Create new application
-    const application = new Application({
+    const applicationData: any = {
       userId: session.user.id,
-      scholarshipId: scholarshipId,
-      applicationTemplateId: applicationTemplate._id,
-      status: 'draft',
-      sections: applicationTemplate.sections.map((section: any) => ({
-        sectionId: section.id,
-        responses: [],
-        isComplete: false,
-        startedAt: new Date()
-      })),
-      currentSectionId: applicationTemplate.sections[0]?.id,
+      applicationType: applicationType,
+      title: title,
+      description: description,
+      applicationDeadline: new Date(applicationDeadline),
+      priority: priority,
+      tags: tags,
+      notes: notes,
+      status: 'not_started',
       progress: 0,
       startedAt: new Date(),
       lastActivityAt: new Date(),
-      isActive: true
-    });
+      isActive: true,
+      tasks: [],
+      communications: []
+    };
+
+    // Add the appropriate reference based on application type
+    if (applicationType === 'scholarship') {
+      applicationData.scholarshipId = scholarshipId;
+      if (applicationTemplate) {
+        applicationData.applicationTemplateId = applicationTemplate._id;
+        applicationData.sections = applicationTemplate.sections.map((section: any) => ({
+          sectionId: section.id,
+          responses: [],
+          isComplete: false,
+          startedAt: new Date()
+        }));
+        applicationData.currentSectionId = applicationTemplate.sections[0]?.id;
+      }
+    } else if (applicationType === 'school') {
+      applicationData.schoolId = schoolId;
+    } else if (applicationType === 'program') {
+      applicationData.programId = programId;
+    }
+
+    const application = new Application(applicationData);
 
     await application.save();
 

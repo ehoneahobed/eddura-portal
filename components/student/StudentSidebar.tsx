@@ -19,7 +19,9 @@ import {
   School,
   Bookmark,
   Library,
-  Copy
+  Copy,
+  Calendar,
+  CheckSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -30,6 +32,12 @@ const navigation = [
     href: '/dashboard', 
     icon: Home,
     description: 'Your personalized dashboard'
+  },
+  { 
+    name: 'Task Management', 
+    href: '/task-management', 
+    icon: CheckSquare,
+    description: 'Manage all your applications'
   },
   { 
     name: 'Scholarships', 
