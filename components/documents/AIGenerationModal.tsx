@@ -460,7 +460,16 @@ export default function AIGenerationModal({
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !formData.documentType || !formData.context || !formData.purpose || formData.context.length < 10}
+              disabled={
+                loading || 
+                !formData.documentType || 
+                !formData.context || 
+                !formData.purpose || 
+                formData.context.length < 10 ||
+                (formData.purpose === 'scholarship' && !formData.targetScholarship) ||
+                (formData.purpose === 'school' && !formData.targetInstitution) ||
+                (formData.purpose === 'job' && !formData.targetInstitution)
+              }
               className="min-w-[120px]"
             >
               {loading ? (
