@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles, FileDown } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
 import AIGenerationModal from './AIGenerationModal';
@@ -130,6 +130,36 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
     }
   };
 
+  const downloadDocument = async (format: 'pdf' | 'docx') => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/documents/${document._id}/download?format=${format}`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = globalThis.document.createElement('a');
+        a.href = url;
+        a.download = `${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${document.type}.${format}`;
+        globalThis.document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        globalThis.document.body.removeChild(a);
+        toast.success(`Document downloaded as ${format.toUpperCase()}`);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || `Failed to download ${format.toUpperCase()}`);
+      }
+    } catch (error) {
+      console.error(`Error downloading ${format}:`, error);
+      toast.error(`Failed to download ${format.toUpperCase()}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -169,6 +199,14 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
                 <DropdownMenuItem onClick={copyToClipboard}>
                   <Copy className="h-4 w-4 mr-2" />
                   Copy Content
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadDocument('pdf')} disabled={loading}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadDocument('docx')} disabled={loading}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download as Word
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -246,6 +284,30 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
               )}
             </div>
           )}
+
+          {/* Download Actions */}
+          <div className="flex gap-2 mt-4 pt-3 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadDocument('pdf')}
+              disabled={loading}
+              className="flex-1"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadDocument('docx')}
+              disabled={loading}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Word
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
