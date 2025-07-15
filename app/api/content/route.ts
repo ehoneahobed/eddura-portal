@@ -110,6 +110,16 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    // Generate slug from title if not provided
+    if (!body.slug && body.title) {
+      body.slug = body.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    }
+    
     // Check if slug already exists
     if (body.slug) {
       const existingContent = await Content.findOne({ slug: body.slug });
@@ -139,8 +149,26 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('Error creating content:', error);
+    
+    // Check if it's a Mongoose validation error
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', details: validationErrors },
+        { status: 400 }
+      );
+    }
+    
+    // Check if it's a duplicate key error (e.g., slug already exists)
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { success: false, error: 'Content with this slug already exists' },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to create content' },
+      { success: false, error: 'Failed to create content', details: error.message },
       { status: 500 }
     );
   }

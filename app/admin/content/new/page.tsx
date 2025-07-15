@@ -170,7 +170,17 @@ export default function CreateContentPage() {
       } else {
         const error = await response.json();
         console.error('Error response:', error);
-        alert(error.error || 'Failed to create content');
+        
+        let errorMessage = error.error || 'Failed to create content';
+        if (error.details) {
+          if (Array.isArray(error.details)) {
+            errorMessage += '\n\nDetails:\n' + error.details.join('\n');
+          } else {
+            errorMessage += '\n\nDetails: ' + error.details;
+          }
+        }
+        
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('Error creating content:', error);
