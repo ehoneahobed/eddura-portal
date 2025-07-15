@@ -19,17 +19,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ApplicationStatus } from '@/models/Application';
 
 interface Application {
   _id: string;
   applicationType: 'school' | 'program' | 'scholarship';
   title: string;
-  status: string;
+  description?: string;
+  status: ApplicationStatus;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   applicationDeadline: string;
   earlyDecisionDeadline?: string;
   regularDecisionDeadline?: string;
   rollingDeadline?: boolean;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  progress: number;
+  startedAt: string;
+  lastActivityAt: string;
+  submittedAt?: string;
+  notes?: string;
+  tags: string[];
+  tasks: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    dueDate?: string;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+    category: 'document' | 'test' | 'recommendation' | 'follow_up' | 'interview' | 'other';
+    completedAt?: string;
+    notes?: string;
+  }>;
+  communications: Array<{
+    id: string;
+    type: 'email' | 'phone' | 'in_person' | 'portal_message';
+    subject: string;
+    content: string;
+    date: string;
+    withWhom: string;
+    outcome?: string;
+    followUpRequired: boolean;
+    followUpDate?: string;
+  }>;
   // Related data
   scholarshipId?: {
     _id: string;

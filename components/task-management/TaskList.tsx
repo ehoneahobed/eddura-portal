@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { ApplicationStatus } from '@/models/Application';
 
 interface Task {
   id: string;
@@ -48,20 +49,49 @@ interface Application {
   _id: string;
   applicationType: 'school' | 'program' | 'scholarship';
   title: string;
-  status: string;
+  description?: string;
+  status: ApplicationStatus;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  applicationDeadline: string;
+  earlyDecisionDeadline?: string;
+  regularDecisionDeadline?: string;
+  rollingDeadline?: boolean;
+  progress: number;
+  startedAt: string;
+  lastActivityAt: string;
+  submittedAt?: string;
+  notes?: string;
+  tags: string[];
   tasks: Task[];
+  communications: Array<{
+    id: string;
+    type: 'email' | 'phone' | 'in_person' | 'portal_message';
+    subject: string;
+    content: string;
+    date: string;
+    withWhom: string;
+    outcome?: string;
+    followUpRequired: boolean;
+    followUpDate?: string;
+  }>;
   // Related data
   scholarshipId?: {
     _id: string;
     title: string;
+    value?: number;
+    currency?: string;
   };
   schoolId?: {
     _id: string;
     name: string;
+    country: string;
+    city: string;
   };
   programId?: {
     _id: string;
     title: string;
+    school: string;
+    degree: string;
   };
 }
 
