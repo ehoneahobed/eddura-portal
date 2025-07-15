@@ -16,15 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Eye, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Remove React-Quill and use a simpler solution
-// const ReactQuill = dynamic(() => import('react-quill'), { 
-//   ssr: false,
-//   loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-md flex items-center justify-center">Loading editor...</div>
-// });
-
-// Import CSS for React Quill
-// import 'react-quill/dist/quill.snow.css';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 
 const contentSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -197,26 +189,6 @@ export default function EditContentPage() {
     setValue('tags', watchedTags.filter(t => t !== tag));
   };
 
-  // Rich text editor configuration
-  // const quillModules = {
-  //   toolbar: [
-  //     [{ 'header': [1, 2, 3, false] }],
-  //     ['bold', 'italic', 'underline', 'strike'],
-  //     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-  //     [{ 'color': [] }, { 'background': [] }],
-  //     ['link', 'image'],
-  //     ['clean']
-  //   ]
-  // };
-
-  // const quillFormats = [
-  //   'header',
-  //   'bold', 'italic', 'underline', 'strike',
-  //   'list', 'bullet',
-  //   'color', 'background',
-  //   'link', 'image'
-  // ];
-
   const onSubmit = async (data: ContentFormData) => {
     try {
       setSaving(true);
@@ -345,33 +317,15 @@ export default function EditContentPage() {
 
                 <div>
                   <Label htmlFor="content">Content *</Label>
-                  {/* {editorLoaded && !editorError ? ( */}
-                    <div className="border rounded-md">
-                      <Textarea
-                        id="content"
-                        {...register('content')}
-                        placeholder="Write your content here..."
-                        rows={10}
-                        className="min-h-[300px]"
-                      />
-                    </div>
-                  {/* ) : ( */}
-                  {/* <Textarea
-                      id="content"
-                      {...register('content')}
-                      placeholder="Write your content here..."
-                      rows={10}
-                      className="min-h-[300px]"
-                    /> */}
-                  {/* )} */}
-                  {errors.content && (
-                    <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
-                  )}
-                  {/* {editorError && (
-                    <p className="text-yellow-600 text-sm mt-1">
-                      Rich text editor failed to load. Using simple text editor.
-                    </p>
-                  )} */}
+                  <MarkdownEditor
+                    value={watchedContent || ''}
+                    onChange={(value) => setValue('content', value || '')}
+                    placeholder="Write your content here..."
+                    height={400}
+                    wordCount={true}
+                    maxLength={10000}
+                    error={errors.content?.message}
+                  />
                 </div>
 
                 <div>

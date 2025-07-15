@@ -15,15 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Eye } from 'lucide-react';
-
-// Remove React-Quill and use a simpler solution
-// const ReactQuill = dynamic(() => import('react-quill'), { 
-//   ssr: false,
-//   loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-md flex items-center justify-center">Loading editor...</div>
-// });
-
-// Import CSS for React Quill
-// import 'react-quill/dist/quill.snow.css';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 
 const contentSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -181,26 +173,6 @@ export default function CreateContentPage() {
     }
   };
 
-  // Rich text editor configuration - no longer needed
-  // const quillModules = {
-  //   toolbar: [
-  //     [{ 'header': [1, 2, 3, false] }],
-  //     ['bold', 'italic', 'underline', 'strike'],
-  //     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-  //     [{ 'color': [] }, { 'background': [] }],
-  //     ['link', 'image'],
-  //     ['clean']
-  //   ]
-  // };
-
-  // const quillFormats = [
-  //   'header',
-  //   'bold', 'italic', 'underline', 'strike',
-  //   'list', 'bullet',
-  //   'color', 'background',
-  //   'link', 'image'
-  // ];
-
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -270,18 +242,15 @@ export default function CreateContentPage() {
 
                 <div>
                   <Label htmlFor="content">Content *</Label>
-                  <div className="border rounded-md">
-                    <Textarea
-                      id="content"
-                      {...register('content')}
-                      placeholder="Write your content here..."
-                      rows={10}
-                      className="min-h-[300px]"
-                    />
-                  </div>
-                  {errors.content && (
-                    <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
-                  )}
+                  <MarkdownEditor
+                    value={watchedContent || ''}
+                    onChange={(value) => setValue('content', value || '')}
+                    placeholder="Write your content here..."
+                    height={400}
+                    wordCount={true}
+                    maxLength={10000}
+                    error={errors.content?.message}
+                  />
                 </div>
               </CardContent>
             </Card>
