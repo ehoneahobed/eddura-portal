@@ -547,7 +547,7 @@ export default function CreateDocumentDialog({
           open={aiModalOpen}
           onOpenChange={setAiModalOpen}
           onContentGenerated={handleAIContentGenerated}
-          selectedDocumentType={formData.type}
+          selectedDocumentType={formData.type || undefined}
         />
       </DialogContent>
     </Dialog>
