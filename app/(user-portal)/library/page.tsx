@@ -1,13 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -17,12 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { 
-  Search, 
   Filter, 
   Eye,
   Copy,
   Star,
-  Download,
   Calendar,
   Loader2,
   BookOpen,
@@ -61,7 +55,6 @@ interface LibraryDocument {
 }
 
 export default function LibraryPage() {
-  const { data: session } = useSession();
   const [documents, setDocuments] = useState<LibraryDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,11 +78,7 @@ export default function LibraryPage() {
     totalRated: 0
   });
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [pagination.page, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
-
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -122,7 +111,11 @@ export default function LibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

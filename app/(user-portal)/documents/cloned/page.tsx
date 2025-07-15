@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,21 +77,7 @@ export default function MyClonedDocumentsPage() {
     pages: 0
   });
 
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPagination(prev => ({ ...prev, page: 1 }));
-      fetchClonedDocuments();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    fetchClonedDocuments();
-  }, [pagination.page, categoryFilter, typeFilter, sortBy]);
-
-  const fetchClonedDocuments = async () => {
+  const fetchClonedDocuments = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -117,7 +103,21 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPagination(prev => ({ ...prev, page: 1 }));
+      fetchClonedDocuments();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, fetchClonedDocuments]);
+
+  useEffect(() => {
+    fetchClonedDocuments();
+  }, [pagination.page, categoryFilter, typeFilter, sortBy, fetchClonedDocuments]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

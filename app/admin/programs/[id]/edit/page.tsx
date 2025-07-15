@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,13 +29,7 @@ export default function EditProgramPage({ params }: EditProgramPageProps) {
     getParams();
   }, [params]);
 
-  useEffect(() => {
-    if (programId) {
-      fetchProgram();
-    }
-  }, [programId]);
-
-  const fetchProgram = async () => {
+  const fetchProgram = useCallback(async () => {
     if (!programId) return;
     
     try {
@@ -56,7 +50,13 @@ export default function EditProgramPage({ params }: EditProgramPageProps) {
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [programId, toast, router]);
+
+  useEffect(() => {
+    if (programId) {
+      fetchProgram();
+    }
+  }, [programId, fetchProgram]);
 
   const handleUpdate = async (data: Partial<Program>) => {
     if (!programId) return;

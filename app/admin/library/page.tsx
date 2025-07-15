@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,11 +109,7 @@ export default function AdminLibraryPage() {
     pages: 0
   });
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [pagination.page, statusFilter, reviewStatusFilter, categoryFilter, targetAudienceFilter]);
-
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -140,7 +136,11 @@ export default function AdminLibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pagination, searchTerm, statusFilter, reviewStatusFilter, categoryFilter, targetAudienceFilter]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
@@ -467,7 +467,7 @@ export default function AdminLibraryPage() {
           <DialogHeader>
             <DialogTitle>Delete Document</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{selectedDocument?.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{selectedDocument?.title}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

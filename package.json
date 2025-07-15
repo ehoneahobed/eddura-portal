@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-database.ts",
-    "create-admin": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/create-super-admin.ts",
+    "create-admin": "npx ts-node --compiler-options {\"module\":\"commonjs\"} scripts/create-super-admin.ts",
     "setup": "node scripts/setup-env.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -19,7 +19,8 @@
     "test:integration": "jest --config jest.config.js --testPathPattern=tests/integration",
     "test:unit": "jest --config jest.config.js --testPathPattern=tests/unit",
     "test:all": "npm run test && npm run test:e2e",
-    "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js"
+    "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js",
+    "seed:content": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-content.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -58,6 +59,7 @@
     "@types/react": "18.2.22",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "18.2.7",
+    "@uiw/react-md-editor": "^4.0.7",
     "autoprefixer": "10.4.15",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
@@ -90,7 +92,6 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.53.0",
     "react-phone-number-input": "^3.4.12",
-    "react-quill": "^2.0.0",
     "react-resizable-panels": "^2.1.3",
     "recharts": "^2.12.7",
     "resend": "^4.6.0",

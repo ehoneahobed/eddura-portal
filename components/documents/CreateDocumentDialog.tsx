@@ -280,7 +280,7 @@ export default function CreateDocumentDialog({
                 </Select>
                 {selectedTypeConfig?.comingSoon && (
                   <p className="text-sm text-muted-foreground">
-                    This document type will be available soon. You'll be able to upload files for this type.
+                    This document type will be available soon. You&apos;ll be able to upload files for this type.
                   </p>
                 )}
               </div>

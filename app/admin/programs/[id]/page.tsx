@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -18,13 +18,7 @@ const ProgramViewPage = () => {
   const [error, setError] = useState<string | null>(null);
   const programId = params.id as string;
   
-  useEffect(() => {
-    if (programId) {
-      fetchProgram();
-    }
-  }, [programId]);
-  
-  const fetchProgram = async () => {
+  const fetchProgram = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/programs/${programId}`);
@@ -41,7 +35,13 @@ const ProgramViewPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [programId]);
+  
+  useEffect(() => {
+    if (programId) {
+      fetchProgram();
+    }
+  }, [fetchProgram, programId]);
 
   // Helper to display value or fallback
   const show = (value: any, fallback = 'Not provided') => {

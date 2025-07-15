@@ -1,7 +1,28 @@
 import { MetadataRoute } from 'next';
+import connectDB from '@/lib/mongodb';
+import Content from '@/models/Content';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://eddura.com';
+  
+  // Get all published content for sitemap
+  let contentUrls: MetadataRoute.Sitemap = [];
+  
+  try {
+    await connectDB();
+    const publishedContent = await Content.find({ status: 'published' })
+      .select('slug updatedAt')
+      .lean();
+    
+    contentUrls = publishedContent.map((content) => ({
+      url: `${baseUrl}/content/${content.slug}`,
+      lastModified: content.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
+  } catch (error) {
+    console.error('Error generating content sitemap:', error);
+  }
   
   return [
     {
@@ -9,6 +30,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/content`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/admin`,
@@ -34,5 +61,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/admin/content`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+    ...contentUrls,
   ];
 } 

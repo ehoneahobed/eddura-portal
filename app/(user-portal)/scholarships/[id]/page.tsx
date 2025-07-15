@@ -1,37 +1,26 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { motion } from 'framer-motion';
 import { 
-  ArrowLeft, 
   Award, 
   DollarSign, 
   Calendar, 
   MapPin, 
   GraduationCap,
-  User,
   FileText,
-  ExternalLink,
   Clock,
   CheckCircle,
   AlertCircle,
-  Building,
-  Globe,
   BookOpen,
   Target,
   Sparkles,
   Loader2,
-  RefreshCw,
-  Mail,
-  Phone,
-  ChevronLeft, ChevronRight,
-  Bookmark,
   Share2,
   BookmarkPlus,
   BookmarkCheck,
-  HelpCircle
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,10 +29,9 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Link from 'next/link';
 import { useScholarship } from '@/hooks/use-scholarships';
 import { toast } from 'sonner';
-import { getScholarshipStatus, formatDeadline, formatOpeningDate } from '@/lib/scholarship-status';
+import { getScholarshipStatus, formatDeadline } from '@/lib/scholarship-status';
 
 function ScholarshipDetailContent() {
   const router = useRouter();
@@ -110,16 +98,7 @@ function ScholarshipDetailContent() {
     };
   };
 
-  // Check if scholarship is saved and has application form
-  useEffect(() => {
-    if (scholarship && session?.user?.id) {
-      checkIfSaved();
-      checkApplicationFormStatus();
-      checkIfRequestedForm();
-    }
-  }, [scholarship, session?.user?.id]);
-
-  const checkIfSaved = async () => {
+  const checkIfSaved = useCallback(async () => {
     try {
       const response = await fetch(`/api/user/saved-scholarships?scholarshipId=${scholarshipId}`);
       if (response.ok) {
@@ -129,9 +108,9 @@ function ScholarshipDetailContent() {
     } catch (error) {
       console.error('Error checking saved status:', error);
     }
-  };
+  }, [scholarshipId]);
 
-  const checkApplicationFormStatus = async () => {
+  const checkApplicationFormStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/application-templates?scholarshipId=${scholarshipId}`);
       if (response.ok) {
@@ -141,9 +120,9 @@ function ScholarshipDetailContent() {
     } catch (error) {
       console.error('Error checking application form status:', error);
     }
-  };
+  }, [scholarshipId]);
 
-  const checkIfRequestedForm = async () => {
+  const checkIfRequestedForm = useCallback(async () => {
     try {
       const response = await fetch(`/api/application-form-requests?scholarshipId=${scholarshipId}`);
       if (response.ok) {
@@ -153,7 +132,16 @@ function ScholarshipDetailContent() {
     } catch (error) {
       console.error('Error checking if form was requested:', error);
     }
-  };
+  }, [scholarshipId]);
+
+  // Check if scholarship is saved and has application form
+  useEffect(() => {
+    if (scholarship && session?.user?.id) {
+      checkIfSaved();
+      checkApplicationFormStatus();
+      checkIfRequestedForm();
+    }
+  }, [scholarship, session?.user?.id, checkIfSaved, checkApplicationFormStatus, checkIfRequestedForm]);
 
   const handleSave = async () => {
     if (!scholarship) return;
@@ -336,7 +324,7 @@ function ScholarshipDetailContent() {
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Scholarship Not Found</h3>
             <p className="text-gray-600 mb-4">
-              The scholarship you're looking for doesn't exist or has been removed.
+              The scholarship you&apos;re looking for doesn&apos;t exist or has been removed.
             </p>
             <Button onClick={() => router.push('/scholarships')}>
               Back to Scholarships
@@ -667,7 +655,7 @@ function ScholarshipDetailContent() {
                 )}
                 {eligibilityCheck.eligible && (
                   <div className="text-xs mt-1 text-blue-600">
-                    Note: This only checks if the deadline hasn't passed. Review eligibility requirements below.
+                    Note: This only checks if the deadline hasn&apos;t passed. Review eligibility requirements below.
                   </div>
                 )}
               </div>
@@ -896,7 +884,7 @@ function ScholarshipDetailContent() {
           <DialogHeader>
             <DialogTitle>Request Application Form</DialogTitle>
             <DialogDescription>
-              This scholarship doesn't have an application form yet. Request one and we'll notify you when it's available.
+              This scholarship doesn&apos;t have an application form yet. Request one and we&apos;ll notify you when it&apos;s available.
             </DialogDescription>
           </DialogHeader>
           

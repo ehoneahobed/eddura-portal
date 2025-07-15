@@ -19,10 +19,8 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
-// Remove React-Quill and use a simpler solution
-// const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-// import 'react-quill/dist/quill.snow.css';
 import countries from 'world-countries';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 
 // Mock data to simulate the application form
 const mockApplication = {
@@ -575,95 +573,17 @@ export default function TestApplicationPage() {
       case 'essay':
         return (
           <div className="space-y-4">
-            <Label htmlFor="essay">Essay</Label>
-            <div className="border rounded-md">
-              <div className="flex border-b bg-gray-50 p-2 space-x-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
-                    if (textarea) {
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
-                      const text = textarea.value;
-                      const before = text.substring(0, start);
-                      const selection = text.substring(start, end);
-                      const after = text.substring(end);
-                      const newText = before + '**' + selection + '**' + after;
-                      handleResponseChange(question.id, newText);
-                      setTimeout(() => {
-                        textarea.setSelectionRange(start + 2, end + 2);
-                        textarea.focus();
-                      }, 0);
-                    }
-                  }}
-                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100"
-                >
-                  B
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
-                    if (textarea) {
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
-                      const text = textarea.value;
-                      const before = text.substring(0, start);
-                      const selection = text.substring(start, end);
-                      const after = text.substring(end);
-                      const newText = before + '*' + selection + '*' + after;
-                      handleResponseChange(question.id, newText);
-                      setTimeout(() => {
-                        textarea.setSelectionRange(start + 1, end + 1);
-                        textarea.focus();
-                      }, 0);
-                    }
-                  }}
-                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100 italic"
-                >
-                  I
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const textarea = document.getElementById('essay') as HTMLTextAreaElement;
-                    if (textarea) {
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
-                      const text = textarea.value;
-                      const before = text.substring(0, start);
-                      const selection = text.substring(start, end);
-                      const after = text.substring(end);
-                      const newText = before + '`' + selection + '`' + after;
-                      handleResponseChange(question.id, newText);
-                      setTimeout(() => {
-                        textarea.setSelectionRange(start + 1, end + 1);
-                        textarea.focus();
-                      }, 0);
-                    }
-                  }}
-                  className="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-100 font-mono"
-                >
-                  Code
-                </button>
-              </div>
-              <ExpandableTextarea
-                id="essay"
-                value={(responses[question.id] as string) || ''}
-                onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                placeholder="Write your essay here... You can use **bold**, *italic*, and `code` formatting."
-                className="min-h-[200px] resize-none text-base leading-relaxed p-4 border-0 focus:ring-0"
-                maxLength={question.maxLength}
-                minLength={question.minLength}
-                maxWords={question.maxWords}
-                minWords={question.minWords}
-                showCharacterCount={true}
-                showWordCount={true}
-                expandable={true}
-                defaultExpanded={false}
-              />
-            </div>
+            <MarkdownEditor
+              value={(responses[question.id] as string) || ''}
+              onChange={(value) => handleResponseChange(question.id, value || '')}
+              placeholder="Write your essay here... You can use markdown formatting for **bold**, *italic*, `code`, and more."
+              height={300}
+              wordCount={true}
+              maxLength={question.maxLength}
+              minLength={question.minLength}
+              maxWords={question.maxWords}
+              minWords={question.minWords}
+            />
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
             )}
@@ -672,21 +592,16 @@ export default function TestApplicationPage() {
       case 'statement':
         return (
           <div className="space-y-4">
-            <Label htmlFor="statement">Personal Statement</Label>
-            <ExpandableTextarea
-              id="statement"
+            <MarkdownEditor
               value={(responses[question.id] as string) || ''}
-              onChange={(e) => handleResponseChange(question.id, e.target.value)}
-              placeholder="Write your personal statement here..."
-              className="min-h-[200px] resize-none text-base leading-relaxed p-4"
+              onChange={(value) => handleResponseChange(question.id, value || '')}
+              placeholder="Write your personal statement here... You can use markdown formatting for **bold**, *italic*, `code`, and more."
+              height={300}
+              wordCount={true}
               maxLength={question.maxLength}
               minLength={question.minLength}
               maxWords={question.maxWords}
               minWords={question.minWords}
-              showCharacterCount={true}
-              showWordCount={true}
-              expandable={true}
-              defaultExpanded={false}
             />
             {question.helpText && (
               <p className="text-sm text-gray-500">{question.helpText}</p>
@@ -790,7 +705,7 @@ export default function TestApplicationPage() {
       default:
         return (
           <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <p className="text-gray-600">Question type "{question.type}" not yet implemented.</p>
+            <p className="text-gray-600">Question type &quot;{question.type}&quot; not yet implemented.</p>
           </div>
         );
     }

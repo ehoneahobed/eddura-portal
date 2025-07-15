@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,17 +35,7 @@ export default function AcceptInvitePage() {
   const router = useRouter();
   const token = searchParams.get("token");
 
-  useEffect(() => {
-    if (!token) {
-      setError("Invalid invitation link");
-      setIsLoading(false);
-      return;
-    }
-
-    validateInvite();
-  }, [token]);
-
-  const validateInvite = async () => {
+  const validateInvite = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/validate-invite", {
         method: "POST",
@@ -67,7 +57,17 @@ export default function AcceptInvitePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      setError("Invalid invitation link");
+      setIsLoading(false);
+      return;
+    }
+
+    validateInvite();
+  }, [token, validateInvite]);
 
   const validateForm = () => {
     try {
@@ -165,7 +165,7 @@ export default function AcceptInvitePage() {
             <CardDescription className="text-center">
               {inviteData && (
                 <>
-                  You've been invited to join as <strong>{inviteData.role}</strong>
+                  You&apos;ve been invited to join as <strong>{inviteData.role}</strong>
                   <br />
                   {inviteData.firstName} {inviteData.lastName} ({inviteData.email})
                 </>

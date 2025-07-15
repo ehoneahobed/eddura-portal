@@ -207,3 +207,60 @@
     font-size: 16px;
   }
 }
+
+/* Markdown Editor Styles */
+@import '@uiw/react-md-editor/markdown-editor.css';
+
+/* Custom markdown editor styling */
+.markdown-editor-container {
+  @apply border border-input rounded-md overflow-hidden;
+}
+
+.markdown-editor-container .w-md-editor {
+  @apply border-0;
+}
+
+.markdown-editor-container .w-md-editor-toolbar {
+  @apply bg-gray-50 border-b border-gray-200;
+}
+
+.markdown-editor-container .w-md-editor-toolbar ul {
+  @apply gap-1;
+}
+
+.markdown-editor-container .w-md-editor-toolbar li {
+  @apply rounded;
+}
+
+.markdown-editor-container .w-md-editor-toolbar li:hover {
+  @apply bg-gray-200;
+}
+
+.markdown-editor-container .w-md-editor-toolbar li.active {
+  @apply bg-blue-100 text-blue-700;
+}
+
+.markdown-editor-container .w-md-editor-text {
+  @apply bg-white;
+}
+
+.markdown-editor-container .w-md-editor-text textarea {
+  @apply text-sm leading-relaxed;
+}
+
+.markdown-editor-container .w-md-editor-preview {
+  @apply bg-gray-50;
+}
+
+.markdown-editor-container .w-md-editor-preview .wmde-markdown {
+  @apply bg-transparent;
+}
+
+/* Fullscreen mode */
+.markdown-editor-container.fixed {
+  @apply border-0;
+}
+
+.markdown-editor-container.fixed .w-md-editor {
+  @apply rounded-none;
+}

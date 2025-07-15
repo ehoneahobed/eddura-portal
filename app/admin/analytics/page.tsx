@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,11 +118,7 @@ export default function AdminAnalyticsPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [timeRange]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/admin/analytics?range=${timeRange}`);
@@ -139,7 +135,11 @@ export default function AdminAnalyticsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
   const getMockAnalyticsData = (): AnalyticsData => ({
     overview: {
