@@ -32,6 +32,12 @@ const navigation = [
     description: 'Your personalized dashboard'
   },
   { 
+    name: 'Task Management', 
+    href: '/task-management', 
+    icon: Target,
+    description: 'Manage applications and tasks'
+  },
+  { 
     name: 'Scholarships', 
     href: '/scholarships', 
     icon: Award,
