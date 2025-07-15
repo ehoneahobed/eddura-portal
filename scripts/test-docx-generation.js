@@ -144,7 +144,7 @@ function testDOCXGeneration() {
     ` : ''}
     
     <!-- Content -->
-    ${testDocument.content.split('\n').map(paragraph => `
+    ${testDocument.content.split('\n').map((paragraph: string) => `
     <w:p>
       <w:pPr>
         <w:spacing w:after="120"/>

@@ -327,7 +327,7 @@ async function generateDOCX(document: any, typeConfig: any, fileName: string) {
     ` : ''}
     
     <!-- Content -->
-    ${document.content.split('\n').map(paragraph => `
+    ${document.content.split('\n').map((paragraph: string) => `
     <w:p>
       <w:pPr>
         <w:spacing w:after="120"/>
