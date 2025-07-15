@@ -204,13 +204,13 @@ export default function LibraryPage() {
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = globalThis.document.createElement('a');
         a.href = url;
         a.download = `${doc.title.replace(/[^a-zA-Z0-9]/g, '_')}_${doc.type}.${format}`;
-        document.body.appendChild(a);
+        globalThis.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        globalThis.document.body.removeChild(a);
         toast.success(`Document downloaded as ${format.toUpperCase()}`);
       } else {
         const error = await response.json();

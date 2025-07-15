@@ -140,13 +140,13 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = window.document.createElement('a');
+        const a = globalThis.document.createElement('a');
         a.href = url;
         a.download = `${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${document.type}.${format}`;
-        window.document.body.appendChild(a);
+        globalThis.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        window.document.body.removeChild(a);
+        globalThis.document.body.removeChild(a);
         toast.success(`Document downloaded as ${format.toUpperCase()}`);
       } else {
         const error = await response.json();
