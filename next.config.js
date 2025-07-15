@@ -7,9 +7,7 @@ const nextConfig = {
     unoptimized: true,
     domains: ['localhost'],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
-  },
+  serverExternalPackages: ['mongoose'],
   // Ensure proper handling of static assets
   async headers() {
     return [

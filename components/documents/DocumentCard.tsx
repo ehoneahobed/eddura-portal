@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
+import AIGenerationModal from './AIGenerationModal';
 
 // Tooltip component for version explanation
 const VersionTooltip = ({ children }: { children: React.ReactNode }) => (
@@ -33,6 +34,7 @@ interface DocumentCardProps {
 export default function DocumentCard({ document, onDelete, onUpdate }: DocumentCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editData, setEditData] = useState({
     title: document.title,
@@ -134,6 +136,10 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleAIContentGenerated = (content: string) => {
+    setEditData(prev => ({ ...prev, content }));
   };
 
   return (
@@ -284,9 +290,21 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="edit-content">Content</Label>
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-medium">{editData.content.trim().split(/\s+/).filter(word => word.length > 0).length}</span> words, 
-                  <span className="font-medium"> {editData.content.length.toLocaleString()}</span> characters
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium">{editData.content.trim().split(/\s+/).filter(word => word.length > 0).length}</span> words, 
+                    <span className="font-medium"> {editData.content.length.toLocaleString()}</span> characters
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAiModalOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Generate with AI
+                  </Button>
                 </div>
               </div>
               <Textarea
@@ -406,6 +424,14 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* AI Generation Modal */}
+      <AIGenerationModal
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+        onContentGenerated={handleAIContentGenerated}
+        selectedDocumentType={document.type}
+      />
     </>
   );
 }
