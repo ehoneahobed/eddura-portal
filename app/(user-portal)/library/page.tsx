@@ -197,12 +197,23 @@ export default function LibraryPage() {
 
   const downloadDocument = async (doc: LibraryDocument, format: 'pdf' | 'docx') => {
     try {
+      // Show loading toast
+      const loadingToast = toast.loading(`Generating ${format.toUpperCase()}...`);
+      
       const response = await fetch(`/api/library/documents/${doc._id}/download?format=${format}`, {
         method: 'GET',
       });
 
       if (response.ok) {
         const blob = await response.blob();
+        
+        // Check if blob is valid
+        if (blob.size === 0) {
+          toast.dismiss(loadingToast);
+          toast.error(`Generated ${format.toUpperCase()} file is empty`);
+          return;
+        }
+        
         const url = window.URL.createObjectURL(blob);
         const a = globalThis.document.createElement('a');
         a.href = url;
@@ -211,14 +222,17 @@ export default function LibraryPage() {
         a.click();
         window.URL.revokeObjectURL(url);
         globalThis.document.body.removeChild(a);
+        
+        toast.dismiss(loadingToast);
         toast.success(`Document downloaded as ${format.toUpperCase()}`);
       } else {
         const error = await response.json();
+        toast.dismiss(loadingToast);
         toast.error(error.error || `Failed to download ${format.toUpperCase()}`);
       }
     } catch (error) {
       console.error(`Error downloading ${format}:`, error);
-      toast.error(`Failed to download ${format.toUpperCase()}`);
+      toast.error(`Failed to download ${format.toUpperCase()}. Please try again.`);
     }
   };
 
