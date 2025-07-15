@@ -68,7 +68,7 @@ async function generatePDF(document: any, typeConfig: any, fileName: string) {
   try {
     // Launch browser
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 

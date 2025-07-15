@@ -195,9 +195,9 @@ export default function LibraryPage() {
     }
   };
 
-  const downloadDocument = async (document: LibraryDocument, format: 'pdf' | 'docx') => {
+  const downloadDocument = async (doc: LibraryDocument, format: 'pdf' | 'docx') => {
     try {
-      const response = await fetch(`/api/library/documents/${document._id}/download?format=${format}`, {
+      const response = await fetch(`/api/library/documents/${doc._id}/download?format=${format}`, {
         method: 'GET',
       });
 
@@ -206,7 +206,7 @@ export default function LibraryPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${document.type}.${format}`;
+        a.download = `${doc.title.replace(/[^a-zA-Z0-9]/g, '_')}_${doc.type}.${format}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
