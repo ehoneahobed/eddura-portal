@@ -30,8 +30,8 @@ export default function ContentManagementPage() {
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -42,8 +42,8 @@ export default function ContentManagementPage() {
         page: currentPage.toString(),
         limit: '10',
         ...(search && { search }),
-        ...(typeFilter && { type: typeFilter }),
-        ...(statusFilter && { status: statusFilter })
+        ...(typeFilter && typeFilter !== 'all' && { type: typeFilter }),
+        ...(statusFilter && statusFilter !== 'all' && { status: statusFilter })
       });
 
       const response = await fetch(`/api/content?${params}`);
@@ -128,7 +128,7 @@ export default function ContentManagementPage() {
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="blog">Blog</SelectItem>
                 <SelectItem value="opportunity">Opportunity</SelectItem>
                 <SelectItem value="event">Event</SelectItem>
@@ -139,7 +139,7 @@ export default function ContentManagementPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="published">Published</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
@@ -147,8 +147,8 @@ export default function ContentManagementPage() {
             </Select>
             <Button variant="outline" onClick={() => {
               setSearch('');
-              setTypeFilter('');
-              setStatusFilter('');
+              setTypeFilter('all');
+              setStatusFilter('all');
               setCurrentPage(1);
             }}>
               Clear Filters

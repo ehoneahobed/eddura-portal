@@ -22,6 +22,7 @@ import {
   Library,
   ChevronDown,
   ChevronRight,
+  FileEdit,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -84,6 +85,26 @@ const navigationItems: NavigationItemType[] = [
         href: "/admin/scholarships/without-application-forms",
         icon: AlertCircle,
         permission: "content:read",
+      },
+    ],
+  },
+  {
+    name: "Content Management",
+    icon: FileEdit,
+    permission: "content:read",
+    isGroup: true,
+    children: [
+      {
+        name: "All Content",
+        href: "/admin/content",
+        icon: FileEdit,
+        permission: "content:read",
+      },
+      {
+        name: "Create Content",
+        href: "/admin/content/new",
+        icon: FileText,
+        permission: "content:write",
       },
     ],
   },
