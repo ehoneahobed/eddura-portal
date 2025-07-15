@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-database.ts",
-    "create-admin": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/create-super-admin.ts",
+    "create-admin": "npx ts-node --compiler-options {\"module\":\"commonjs\"} scripts/create-super-admin.ts",
     "setup": "node scripts/setup-env.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -91,7 +91,7 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.53.0",
     "react-phone-number-input": "^3.4.12",
-    "react-quill": "^2.0.0",
+
     "react-resizable-panels": "^2.1.3",
     "recharts": "^2.12.7",
     "resend": "^4.6.0",

@@ -15,17 +15,16 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Eye, ArrowLeft } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 
-// Dynamic import for React Quill with proper error handling
-const ReactQuill = dynamic(() => import('react-quill'), { 
-  ssr: false,
-  loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-md flex items-center justify-center">Loading editor...</div>
-});
+// Remove React-Quill and use a simpler solution
+// const ReactQuill = dynamic(() => import('react-quill'), { 
+//   ssr: false,
+//   loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-md flex items-center justify-center">Loading editor...</div>
+// });
 
 // Import CSS for React Quill
-import 'react-quill/dist/quill.snow.css';
+// import 'react-quill/dist/quill.snow.css';
 
 const contentSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -95,8 +94,8 @@ export default function EditContentPage() {
   const [newTag, setNewTag] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
   const [content, setContent] = useState<ContentFormData | null>(null);
-  const [editorLoaded, setEditorLoaded] = useState(false);
-  const [editorError, setEditorError] = useState(false);
+  // const [editorLoaded, setEditorLoaded] = useState(false); // No longer needed
+  // const [editorError, setEditorError] = useState(false); // No longer needed
 
   const {
     register,
@@ -168,13 +167,13 @@ export default function EditContentPage() {
   }, [fetchContent]);
 
   // Handle editor load state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setEditorLoaded(true);
-    }, 100);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setEditorLoaded(true);
+  //   }, 100);
 
-    return () => clearTimeout(timer);
-  }, []);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   const addCategory = () => {
     if (newCategory.trim() && !watchedCategories.includes(newCategory.trim())) {
@@ -199,24 +198,24 @@ export default function EditContentPage() {
   };
 
   // Rich text editor configuration
-  const quillModules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image'],
-      ['clean']
-    ]
-  };
+  // const quillModules = {
+  //   toolbar: [
+  //     [{ 'header': [1, 2, 3, false] }],
+  //     ['bold', 'italic', 'underline', 'strike'],
+  //     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+  //     [{ 'color': [] }, { 'background': [] }],
+  //     ['link', 'image'],
+  //     ['clean']
+  //   ]
+  // };
 
-  const quillFormats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'color', 'background',
-    'link', 'image'
-  ];
+  // const quillFormats = [
+  //   'header',
+  //   'bold', 'italic', 'underline', 'strike',
+  //   'list', 'bullet',
+  //   'color', 'background',
+  //   'link', 'image'
+  // ];
 
   const onSubmit = async (data: ContentFormData) => {
     try {
@@ -346,35 +345,33 @@ export default function EditContentPage() {
 
                 <div>
                   <Label htmlFor="content">Content *</Label>
-                  {editorLoaded && !editorError ? (
+                  {/* {editorLoaded && !editorError ? ( */}
                     <div className="border rounded-md">
-                      <ReactQuill
-                        theme="snow"
-                        value={watchedContent || ''}
-                        onChange={(value) => setValue('content', value)}
+                      <Textarea
+                        id="content"
+                        {...register('content')}
                         placeholder="Write your content here..."
-                        modules={quillModules}
-                        formats={quillFormats}
-                        style={{ height: '300px' }}
+                        rows={10}
+                        className="min-h-[300px]"
                       />
                     </div>
-                  ) : (
-                    <Textarea
+                  {/* ) : ( */}
+                  {/* <Textarea
                       id="content"
                       {...register('content')}
                       placeholder="Write your content here..."
                       rows={10}
                       className="min-h-[300px]"
-                    />
-                  )}
+                    /> */}
+                  {/* )} */}
                   {errors.content && (
                     <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
                   )}
-                  {editorError && (
+                  {/* {editorError && (
                     <p className="text-yellow-600 text-sm mt-1">
                       Rich text editor failed to load. Using simple text editor.
                     </p>
-                  )}
+                  )} */}
                 </div>
 
                 <div>
