@@ -38,7 +38,8 @@ type RefinementType =
   | 'summarize'
   | 'expand'
   | 'fix_grammar'
-  | 'custom';
+  | 'custom'
+  | '';
 
 export default function AIRefinementModal({
   open,
@@ -53,7 +54,7 @@ export default function AIRefinementModal({
     customInstruction: '',
     targetLength: '',
     specificFocus: '',
-    tone: '' as 'professional' | 'conversational' | 'academic' | 'persuasive' | '',
+    tone: '',
     additionalContext: ''
   });
 
