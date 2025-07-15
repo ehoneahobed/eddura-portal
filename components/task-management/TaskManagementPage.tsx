@@ -40,7 +40,7 @@ import AddTaskModal from './AddTaskModal';
 
 interface Application {
   _id: string;
-  scholarshipId: {
+  scholarshipId?: {
     _id: string;
     title: string;
     value?: number;
@@ -122,7 +122,12 @@ export default function TaskManagementPage() {
       let applicationsData: any = { applications: [] };
       if (applicationsResponse.ok) {
         applicationsData = await applicationsResponse.json();
-        setApplications(applicationsData.applications || []);
+        const applications = applicationsData.applications || [];
+        // Filter out applications without proper data
+        const validApplications = applications.filter((app: any) => 
+          app && app._id && app.scholarshipId && app.scholarshipId.title
+        );
+        setApplications(validApplications);
       }
 
       // Fetch tasks
@@ -145,43 +150,60 @@ export default function TaskManagementPage() {
   };
 
   const calculateStats = (apps: Application[], taskList: Task[]) => {
-    const now = new Date();
-    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    try {
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    const stats: TaskStats = {
-      totalApplications: apps.length,
-      activeApplications: apps.filter(app => ['draft', 'in_progress', 'submitted', 'under_review'].includes(app.status)).length,
-      overdueTasks: taskList.filter(task => 
-        task.status === 'pending' && 
-        task.dueDate && 
-        new Date(task.dueDate) < now
-      ).length,
-      upcomingDeadlines: taskList.filter(task => 
-        task.status === 'pending' && 
-        task.dueDate && 
-        new Date(task.dueDate) <= thirtyDaysFromNow &&
-        new Date(task.dueDate) > now
-      ).length,
-      applicationTypes: {
-        schools: apps.filter(app => app.scholarshipId.type === 'school').length,
-        programs: apps.filter(app => app.scholarshipId.type === 'program').length,
-        scholarships: apps.filter(app => app.scholarshipId.type === 'scholarship').length,
-      },
-      applicationStatus: {
-        draft: apps.filter(app => app.status === 'draft').length,
-        submitted: apps.filter(app => app.status === 'submitted').length,
-        approved: apps.filter(app => app.status === 'approved').length,
-        rejected: apps.filter(app => app.status === 'rejected').length,
-      },
-      progressOverview: {
-        averageProgress: apps.length > 0 
-          ? Math.round(apps.reduce((sum, app) => sum + app.progress, 0) / apps.length)
-          : 0,
-        applicationsInProgress: apps.filter(app => app.status === 'in_progress').length,
-      }
-    };
+      // Filter out invalid applications
+      const validApps = apps.filter(app => app && app._id && app.status);
 
-    setStats(stats);
+      const stats: TaskStats = {
+        totalApplications: validApps.length,
+        activeApplications: validApps.filter(app => ['draft', 'in_progress', 'submitted', 'under_review'].includes(app.status)).length,
+        overdueTasks: taskList.filter(task => 
+          task && task.status === 'pending' && 
+          task.dueDate && 
+          new Date(task.dueDate) < now
+        ).length,
+        upcomingDeadlines: taskList.filter(task => 
+          task && task.status === 'pending' && 
+          task.dueDate && 
+          new Date(task.dueDate) <= thirtyDaysFromNow &&
+          new Date(task.dueDate) > now
+        ).length,
+        applicationTypes: {
+          schools: validApps.filter(app => app.scholarshipId?.type === 'school').length,
+          programs: validApps.filter(app => app.scholarshipId?.type === 'program').length,
+          scholarships: validApps.filter(app => app.scholarshipId?.type === 'scholarship').length,
+        },
+        applicationStatus: {
+          draft: validApps.filter(app => app.status === 'draft').length,
+          submitted: validApps.filter(app => app.status === 'submitted').length,
+          approved: validApps.filter(app => app.status === 'approved').length,
+          rejected: validApps.filter(app => app.status === 'rejected').length,
+        },
+        progressOverview: {
+          averageProgress: validApps.length > 0 
+            ? Math.round(validApps.reduce((sum, app) => sum + (app.progress || 0), 0) / validApps.length)
+            : 0,
+          applicationsInProgress: validApps.filter(app => app.status === 'in_progress').length,
+        }
+      };
+
+      setStats(stats);
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+      // Set default stats if calculation fails
+      setStats({
+        totalApplications: 0,
+        activeApplications: 0,
+        overdueTasks: 0,
+        upcomingDeadlines: 0,
+        applicationTypes: { schools: 0, programs: 0, scholarships: 0 },
+        applicationStatus: { draft: 0, submitted: 0, approved: 0, rejected: 0 },
+        progressOverview: { averageProgress: 0, applicationsInProgress: 0 }
+      });
+    }
   };
 
   const getStatusInfo = (status: string) => {
@@ -510,23 +532,25 @@ export default function TaskManagementPage() {
                           {/* Left side - Application info */}
                           <div className="flex-1 space-y-3">
                             <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                  {application.scholarshipId.title}
-                                </h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                  {application.scholarshipId.value && (
-                                    <span className="flex items-center gap-1">
-                                      <Award className="w-4 h-4" />
-                                      {formatCurrency(application.scholarshipId.value, application.scholarshipId.currency)}
-                                    </span>
-                                  )}
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-4 h-4" />
-                                    Deadline: {formatDate(application.scholarshipId.deadline)}
-                                  </span>
-                                </div>
-                              </div>
+                                                             <div className="flex-1">
+                                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                   {application.scholarshipId?.title || 'Untitled Application'}
+                                 </h3>
+                                 <div className="flex items-center gap-4 text-sm text-gray-600">
+                                   {application.scholarshipId?.value && (
+                                     <span className="flex items-center gap-1">
+                                       <Award className="w-4 h-4" />
+                                       {formatCurrency(application.scholarshipId.value, application.scholarshipId.currency)}
+                                     </span>
+                                   )}
+                                   {application.scholarshipId?.deadline && (
+                                     <span className="flex items-center gap-1">
+                                       <Calendar className="w-4 h-4" />
+                                       Deadline: {formatDate(application.scholarshipId.deadline)}
+                                     </span>
+                                   )}
+                                 </div>
+                               </div>
                               <Badge className={statusInfo.color}>
                                 <StatusIcon className="w-3 h-3 mr-1" />
                                 {statusInfo.label}

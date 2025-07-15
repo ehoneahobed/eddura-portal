@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 
 interface Application {
   _id: string;
-  scholarshipId: {
+  scholarshipId?: {
     _id: string;
     title: string;
     value?: number;
@@ -268,7 +268,7 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
                           {applications.map((app) => (
                             <SelectItem key={app._id} value={app._id}>
                               <div className="flex flex-col">
-                                <span className="font-medium">{app.scholarshipId.title}</span>
+                                <span className="font-medium">{app.scholarshipId?.title || 'Untitled Application'}</span>
                                 <span className="text-xs text-gray-500">
                                   {app.status} • {app.progress}% complete
                                 </span>
