@@ -336,9 +336,9 @@ export default function CreateDocumentDialog({
               {/* Content */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <FieldTooltip tooltip="The main body of your document. Write as much as you need - there are no character limits. Use the word and character counters to track your progress.">
+                  <FieldTooltip tooltip="The main body of your document. Write as much as you need - there are no character limits. Use the word and character counters to track your progress. You can also use AI generation to create content.">
                     <Label htmlFor="content" className="flex items-center gap-2">
-                      Content *
+                      Content
                       <HelpCircle className="h-4 w-4 text-muted-foreground" />
                     </Label>
                   </FieldTooltip>
@@ -367,10 +367,16 @@ export default function CreateDocumentDialog({
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder={selectedTypeConfig?.placeholder || "Write your document content here..."}
+                  placeholder={selectedTypeConfig?.placeholder || "Write your document content here, or use AI generation to create content..."}
                   rows={15}
                   className="font-mono text-sm resize-y"
                 />
+                {!formData.content && (
+                  <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded-md">
+                    <Info className="h-4 w-4 inline mr-1" />
+                    <strong>Tip:</strong> You can leave content empty and use the "Generate with AI" button to create content, or write your own content manually.
+                  </div>
+                )}
                 {selectedTypeConfig?.maxWords && wordCount > selectedTypeConfig.maxWords && (
                   <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
                     <Info className="h-4 w-4 inline mr-1" />
@@ -466,7 +472,7 @@ export default function CreateDocumentDialog({
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading || !formData.title || !formData.type || !formData.content}>
+                <Button type="submit" disabled={loading || !formData.title || !formData.type}>
                   {loading ? 'Creating...' : 'Create Document'}
                 </Button>
               </div>
