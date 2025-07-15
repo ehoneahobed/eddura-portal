@@ -17,8 +17,13 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus, Save, Eye } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// Dynamic import for React Quill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// Dynamic import for React Quill with proper error handling
+const ReactQuill = dynamic(() => import('react-quill'), { 
+  ssr: false,
+  loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-md flex items-center justify-center">Loading editor...</div>
+});
+
+// Import CSS for React Quill
 import 'react-quill/dist/quill.snow.css';
 
 const contentSchema = z.object({
@@ -84,6 +89,8 @@ export default function CreateContentPage() {
   const [newCategory, setNewCategory] = useState('');
   const [newTag, setNewTag] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
+  const [editorLoaded, setEditorLoaded] = useState(false);
+  const [editorError, setEditorError] = useState(false);
 
   const {
     register,
@@ -115,6 +122,16 @@ export default function CreateContentPage() {
   const watchedStatus = watch('status');
   const watchedCategories = watch('categories') || [];
   const watchedTags = watch('tags') || [];
+  const watchedContent = watch('content');
+
+  // Handle editor load state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setEditorLoaded(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const addCategory = () => {
     if (newCategory.trim() && !watchedCategories.includes(newCategory.trim())) {
@@ -164,6 +181,26 @@ export default function CreateContentPage() {
       setLoading(false);
     }
   };
+
+  // Rich text editor configuration
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['link', 'image'],
+      ['clean']
+    ]
+  };
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'color', 'background',
+    'link', 'image'
+  ];
 
   return (
     <div className="container mx-auto p-6">
@@ -234,24 +271,34 @@ export default function CreateContentPage() {
 
                 <div>
                   <Label htmlFor="content">Content *</Label>
-                  <ReactQuill
-                    theme="snow"
-                    value={watch('content')}
-                    onChange={(value) => setValue('content', value)}
-                    placeholder="Write your content here..."
-                    modules={{
-                      toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'color': [] }, { 'background': [] }],
-                        ['link', 'image'],
-                        ['clean']
-                      ]
-                    }}
-                  />
+                  {editorLoaded && !editorError ? (
+                    <div className="border rounded-md">
+                                             <ReactQuill
+                         theme="snow"
+                         value={watchedContent || ''}
+                         onChange={(value) => setValue('content', value)}
+                         placeholder="Write your content here..."
+                         modules={quillModules}
+                         formats={quillFormats}
+                         style={{ height: '300px' }}
+                       />
+                    </div>
+                  ) : (
+                    <Textarea
+                      id="content"
+                      {...register('content')}
+                      placeholder="Write your content here..."
+                      rows={10}
+                      className="min-h-[300px]"
+                    />
+                  )}
                   {errors.content && (
                     <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
+                  )}
+                  {editorError && (
+                    <p className="text-yellow-600 text-sm mt-1">
+                      Rich text editor failed to load. Using simple text editor.
+                    </p>
                   )}
                 </div>
               </CardContent>
