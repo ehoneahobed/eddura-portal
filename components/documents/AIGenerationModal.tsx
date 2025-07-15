@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,11 +49,23 @@ export default function AIGenerationModal({
     additionalInfo: ''
   });
 
+  // Update documentType when selectedDocumentType changes
+  useEffect(() => {
+    if (selectedDocumentType) {
+      setFormData(prev => ({ ...prev, documentType: selectedDocumentType }));
+    }
+  }, [selectedDocumentType]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.documentType || !formData.context || !formData.purpose) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.context.length < 10) {
+      toast.error('Context must be at least 10 characters long');
       return;
     }
 
@@ -115,6 +127,8 @@ export default function AIGenerationModal({
 
   const selectedTypeConfig = formData.documentType ? DOCUMENT_TYPE_CONFIG[formData.documentType as DocumentType] : null;
 
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -175,8 +189,11 @@ export default function AIGenerationModal({
               rows={6}
               maxLength={2000}
             />
-            <div className="text-xs text-muted-foreground">
-              {formData.context.length}/2000 characters
+            <div className={`text-xs ${formData.context.length > 0 && formData.context.length < 10 ? 'text-red-500' : 'text-muted-foreground'}`}>
+              {formData.context.length}/2000 characters (minimum 10 characters)
+              {formData.context.length > 0 && formData.context.length < 10 && (
+                <span className="ml-1">⚠️ Too short</span>
+              )}
             </div>
             {selectedTypeConfig && (
               <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md">
@@ -443,7 +460,7 @@ export default function AIGenerationModal({
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !formData.documentType || !formData.context || !formData.purpose}
+              disabled={loading || !formData.documentType || !formData.context || !formData.purpose || formData.context.length < 10}
               className="min-w-[120px]"
             >
               {loading ? (
