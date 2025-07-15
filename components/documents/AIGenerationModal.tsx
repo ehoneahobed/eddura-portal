@@ -40,17 +40,34 @@ export default function AIGenerationModal({
   const [formData, setFormData] = useState({
     documentType: selectedDocumentType || '',
     context: '',
+    purpose: '' as 'scholarship' | 'school' | 'job' | 'other' | '',
     targetProgram: '',
     targetScholarship: '',
     targetInstitution: '',
+    wordLimit: '',
+    characterLimit: '',
     additionalInfo: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.documentType || !formData.context) {
+    if (!formData.documentType || !formData.context || !formData.purpose) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Validate purpose-specific required fields
+    if (formData.purpose === 'scholarship' && !formData.targetScholarship) {
+      toast.error('Please provide the scholarship name');
+      return;
+    }
+    if (formData.purpose === 'school' && !formData.targetInstitution) {
+      toast.error('Please provide the institution name');
+      return;
+    }
+    if (formData.purpose === 'job' && !formData.targetInstitution) {
+      toast.error('Please provide the company/organization name');
       return;
     }
 
@@ -86,9 +103,12 @@ export default function AIGenerationModal({
     setFormData({
       documentType: selectedDocumentType || '',
       context: '',
+      purpose: '',
       targetProgram: '',
       targetScholarship: '',
       targetInstitution: '',
+      wordLimit: '',
+      characterLimit: '',
       additionalInfo: ''
     });
   };
@@ -111,33 +131,35 @@ export default function AIGenerationModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Document Type Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="documentType" className="flex items-center gap-2">
-              Document Type *
-              <HelpCircle className="h-4 w-4 text-muted-foreground" />
-            </Label>
-            <Select
-              value={formData.documentType}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, documentType: value as DocumentType }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select document type" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(DOCUMENT_TYPE_CONFIG)
-                  .filter(([_, config]) => !config.comingSoon)
-                  .map(([type, config]) => (
-                    <SelectItem key={type} value={type}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{config.label}</span>
-                        <span className="text-xs text-muted-foreground">{config.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Document Type Selection - Only show if not pre-selected */}
+          {!selectedDocumentType && (
+            <div className="space-y-2">
+              <Label htmlFor="documentType" className="flex items-center gap-2">
+                Document Type *
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </Label>
+              <Select
+                value={formData.documentType}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, documentType: value as DocumentType }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select document type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(DOCUMENT_TYPE_CONFIG)
+                    .filter(([_, config]) => !config.comingSoon)
+                    .map(([type, config]) => (
+                      <SelectItem key={type} value={type}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{config.label}</span>
+                          <span className="text-xs text-muted-foreground">{config.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Context Input */}
           <div className="space-y-2">
@@ -164,46 +186,199 @@ export default function AIGenerationModal({
             )}
           </div>
 
-          {/* Target Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Purpose Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="purpose" className="flex items-center gap-2">
+              What is this document for? *
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            </Label>
+            <Select
+              value={formData.purpose}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, purpose: value as 'scholarship' | 'school' | 'job' | 'other' }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select the purpose of this document" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scholarship">
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4" />
+                    <span>Scholarship Application</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="school">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    <span>School/University Application</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="job">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>Job Application</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="other">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span>Other Purpose</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Dynamic Target Information based on Purpose */}
+          {formData.purpose && (
+            <div className="space-y-4">
+              {formData.purpose === 'scholarship' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="targetScholarship" className="flex items-center gap-2">
+                      <Award className="h-4 w-4" />
+                      Scholarship Name *
+                    </Label>
+                    <Input
+                      id="targetScholarship"
+                      value={formData.targetScholarship}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetScholarship: e.target.value }))}
+                      placeholder="e.g., Fulbright Scholarship"
+                      maxLength={200}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="targetInstitution" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Institution (if applicable)
+                    </Label>
+                    <Input
+                      id="targetInstitution"
+                      value={formData.targetInstitution}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetInstitution: e.target.value }))}
+                      placeholder="e.g., Harvard University"
+                      maxLength={200}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.purpose === 'school' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="targetInstitution" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Institution *
+                    </Label>
+                    <Input
+                      id="targetInstitution"
+                      value={formData.targetInstitution}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetInstitution: e.target.value }))}
+                      placeholder="e.g., Harvard University"
+                      maxLength={200}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="targetProgram" className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4" />
+                      Program (if applicable)
+                    </Label>
+                    <Input
+                      id="targetProgram"
+                      value={formData.targetProgram}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetProgram: e.target.value }))}
+                      placeholder="e.g., Master's in Computer Science"
+                      maxLength={200}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.purpose === 'job' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="targetInstitution" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Company/Organization *
+                    </Label>
+                    <Input
+                      id="targetInstitution"
+                      value={formData.targetInstitution}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetInstitution: e.target.value }))}
+                      placeholder="e.g., Google Inc."
+                      maxLength={200}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="targetProgram" className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4" />
+                      Position/Role (if applicable)
+                    </Label>
+                    <Input
+                      id="targetProgram"
+                      value={formData.targetProgram}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetProgram: e.target.value }))}
+                      placeholder="e.g., Software Engineer"
+                      maxLength={200}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.purpose === 'other' && (
+                <div className="space-y-2">
+                  <Label htmlFor="targetInstitution" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Target Organization/Institution (if applicable)
+                  </Label>
+                  <Input
+                    id="targetInstitution"
+                    value={formData.targetInstitution}
+                    onChange={(e) => setFormData(prev => ({ ...prev, targetInstitution: e.target.value }))}
+                    placeholder="e.g., Research Institute, Non-profit Organization"
+                    maxLength={200}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Word/Character Limits */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="targetProgram" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Target Program
+              <Label htmlFor="wordLimit" className="flex items-center gap-2">
+                Word Limit (optional)
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </Label>
               <Input
-                id="targetProgram"
-                value={formData.targetProgram}
-                onChange={(e) => setFormData(prev => ({ ...prev, targetProgram: e.target.value }))}
-                placeholder="e.g., Master's in Computer Science"
-                maxLength={200}
+                id="wordLimit"
+                type="number"
+                value={formData.wordLimit}
+                onChange={(e) => setFormData(prev => ({ ...prev, wordLimit: e.target.value }))}
+                placeholder="e.g., 500"
+                min="1"
+                max="10000"
               />
+              <div className="text-xs text-muted-foreground">
+                Leave empty if no specific limit
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="targetScholarship" className="flex items-center gap-2">
-                <Award className="h-4 w-4" />
-                Target Scholarship
+              <Label htmlFor="characterLimit" className="flex items-center gap-2">
+                Character Limit (optional)
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </Label>
               <Input
-                id="targetScholarship"
-                value={formData.targetScholarship}
-                onChange={(e) => setFormData(prev => ({ ...prev, targetScholarship: e.target.value }))}
-                placeholder="e.g., Fulbright Scholarship"
-                maxLength={200}
+                id="characterLimit"
+                type="number"
+                value={formData.characterLimit}
+                onChange={(e) => setFormData(prev => ({ ...prev, characterLimit: e.target.value }))}
+                placeholder="e.g., 3000"
+                min="1"
+                max="50000"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="targetInstitution" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Target Institution
-              </Label>
-              <Input
-                id="targetInstitution"
-                value={formData.targetInstitution}
-                onChange={(e) => setFormData(prev => ({ ...prev, targetInstitution: e.target.value }))}
-                placeholder="e.g., Harvard University"
-                maxLength={200}
-              />
+              <div className="text-xs text-muted-foreground">
+                Leave empty if no specific limit
+              </div>
             </div>
           </div>
 
@@ -238,19 +413,19 @@ export default function AIGenerationModal({
               <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">
                   <Badge variant="outline" className="text-xs">1</Badge>
-                  <span>AI analyzes your context and creates personalized content</span>
+                  <span>Select the purpose and provide relevant details</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Badge variant="outline" className="text-xs">2</Badge>
-                  <span>Content is written in your voice, as if you wrote it yourself</span>
+                  <span>AI creates personalized content tailored to your purpose</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Badge variant="outline" className="text-xs">3</Badge>
-                  <span>You can edit and refine the generated content as needed</span>
+                  <span>Content respects word/character limits if specified</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Badge variant="outline" className="text-xs">4</Badge>
-                  <span>Generated content follows best practices for your document type</span>
+                  <span>Content is written in your voice, ready for review and editing</span>
                 </div>
               </div>
             </CardContent>
@@ -268,7 +443,7 @@ export default function AIGenerationModal({
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !formData.documentType || !formData.context}
+              disabled={loading || !formData.documentType || !formData.context || !formData.purpose}
               className="min-w-[120px]"
             >
               {loading ? (
