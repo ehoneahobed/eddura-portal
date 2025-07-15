@@ -23,10 +23,12 @@ import {
   Calendar,
   Award,
   Clock,
-  GraduationCap
+  GraduationCap,
+  Sparkles
 } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { toast } from 'sonner';
+import AIGenerationModal from './AIGenerationModal';
 
 interface CreateDocumentDialogProps {
   open: boolean;
@@ -131,6 +133,7 @@ export default function CreateDocumentDialog({
 }: CreateDocumentDialogProps) {
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     type: '' as DocumentType | '',
@@ -213,6 +216,10 @@ export default function CreateDocumentDialog({
       e.preventDefault();
       addTag();
     }
+  };
+
+  const handleAIContentGenerated = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
   };
 
   const selectedTypeConfig = formData.type ? DOCUMENT_TYPE_CONFIG[formData.type] : null;
@@ -335,13 +342,25 @@ export default function CreateDocumentDialog({
                       <HelpCircle className="h-4 w-4 text-muted-foreground" />
                     </Label>
                   </FieldTooltip>
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">{wordCount}</span> words, <span className="font-medium">{characterCount.toLocaleString()}</span> characters
-                    {selectedTypeConfig?.maxWords && (
-                      <span className={wordCount > selectedTypeConfig.maxWords ? 'text-red-500' : 'text-green-600'}>
-                        {' '}/ {selectedTypeConfig.maxWords} recommended
-                      </span>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium">{wordCount}</span> words, <span className="font-medium">{characterCount.toLocaleString()}</span> characters
+                      {selectedTypeConfig?.maxWords && (
+                        <span className={wordCount > selectedTypeConfig.maxWords ? 'text-red-500' : 'text-green-600'}>
+                          {' '}/ {selectedTypeConfig.maxWords} recommended
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAiModalOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Generate with AI
+                    </Button>
                   </div>
                 </div>
                 <Textarea
@@ -522,6 +541,14 @@ export default function CreateDocumentDialog({
             </div>
           )}
         </div>
+
+        {/* AI Generation Modal */}
+        <AIGenerationModal
+          open={aiModalOpen}
+          onOpenChange={setAiModalOpen}
+          onContentGenerated={handleAIContentGenerated}
+          selectedDocumentType={formData.type}
+        />
       </DialogContent>
     </Dialog>
   );
