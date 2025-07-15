@@ -119,20 +119,22 @@ export default function TaskManagementPage() {
       
       // Fetch applications
       const applicationsResponse = await fetch('/api/applications');
+      let applicationsData: any = { applications: [] };
       if (applicationsResponse.ok) {
-        const applicationsData = await applicationsResponse.json();
+        applicationsData = await applicationsResponse.json();
         setApplications(applicationsData.applications || []);
       }
 
       // Fetch tasks
       const tasksResponse = await fetch('/api/tasks');
+      let tasksData: any = { tasks: [] };
       if (tasksResponse.ok) {
-        const tasksData = await tasksResponse.json();
+        tasksData = await tasksResponse.json();
         setTasks(tasksData.tasks || []);
       }
 
       // Calculate stats
-      calculateStats(applicationsData?.applications || [], tasksData?.tasks || []);
+      calculateStats(applicationsData.applications || [], tasksData.tasks || []);
       
     } catch (error) {
       console.error('Error fetching data:', error);

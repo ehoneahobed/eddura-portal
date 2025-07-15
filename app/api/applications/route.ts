@@ -43,30 +43,33 @@ export async function GET(request: NextRequest) {
       };
 
       // Add the appropriate data based on application type
-      if (app.applicationType === 'scholarship' && app.scholarshipId) {
+      if (app.applicationType === 'scholarship' && app.scholarshipId && typeof app.scholarshipId === 'object') {
+        const scholarship = app.scholarshipId as any;
         applicationData.scholarshipId = {
-          _id: app.scholarshipId._id,
-          title: app.scholarshipId.title,
-          value: app.scholarshipId.value,
-          currency: app.scholarshipId.currency,
-          deadline: app.scholarshipId.deadline,
+          _id: scholarship._id,
+          title: scholarship.title,
+          value: scholarship.value,
+          currency: scholarship.currency,
+          deadline: scholarship.deadline,
           type: 'scholarship'
         };
-      } else if (app.applicationType === 'school' && app.schoolId) {
+      } else if (app.applicationType === 'school' && app.schoolId && typeof app.schoolId === 'object') {
+        const school = app.schoolId as any;
         applicationData.scholarshipId = {
-          _id: app.schoolId._id,
-          title: app.schoolId.name,
+          _id: school._id,
+          title: school.name,
           value: null,
           currency: null,
           deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default deadline
           type: 'school'
         };
-      } else if (app.applicationType === 'program' && app.programId) {
+      } else if (app.applicationType === 'program' && app.programId && typeof app.programId === 'object') {
+        const program = app.programId as any;
         applicationData.scholarshipId = {
-          _id: app.programId._id,
-          title: app.programId.name,
-          value: app.programId.tuitionFees?.international || null,
-          currency: app.programId.tuitionFees?.currency || null,
+          _id: program._id,
+          title: program.name,
+          value: program.tuitionFees?.international || null,
+          currency: program.tuitionFees?.currency || null,
           deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default deadline
           type: 'program'
         };
@@ -136,6 +139,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
       }
       applicationTemplate = await ApplicationTemplate.findOne({
+        applicationType: 'scholarship',
         scholarshipId: scholarshipId,
         isActive: true
       });
@@ -145,6 +149,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'School not found' }, { status: 404 });
       }
       applicationTemplate = await ApplicationTemplate.findOne({
+        applicationType: 'school',
         schoolId: schoolId,
         isActive: true
       });
@@ -154,6 +159,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Program not found' }, { status: 404 });
       }
       applicationTemplate = await ApplicationTemplate.findOne({
+        applicationType: 'program',
         programId: programId,
         isActive: true
       });
@@ -161,9 +167,10 @@ export async function POST(request: NextRequest) {
 
           if (!applicationTemplate) {
         // Create a default application template
+        const entityName = (targetEntity as any).title || (targetEntity as any).name || 'Application';
         const templateData: any = {
-          title: `${targetEntity.title || targetEntity.name} Application`,
-          description: `Application form for ${targetEntity.title || targetEntity.name}`,
+          title: `${entityName} Application`,
+          description: `Application form for ${entityName}`,
           version: '1.0.0',
           isActive: true,
           sections: [
@@ -264,6 +271,7 @@ export async function POST(request: NextRequest) {
         };
 
         // Add the appropriate reference based on application type
+        templateData.applicationType = applicationType;
         if (applicationType === 'scholarship') {
           templateData.scholarshipId = scholarshipId;
         } else if (applicationType === 'school') {
