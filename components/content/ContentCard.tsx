@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 import { 
   Calendar, 
   User, 
@@ -69,9 +70,11 @@ export default function ContentCard({ content }: ContentCardProps) {
         {/* Featured Image */}
         {content.featuredImage && (
           <div className="mb-4 -mx-6 -mt-6">
-            <img
+            <Image
               src={content.featuredImage}
               alt={content.title}
+              width={400}
+              height={200}
               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
             />
           </div>

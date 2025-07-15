@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import Content, { IContent } from '@/models/Content';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 
 // GET /api/content - List all content with filtering and pagination
 export async function GET(request: NextRequest) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -87,7 +86,7 @@ export async function GET(request: NextRequest) {
 // POST /api/content - Create new content
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    await connectToDatabase();
+    await connectDB();
     
     const body = await request.json();
     

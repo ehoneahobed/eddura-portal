@@ -790,7 +790,7 @@ export default function TestApplicationPage() {
       default:
         return (
           <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <p className="text-gray-600">Question type "{question.type}" not yet implemented.</p>
+            <p className="text-gray-600">Question type &quot;{question.type}&quot; not yet implemented.</p>
           </div>
         );
     }

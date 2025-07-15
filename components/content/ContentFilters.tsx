@@ -160,7 +160,7 @@ export default function ContentFilters({
               )}
               {currentSearch && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  Search: "{currentSearch}"
+                  Search: &quot;{currentSearch}&quot;
                   <X
                     className="w-3 h-3 cursor-pointer"
                     onClick={() => updateFilters({ search: undefined })}

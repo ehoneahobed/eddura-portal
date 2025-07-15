@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import Content, { IContent } from '@/models/Content';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import mongoose from 'mongoose';
 
 // GET /api/content/[id] - Get specific content by ID or slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
-    const { id } = params;
+    const { id } = await params;
     
     // Check if it's a valid ObjectId or slug
     const isObjectId = mongoose.Types.ObjectId.isValid(id);
@@ -56,10 +55,10 @@ export async function GET(
 // PUT /api/content/[id] - Update content
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -68,9 +67,9 @@ export async function PUT(
       );
     }
     
-    await connectToDatabase();
+    await connectDB();
     
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     
     // Check if it's a valid ObjectId
@@ -130,10 +129,10 @@ export async function PUT(
 // DELETE /api/content/[id] - Delete content
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -142,9 +141,9 @@ export async function DELETE(
       );
     }
     
-    await connectToDatabase();
+    await connectDB();
     
-    const { id } = params;
+    const { id } = await params;
     
     // Check if it's a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {

@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import Content from '@/models/Content';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let contentUrls: MetadataRoute.Sitemap = [];
   
   try {
-    await connectToDatabase();
+    await connectDB();
     const publishedContent = await Content.find({ status: 'published' })
       .select('slug updatedAt')
       .lean();

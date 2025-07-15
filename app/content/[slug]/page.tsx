@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { connectToDatabase } from '@/lib/mongodb';
+import Link from 'next/link';
+import Image from 'next/image';
+import connectDB from '@/lib/mongodb';
 import Content from '@/models/Content';
 import ContentCTA from '@/components/content/ContentCTA';
 import { Button } from '@/components/ui/button';
@@ -21,16 +23,15 @@ import {
 import { format } from 'date-fns';
 
 interface ContentPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: ContentPageProps): Promise<Metadata> {
-  await connectToDatabase();
+  const { slug } = await params;
+  await connectDB();
   
   const content = await Content.findOne({ 
-    slug: params.slug, 
+    slug,
     status: 'published' 
   }).lean();
   
@@ -69,10 +70,11 @@ export async function generateMetadata({ params }: ContentPageProps): Promise<Me
 }
 
 export default async function ContentPage({ params }: ContentPageProps) {
-  await connectToDatabase();
+  const { slug } = await params;
+  await connectDB();
   
   const content = await Content.findOne({ 
-    slug: params.slug, 
+    slug,
     status: 'published' 
   }).lean();
   
@@ -95,7 +97,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
   .lean();
   
   // Generate structured data
-  const structuredData = {
+  const structuredData: any = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: content.title,
@@ -181,7 +183,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
             <div className="max-w-4xl mx-auto">
               {/* Breadcrumb */}
               <nav className="text-sm text-gray-500 mb-4">
-                <a href="/content" className="hover:text-blue-600">Content Hub</a>
+                <Link href="/content" className="hover:text-blue-600">Content Hub</Link>
                 <span className="mx-2">/</span>
                 <span className="capitalize">{content.type}</span>
                 <span className="mx-2">/</span>
@@ -241,9 +243,11 @@ export default async function ContentPage({ params }: ContentPageProps) {
               {/* Featured Image */}
               {content.featuredImage && (
                 <div className="mb-8">
-                  <img
+                  <Image
                     src={content.featuredImage}
                     alt={content.title}
+                    width={800}
+                    height={400}
                     className="w-full h-64 md:h-96 object-cover rounded-lg"
                   />
                 </div>
@@ -427,7 +431,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
                       <h3 className="text-lg font-semibold mb-4">Related Content</h3>
                       <div className="space-y-4">
                         {relatedContent.map((item) => (
-                          <div key={item._id} className="border-b border-gray-200 pb-4 last:border-b-0">
+                          <div key={item._id?.toString() || item.slug} className="border-b border-gray-200 pb-4 last:border-b-0">
                             <a 
                               href={`/content/${item.slug}`}
                               className="block hover:text-blue-600 transition-colors"

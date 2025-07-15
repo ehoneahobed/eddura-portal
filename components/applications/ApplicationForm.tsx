@@ -196,7 +196,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Not Found</h2>
-          <p className="text-gray-600 mb-4">The application you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-4">The application you&apos;re looking for doesn&apos;t exist.</p>
           <Button onClick={() => router.push('/applications')}>
             Back to Applications
           </Button>
@@ -878,7 +878,7 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
       default:
         return (
           <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <p className="text-gray-600">Question type "{question.type}" not yet implemented.</p>
+            <p className="text-gray-600">Question type &quot;{question.type}&quot; not yet implemented.</p>
           </div>
         );
     }

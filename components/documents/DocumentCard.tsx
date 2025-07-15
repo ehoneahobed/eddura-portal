@@ -393,7 +393,7 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
           <DialogHeader>
             <DialogTitle>Delete Document</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{document.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{document.title}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">

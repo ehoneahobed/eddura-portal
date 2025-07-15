@@ -209,7 +209,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
           {scholarshipStatus.isNotYetOpen && scholarship.openingDate && (
             <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-md">
               <p className="text-xs text-blue-700">
-                💡 You can start preparing your application now, even though applications haven't opened yet.
+                💡 You can start preparing your application now, even though applications haven&apos;t opened yet.
               </p>
             </div>
           )}

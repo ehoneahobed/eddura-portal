@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import Content from '@/models/Content';
 import ContentCard from '@/components/content/ContentCard';
 import ContentFilters from '@/components/content/ContentFilters';
@@ -30,35 +30,36 @@ export const metadata: Metadata = {
 };
 
 interface ContentPageProps {
-  searchParams: {
+  searchParams: Promise<{
     type?: string;
     category?: string;
     tag?: string;
     search?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function ContentPage({ searchParams }: ContentPageProps) {
-  await connectToDatabase();
+  await connectDB();
   
-  const page = parseInt(searchParams.page || '1');
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1');
   const limit = 12;
   const skip = (page - 1) * limit;
   
   // Build query for published content only
   const query: any = { status: 'published' };
   
-  if (searchParams.type) query.type = searchParams.type;
-  if (searchParams.category) query.categories = { $in: [searchParams.category] };
-  if (searchParams.tag) query.tags = { $in: [searchParams.tag] };
+  if (resolvedSearchParams.type) query.type = resolvedSearchParams.type;
+  if (resolvedSearchParams.category) query.categories = { $in: [resolvedSearchParams.category] };
+  if (resolvedSearchParams.tag) query.tags = { $in: [resolvedSearchParams.tag] };
   
-  if (searchParams.search) {
+  if (resolvedSearchParams.search) {
     query.$or = [
-      { title: { $regex: searchParams.search, $options: 'i' } },
-      { content: { $regex: searchParams.search, $options: 'i' } },
-      { excerpt: { $regex: searchParams.search, $options: 'i' } },
-      { tags: { $in: [new RegExp(searchParams.search, 'i')] } }
+      { title: { $regex: resolvedSearchParams.search, $options: 'i' } },
+      { content: { $regex: resolvedSearchParams.search, $options: 'i' } },
+      { excerpt: { $regex: resolvedSearchParams.search, $options: 'i' } },
+      { tags: { $in: [new RegExp(resolvedSearchParams.search, 'i')] } }
     ];
   }
   
@@ -127,20 +128,20 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
           {/* Sidebar Filters */}
           <div className="lg:col-span-1">
             <ContentFilters 
-              currentType={searchParams.type}
-              currentCategory={searchParams.category}
-              currentTag={searchParams.tag}
-              currentSearch={searchParams.search}
+              currentType={resolvedSearchParams.type}
+              currentCategory={resolvedSearchParams.category}
+              currentTag={resolvedSearchParams.tag}
+              currentSearch={resolvedSearchParams.search}
             />
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-3">
             {/* Search Results Header */}
-            {searchParams.search && (
+            {resolvedSearchParams.search && (
               <div className="mb-6">
                 <h2 className="text-2xl font-semibold mb-2">
-                  Search Results for "{searchParams.search}"
+                  Search Results for &quot;{resolvedSearchParams.search}&quot;
                 </h2>
                 <p className="text-gray-600">
                   Found {total} result{total !== 1 ? 's' : ''}
@@ -152,7 +153,30 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
             {content.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {content.map((item) => (
-                  <ContentCard key={item._id} content={item} />
+                  <ContentCard 
+                    key={item._id?.toString() || item.slug} 
+                    content={{
+                      _id: item._id?.toString() || '',
+                      title: item.title,
+                      slug: item.slug,
+                      excerpt: item.excerpt,
+                      type: item.type,
+                      author: item.author,
+                      publishDate: item.publishDate?.toISOString(),
+                      categories: item.categories,
+                      tags: item.tags,
+                      viewCount: item.viewCount,
+                      featuredImage: item.featuredImage,
+                      eventDate: item.eventDate?.toISOString(),
+                      eventLocation: item.eventLocation,
+                      eventType: item.eventType,
+                      registrationLink: item.registrationLink,
+                      opportunityType: item.opportunityType,
+                      deadline: item.deadline?.toISOString(),
+                      value: item.value,
+                      applicationLink: item.applicationLink,
+                    }} 
+                  />
                 ))}
               </div>
             ) : (
@@ -162,12 +186,12 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No content found</h3>
                 <p className="text-gray-600 mb-6">
-                  {searchParams.search 
-                    ? `No results found for "${searchParams.search}". Try adjusting your search terms.`
+                  {resolvedSearchParams.search 
+                    ? `No results found for &quot;${resolvedSearchParams.search}&quot;. Try adjusting your search terms.`
                     : 'No content available at the moment. Check back soon!'
                   }
                 </p>
-                {searchParams.search && (
+                {resolvedSearchParams.search && (
                   <Button 
                     variant="outline" 
                     onClick={() => window.location.href = '/content'}
@@ -186,7 +210,7 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        const params = new URLSearchParams(searchParams);
+                        const params = new URLSearchParams(resolvedSearchParams);
                         params.set('page', (page - 1).toString());
                         window.location.href = `/content?${params.toString()}`;
                       }}
@@ -203,7 +227,7 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        const params = new URLSearchParams(searchParams);
+                        const params = new URLSearchParams(resolvedSearchParams);
                         params.set('page', (page + 1).toString());
                         window.location.href = `/content?${params.toString()}`;
                       }}

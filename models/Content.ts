@@ -309,14 +309,14 @@ ContentSchema.virtual('url').get(function() {
 });
 
 // Virtual for reading time (estimated)
-ContentSchema.virtual('readingTime').get(function() {
+ContentSchema.virtual('readingTime').get(function(this: IContent) {
   const wordsPerMinute = 200;
   const wordCount = this.content.split(/\s+/).length;
   return Math.ceil(wordCount / wordsPerMinute);
 });
 
 // Pre-save middleware to generate slug if not provided
-ContentSchema.pre('save', function(next) {
+ContentSchema.pre('save', function(this: IContent, next) {
   if (!this.slug && this.title) {
     this.slug = this.title
       .toLowerCase()

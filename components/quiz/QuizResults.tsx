@@ -298,7 +298,7 @@ export default function QuizResults() {
                 <div>
                   <h2 className="text-3xl font-bold mb-2">Your Career Discovery Results</h2>
                   <p className="text-blue-100 text-lg">
-                    Based on your responses, we've identified your ideal career path and recommended programs.
+                    Based on your responses, we&apos;ve identified your ideal career path and recommended programs.
                   </p>
                   {results.quizCompletedAt && (
                     <p className="text-blue-200 text-sm mt-2">
@@ -394,7 +394,7 @@ export default function QuizResults() {
                   </div>
                   <h3 className="text-xl font-semibold mb-2">Coming Soon</h3>
                   <p className="text-purple-100 mb-4">
-                    We're working on advanced AI algorithms to provide you with personalized career insights, 
+                    We&apos;re working on advanced AI algorithms to provide you with personalized career insights, 
                     skill recommendations, and detailed career path analysis.
                   </p>
                   <span className="inline-flex items-center rounded-full border border-white/30 bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">

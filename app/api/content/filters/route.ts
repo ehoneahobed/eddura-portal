@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import Content from '@/models/Content';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     // Get all categories and tags from published content
     const [categories, tags] = await Promise.all([

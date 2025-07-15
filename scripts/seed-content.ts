@@ -1,4 +1,4 @@
-import { connectToDatabase } from '../lib/mongodb';
+import connectDB from '../lib/mongodb';
 import Content from '../models/Content';
 
 const sampleContent = [
@@ -289,7 +289,7 @@ const sampleContent = [
 
 async function seedContent() {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     console.log('🌱 Seeding content...');
     

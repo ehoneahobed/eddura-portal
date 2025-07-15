@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -79,18 +79,7 @@ export default function SavedScholarshipsPage() {
   const [editStatus, setEditStatus] = useState('saved');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session?.user?.id) {
-      router.push('/auth/signin');
-      return;
-    }
-
-    fetchSavedScholarships();
-  }, [session, status, router, statusFilter]);
-
-  const fetchSavedScholarships = async () => {
+  const fetchSavedScholarships = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams();
@@ -111,7 +100,18 @@ export default function SavedScholarshipsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [statusFilter]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session?.user?.id) {
+      router.push('/auth/signin');
+      return;
+    }
+
+    fetchSavedScholarships();
+  }, [session, status, router, fetchSavedScholarships]);
 
   const handleUnsave = async (scholarshipId: string) => {
     try {
