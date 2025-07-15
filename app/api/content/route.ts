@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       message: 'Content created successfully'
     }, { status: 201 });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating content:', error);
     
     // Check if it's a Mongoose validation error
