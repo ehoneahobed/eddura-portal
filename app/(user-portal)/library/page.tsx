@@ -26,7 +26,9 @@ import {
   Users,
   Clock,
   Check,
-  ExternalLink
+  ExternalLink,
+  Download,
+  FileDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdvancedSearchFilters from '@/components/library/AdvancedSearchFilters';
@@ -190,6 +192,33 @@ export default function LibraryPage() {
     } catch (error) {
       console.error('Error rating document:', error);
       toast.error('Failed to submit rating');
+    }
+  };
+
+  const downloadDocument = async (document: LibraryDocument, format: 'pdf' | 'docx') => {
+    try {
+      const response = await fetch(`/api/library/documents/${document._id}/download?format=${format}`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${document.type}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success(`Document downloaded as ${format.toUpperCase()}`);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || `Failed to download ${format.toUpperCase()}`);
+      }
+    } catch (error) {
+      console.error(`Error downloading ${format}:`, error);
+      toast.error(`Failed to download ${format.toUpperCase()}`);
     }
   };
 
@@ -553,32 +582,54 @@ export default function LibraryPage() {
             )}
           </div>
           <DialogFooter>
-            {selectedDocument?.isCloned ? (
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                  <Check className="h-4 w-4 mr-2" /> Already Cloned
-                </Badge>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => window.open('/documents/cloned', '_blank')}
+                  size="sm"
+                  onClick={() => selectedDocument && downloadDocument(selectedDocument, 'pdf')}
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View Cloned Document
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => selectedDocument && downloadDocument(selectedDocument, 'docx')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Word
                 </Button>
               </div>
-            ) : (
-              <Button
-                onClick={() => selectedDocument && handleCloneDocument(selectedDocument._id)}
-                disabled={!!(selectedDocument && isCloning === selectedDocument._id)}
-              >
-                {selectedDocument && isCloning === selectedDocument._id ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <div>
+                {selectedDocument?.isCloned ? (
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                      <Check className="h-4 w-4 mr-2" /> Already Cloned
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open('/documents/cloned', '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Cloned Document
+                    </Button>
+                  </div>
                 ) : (
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Button
+                    onClick={() => selectedDocument && handleCloneDocument(selectedDocument._id)}
+                    disabled={!!(selectedDocument && isCloning === selectedDocument._id)}
+                  >
+                    {selectedDocument && isCloning === selectedDocument._id ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Copy className="h-4 w-4 mr-2" />
+                    )}
+                    Clone Document
+                  </Button>
                 )}
-                Clone Document
-              </Button>
-            )}
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
