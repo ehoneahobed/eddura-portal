@@ -21,9 +21,13 @@ import {
   Star,
   Users,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Sparkles,
+  Edit3
 } from "lucide-react";
 import { toast } from "sonner";
+import AIGenerationModal from "../documents/AIGenerationModal";
+import AIRefinementModal from "../documents/AIRefinementModal";
 
 interface DocumentViewerProps {
   documentId: string;
@@ -62,6 +66,8 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
   const [editedDescription, setEditedDescription] = useState("");
   const [editedTags, setEditedTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiRefinementModalOpen, setAiRefinementModalOpen] = useState(false);
 
   useEffect(() => {
     fetchDocument();
@@ -140,6 +146,14 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
       e.preventDefault();
       addTag();
     }
+  };
+
+  const handleAIContentGenerated = (content: string) => {
+    setEditedContent(content);
+  };
+
+  const handleAIContentRefined = (content: string) => {
+    setEditedContent(content);
   };
 
   if (isLoading) {
@@ -314,7 +328,33 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
                 </div>
               </div>
               <div>
-                <Label htmlFor="content">Content</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="content">Content</Label>
+                  <div className="flex gap-2">
+                    {editedContent.trim() && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAiRefinementModalOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        Refine with AI
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAiModalOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Generate with AI
+                    </Button>
+                  </div>
+                </div>
                 <Textarea
                   id="content"
                   value={editedContent}
@@ -331,6 +371,21 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
           )}
         </CardContent>
       </Card>
+
+      {/* AI Generation Modal */}
+      <AIGenerationModal
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+        onContentGenerated={handleAIContentGenerated}
+      />
+
+      {/* AI Refinement Modal */}
+      <AIRefinementModal
+        open={aiRefinementModalOpen}
+        onOpenChange={setAiRefinementModalOpen}
+        onContentRefined={handleAIContentRefined}
+        existingContent={editedContent}
+      />
     </div>
   );
 } 

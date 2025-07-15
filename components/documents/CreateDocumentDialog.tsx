@@ -24,11 +24,13 @@ import {
   Award,
   Clock,
   GraduationCap,
-  Sparkles
+  Sparkles,
+  Edit3
 } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { toast } from 'sonner';
 import AIGenerationModal from './AIGenerationModal';
+import AIRefinementModal from './AIRefinementModal';
 
 interface CreateDocumentDialogProps {
   open: boolean;
@@ -134,6 +136,7 @@ export default function CreateDocumentDialog({
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiRefinementModalOpen, setAiRefinementModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     type: '' as DocumentType | '',
@@ -219,6 +222,10 @@ export default function CreateDocumentDialog({
   };
 
   const handleAIContentGenerated = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
+  };
+
+  const handleAIContentRefined = (content: string) => {
     setFormData(prev => ({ ...prev, content }));
   };
 
@@ -351,16 +358,30 @@ export default function CreateDocumentDialog({
                         </span>
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAiModalOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Generate with AI
-                    </Button>
+                    <div className="flex gap-2">
+                      {formData.content.trim() && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAiRefinementModalOpen(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          Refine with AI
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAiModalOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Generate with AI
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 <Textarea
@@ -554,6 +575,15 @@ export default function CreateDocumentDialog({
           onOpenChange={setAiModalOpen}
           onContentGenerated={handleAIContentGenerated}
           selectedDocumentType={formData.type || undefined}
+        />
+
+        {/* AI Refinement Modal */}
+        <AIRefinementModal
+          open={aiRefinementModalOpen}
+          onOpenChange={setAiRefinementModalOpen}
+          onContentRefined={handleAIContentRefined}
+          existingContent={formData.content}
+          documentType={formData.type || undefined}
         />
       </DialogContent>
     </Dialog>
