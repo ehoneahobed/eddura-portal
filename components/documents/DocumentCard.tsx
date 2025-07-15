@@ -9,10 +9,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles, FileDown } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles, FileDown, Edit3 } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
 import AIGenerationModal from './AIGenerationModal';
+import AIRefinementModal from './AIRefinementModal';
 
 // Tooltip component for version explanation
 const VersionTooltip = ({ children }: { children: React.ReactNode }) => (
@@ -35,6 +36,7 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiRefinementModalOpen, setAiRefinementModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editData, setEditData] = useState({
     title: document.title,
@@ -184,6 +186,10 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
   };
 
   const handleAIContentGenerated = (content: string) => {
+    setEditData(prev => ({ ...prev, content }));
+  };
+
+  const handleAIContentRefined = (content: string) => {
     setEditData(prev => ({ ...prev, content }));
   };
 
@@ -372,16 +378,30 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
                     <span className="font-medium">{editData.content.trim().split(/\s+/).filter(word => word.length > 0).length}</span> words, 
                     <span className="font-medium"> {editData.content.length.toLocaleString()}</span> characters
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setAiModalOpen(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Generate with AI
-                  </Button>
+                  <div className="flex gap-2">
+                    {editData.content.trim() && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAiRefinementModalOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        Refine with AI
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAiModalOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Generate with AI
+                    </Button>
+                  </div>
                 </div>
               </div>
               <Textarea
@@ -508,6 +528,15 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
         onOpenChange={setAiModalOpen}
         onContentGenerated={handleAIContentGenerated}
         selectedDocumentType={document.type}
+      />
+
+      {/* AI Refinement Modal */}
+      <AIRefinementModal
+        open={aiRefinementModalOpen}
+        onOpenChange={setAiRefinementModalOpen}
+        onContentRefined={handleAIContentRefined}
+        existingContent={editData.content}
+        documentType={document.type}
       />
     </>
   );
