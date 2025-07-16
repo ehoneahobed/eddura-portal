@@ -435,10 +435,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                         style={{
                           position: 'absolute',
                           top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0),
-                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + 10,
-                          zIndex: 10
+                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + 5,
+                          zIndex: 10,
+                          transform: 'translateY(-50%)'
                         }}
-                        className="bg-primary text-white px-2 py-1 rounded shadow"
+                        className="bg-primary text-white px-2 py-1 rounded shadow hover:bg-primary/90 transition-colors"
                         onClick={handleAddSelectionComment}
                       >
                         Add Comment
