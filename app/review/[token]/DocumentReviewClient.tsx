@@ -200,17 +200,105 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       // Get the bounding rect for the selection
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
+      // Ensure the button doesn't go off-screen
+      const buttonWidth = 140; // Approximate button width
+      const buttonHeight = 40; // Approximate button height
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      let left = rect.left;
+      let top = rect.top;
+      
+      // Adjust horizontal position if button would go off-screen
+      if (left + buttonWidth > viewportWidth - 20) {
+        left = viewportWidth - buttonWidth - 20;
+      }
+      if (left < 20) {
+        left = 20;
+      }
+      
+      // Adjust vertical position if button would go off-screen
+      if (top + buttonHeight > viewportHeight - 20) {
+        top = rect.bottom - buttonHeight;
+      }
+      if (top < 20) {
+        top = 20;
+      }
+      
       setSelectionInfo({
         text: selectedText,
         start,
         end,
-        top: rect.top + window.scrollY,
-        left: rect.left + window.scrollX
+        top,
+        left
       });
     };
+    
+    // Handle scroll to update button position
+    const handleScroll = () => {
+      if (selectionInfo) {
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          
+          // Apply the same boundary checking as in handleMouseUp
+          const buttonWidth = 140;
+          const buttonHeight = 40;
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          
+          let left = rect.left;
+          let top = rect.top;
+          
+          if (left + buttonWidth > viewportWidth - 20) {
+            left = viewportWidth - buttonWidth - 20;
+          }
+          if (left < 20) {
+            left = 20;
+          }
+          
+          if (top + buttonHeight > viewportHeight - 20) {
+            top = rect.bottom - buttonHeight;
+          }
+          if (top < 20) {
+            top = 20;
+          }
+          
+          setSelectionInfo(prev => prev ? {
+            ...prev,
+            top,
+            left
+          } : null);
+        }
+      }
+    };
+    
+    // Handle click outside to dismiss the button
+    const handleClickOutside = (e: MouseEvent) => {
+      if (selectionInfo && contentRef.current && !contentRef.current.contains(e.target as Node)) {
+        setSelectionInfo(null);
+      }
+    };
+    
+    // Handle escape key to dismiss the button
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectionInfo) {
+        setSelectionInfo(null);
+      }
+    };
+    
     window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
-  }, [data.document.content]);
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('click', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [data.document.content, selectionInfo]);
 
   const handleAddSelectionComment = () => {
     if (!selectionInfo) return;
@@ -482,18 +570,19 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                     {selectionInfo && (
                       <button
                         style={{
-                          position: 'absolute',
-                          top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0),
-                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + (isMobile ? 0 : 2),
+                          position: 'fixed',
+                          top: selectionInfo.top,
+                          left: selectionInfo.left + (isMobile ? 0 : 2),
                           zIndex: 50, // Higher z-index for mobile
                           transform: 'translateY(-50%)',
                           minWidth: isMobile ? 120 : undefined,
                           fontSize: isMobile ? 16 : undefined,
                           padding: isMobile ? '8px 16px' : undefined,
                         }}
-                        className="bg-green-600 text-white px-2 py-1 rounded shadow hover:bg-green-700 transition-colors text-xs lg:text-xs"
+                        className="bg-green-600 text-white px-3 py-2 rounded-md shadow-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium border border-green-500 animate-in fade-in-0 zoom-in-95 duration-200"
                         onClick={handleAddSelectionComment}
                       >
+                        <MessageSquare className="h-4 w-4 mr-1" />
                         Add Comment
                       </button>
                     )}
@@ -504,9 +593,9 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                           side="right"
                           align="start"
                           style={{
-                            position: 'absolute',
-                            top: popoverPosition.top - (contentRef.current?.getBoundingClientRect().top || 0),
-                            left: popoverPosition.left - (contentRef.current?.getBoundingClientRect().left || 0),
+                            position: 'fixed',
+                            top: popoverPosition.top,
+                            left: popoverPosition.left,
                             zIndex: 20
                           }}
                         >
