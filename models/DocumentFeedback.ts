@@ -45,8 +45,7 @@ export interface IFeedbackComment {
 
 const FeedbackCommentSchema: Schema = new Schema<IFeedbackComment>({
   id: {
-    type: String,
-    required: true
+    type: String
   },
   content: {
     type: String,
