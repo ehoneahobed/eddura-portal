@@ -7,12 +7,12 @@ import DocumentFeedback from '@/models/DocumentFeedback';
 // GET /api/review/[token] - Get shared document for review
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     await connectDB();
 
-    const shareToken = params.token;
+    const { token: shareToken } = await params;
     
     // Find the share
     const share = await DocumentShare.findOne({

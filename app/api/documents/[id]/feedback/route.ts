@@ -44,8 +44,8 @@ const UpdateFeedbackSchema = z.object({
 });
 
 // POST /api/documents/[id]/feedback - Create feedback for a document
-export async function POST(request: NextRequest, context: { params: { id: string } }) {
-  const documentId = context.params.id;
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id: documentId } = await context.params;
   try {
     await connectDB();
 
@@ -150,8 +150,8 @@ export async function POST(request: NextRequest, context: { params: { id: string
 }
 
 // GET /api/documents/[id]/feedback - Get all feedback for a document (document owner only)
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-  const documentId = context.params.id;
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id: documentId } = await context.params;
   try {
     const session = await auth();
     
@@ -233,8 +233,8 @@ export async function GET(request: NextRequest, context: { params: { id: string 
 }
 
 // PUT /api/documents/[id]/feedback - Update feedback (document owner only)
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
-  const documentId = context.params.id;
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id: documentId } = await context.params;
   try {
     const session = await auth();
     
@@ -279,7 +279,12 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 
     // Update feedback
     if (validatedData.comments) {
-      feedback.comments = validatedData.comments;
+      // Map the validated comments to include timestamps
+      feedback.comments = validatedData.comments.map(comment => ({
+        ...comment,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
     }
     if (validatedData.overallRating !== undefined) {
       feedback.overallRating = validatedData.overallRating;

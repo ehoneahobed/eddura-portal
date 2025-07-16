@@ -21,7 +21,7 @@ const ShareDocumentSchema = z.object({
 // POST /api/documents/[id]/share - Share a document
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -32,7 +32,7 @@ export async function POST(
 
     await connectDB();
 
-    const documentId = params.id;
+    const { id: documentId } = await params;
     
     // Check if document exists and belongs to user
     const document = await Document.findOne({
@@ -124,7 +124,7 @@ export async function POST(
 // GET /api/documents/[id]/share - Get all shares for a document
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -135,7 +135,7 @@ export async function GET(
 
     await connectDB();
 
-    const documentId = params.id;
+    const { id: documentId } = await params;
     
     // Check if document exists and belongs to user
     const document = await Document.findOne({
