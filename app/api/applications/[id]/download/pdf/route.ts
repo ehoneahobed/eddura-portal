@@ -4,12 +4,18 @@ import connectDB from '@/lib/mongodb';
 import Application, { IApplication } from '@/models/Application';
 import { IScholarship } from '@/models/Scholarship';
 import { IApplicationTemplate } from '@/models/ApplicationTemplate';
-import puppeteer from 'puppeteer';
+import jsPDF from 'jspdf';
 
 // Type for populated application
 interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'applicationTemplateId'> {
   scholarshipId: IScholarship;
   applicationTemplateId: IApplicationTemplate;
+  responses: Array<{
+    sectionId: string;
+    questionId: string;
+    value: any;
+    files?: string[];
+  }>;
 }
 
 export async function POST(
@@ -39,34 +45,11 @@ export async function POST(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // Generate HTML content for the PDF
-    const htmlContent = generatePDFHTML(application);
-
-    // Launch puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-    // Generate PDF
-    const pdf = await page.pdf({
-      format: 'A4',
-      margin: {
-        top: '1in',
-        right: '1in',
-        bottom: '1in',
-        left: '1in'
-      },
-      printBackground: true
-    });
-
-    await browser.close();
+    // Generate PDF using jsPDF
+    const pdfBuffer = await generatePDF(application);
 
     // Return PDF as response
-    return new NextResponse(pdf, {
+    return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="application-${application.scholarshipId.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf"`
@@ -79,259 +62,253 @@ export async function POST(
   }
 }
 
-function generatePDFHTML(application: PopulatedApplication): string {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatCurrency = (value: number | string, currency: string = 'USD') => {
-    if (typeof value === 'string') {
-      return value; // Return as-is if it's already a string
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const getQuestionResponse = (sectionId: string, questionId: string) => {
-    const section = application.sections.find((s: any) => s.sectionId === sectionId);
-    if (!section) return null;
+async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
+  try {
+    console.log('[PDF] Creating application PDF document...');
     
-    const response = section.responses.find((r: any) => r.questionId === questionId);
-    return response;
-  };
-
-  const formatResponseValue = (value: any, questionType: string) => {
-    if (value === null || value === undefined || value === '') {
-      return 'Not provided';
+    // Create new PDF document
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Set font
+    pdf.setFont('helvetica');
+    
+    // Page dimensions
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - (2 * margin);
+    
+    let yPosition = margin;
+    
+    // Add title
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    const title = `Application: ${application.scholarshipId.title}`;
+    const titleLines = pdf.splitTextToSize(title, contentWidth);
+    pdf.text(titleLines, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += (titleLines.length * 8) + 10;
+    
+    // Add subtitle
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'normal');
+    const subtitle = application.applicationTemplateId.title;
+    const subtitleLines = pdf.splitTextToSize(subtitle, contentWidth);
+    pdf.text(subtitleLines, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += (subtitleLines.length * 6) + 15;
+    
+    // Add separator line
+    pdf.setDrawColor(100, 100, 100);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 15;
+    
+    // Add scholarship information
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Scholarship Information:', margin, yPosition);
+    yPosition += 8;
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    
+    const scholarshipInfo = [
+      `Title: ${application.scholarshipId.title}`,
+      `Value: ${application.scholarshipId.value} ${application.scholarshipId.currency}`,
+      `Deadline: ${application.scholarshipId.deadline ? new Date(application.scholarshipId.deadline).toLocaleDateString() : 'N/A'}`,
+      `Status: ${application.status}`,
+      `Submitted: ${application.submittedAt ? new Date(application.submittedAt).toLocaleDateString() : 'N/A'}`
+    ];
+    
+    for (const info of scholarshipInfo) {
+      const infoLines = pdf.splitTextToSize(info, contentWidth);
+      for (const line of infoLines) {
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+        pdf.text(line, margin, yPosition);
+        yPosition += 5;
+      }
+      yPosition += 2;
     }
-
-    switch (questionType) {
-      case 'date':
-        return formatDate(value);
-      case 'checkbox':
-      case 'multiselect':
-        return Array.isArray(value) ? value.join(', ') : value;
-      case 'boolean':
-        return value ? 'Yes' : 'No';
-      case 'number':
-        return value.toString();
-      case 'file':
-        return Array.isArray(value) ? value.join(', ') : value;
-      default:
-        return value.toString();
-    }
-  };
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Application - ${application.scholarshipId.title}</title>
-      <style>
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          margin: 0;
-          padding: 20px;
+    
+    yPosition += 10;
+    
+    // Add application responses
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Application Responses:', margin, yPosition);
+    yPosition += 8;
+    
+    // Process each section
+    for (const section of application.applicationTemplateId.sections) {
+      if (yPosition > pageHeight - 40) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      
+      // Section title
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      const sectionTitle = section.title;
+      const sectionTitleLines = pdf.splitTextToSize(sectionTitle, contentWidth);
+      for (const line of sectionTitleLines) {
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage();
+          yPosition = margin;
         }
-        .header {
-          text-align: center;
-          border-bottom: 3px solid #2563eb;
-          padding-bottom: 20px;
-          margin-bottom: 30px;
+        pdf.text(line, margin, yPosition);
+        yPosition += 6;
+      }
+      
+      // Section description
+      if (section.description) {
+        yPosition += 2;
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'italic');
+        const descLines = pdf.splitTextToSize(section.description, contentWidth);
+        for (const line of descLines) {
+          if (yPosition > pageHeight - 40) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin + 5, yPosition);
+          yPosition += 4;
         }
-        .logo {
-          font-size: 24px;
-          font-weight: bold;
-          color: #2563eb;
-          margin-bottom: 10px;
+      }
+      
+      yPosition += 5;
+      
+      // Process questions in this section
+      for (const question of section.questions) {
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage();
+          yPosition = margin;
         }
-        .title {
-          font-size: 28px;
-          font-weight: bold;
-          margin-bottom: 10px;
+        
+        // Question title
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        const questionTitle = `${question.title}${question.required ? ' *' : ''}`;
+        const questionTitleLines = pdf.splitTextToSize(questionTitle, contentWidth);
+        for (const line of questionTitleLines) {
+          if (yPosition > pageHeight - 40) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin + 5, yPosition);
+          yPosition += 5;
         }
-        .subtitle {
-          font-size: 16px;
-          color: #666;
+        
+        // Question description
+        if (question.description) {
+          yPosition += 2;
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'italic');
+          const questionDescLines = pdf.splitTextToSize(question.description, contentWidth - 10);
+          for (const line of questionDescLines) {
+            if (yPosition > pageHeight - 40) {
+              pdf.addPage();
+              yPosition = margin;
+            }
+            pdf.text(line, margin + 10, yPosition);
+            yPosition += 4;
+          }
         }
-        .overview {
-          background-color: #f8fafc;
-          padding: 20px;
-          border-radius: 8px;
-          margin-bottom: 30px;
+        
+        // Answer
+        yPosition += 3;
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        
+        const response = application.responses.find((r: { sectionId: string; questionId: string; value: any; files?: string[] }) => r.sectionId === section.id && r.questionId === question.id);
+        const answerText = response ? formatResponseValue(response.value, question.type) : 'Not answered';
+        
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Answer:', margin + 5, yPosition);
+        yPosition += 4;
+        
+        pdf.setFont('helvetica', 'normal');
+        const answerLines = pdf.splitTextToSize(answerText, contentWidth - 10);
+        for (const line of answerLines) {
+          if (yPosition > pageHeight - 40) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin + 10, yPosition);
+          yPosition += 4;
         }
-        .overview-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 20px;
-        }
-        .overview-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .overview-label {
-          font-weight: bold;
-          color: #666;
-        }
-        .section {
-          margin-bottom: 30px;
-          page-break-inside: avoid;
-        }
-        .section-title {
-          font-size: 20px;
-          font-weight: bold;
-          color: #2563eb;
-          border-bottom: 2px solid #e5e7eb;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-        .question {
-          margin-bottom: 20px;
-          page-break-inside: avoid;
-        }
-        .question-title {
-          font-weight: bold;
-          margin-bottom: 5px;
-        }
-        .question-description {
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 10px;
-        }
-        .answer {
-          background-color: #f9fafb;
-          padding: 15px;
-          border-radius: 6px;
-          border-left: 4px solid #2563eb;
-        }
-        .answer-label {
-          font-size: 12px;
-          color: #666;
-          margin-bottom: 5px;
-          text-transform: uppercase;
-          font-weight: bold;
-        }
-        .files {
-          margin-top: 10px;
-          font-size: 14px;
-        }
-        .file-link {
-          color: #2563eb;
-          text-decoration: none;
-        }
-        .required {
-          color: #dc2626;
-        }
-        @media print {
-          body { margin: 0; }
-          .section { page-break-inside: avoid; }
-          .question { page-break-inside: avoid; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <div class="logo">EDDURA</div>
-        <div class="title">Scholarship Application</div>
-        <div class="subtitle">${application.scholarshipId.title}</div>
-      </div>
-
-      <div class="overview">
-        <h2 style="margin-top: 0; color: #2563eb;">Application Overview</h2>
-        <div class="overview-grid">
-          <div class="overview-item">
-            <span class="overview-label">Scholarship:</span>
-            <span>${application.scholarshipId.title}</span>
-          </div>
-          <div class="overview-item">
-            <span class="overview-label">Amount:</span>
-            <span>${application.scholarshipId.value ? formatCurrency(application.scholarshipId.value, application.scholarshipId.currency) : 'Not specified'}</span>
-          </div>
-          <div class="overview-item">
-            <span class="overview-label">Deadline:</span>
-            <span>${formatDate(application.scholarshipId.deadline)}</span>
-          </div>
-          <div class="overview-item">
-            <span class="overview-label">Status:</span>
-            <span>${application.status.charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ')}</span>
-          </div>
-          <div class="overview-item">
-            <span class="overview-label">Started:</span>
-            <span>${formatDate(application.startedAt.toISOString())}</span>
-          </div>
-          <div class="overview-item">
-            <span class="overview-label">Submitted:</span>
-            <span>${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}</span>
-          </div>
-        </div>
-      </div>
-
-      ${application.applicationTemplateId.sections.map((section: any) => `
-        <div class="section">
-          <div class="section-title">${section.title}</div>
-          ${section.description ? `<p style="color: #666; margin-bottom: 20px;">${section.description}</p>` : ''}
+        
+        // Files if any
+        if (response?.files && response.files.length > 0) {
+          yPosition += 3;
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Attached Files:', margin + 5, yPosition);
+          yPosition += 4;
           
-          ${section.questions.map((question: any) => {
-            const response = getQuestionResponse(section.id, question.id);
-            const responseValue = response ? formatResponseValue(response.value, question.type) : 'Not answered';
-            
-            return `
-              <div class="question">
-                <div class="question-title">
-                  ${question.title}
-                  ${question.required ? '<span class="required">*</span>' : ''}
-                </div>
-                ${question.description ? `<div class="question-description">${question.description}</div>` : ''}
-                <div class="answer">
-                  <div class="answer-label">Your Answer:</div>
-                  <div>${responseValue}</div>
-                  ${response?.files && response.files.length > 0 ? `
-                    <div class="files">
-                      <div class="answer-label">Attached Files:</div>
-                      ${response.files.map((file: string) => `
-                        <div><a href="${file}" class="file-link">${file.split('/').pop()}</a></div>
-                      `).join('')}
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `).join('')}
+          pdf.setFont('helvetica', 'normal');
+          for (const file of response.files) {
+            const fileName = file.split('/').pop() || file;
+            const fileLines = pdf.splitTextToSize(`- ${fileName}`, contentWidth - 10);
+            for (const line of fileLines) {
+              if (yPosition > pageHeight - 40) {
+                pdf.addPage();
+                yPosition = margin;
+              }
+              pdf.text(line, margin + 10, yPosition);
+              yPosition += 4;
+            }
+          }
+        }
+        
+        yPosition += 8;
+      }
+      
+      yPosition += 5;
+    }
+    
+    // Add footer
+    const totalPages = pdf.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Powered by Eddura on ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      pdf.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+    }
+    
+    console.log(`[PDF] Application PDF generated successfully`);
+    
+    // Get PDF as buffer
+    return Buffer.from(pdf.output('arraybuffer'));
+    
+  } catch (error) {
+    console.error('Error generating application PDF:', error);
+    throw error;
+  }
+}
 
-      <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
-        <p>Generated by Eddura on ${new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}</p>
-      </div>
-    </body>
-    </html>
-  `;
+function formatResponseValue(value: any, type: string): string {
+  if (!value) return 'Not answered';
+  
+  switch (type) {
+    case 'text':
+    case 'textarea':
+    case 'email':
+    case 'url':
+      return String(value);
+    case 'number':
+      return String(value);
+    case 'date':
+      return new Date(value).toLocaleDateString();
+    case 'select':
+    case 'radio':
+      return Array.isArray(value) ? value.join(', ') : String(value);
+    case 'checkbox':
+      return Array.isArray(value) ? value.join(', ') : String(value);
+    case 'file':
+      return Array.isArray(value) ? value.join(', ') : String(value);
+    default:
+      return String(value);
+  }
 }
