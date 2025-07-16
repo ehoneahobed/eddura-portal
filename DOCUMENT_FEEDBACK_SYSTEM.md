@@ -145,10 +145,8 @@ interface IFeedbackComment {
 
 ### Configuration
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+RESEND_API_KEY=re_your_resend_api_key_here
+FROM_EMAIL=noreply@yourdomain.com
 ```
 
 ### Email Templates
@@ -280,10 +278,8 @@ const response = await fetch(`/api/documents/${documentId}/feedback`, {
 MONGODB_URI=your-mongodb-connection-string
 
 # Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+RESEND_API_KEY=re_your_resend_api_key_here
+FROM_EMAIL=noreply@yourdomain.com
 
 # Application
 NEXTAUTH_URL=http://localhost:3000

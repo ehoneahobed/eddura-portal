@@ -1,15 +1,7 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Email transporter configuration
-const transporter = nodemailer.createTransporter({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export interface EmailData {
   to: string;
@@ -20,20 +12,25 @@ export interface EmailData {
 
 export const sendEmail = async (emailData: EmailData): Promise<boolean> => {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.warn('SMTP credentials not configured, skipping email send');
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Resend API key not configured, skipping email send');
       return false;
     }
 
-    const mailOptions = {
-      from: process.env.SMTP_USER,
-      to: emailData.to,
+    const { data, error } = await resend.emails.send({
+      from: process.env.FROM_EMAIL || 'noreply@yourdomain.com',
+      to: [emailData.to],
       subject: emailData.subject,
       html: emailData.html,
       text: emailData.text || emailData.html.replace(/<[^>]*>/g, ''),
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+
+    console.log('Email sent successfully:', data);
     return true;
   } catch (error) {
     console.error('Error sending email:', error);
