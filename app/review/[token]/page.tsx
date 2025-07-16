@@ -68,18 +68,25 @@ async function getDocumentReviewData(token: string): Promise<DocumentReviewData>
 
   return {
     document: {
-      _id: document._id.toString(),
+      _id: (document._id as any).toString(),
       title: document.title,
       type: document.type,
       content: document.content,
       description: document.description,
       wordCount: document.wordCount,
       characterCount: document.characterCount,
-      createdAt: document.createdAt,
-      updatedAt: document.updatedAt
+      createdAt: document.createdAt instanceof Date ? document.createdAt.toISOString() : document.createdAt,
+      updatedAt: document.updatedAt instanceof Date ? document.updatedAt.toISOString() : document.updatedAt,
+      version: document.version,
+      isActive: document.isActive,
+      lastEditedAt: document.lastEditedAt instanceof Date ? document.lastEditedAt.toISOString() : document.lastEditedAt
     },
     share: {
-      _id: share._id.toString(),
+      _id: (share._id as any).toString(),
+      documentId: (share.documentId as any).toString(),
+      userId: (share.userId as any).toString(),
+      shareToken: share.shareToken,
+      isActive: share.isActive,
       shareType: share.shareType,
       email: share.email,
       reviewerName: share.reviewerName,
@@ -87,18 +94,26 @@ async function getDocumentReviewData(token: string): Promise<DocumentReviewData>
       canComment: share.canComment,
       canEdit: share.canEdit,
       canDownload: share.canDownload,
-      expiresAt: share.expiresAt,
-      createdAt: share.createdAt
+      expiresAt: share.expiresAt instanceof Date ? share.expiresAt.toISOString() : share.expiresAt,
+      createdAt: share.createdAt instanceof Date ? share.createdAt.toISOString() : share.createdAt,
+      updatedAt: share.updatedAt instanceof Date ? share.updatedAt.toISOString() : share.updatedAt
     },
     existingFeedback: existingFeedback ? {
-      _id: existingFeedback._id.toString(),
+      _id: (existingFeedback._id as any).toString(),
+      documentId: (existingFeedback.documentId as any).toString(),
+      documentShareId: (existingFeedback.documentShareId as any).toString(),
       reviewerName: existingFeedback.reviewerName,
       reviewerEmail: existingFeedback.reviewerEmail,
-      comments: existingFeedback.comments,
+      comments: existingFeedback.comments.map((comment: any) => ({
+        ...comment,
+        createdAt: comment.createdAt instanceof Date ? comment.createdAt.toISOString() : comment.createdAt,
+        updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt.toISOString() : comment.updatedAt
+      })),
       overallRating: existingFeedback.overallRating,
       generalFeedback: existingFeedback.generalFeedback,
-      createdAt: existingFeedback.createdAt,
-      updatedAt: existingFeedback.updatedAt
+      isResolved: existingFeedback.isResolved,
+      createdAt: existingFeedback.createdAt instanceof Date ? existingFeedback.createdAt.toISOString() : existingFeedback.createdAt,
+      updatedAt: existingFeedback.updatedAt instanceof Date ? existingFeedback.updatedAt.toISOString() : existingFeedback.updatedAt
     } : undefined
   };
 }
