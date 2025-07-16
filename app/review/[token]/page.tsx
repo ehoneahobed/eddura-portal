@@ -78,6 +78,31 @@ function toFrontendDocumentShare(share: any): DocumentShare {
   };
 }
 
+function toFrontendDocumentFeedback(feedback: any): DocumentFeedback {
+  return {
+    _id: feedback._id.toString(),
+    documentId: feedback.documentId.toString(),
+    documentShareId: feedback.documentShareId.toString(),
+    reviewerName: feedback.reviewerName,
+    reviewerEmail: feedback.reviewerEmail,
+    comments: feedback.comments.map((comment: any) => ({
+      id: comment.id,
+      content: comment.content,
+      position: comment.position,
+      type: comment.type,
+      status: comment.status,
+      createdAt: comment.createdAt instanceof Date ? comment.createdAt.toISOString() : comment.createdAt,
+      updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt.toISOString() : comment.updatedAt
+    })),
+    overallRating: feedback.overallRating,
+    generalFeedback: feedback.generalFeedback,
+    isResolved: feedback.isResolved,
+    resolvedAt: feedback.resolvedAt instanceof Date ? feedback.resolvedAt.toISOString() : feedback.resolvedAt,
+    createdAt: feedback.createdAt instanceof Date ? feedback.createdAt.toISOString() : feedback.createdAt,
+    updatedAt: feedback.updatedAt instanceof Date ? feedback.updatedAt.toISOString() : feedback.updatedAt
+  };
+}
+
 async function getDocumentReviewData(token: string): Promise<DocumentReviewData> {
   await connectDB();
 
@@ -110,16 +135,7 @@ async function getDocumentReviewData(token: string): Promise<DocumentReviewData>
   return {
     document: toFrontendDocument(document),
     share: toFrontendDocumentShare(share),
-    existingFeedback: existingFeedback ? {
-      _id: existingFeedback._id.toString(),
-      reviewerName: existingFeedback.reviewerName,
-      reviewerEmail: existingFeedback.reviewerEmail,
-      comments: existingFeedback.comments,
-      overallRating: existingFeedback.overallRating,
-      generalFeedback: existingFeedback.generalFeedback,
-      createdAt: existingFeedback.createdAt,
-      updatedAt: existingFeedback.updatedAt
-    } : undefined
+    existingFeedback: existingFeedback ? toFrontendDocumentFeedback(existingFeedback) : undefined
   };
 }
 
