@@ -430,7 +430,7 @@ export default function ShareDocumentDialog({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => copyToClipboard(share.shareUrl)}
+                          onClick={() => copyToClipboard(share.shareUrl || '')}
                         >
                           <Copy className="h-3 w-3 mr-1" />
                           Copy

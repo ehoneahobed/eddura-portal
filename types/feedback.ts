@@ -17,6 +17,7 @@ export interface DocumentShare {
   reviewerName?: string;
   createdAt: string;
   updatedAt: string;
+  shareUrl?: string;
 }
 
 /**
