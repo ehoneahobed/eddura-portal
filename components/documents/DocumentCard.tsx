@@ -143,17 +143,35 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
       // Show loading toast
       const loadingToast = toast.loading(`Generating ${format.toUpperCase()}...`);
       
+      console.log(`[DOWNLOAD] Starting ${format} download for document:`, document._id);
+      
       const response = await fetch(`/api/documents/${document._id}/download?format=${format}`, {
         method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
       });
+
+      console.log(`[DOWNLOAD] Response status:`, response.status);
+      console.log(`[DOWNLOAD] Response headers:`, Object.fromEntries(response.headers.entries()));
 
       if (response.ok) {
         const blob = await response.blob();
+        console.log(`[DOWNLOAD] Blob received, size:`, blob.size, 'bytes');
         
         // Check if blob is valid
         if (blob.size === 0) {
           toast.dismiss(loadingToast);
-          toast.error(`Generated ${format.toUpperCase()} file is empty`);
+          toast.error(`Generated ${format.toUpperCase()} file is empty. Please try again.`);
+          console.error(`[DOWNLOAD] Empty blob received for ${format}`);
+          return;
+        }
+        
+        // Check content type
+        if (format === 'pdf' && !blob.type.includes('pdf')) {
+          toast.dismiss(loadingToast);
+          toast.error(`Invalid file type received. Expected PDF but got ${blob.type}`);
+          console.error(`[DOWNLOAD] Invalid content type:`, blob.type);
           return;
         }
         
@@ -161,21 +179,41 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
         const a = globalThis.document.createElement('a');
         a.href = url;
         a.download = `${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${document.type}.${format}`;
+        a.style.display = 'none';
+        
         globalThis.document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
-        globalThis.document.body.removeChild(a);
+        
+        // Cleanup
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          globalThis.document.body.removeChild(a);
+        }, 100);
         
         toast.dismiss(loadingToast);
         toast.success(`Document downloaded as ${format.toUpperCase()}`);
+        console.log(`[DOWNLOAD] ${format} download completed successfully`);
       } else {
-        const error = await response.json();
+        const errorText = await response.text();
+        console.error(`[DOWNLOAD] Server error:`, response.status, errorText);
+        
+        let errorMessage = `Failed to download ${format.toUpperCase()}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+          if (errorData.details) {
+            console.error(`[DOWNLOAD] Error details:`, errorData.details);
+          }
+        } catch (e) {
+          console.error(`[DOWNLOAD] Could not parse error response:`, errorText);
+        }
+        
         toast.dismiss(loadingToast);
-        toast.error(error.error || `Failed to download ${format.toUpperCase()}`);
+        toast.error(errorMessage);
       }
     } catch (error) {
-      console.error(`Error downloading ${format}:`, error);
-      toast.error(`Failed to download ${format.toUpperCase()}. Please try again.`);
+      console.error(`[DOWNLOAD] Network error downloading ${format}:`, error);
+      toast.error(`Network error downloading ${format.toUpperCase()}. Please check your connection and try again.`);
     } finally {
       setLoading(false);
     }

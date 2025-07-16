@@ -12,20 +12,26 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  console.log(`[DOWNLOAD] Starting download for document ${id}`);
+  
   try {
     const session = await auth();
     
     if (!session?.user?.id) {
+      console.log('[DOWNLOAD] Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
+    console.log('[DOWNLOAD] Database connected');
 
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'pdf';
+    console.log(`[DOWNLOAD] Requested format: ${format}`);
 
     // Validate format
     if (!['pdf', 'docx'].includes(format)) {
+      console.log(`[DOWNLOAD] Invalid format requested: ${format}`);
       return NextResponse.json(
         { error: 'Invalid format. Supported formats: pdf, docx' },
         { status: 400 }
@@ -39,34 +45,42 @@ export async function GET(
     });
 
     if (!document) {
+      console.log(`[DOWNLOAD] Document not found: ${id}`);
       return NextResponse.json(
         { error: 'Document not found' },
         { status: 404 }
       );
     }
 
+    console.log(`[DOWNLOAD] Document found: ${document.title}`);
+
     const typeConfig = DOCUMENT_TYPE_CONFIG[document.type as DocumentType];
     const fileName = `${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${document.type}`;
 
     if (format === 'pdf') {
+      console.log('[DOWNLOAD] Generating PDF...');
       return await generatePDF(document, typeConfig, fileName);
     } else if (format === 'docx') {
+      console.log('[DOWNLOAD] Generating DOCX...');
       return await generateDOCX(document, typeConfig, fileName);
     }
 
   } catch (error) {
-    console.error('Error downloading document:', error);
+    console.error('[DOWNLOAD] Error downloading document:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
 }
 
 async function generatePDF(document: any, typeConfig: any, fileName: string) {
+  let browser;
   try {
+    console.log('[PDF] Launching browser...');
+    
     // Launch browser with better configuration for server environments
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
@@ -76,11 +90,20 @@ async function generatePDF(document: any, typeConfig: any, fileName: string) {
         '--no-first-run',
         '--no-zygote',
         '--single-process',
-        '--disable-gpu'
-      ]
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
+      ],
+      timeout: 30000
     });
 
+    console.log('[PDF] Browser launched successfully');
+
     const page = await browser.newPage();
+    console.log('[PDF] New page created');
+
+    // Set viewport
+    await page.setViewport({ width: 1200, height: 800 });
 
     // Create HTML content
     const htmlContent = `
@@ -169,9 +192,15 @@ async function generatePDF(document: any, typeConfig: any, fileName: string) {
       </html>
     `;
 
-    await page.setContent(htmlContent);
+    console.log('[PDF] Setting HTML content...');
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    console.log('[PDF] HTML content set successfully');
+    
+    // Wait a bit for content to render
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Generate PDF
+    console.log('[PDF] Generating PDF buffer...');
     const pdfBuffer = await page.pdf({
       format: 'A4',
       margin: {
@@ -180,23 +209,31 @@ async function generatePDF(document: any, typeConfig: any, fileName: string) {
         bottom: '2cm',
         left: '2cm'
       },
-      printBackground: true
+      printBackground: true,
+      preferCSSPageSize: true
     });
 
-    await browser.close();
+    console.log(`[PDF] PDF generated successfully, size: ${pdfBuffer.length} bytes`);
 
     // Return PDF response
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${fileName}.pdf"`,
-        'Content-Length': pdfBuffer.length.toString()
+        'Content-Length': pdfBuffer.length.toString(),
+        'Cache-Control': 'no-cache'
       }
     });
 
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('[PDF] Error generating PDF:', error);
     throw error;
+  } finally {
+    if (browser) {
+      console.log('[PDF] Closing browser...');
+      await browser.close();
+      console.log('[PDF] Browser closed');
+    }
   }
 }
 
