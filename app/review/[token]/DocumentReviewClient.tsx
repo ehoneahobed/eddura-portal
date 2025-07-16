@@ -91,7 +91,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       comments: [...prev.comments, {
         content: newComment.content,
         type: newComment.type,
-        position: newComment.position ? { ...newComment.position } : undefined,
+        position: newComment.position ? { ...newComment.position } : null,
         status: 'pending'
       }]
     }));
