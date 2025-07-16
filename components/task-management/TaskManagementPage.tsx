@@ -124,9 +124,32 @@ export default function TaskManagementPage() {
         applicationsData = await applicationsResponse.json();
         const applications = applicationsData.applications || [];
         // Filter out applications without proper data
-        const validApplications = applications.filter((app: any) => 
-          app && app._id && app.scholarshipId && app.scholarshipId.title
-        );
+        const validApplications = applications.filter((app: any) => {
+          const isValid = app && app._id && app.status;
+          if (!isValid) {
+            console.log('Invalid app - missing basic fields:', app);
+            return false;
+          }
+          
+          // Check if it has the required scholarshipId structure
+          const hasValidScholarshipId = app.scholarshipId && app.scholarshipId.title;
+          if (!hasValidScholarshipId) {
+            console.log('Invalid app - missing scholarshipId or title:', app);
+            return false;
+          }
+          
+          return true;
+        });
+        console.log('Fetched applications:', applications);
+        console.log('Application details:', applications.map((app: any) => ({
+          id: app._id,
+          status: app.status,
+          hasScholarshipId: !!app.scholarshipId,
+          scholarshipIdType: typeof app.scholarshipId,
+          scholarshipIdKeys: app.scholarshipId ? Object.keys(app.scholarshipId) : null,
+          title: app.scholarshipId?.title
+        })));
+        console.log('Valid applications:', validApplications);
         setApplications(validApplications);
       }
 
@@ -135,7 +158,10 @@ export default function TaskManagementPage() {
       let tasksData: any = { tasks: [] };
       if (tasksResponse.ok) {
         tasksData = await tasksResponse.json();
+        console.log('Fetched tasks:', tasksData.tasks);
         setTasks(tasksData.tasks || []);
+      } else {
+        console.error('Failed to fetch tasks:', tasksResponse.status);
       }
 
       // Calculate stats
@@ -280,6 +306,19 @@ export default function TaskManagementPage() {
   const handleAddApplication = () => {
     router.push('/scholarships');
   };
+
+  // Filter applications based on search term and status filter
+  const filteredApplications = applications.filter((application) => {
+    // Search filter
+    const matchesSearch = !searchTerm || 
+      application.scholarshipId?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      application.status.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || application.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   if (isLoading) {
     return (
@@ -497,7 +536,7 @@ export default function TaskManagementPage() {
 
           {/* Applications List */}
           <div className="space-y-4">
-            {applications.length === 0 ? (
+            {filteredApplications.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
                   <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -515,7 +554,7 @@ export default function TaskManagementPage() {
                 </CardContent>
               </Card>
             ) : (
-              applications.map((application) => {
+              filteredApplications.map((application) => {
                 const statusInfo = getStatusInfo(application.status);
                 const StatusIcon = statusInfo.icon;
                 

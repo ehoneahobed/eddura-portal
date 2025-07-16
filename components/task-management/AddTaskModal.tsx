@@ -89,20 +89,32 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
     setIsSubmitting(true);
 
     try {
+      // Convert 'none' to null for the API
+      const taskData = {
+        ...formData,
+        applicationId: formData.applicationId === 'none' ? null : formData.applicationId
+      };
+      
+      console.log('Submitting task data:', taskData);
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(taskData),
       });
 
+      console.log('Task creation response status:', response.status);
+      
       if (response.ok) {
+        const result = await response.json();
+        console.log('Task creation result:', result);
         toast.success('Task added successfully');
         onTaskAdded();
         resetForm();
       } else {
         const error = await response.json();
+        console.error('Task creation error:', error);
         toast.error(error.message || 'Failed to add task');
       }
     } catch (error) {
@@ -120,7 +132,7 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
       description: '',
       priority: 'medium',
       dueDate: '',
-      applicationId: ''
+      applicationId: 'none'
     });
   };
 
@@ -264,7 +276,7 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
                           <SelectValue placeholder="Select an application" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           {applications.map((app) => (
                             <SelectItem key={app._id} value={app._id}>
                               <div className="flex flex-col">
