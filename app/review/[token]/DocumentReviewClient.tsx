@@ -609,7 +609,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           )}
         </div>
 
-        {/* Feedback Sidebar (Desktop) */}
+        {/* Feedback Sidebar (Desktop Only) */}
         {!isResolved && (
           <div className={`hidden lg:block transition-all duration-300 ${
             feedbackSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'
@@ -788,7 +788,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           </div>
         )}
 
-        {/* Feedback Drawer (Mobile) */}
+        {/* Feedback Drawer (Mobile Only) */}
         {!isResolved && (
           <Drawer open={feedbackSidebarOpen} onOpenChange={setFeedbackSidebarOpen}>
             <DrawerContent className="h-[80vh]">
