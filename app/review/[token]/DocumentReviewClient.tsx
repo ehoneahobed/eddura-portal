@@ -579,7 +579,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                           fontSize: isMobile ? 16 : undefined,
                           padding: isMobile ? '8px 16px' : undefined,
                         }}
-                        className="bg-green-600 text-white px-3 py-2 rounded-md shadow-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium border border-green-500 animate-in fade-in-0 zoom-in-95 duration-200"
+                        className="bg-green-600 text-white px-3 py-2 rounded-md shadow-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium border border-green-500 animate-in fade-in-0 zoom-in-95"
                         onClick={handleAddSelectionComment}
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
