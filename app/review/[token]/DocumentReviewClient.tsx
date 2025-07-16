@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Drawer } from '@/components/ui/drawer'; // Assume a Drawer component exists or will be created
 import { 
   FileText, 
   MessageSquare, 
@@ -49,6 +50,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
   const [data, setData] = useState<DocumentReviewData>(initialData);
   const [submitting, setSubmitting] = useState(false);
   const [showContent, setShowContent] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(true);
 
   // Form state
   const [form, setForm] = useState({
@@ -269,140 +271,187 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         </p>
       </div>
 
-      {/* Document Info */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-xl">{document.title}</CardTitle>
-              <CardDescription className="mt-2">
-                <div className="flex items-center gap-4 text-sm">
-                  <span>Type: {document.type}</span>
-                  <span>Words: {document.wordCount?.toLocaleString()}</span>
-                  <span>Characters: {document.characterCount?.toLocaleString()}</span>
-                </div>
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowContent(!showContent)}
-              >
-                {showContent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {showContent ? 'Hide' : 'Show'} Content
-              </Button>
-              {share.canDownload && (
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-1" />
-                  Download
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        {share.message && (
-          <CardContent className="pt-0">
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm">{share.message}</p>
-            </div>
-          </CardContent>
-        )}
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Document Content */}
-        <div className="space-y-4">
-          <Card>
+      <div className="flex flex-row gap-4">
+        <div className={drawerOpen ? 'flex-1 max-w-3xl' : 'flex-1 max-w-5xl'}>
+          {/* Document Info */}
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Document Content
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {showContent ? (
-                <div className="prose max-w-none">
-                  <div
-                    ref={contentRef}
-                    className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto relative"
-                    style={{ position: 'relative' }}
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-xl">{document.title}</CardTitle>
+                  <CardDescription className="mt-2">
+                    <div className="flex items-center gap-4 text-sm">
+                      <span>Type: {document.type}</span>
+                      <span>Words: {document.wordCount?.toLocaleString()}</span>
+                      <span>Characters: {document.characterCount?.toLocaleString()}</span>
+                    </div>
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowContent(!showContent)}
                   >
-                    {document.content}
-                    {selectionInfo && (
-                      <button
-                        style={{
-                          position: 'absolute',
-                          top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0) - 40,
-                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0),
-                          zIndex: 10
-                        }}
-                        className="bg-primary text-white px-2 py-1 rounded shadow"
-                        onClick={handleAddSelectionComment}
-                      >
-                        Add Comment
-                      </button>
-                    )}
-                  </div>
+                    {showContent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showContent ? 'Hide' : 'Show'} Content
+                  </Button>
+                  {share.canDownload && (
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <EyeOff className="h-8 w-8 mx-auto mb-2" />
-                  <p>Content is hidden</p>
+              </div>
+            </CardHeader>
+            {share.message && (
+              <CardContent className="pt-0">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm">{share.message}</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            )}
 
-          {/* Existing Feedback */}
-          {existingFeedback && (
+            {/* Document Content */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Your Previous Feedback
+                  <FileText className="h-5 w-5" />
+                  Document Content
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {existingFeedback.overallRating && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Rating:</span>
-                    <div className="flex">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < existingFeedback.overallRating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                          }`}
-                        />
+              <CardContent>
+                {showContent ? (
+                  <div className="prose max-w-none">
+                    <div
+                      ref={contentRef}
+                      className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto relative"
+                      style={{ position: 'relative' }}
+                    >
+                      {document.content}
+                      {selectionInfo && (
+                        <button
+                          style={{
+                            position: 'absolute',
+                            top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0) - 40,
+                            left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0),
+                            zIndex: 10
+                          }}
+                          className="bg-primary text-white px-2 py-1 rounded shadow"
+                          onClick={handleAddSelectionComment}
+                        >
+                          Add Comment
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <EyeOff className="h-8 w-8 mx-auto mb-2" />
+                    <p>Content is hidden</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Existing Feedback */}
+            {existingFeedback && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Your Previous Feedback
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {existingFeedback.overallRating && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Rating:</span>
+                      <div className="flex">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < existingFeedback.overallRating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {existingFeedback.generalFeedback && (
+                    <div>
+                      <p className="font-medium mb-2">General Feedback:</p>
+                      <p className="text-sm bg-muted p-3 rounded">{existingFeedback.generalFeedback}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium mb-2">Comments ({existingFeedback.comments.length}):</p>
+                    <div className="space-y-2">
+                      {existingFeedback.comments.map((comment, index) => (
+                        <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
+                          {getCommentTypeIcon(comment.type)}
+                          <div className="flex-1">
+                            <Badge className={`${getCommentTypeColor(comment.type)} mb-1`}>
+                              {comment.type}
+                            </Badge>
+                            <p className="text-sm">{comment.content}</p>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
-                )}
-                {existingFeedback.generalFeedback && (
-                  <div>
-                    <p className="font-medium mb-2">General Feedback:</p>
-                    <p className="text-sm bg-muted p-3 rounded">{existingFeedback.generalFeedback}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium mb-2">Comments ({existingFeedback.comments.length}):</p>
-                  <div className="space-y-2">
-                    {existingFeedback.comments.map((comment, index) => (
-                      <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
-                        {getCommentTypeIcon(comment.type)}
-                        <div className="flex-1">
-                          <Badge className={`${getCommentTypeColor(comment.type)} mb-1`}>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Toggle Drawer Button */}
+          <div className="flex flex-col items-end">
+            <Button onClick={() => setDrawerOpen((open) => !open)} variant="outline" size="sm">
+              {drawerOpen ? 'Hide Comments' : 'Show Comments'}
+            </Button>
+          </div>
+
+          {/* Comments Drawer */}
+          {drawerOpen && (
+            <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} side="right" className="w-96">
+              <div className="p-4">
+                <h2 className="text-lg font-semibold mb-4">Comments</h2>
+                {/* Comments List (move from main area) */}
+                <div className="space-y-2">
+                  {form.comments.map((comment, index) => (
+                    <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                      {getCommentTypeIcon(comment.type)}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className={getCommentTypeColor(comment.type)}>
                             {comment.type}
                           </Badge>
-                          <p className="text-sm">{comment.content}</p>
+                          {!existingFeedback && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeComment(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              ×
+                            </Button>
+                          )}
                         </div>
+                        <p className="text-sm">{comment.content}</p>
+                        {comment.position && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Highlighted: "{comment.position.text}"
+                          </p>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </Drawer>
           )}
         </div>
 
