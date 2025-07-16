@@ -113,7 +113,12 @@ export async function POST(
       );
     }
     
-    console.error('Error sharing document:', error);
+    if (error instanceof Error) {
+      console.error('Error sharing document:', error.message);
+      if (error.stack) console.error(error.stack);
+    } else {
+      console.error('Error sharing document:', error);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -174,7 +179,12 @@ export async function GET(
 
     return NextResponse.json({ shares: sharesWithUrls });
   } catch (error) {
-    console.error('Error fetching document shares:', error);
+    if (error instanceof Error) {
+      console.error('Error fetching document shares:', error.message);
+      if (error.stack) console.error(error.stack);
+    } else {
+      console.error('Error fetching document shares:', error);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
