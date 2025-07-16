@@ -27,6 +27,8 @@ export async function GET(request: NextRequest) {
     .populate('applicationTemplateId', 'title estimatedTime')
     .sort({ lastActivityAt: -1 });
 
+    console.log('Raw applications from DB:', applications);
+    
     // Transform applications to include proper data
     const transformedApplications = applications.map(app => {
       let applicationData: any = {
@@ -78,6 +80,7 @@ export async function GET(request: NextRequest) {
       return applicationData;
     });
 
+    console.log('Transformed applications:', transformedApplications);
     return NextResponse.json({ applications: transformedApplications });
   } catch (error) {
     console.error('Error fetching applications:', error);

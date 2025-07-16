@@ -89,6 +89,7 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
     setIsSubmitting(true);
 
     try {
+      console.log('Submitting task data:', formData);
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: {
@@ -97,12 +98,17 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
         body: JSON.stringify(formData),
       });
 
+      console.log('Task creation response status:', response.status);
+      
       if (response.ok) {
+        const result = await response.json();
+        console.log('Task creation result:', result);
         toast.success('Task added successfully');
         onTaskAdded();
         resetForm();
       } else {
         const error = await response.json();
+        console.error('Task creation error:', error);
         toast.error(error.message || 'Failed to add task');
       }
     } catch (error) {

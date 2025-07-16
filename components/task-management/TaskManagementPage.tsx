@@ -125,8 +125,10 @@ export default function TaskManagementPage() {
         const applications = applicationsData.applications || [];
         // Filter out applications without proper data
         const validApplications = applications.filter((app: any) => 
-          app && app._id && app.scholarshipId && app.scholarshipId.title
+          app && app._id && app.status && app.scholarshipId && app.scholarshipId.title
         );
+        console.log('Fetched applications:', applications);
+        console.log('Valid applications:', validApplications);
         setApplications(validApplications);
       }
 
@@ -135,7 +137,10 @@ export default function TaskManagementPage() {
       let tasksData: any = { tasks: [] };
       if (tasksResponse.ok) {
         tasksData = await tasksResponse.json();
+        console.log('Fetched tasks:', tasksData.tasks);
         setTasks(tasksData.tasks || []);
+      } else {
+        console.error('Failed to fetch tasks:', tasksResponse.status);
       }
 
       // Calculate stats

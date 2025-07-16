@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     .populate('applicationId.scholarshipId', 'title value currency deadline type')
     .sort({ dueDate: 1, createdAt: -1 });
 
+    console.log('Fetched tasks from DB:', tasks);
     return NextResponse.json({ tasks });
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
 
     await task.save();
 
+    console.log('Created task:', task);
     return NextResponse.json({ 
       message: 'Task created successfully',
       task 
