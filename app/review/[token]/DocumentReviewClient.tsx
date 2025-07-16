@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,29 +71,75 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
     position: null as { start: number; end: number; text: string } | null
   });
 
-  const addComment = () => {
-    if (!newComment.content.trim()) {
-      toast.error('Comment content is required');
-      return;
-    }
+  const [selectionInfo, setSelectionInfo] = useState<{
+    text: string;
+    start: number;
+    end: number;
+    top: number;
+    left: number;
+  } | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-    setForm(prev => ({
-      ...prev,
-      comments: [...prev.comments, {
-        content: newComment.content,
-        type: newComment.type,
-        position: newComment.position,
-        status: 'pending'
-      }]
-    }));
+  // Handle text selection in the document content
+  useEffect(() => {
+    const handleMouseUp = (e: MouseEvent) => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        setSelectionInfo(null);
+        return;
+      }
+      const selectedText = selection.toString();
+      if (!selectedText.trim()) {
+        setSelectionInfo(null);
+        return;
+      }
+      // Find start and end index in the document content
+      const content = document.content;
+      const anchorNode = selection.anchorNode;
+      const focusNode = selection.focusNode;
+      if (!anchorNode || !focusNode) {
+        setSelectionInfo(null);
+        return;
+      }
+      // Only support selection within the content div
+      if (!contentRef.current || !contentRef.current.contains(anchorNode) || !contentRef.current.contains(focusNode)) {
+        setSelectionInfo(null);
+        return;
+      }
+      // Find the first occurrence of the selected text in the content
+      const start = content.indexOf(selectedText);
+      if (start === -1) {
+        setSelectionInfo(null);
+        return;
+      }
+      const end = start + selectedText.length;
+      // Get the bounding rect for the selection
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      setSelectionInfo({
+        text: selectedText,
+        start,
+        end,
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX
+      });
+    };
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => document.removeEventListener('mouseup', handleMouseUp);
+  }, [document.content]);
 
+  const handleAddSelectionComment = () => {
+    if (!selectionInfo) return;
     setNewComment({
       content: '',
       type: 'general',
-      position: null
+      position: {
+        start: selectionInfo.start,
+        end: selectionInfo.end,
+        text: selectionInfo.text
+      }
     });
-
-    toast.success('Comment added');
+    setSelectionInfo(null);
   };
 
   const removeComment = (index: number) => {
@@ -254,8 +300,26 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
             <CardContent>
               {showContent ? (
                 <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto">
+                  <div
+                    ref={contentRef}
+                    className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto relative"
+                    style={{ position: 'relative' }}
+                  >
                     {document.content}
+                    {selectionInfo && (
+                      <button
+                        style={{
+                          position: 'absolute',
+                          top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0) - 40,
+                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0),
+                          zIndex: 10
+                        }}
+                        className="bg-primary text-white px-2 py-1 rounded shadow"
+                        onClick={handleAddSelectionComment}
+                      >
+                        Add Comment
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
