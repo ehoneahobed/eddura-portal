@@ -94,7 +94,9 @@ async function generatePDF(document: any, typeConfig: any, fileName: string) {
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor'
       ],
-      timeout: 30000
+      timeout: 30000,
+      // Ensure we use the installed Chrome browser
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
     });
 
     console.log('[PDF] Browser launched successfully');
@@ -227,6 +229,13 @@ async function generatePDF(document: any, typeConfig: any, fileName: string) {
 
   } catch (error) {
     console.error('[PDF] Error generating PDF:', error);
+    
+    // Check if it's a Chrome installation error
+    if (error instanceof Error && error.message.includes('Could not find Chrome')) {
+      console.error('[PDF] Chrome installation error detected. Please run: npx puppeteer browsers install chrome');
+      throw new Error('Chrome browser not found. Please ensure Chrome is installed for Puppeteer. Run: npx puppeteer browsers install chrome');
+    }
+    
     throw error;
   } finally {
     if (browser) {
