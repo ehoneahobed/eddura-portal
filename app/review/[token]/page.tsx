@@ -37,6 +37,20 @@ interface DocumentReviewData {
   existingFeedback?: DocumentFeedback;
 }
 
+function toFrontendDocument(document: any): Document {
+  return {
+    _id: document._id.toString(),
+    title: document.title,
+    type: document.type,
+    content: document.content,
+    description: document.description,
+    wordCount: document.wordCount,
+    characterCount: document.characterCount,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt
+  };
+}
+
 async function getDocumentReviewData(token: string): Promise<DocumentReviewData> {
   await connectDB();
 
@@ -67,17 +81,7 @@ async function getDocumentReviewData(token: string): Promise<DocumentReviewData>
   });
 
   return {
-    document: {
-      _id: document._id.toString(),
-      title: document.title,
-      type: document.type,
-      content: document.content,
-      description: document.description,
-      wordCount: document.wordCount,
-      characterCount: document.characterCount,
-      createdAt: document.createdAt,
-      updatedAt: document.updatedAt
-    },
+    document: toFrontendDocument(document),
     share: {
       _id: share._id.toString(),
       shareType: share.shareType,
