@@ -96,7 +96,10 @@ export interface IFormSection {
  * Main interface for application form template
  */
 export interface IApplicationTemplate extends Document {
-  scholarshipId: mongoose.Types.ObjectId;
+  applicationType: 'scholarship' | 'school' | 'program';
+  scholarshipId?: mongoose.Types.ObjectId;
+  schoolId?: mongoose.Types.ObjectId;
+  programId?: mongoose.Types.ObjectId;
   title: string;
   description?: string;
   version: string;
@@ -178,10 +181,22 @@ const FormSectionSchema = new Schema<IFormSection>({
 });
 
 const ApplicationTemplateSchema: Schema = new Schema<IApplicationTemplate>({
+  applicationType: {
+    type: String,
+    enum: ['scholarship', 'school', 'program'],
+    required: true
+  },
   scholarshipId: { 
     type: Schema.Types.ObjectId, 
-    ref: 'Scholarship', 
-    required: true 
+    ref: 'Scholarship'
+  },
+  schoolId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'School'
+  },
+  programId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Program'
   },
   title: { type: String, required: true, trim: true },
   description: { type: String, trim: true },

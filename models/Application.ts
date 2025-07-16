@@ -40,7 +40,10 @@ export interface ISectionResponse {
  */
 export interface IApplication extends Document {
   userId: mongoose.Types.ObjectId;
-  scholarshipId: mongoose.Types.ObjectId;
+  applicationType: 'scholarship' | 'school' | 'program';
+  scholarshipId?: mongoose.Types.ObjectId;
+  schoolId?: mongoose.Types.ObjectId;
+  programId?: mongoose.Types.ObjectId;
   applicationTemplateId: mongoose.Types.ObjectId;
   status: ApplicationStatus;
   sections: ISectionResponse[];
@@ -79,10 +82,22 @@ const ApplicationSchema: Schema = new Schema<IApplication>({
     ref: 'User', 
     required: true 
   },
+  applicationType: {
+    type: String,
+    enum: ['scholarship', 'school', 'program'],
+    required: true
+  },
   scholarshipId: { 
     type: Schema.Types.ObjectId, 
-    ref: 'Scholarship', 
-    required: true 
+    ref: 'Scholarship'
+  },
+  schoolId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'School'
+  },
+  programId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Program'
   },
   applicationTemplateId: { 
     type: Schema.Types.ObjectId, 
@@ -117,9 +132,11 @@ const ApplicationSchema: Schema = new Schema<IApplication>({
 });
 
 // Indexes for efficient querying
-ApplicationSchema.index({ userId: 1, scholarshipId: 1 }, { unique: true });
+ApplicationSchema.index({ userId: 1, applicationType: 1 });
 ApplicationSchema.index({ userId: 1, status: 1 });
 ApplicationSchema.index({ scholarshipId: 1, status: 1 });
+ApplicationSchema.index({ schoolId: 1, status: 1 });
+ApplicationSchema.index({ programId: 1, status: 1 });
 ApplicationSchema.index({ status: 1 });
 ApplicationSchema.index({ lastActivityAt: -1 });
 ApplicationSchema.index({ createdAt: -1 });
@@ -135,6 +152,20 @@ ApplicationSchema.virtual('user', {
 ApplicationSchema.virtual('scholarship', {
   ref: 'Scholarship',
   localField: 'scholarshipId',
+  foreignField: '_id',
+  justOne: true
+});
+
+ApplicationSchema.virtual('school', {
+  ref: 'School',
+  localField: 'schoolId',
+  foreignField: '_id',
+  justOne: true
+});
+
+ApplicationSchema.virtual('program', {
+  ref: 'Program',
+  localField: 'programId',
   foreignField: '_id',
   justOne: true
 });
