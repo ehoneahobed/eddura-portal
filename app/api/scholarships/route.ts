@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
+// Import models index to ensure proper registration order
+import '@/models/index';
 import Scholarship from '@/models/Scholarship';
 
 export async function GET(request: NextRequest) {

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
+// Import models index to ensure proper registration order
+import '@/models/index';
 import User from '@/models/User';
 import Program from '@/models/Program';
 import School from '@/models/School';

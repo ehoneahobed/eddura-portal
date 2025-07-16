@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
+// Import models index to ensure proper registration order
+import '@/models/index';
 import Program from '@/models/Program';
 
 export async function GET(request: NextRequest) {
@@ -113,11 +115,21 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Transform programs to match frontend expectations
+    const transformedPrograms = filteredPrograms.map((program: any) => {
+      const transformed = program.toObject ? program.toObject() : program;
+      return {
+        ...transformed,
+        school: transformed.schoolId, // Rename schoolId to school
+        schoolId: transformed.schoolId?._id // Keep the original ID as schoolId
+      };
+    });
+    
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / limit);
     
     return NextResponse.json({
-      programs: filteredPrograms,
+      programs: transformedPrograms,
       pagination: {
         currentPage: page,
         totalPages,
@@ -147,7 +159,15 @@ export async function POST(request: NextRequest) {
     // Populate the school information for the response
     await savedProgram.populate('schoolId', 'name country city');
     
-    return NextResponse.json(savedProgram, { status: 201 });
+    // Transform the response to match frontend expectations
+    const transformed = savedProgram.toObject ? savedProgram.toObject() : savedProgram;
+    const transformedProgram = {
+      ...transformed,
+      school: transformed.schoolId, // Rename schoolId to school
+      schoolId: transformed.schoolId?._id // Keep the original ID as schoolId
+    };
+    
+    return NextResponse.json(transformedProgram, { status: 201 });
   } catch (error) {
     console.error('Error creating program:', error);
     
