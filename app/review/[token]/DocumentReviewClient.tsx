@@ -94,7 +94,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         return;
       }
       // Find start and end index in the document content
-      const content = document.content;
+      const content = data.document.content;
       const anchorNode = selection.anchorNode;
       const focusNode = selection.focusNode;
       if (!anchorNode || !focusNode) {
@@ -126,7 +126,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
     };
     window.addEventListener('mouseup', handleMouseUp);
     return () => window.removeEventListener('mouseup', handleMouseUp);
-  }, [document.content]);
+  }, [data.document.content]);
 
   const handleAddSelectionComment = () => {
     if (!selectionInfo) return;
