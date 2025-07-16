@@ -255,9 +255,16 @@ function ScholarshipDetailContent() {
       // Fallback to clipboard
       try {
         await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard!');
+        toast.success('Scholarship link copied to clipboard!', {
+          description: 'You can now share this link with others.',
+          duration: 3000,
+        });
       } catch (error) {
-        toast.error('Failed to copy link');
+        console.error('Failed to copy scholarship link:', error);
+        toast.error('Failed to copy link to clipboard', {
+          description: 'Please try selecting and copying the link manually.',
+          duration: 4000,
+        });
       }
     }
   };

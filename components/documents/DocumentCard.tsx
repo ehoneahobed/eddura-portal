@@ -130,9 +130,16 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(document.content);
-      toast.success('Content copied to clipboard');
+      toast.success('Document content copied to clipboard!', {
+        description: 'You can now paste the content anywhere you need it.',
+        duration: 3000,
+      });
     } catch (error) {
-      toast.error('Failed to copy content');
+      console.error('Failed to copy content:', error);
+      toast.error('Failed to copy content to clipboard', {
+        description: 'Please try selecting and copying the content manually.',
+        duration: 4000,
+      });
     }
   };
 

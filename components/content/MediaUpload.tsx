@@ -114,9 +114,20 @@ export default function MediaUpload({ onSelect, currentValue, className = '' }: 
     toast.success('Image selected');
   };
 
-  const copyImageUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast.success('Image URL copied to clipboard');
+  const copyImageUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Image URL copied to clipboard!', {
+        description: 'You can now paste this URL anywhere you need it.',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Failed to copy image URL:', error);
+      toast.error('Failed to copy image URL to clipboard', {
+        description: 'Please try selecting and copying the URL manually.',
+        duration: 4000,
+      });
+    }
   };
 
   const formatFileSize = (bytes: number) => {
