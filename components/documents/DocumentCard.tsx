@@ -9,11 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles, FileDown, Edit3 } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles, FileDown, Edit3, Share2, MessageSquare } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
 import AIGenerationModal from './AIGenerationModal';
 import AIRefinementModal from './AIRefinementModal';
+import ShareDocumentDialog from './ShareDocumentDialog';
+import DocumentFeedbackViewer from './DocumentFeedbackViewer';
 
 // Tooltip component for version explanation
 const VersionTooltip = ({ children }: { children: React.ReactNode }) => (
@@ -37,6 +39,8 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [aiRefinementModalOpen, setAiRefinementModalOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editData, setEditData] = useState({
     title: document.title,
@@ -216,6 +220,14 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
                 <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share for Feedback
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFeedbackDialogOpen(true)}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  View Feedback
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={copyToClipboard}>
                   <Copy className="h-4 w-4 mr-2" />
@@ -537,6 +549,20 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
         onContentRefined={handleAIContentRefined}
         existingContent={editData.content}
         documentType={document.type}
+      />
+
+      {/* Share Document Dialog */}
+      <ShareDocumentDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        document={document}
+      />
+
+      {/* Document Feedback Viewer */}
+      <DocumentFeedbackViewer
+        open={feedbackDialogOpen}
+        onOpenChange={setFeedbackDialogOpen}
+        document={document}
       />
     </>
   );
