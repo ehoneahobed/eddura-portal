@@ -336,6 +336,12 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         <div className={`flex-1 transition-all duration-300 ${
           feedbackSidebarOpen ? 'lg:max-w-[calc(100%-400px)]' : 'lg:max-w-full'
         }`}>
+          {/* Show Comments Button (Top) */}
+          <div className="flex justify-end mb-2">
+            <Button onClick={() => setDrawerOpen((open) => !open)} variant="outline" size="sm">
+              {drawerOpen ? 'Hide Comments' : 'Show Comments'}
+            </Button>
+          </div>
           {/* Document Info */}
           <Card className="mb-6">
             <CardHeader>
@@ -390,7 +396,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                 <div className="prose max-w-none">
                   <div
                     ref={contentRef}
-                    className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto relative"
+                    className="whitespace-pre-wrap bg-muted p-4 rounded-lg"
                     style={{ position: 'relative' }}
                   >
                     {/* Render highlighted segments with popover on hover */}
@@ -430,8 +436,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                       <button
                         style={{
                           position: 'absolute',
-                          top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0) - 40,
-                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0),
+                          top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0),
+                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + 10,
                           zIndex: 10
                         }}
                         className="bg-primary text-white px-2 py-1 rounded shadow"
@@ -558,11 +564,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           )}
 
           {/* Toggle Drawer Button */}
-          <div className="flex flex-col items-end">
-            <Button onClick={() => setDrawerOpen((open) => !open)} variant="outline" size="sm">
-              {drawerOpen ? 'Hide Comments' : 'Show Comments'}
-            </Button>
-          </div>
+          {/* This button is now moved to the top */}
 
           {/* Comments Drawer */}
           {drawerOpen && (
@@ -580,7 +582,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                             <Badge className={getCommentTypeColor(comment.type)}>
                               {comment.type}
                             </Badge>
-                            {!existingFeedback && (
+                            {!isResolved && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -608,9 +610,9 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         </div>
 
         {/* Feedback Sidebar (Desktop) */}
-        {!existingFeedback && (
+        {!isResolved && (
           <div className={`hidden lg:block transition-all duration-300 ${
-            feedbackSidebarOpen ? 'w-96' : 'w-0 overflow-hidden'
+            feedbackSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'
           }`}>
             <div className="sticky top-4">
               <Card>
@@ -787,9 +789,9 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         )}
 
         {/* Feedback Drawer (Mobile) */}
-        {!existingFeedback && (
+        {!isResolved && (
           <Drawer open={feedbackSidebarOpen} onOpenChange={setFeedbackSidebarOpen}>
-            <DrawerContent className="h-[90vh]">
+            <DrawerContent className="h-[80vh]">
               <div className="p-4 overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold">Provide Feedback</h2>
@@ -957,7 +959,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       </div>
 
       {/* Floating Action Button for Mobile */}
-      {!existingFeedback && (
+      {!isResolved && (
         <div className="lg:hidden fixed bottom-4 right-4 z-50">
           <Button
             onClick={() => setFeedbackSidebarOpen(true)}
@@ -970,7 +972,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       )}
 
       {/* Desktop Toggle Button */}
-      {!existingFeedback && (
+      {!isResolved && (
         <div className="hidden lg:block fixed bottom-4 right-4 z-50">
           <Button
             onClick={() => setFeedbackSidebarOpen(!feedbackSidebarOpen)}
