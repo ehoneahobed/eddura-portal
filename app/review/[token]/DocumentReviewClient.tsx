@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Drawer } from '@/components/ui/drawer'; // Assume a Drawer component exists or will be created
+import { Drawer, DrawerContent } from '@/components/ui/drawer'; // Assume a Drawer component exists or will be created
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { 
   FileText, 
@@ -53,10 +53,16 @@ function getHighlightedSegments(content: string, comments: FormComment[]) {
   // Sort comments by start index
   const sorted = [...comments]
     .filter(c => c.position && typeof c.position.start === 'number' && typeof c.position.end === 'number')
-    .sort((a, b) => a.position.start - b.position.start);
+    .sort((a, b) => {
+      if (!a.position && !b.position) return 0;
+      if (!a.position) return 1;
+      if (!b.position) return -1;
+      return a.position.start - b.position.start;
+    });
   let lastIndex = 0;
   const segments = [];
   for (const comment of sorted) {
+    if (!comment.position) continue; // null check
     const { start, end, text } = comment.position;
     if (start > lastIndex) {
       segments.push({ text: content.slice(lastIndex, start) });
@@ -75,6 +81,7 @@ function getHighlightedSegments(content: string, comments: FormComment[]) {
 }
 
 export default function DocumentReviewClient({ initialData }: DocumentReviewClientProps) {
+  // State for document review data, initialized from props
   const [data, setData] = useState<DocumentReviewData>(initialData);
   const [submitting, setSubmitting] = useState(false);
   const [showContent, setShowContent] = useState(true);
@@ -301,6 +308,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
     ));
   };
 
+  // Destructure document, share, and existingFeedback from current data state
   const { document, share, existingFeedback } = data;
 
   return (
@@ -491,57 +499,56 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
             </CardContent>
           </Card>
 
-            {/* Existing Feedback */}
-            {existingFeedback && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Your Previous Feedback
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {existingFeedback.overallRating && (
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Rating:</span>
-                      <div className="flex">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < existingFeedback.overallRating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {existingFeedback.generalFeedback && (
-                    <div>
-                      <p className="font-medium mb-2">General Feedback:</p>
-                      <p className="text-sm bg-muted p-3 rounded">{existingFeedback.generalFeedback}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-medium mb-2">Comments ({existingFeedback.comments.length}):</p>
-                    <div className="space-y-2">
-                      {existingFeedback.comments.map((comment, index) => (
-                        <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
-                          {getCommentTypeIcon(comment.type)}
-                          <div className="flex-1">
-                            <Badge className={`${getCommentTypeColor(comment.type)} mb-1`}>
-                              {comment.type}
-                            </Badge>
-                            <p className="text-sm">{comment.content}</p>
-                          </div>
-                        </div>
+          {/* Existing Feedback */}
+          {existingFeedback && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Your Previous Feedback
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {existingFeedback.overallRating && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Rating:</span>
+                    <div className="flex">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${
+                            i < existingFeedback.overallRating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                          }`}
+                        />
                       ))}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                )}
+                {existingFeedback.generalFeedback && (
+                  <div>
+                    <p className="font-medium mb-2">General Feedback:</p>
+                    <p className="text-sm bg-muted p-3 rounded">{existingFeedback.generalFeedback}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium mb-2">Comments ({existingFeedback.comments.length}):</p>
+                  <div className="space-y-2">
+                    {existingFeedback.comments.map((comment, index) => (
+                      <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
+                        {getCommentTypeIcon(comment.type)}
+                        <div className="flex-1">
+                          <Badge className={`${getCommentTypeColor(comment.type)} mb-1`}>
+                            {comment.type}
+                          </Badge>
+                          <p className="text-sm">{comment.content}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Toggle Drawer Button */}
           <div className="flex flex-col items-end">
@@ -552,112 +559,114 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
 
           {/* Comments Drawer */}
           {drawerOpen && (
-            <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} side="right" className="w-96">
-              <div className="p-4">
-                <h2 className="text-lg font-semibold mb-4">Comments</h2>
-                {/* Comments List (move from main area) */}
-                <div className="space-y-2">
-                  {form.comments.map((comment, index) => (
-                    <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                      {getCommentTypeIcon(comment.type)}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className={getCommentTypeColor(comment.type)}>
-                            {comment.type}
-                          </Badge>
-                          {!existingFeedback && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeComment(index)}
-                              className="h-6 w-6 p-0"
-                            >
-                              ×
-                            </Button>
+            <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+              <DrawerContent className="w-96">
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold mb-4">Comments</h2>
+                  {/* Comments List (move from main area) */}
+                  <div className="space-y-2">
+                    {form.comments.map((comment, index) => (
+                      <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                        {getCommentTypeIcon(comment.type)}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className={getCommentTypeColor(comment.type)}>
+                              {comment.type}
+                            </Badge>
+                            {!existingFeedback && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeComment(index)}
+                                className="h-6 w-6 p-0"
+                              >
+                                ×
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-sm">{comment.content}</p>
+                          {comment.position && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Highlighted: "{comment.position.text}"
+                            </p>
                           )}
                         </div>
-                        <p className="text-sm">{comment.content}</p>
-                        {comment.position && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Highlighted: "{comment.position.text}"
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </DrawerContent>
             </Drawer>
           )}
         </div>
 
-        {/* Feedback Form */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Provide Feedback
-              </CardTitle>
-              <CardDescription>
-                Share your thoughts and suggestions for this document
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Reviewer Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Feedback Form (only if not already submitted) */}
+        {!existingFeedback && (
+          <div className="space-y-4 min-w-[350px] max-w-md">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Provide Feedback
+                </CardTitle>
+                <CardDescription>
+                  Share your thoughts and suggestions for this document
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Reviewer Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="reviewerName">Your Name *</Label>
+                    <Input
+                      id="reviewerName"
+                      placeholder="John Doe"
+                      value={form.reviewerName}
+                      onChange={(e) => setForm(prev => ({ ...prev, reviewerName: e.target.value }))}
+                      disabled={!!existingFeedback}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="reviewerEmail">Email (Optional)</Label>
+                    <Input
+                      id="reviewerEmail"
+                      type="email"
+                      placeholder="john@example.com"
+                      value={form.reviewerEmail}
+                      onChange={(e) => setForm(prev => ({ ...prev, reviewerEmail: e.target.value }))}
+                      disabled={!!existingFeedback}
+                    />
+                  </div>
+                </div>
+
+                {/* Overall Rating */}
                 <div>
-                  <Label htmlFor="reviewerName">Your Name *</Label>
-                  <Input
-                    id="reviewerName"
-                    placeholder="John Doe"
-                    value={form.reviewerName}
-                    onChange={(e) => setForm(prev => ({ ...prev, reviewerName: e.target.value }))}
+                  <Label>Overall Rating (Optional)</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    {renderStars(parseInt(form.overallRating) || 0)}
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {form.overallRating ? `${form.overallRating}/5` : 'Click to rate'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* General Feedback */}
+                <div>
+                  <Label htmlFor="generalFeedback">General Feedback (Optional)</Label>
+                  <Textarea
+                    id="generalFeedback"
+                    placeholder="Share your overall thoughts about this document..."
+                    value={form.generalFeedback}
+                    onChange={(e) => setForm(prev => ({ ...prev, generalFeedback: e.target.value }))}
+                    rows={4}
                     disabled={!!existingFeedback}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="reviewerEmail">Email (Optional)</Label>
-                  <Input
-                    id="reviewerEmail"
-                    type="email"
-                    placeholder="john@example.com"
-                    value={form.reviewerEmail}
-                    onChange={(e) => setForm(prev => ({ ...prev, reviewerEmail: e.target.value }))}
-                    disabled={!!existingFeedback}
-                  />
-                </div>
-              </div>
 
-              {/* Overall Rating */}
-              <div>
-                <Label>Overall Rating (Optional)</Label>
-                <div className="flex items-center gap-2 mt-2">
-                  {renderStars(parseInt(form.overallRating) || 0)}
-                  <span className="text-sm text-muted-foreground ml-2">
-                    {form.overallRating ? `${form.overallRating}/5` : 'Click to rate'}
-                  </span>
-                </div>
-              </div>
-
-              {/* General Feedback */}
-              <div>
-                <Label htmlFor="generalFeedback">General Feedback (Optional)</Label>
-                <Textarea
-                  id="generalFeedback"
-                  placeholder="Share your overall thoughts about this document..."
-                  value={form.generalFeedback}
-                  onChange={(e) => setForm(prev => ({ ...prev, generalFeedback: e.target.value }))}
-                  rows={4}
-                  disabled={!!existingFeedback}
-                />
-              </div>
-
-              {/* Comments */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Comments ({form.comments.length})</Label>
-                  {!existingFeedback && (
+                {/* Comments */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Comments ({form.comments.length})</Label>
                     <Button
                       variant="outline"
                       size="sm"
@@ -672,11 +681,9 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                       <MessageSquare className="h-4 w-4 mr-1" />
                       Add Comment
                     </Button>
-                  )}
-                </div>
+                  </div>
 
-                {/* New Comment Form */}
-                {!existingFeedback && (
+                  {/* New Comment Form */}
                   <div className="border rounded-lg p-4 space-y-3">
                     <div>
                       <Label htmlFor="commentContent">Comment *</Label>
@@ -716,19 +723,17 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                       </Button>
                     </div>
                   </div>
-                )}
 
-                {/* Comments List */}
-                <div className="space-y-2">
-                  {form.comments.map((comment, index) => (
-                    <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                      {getCommentTypeIcon(comment.type)}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className={getCommentTypeColor(comment.type)}>
-                            {comment.type}
-                          </Badge>
-                          {!existingFeedback && (
+                  {/* Comments List */}
+                  <div className="space-y-2">
+                    {form.comments.map((comment, index) => (
+                      <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                        {getCommentTypeIcon(comment.type)}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className={getCommentTypeColor(comment.type)}>
+                              {comment.type}
+                            </Badge>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -737,22 +742,20 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                             >
                               ×
                             </Button>
+                          </div>
+                          <p className="text-sm">{comment.content}</p>
+                          {comment.position && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Highlighted: "{comment.position.text}"
+                            </p>
                           )}
                         </div>
-                        <p className="text-sm">{comment.content}</p>
-                        {comment.position && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Highlighted: "{comment.position.text}"
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Submit Button */}
-              {!existingFeedback && (
+                {/* Submit Button */}
                 <Button
                   onClick={handleSubmit}
                   disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
@@ -760,15 +763,15 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                 >
                   {submitting ? 'Submitting...' : 'Submit Feedback'}
                 </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
       {canEdit && (
         <div className="flex gap-2 mt-4 justify-end">
           <Button
-            variant="success"
+            variant="outline"
             onClick={async () => {
               setIsResolved(true);
               toast.success('Feedback marked as done. Commenting is now closed.');
