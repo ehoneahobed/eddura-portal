@@ -96,9 +96,10 @@ export async function GET(request: NextRequest) {
         });
         
         // Create a default scholarshipId structure
+        const appId = String(app._id);
         applicationData.scholarshipId = {
-          _id: app._id,
-          title: `Application ${app._id.slice(-6)}`,
+          _id: appId,
+          title: `Application ${appId.slice(-6)}`,
           value: null,
           currency: null,
           deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
