@@ -124,8 +124,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         left: rect.left + window.scrollX
       });
     };
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
   }, [document.content]);
 
   const handleAddSelectionComment = () => {
