@@ -91,6 +91,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
   const [hoveredComment, setHoveredComment] = useState<FormComment | null>(null);
   const [hoveredAnchor, setHoveredAnchor] = useState<HTMLSpanElement | null>(null);
   const [isResolved, setIsResolved] = useState(initialData.existingFeedback?.isResolved || false);
+  const [feedbackSidebarOpen, setFeedbackSidebarOpen] = useState(false);
   const canEdit = initialData.share.canComment && !isResolved && (!initialData.share.expiresAt || new Date() < new Date(initialData.share.expiresAt));
 
   // Form state
@@ -328,8 +329,13 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           Commenting is closed for this document.
         </div>
       )}
-      <div className="flex flex-row gap-4">
-        <div className={drawerOpen ? 'flex-1 max-w-3xl' : 'flex-1 max-w-5xl'}>
+      
+      {/* Main Layout */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Main Content Area */}
+        <div className={`flex-1 transition-all duration-300 ${
+          feedbackSidebarOpen ? 'lg:max-w-[calc(100%-400px)]' : 'lg:max-w-full'
+        }`}>
           {/* Document Info */}
           <Card className="mb-6">
             <CardHeader>
@@ -370,7 +376,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
               </CardContent>
             )}
           </Card>
-          {/* Document Content (not nested in Card) */}
+          
+          {/* Document Content */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -600,174 +607,381 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           )}
         </div>
 
-        {/* Feedback Form (only if not already submitted) */}
+        {/* Feedback Sidebar (Desktop) */}
         {!existingFeedback && (
-          <div className="space-y-4 min-w-[350px] max-w-md">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Provide Feedback
-                </CardTitle>
-                <CardDescription>
-                  Share your thoughts and suggestions for this document
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Reviewer Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="reviewerName">Your Name *</Label>
-                    <Input
-                      id="reviewerName"
-                      placeholder="John Doe"
-                      value={form.reviewerName}
-                      onChange={(e) => setForm(prev => ({ ...prev, reviewerName: e.target.value }))}
-                      disabled={!!existingFeedback}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="reviewerEmail">Email (Optional)</Label>
-                    <Input
-                      id="reviewerEmail"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={form.reviewerEmail}
-                      onChange={(e) => setForm(prev => ({ ...prev, reviewerEmail: e.target.value }))}
-                      disabled={!!existingFeedback}
-                    />
-                  </div>
-                </div>
-
-                {/* Overall Rating */}
-                <div>
-                  <Label>Overall Rating (Optional)</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    {renderStars(parseInt(form.overallRating) || 0)}
-                    <span className="text-sm text-muted-foreground ml-2">
-                      {form.overallRating ? `${form.overallRating}/5` : 'Click to rate'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* General Feedback */}
-                <div>
-                  <Label htmlFor="generalFeedback">General Feedback (Optional)</Label>
-                  <Textarea
-                    id="generalFeedback"
-                    placeholder="Share your overall thoughts about this document..."
-                    value={form.generalFeedback}
-                    onChange={(e) => setForm(prev => ({ ...prev, generalFeedback: e.target.value }))}
-                    rows={4}
-                    disabled={!!existingFeedback}
-                  />
-                </div>
-
-                {/* Comments */}
-                <div className="space-y-4">
+          <div className={`hidden lg:block transition-all duration-300 ${
+            feedbackSidebarOpen ? 'w-96' : 'w-0 overflow-hidden'
+          }`}>
+            <div className="sticky top-4">
+              <Card>
+                <CardHeader>
                   <div className="flex items-center justify-between">
-                    <Label>Comments ({form.comments.length})</Label>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Provide Feedback
+                    </CardTitle>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        if (!newComment.content.trim()) {
-                          toast.error('Comment content is required');
-                          return;
-                        }
-                        addComment();
-                      }}
+                      onClick={() => setFeedbackSidebarOpen(false)}
+                      className="h-8 w-8 p-0"
                     >
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      Add Comment
+                      ×
                     </Button>
                   </div>
-
-                  {/* New Comment Form */}
-                  <div className="border rounded-lg p-4 space-y-3">
+                  <CardDescription>
+                    Share your thoughts and suggestions for this document
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Reviewer Info */}
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <Label htmlFor="commentContent">Comment *</Label>
-                      <Textarea
-                        id="commentContent"
-                        placeholder="Add your comment here..."
-                        value={newComment.content}
-                        onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
-                        rows={3}
+                      <Label htmlFor="sidebarReviewerName">Your Name *</Label>
+                      <Input
+                        id="sidebarReviewerName"
+                        placeholder="John Doe"
+                        value={form.reviewerName}
+                        onChange={(e) => setForm(prev => ({ ...prev, reviewerName: e.target.value }))}
                       />
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <Label htmlFor="commentType">Type</Label>
-                        <Select
-                          value={newComment.type}
-                          onValueChange={(value) => setNewComment(prev => ({ ...prev, type: value as any }))}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="general">General</SelectItem>
-                            <SelectItem value="suggestion">Suggestion</SelectItem>
-                            <SelectItem value="correction">Correction</SelectItem>
-                            <SelectItem value="question">Question</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button
-                        onClick={addComment}
-                        disabled={!newComment.content.trim()}
-                        size="sm"
-                      >
-                        <Send className="h-4 w-4 mr-1" />
-                        Add
-                      </Button>
+                    <div>
+                      <Label htmlFor="sidebarReviewerEmail">Email (Optional)</Label>
+                      <Input
+                        id="sidebarReviewerEmail"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={form.reviewerEmail}
+                        onChange={(e) => setForm(prev => ({ ...prev, reviewerEmail: e.target.value }))}
+                      />
                     </div>
                   </div>
 
-                  {/* Comments List */}
-                  <div className="space-y-2">
-                    {form.comments.map((comment, index) => (
-                      <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                        {getCommentTypeIcon(comment.type)}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge className={getCommentTypeColor(comment.type)}>
-                              {comment.type}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeComment(index)}
-                              className="h-6 w-6 p-0"
-                            >
-                              ×
-                            </Button>
-                          </div>
-                          <p className="text-sm">{comment.content}</p>
-                          {comment.position && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Highlighted: "{comment.position.text}"
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  {/* Overall Rating */}
+                  <div>
+                    <Label>Overall Rating (Optional)</Label>
+                    <div className="flex items-center gap-2 mt-2">
+                      {renderStars(parseInt(form.overallRating) || 0)}
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {form.overallRating ? `${form.overallRating}/5` : 'Click to rate'}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Submit Button */}
-                <Button
-                  onClick={handleSubmit}
-                  disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
-                  className="w-full"
-                >
-                  {submitting ? 'Submitting...' : 'Submit Feedback'}
-                </Button>
-              </CardContent>
-            </Card>
+                  {/* General Feedback */}
+                  <div>
+                    <Label htmlFor="sidebarGeneralFeedback">General Feedback (Optional)</Label>
+                    <Textarea
+                      id="sidebarGeneralFeedback"
+                      placeholder="Share your overall thoughts about this document..."
+                      value={form.generalFeedback}
+                      onChange={(e) => setForm(prev => ({ ...prev, generalFeedback: e.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Comments */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Comments ({form.comments.length})</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (!newComment.content.trim()) {
+                            toast.error('Comment content is required');
+                            return;
+                          }
+                          addComment();
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Add Comment
+                      </Button>
+                    </div>
+
+                    {/* New Comment Form */}
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <div>
+                        <Label htmlFor="sidebarCommentContent">Comment *</Label>
+                        <Textarea
+                          id="sidebarCommentContent"
+                          placeholder="Add your comment here..."
+                          value={newComment.content}
+                          onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <Label htmlFor="sidebarCommentType">Type</Label>
+                          <Select
+                            value={newComment.type}
+                            onValueChange={(value) => setNewComment(prev => ({ ...prev, type: value as any }))}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="general">General</SelectItem>
+                              <SelectItem value="suggestion">Suggestion</SelectItem>
+                              <SelectItem value="correction">Correction</SelectItem>
+                              <SelectItem value="question">Question</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          onClick={addComment}
+                          disabled={!newComment.content.trim()}
+                          size="sm"
+                        >
+                          <Send className="h-4 w-4 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Comments List */}
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {form.comments.map((comment, index) => (
+                        <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                          {getCommentTypeIcon(comment.type)}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className={getCommentTypeColor(comment.type)}>
+                                {comment.type}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeComment(index)}
+                                className="h-6 w-6 p-0"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                            <p className="text-sm">{comment.content}</p>
+                            {comment.position && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Highlighted: "{comment.position.text}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
+                    className="w-full"
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Feedback'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
+
+        {/* Feedback Drawer (Mobile) */}
+        {!existingFeedback && (
+          <Drawer open={feedbackSidebarOpen} onOpenChange={setFeedbackSidebarOpen}>
+            <DrawerContent className="h-[90vh]">
+              <div className="p-4 overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Provide Feedback</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFeedbackSidebarOpen(false)}
+                    className="h-8 w-8 p-0"
+                  >
+                    ×
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {/* Reviewer Info */}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label htmlFor="mobileReviewerName">Your Name *</Label>
+                      <Input
+                        id="mobileReviewerName"
+                        placeholder="John Doe"
+                        value={form.reviewerName}
+                        onChange={(e) => setForm(prev => ({ ...prev, reviewerName: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="mobileReviewerEmail">Email (Optional)</Label>
+                      <Input
+                        id="mobileReviewerEmail"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={form.reviewerEmail}
+                        onChange={(e) => setForm(prev => ({ ...prev, reviewerEmail: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Overall Rating */}
+                  <div>
+                    <Label>Overall Rating (Optional)</Label>
+                    <div className="flex items-center gap-2 mt-2">
+                      {renderStars(parseInt(form.overallRating) || 0)}
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {form.overallRating ? `${form.overallRating}/5` : 'Click to rate'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* General Feedback */}
+                  <div>
+                    <Label htmlFor="mobileGeneralFeedback">General Feedback (Optional)</Label>
+                    <Textarea
+                      id="mobileGeneralFeedback"
+                      placeholder="Share your overall thoughts about this document..."
+                      value={form.generalFeedback}
+                      onChange={(e) => setForm(prev => ({ ...prev, generalFeedback: e.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Comments */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Comments ({form.comments.length})</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (!newComment.content.trim()) {
+                            toast.error('Comment content is required');
+                            return;
+                          }
+                          addComment();
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Add Comment
+                      </Button>
+                    </div>
+
+                    {/* New Comment Form */}
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <div>
+                        <Label htmlFor="mobileCommentContent">Comment *</Label>
+                        <Textarea
+                          id="mobileCommentContent"
+                          placeholder="Add your comment here..."
+                          value={newComment.content}
+                          onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <Label htmlFor="mobileCommentType">Type</Label>
+                          <Select
+                            value={newComment.type}
+                            onValueChange={(value) => setNewComment(prev => ({ ...prev, type: value as any }))}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="general">General</SelectItem>
+                              <SelectItem value="suggestion">Suggestion</SelectItem>
+                              <SelectItem value="correction">Correction</SelectItem>
+                              <SelectItem value="question">Question</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          onClick={addComment}
+                          disabled={!newComment.content.trim()}
+                          size="sm"
+                        >
+                          <Send className="h-4 w-4 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Comments List */}
+                    <div className="space-y-2">
+                      {form.comments.map((comment, index) => (
+                        <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                          {getCommentTypeIcon(comment.type)}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className={getCommentTypeColor(comment.type)}>
+                                {comment.type}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeComment(index)}
+                                className="h-6 w-6 p-0"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                            <p className="text-sm">{comment.content}</p>
+                            {comment.position && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Highlighted: "{comment.position.text}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
+                    className="w-full"
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Feedback'}
+                  </Button>
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
+        )}
       </div>
+
+      {/* Floating Action Button for Mobile */}
+      {!existingFeedback && (
+        <div className="lg:hidden fixed bottom-4 right-4 z-50">
+          <Button
+            onClick={() => setFeedbackSidebarOpen(true)}
+            size="lg"
+            className="rounded-full h-14 w-14 shadow-lg"
+          >
+            <MessageSquare className="h-6 w-6" />
+          </Button>
+        </div>
+      )}
+
+      {/* Desktop Toggle Button */}
+      {!existingFeedback && (
+        <div className="hidden lg:block fixed bottom-4 right-4 z-50">
+          <Button
+            onClick={() => setFeedbackSidebarOpen(!feedbackSidebarOpen)}
+            size="lg"
+            className="rounded-full h-14 w-14 shadow-lg"
+          >
+            <MessageSquare className="h-6 w-6" />
+          </Button>
+        </div>
+      )}
+
       {canEdit && (
         <div className="flex gap-2 mt-4 justify-end">
           <Button
