@@ -43,11 +43,38 @@ function toFrontendDocument(document: any): Document {
     title: document.title,
     type: document.type,
     content: document.content,
+    version: document.version,
+    isActive: document.isActive,
     description: document.description,
+    tags: document.tags,
+    targetProgram: document.targetProgram,
+    targetScholarship: document.targetScholarship,
+    targetInstitution: document.targetInstitution,
     wordCount: document.wordCount,
     characterCount: document.characterCount,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt
+    lastEditedAt: document.lastEditedAt instanceof Date ? document.lastEditedAt.toISOString() : document.lastEditedAt,
+    createdAt: document.createdAt instanceof Date ? document.createdAt.toISOString() : document.createdAt,
+    updatedAt: document.updatedAt instanceof Date ? document.updatedAt.toISOString() : document.updatedAt
+  };
+}
+
+function toFrontendDocumentShare(share: any): DocumentShare {
+  return {
+    _id: share._id.toString(),
+    documentId: share.documentId.toString(),
+    userId: share.userId.toString(),
+    shareType: share.shareType,
+    email: share.email,
+    shareToken: share.shareToken,
+    isActive: share.isActive,
+    expiresAt: share.expiresAt instanceof Date ? share.expiresAt.toISOString() : share.expiresAt,
+    canComment: share.canComment,
+    canEdit: share.canEdit,
+    canDownload: share.canDownload,
+    message: share.message,
+    reviewerName: share.reviewerName,
+    createdAt: share.createdAt instanceof Date ? share.createdAt.toISOString() : share.createdAt,
+    updatedAt: share.updatedAt instanceof Date ? share.updatedAt.toISOString() : share.updatedAt
   };
 }
 
@@ -82,18 +109,7 @@ async function getDocumentReviewData(token: string): Promise<DocumentReviewData>
 
   return {
     document: toFrontendDocument(document),
-    share: {
-      _id: share._id.toString(),
-      shareType: share.shareType,
-      email: share.email,
-      reviewerName: share.reviewerName,
-      message: share.message,
-      canComment: share.canComment,
-      canEdit: share.canEdit,
-      canDownload: share.canDownload,
-      expiresAt: share.expiresAt,
-      createdAt: share.createdAt
-    },
+    share: toFrontendDocumentShare(share),
     existingFeedback: existingFeedback ? {
       _id: existingFeedback._id.toString(),
       reviewerName: existingFeedback.reviewerName,
