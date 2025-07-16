@@ -124,10 +124,31 @@ export default function TaskManagementPage() {
         applicationsData = await applicationsResponse.json();
         const applications = applicationsData.applications || [];
         // Filter out applications without proper data
-        const validApplications = applications.filter((app: any) => 
-          app && app._id && app.status && app.scholarshipId && app.scholarshipId.title
-        );
+        const validApplications = applications.filter((app: any) => {
+          const isValid = app && app._id && app.status;
+          if (!isValid) {
+            console.log('Invalid app - missing basic fields:', app);
+            return false;
+          }
+          
+          // Check if it has the required scholarshipId structure
+          const hasValidScholarshipId = app.scholarshipId && app.scholarshipId.title;
+          if (!hasValidScholarshipId) {
+            console.log('Invalid app - missing scholarshipId or title:', app);
+            return false;
+          }
+          
+          return true;
+        });
         console.log('Fetched applications:', applications);
+        console.log('Application details:', applications.map(app => ({
+          id: app._id,
+          status: app.status,
+          hasScholarshipId: !!app.scholarshipId,
+          scholarshipIdType: typeof app.scholarshipId,
+          scholarshipIdKeys: app.scholarshipId ? Object.keys(app.scholarshipId) : null,
+          title: app.scholarshipId?.title
+        })));
         console.log('Valid applications:', validApplications);
         setApplications(validApplications);
       }
