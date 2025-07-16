@@ -17,9 +17,6 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    console.log("🔍 [ADMIN_WRAPPER] Session status:", status);
-    console.log("🔍 [ADMIN_WRAPPER] Session data:", session);
-    
     if (status === "loading") {
       return;
     }
@@ -27,10 +24,7 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
     setIsChecking(false);
     
     if (!session?.user || session.user.type !== "admin") {
-      console.log("❌ [ADMIN_WRAPPER] Not authenticated or not admin, redirecting...");
       router.push("/admin-auth/login");
-    } else {
-      console.log("✅ [ADMIN_WRAPPER] Admin authenticated:", session.user.email);
     }
   }, [session, status, router]);
 

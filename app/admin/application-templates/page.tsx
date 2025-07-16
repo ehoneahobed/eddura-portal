@@ -51,14 +51,7 @@ export default function ApplicationTemplatesPage() {
     limit: 15
   });
 
-  // Debug logging
-  console.log('Application Templates Debug:', {
-    templates: templates.length,
-    pagination,
-    currentPage,
-    searchTerm: debouncedSearchTerm,
-    isActiveFilter
-  });
+
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);

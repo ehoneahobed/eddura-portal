@@ -169,13 +169,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
       const filteredSectionsDebug = getFilteredSections(updatedResponses);
       const next = getNextSection(section.id, updatedResponses);
 
-      // Debug logging
-      console.log('handleNext Debug:', {
-        currentSectionId: section.id,
-        filteredSections: filteredSectionsDebug.map(s => s.id),
-        updatedResponses,
-        nextSection: next ? next.id : null
-      });
+
 
       if (isLastSection) {
         // Mark quiz as completed in database if authenticated
