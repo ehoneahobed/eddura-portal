@@ -44,14 +44,11 @@ const UpdateFeedbackSchema = z.object({
 });
 
 // POST /api/documents/[id]/feedback - Create feedback for a document
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, context: { params: { id: string } }) {
+  const documentId = context.params.id;
   try {
     await connectDB();
 
-    const documentId = params.id;
     const body = await request.json();
     
     // Validate input
@@ -153,11 +150,8 @@ export async function POST(
 }
 
 // GET /api/documents/[id]/feedback - Get all feedback for a document (document owner only)
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const documentId = context.params.id;
   try {
     const session = await auth();
     
@@ -167,8 +161,6 @@ export async function GET(
 
     await connectDB();
 
-    const documentId = params.id;
-    
     // Check if document exists and belongs to user
     const document = await Document.findOne({
       _id: documentId,
@@ -241,10 +233,8 @@ export async function GET(
 }
 
 // PUT /api/documents/[id]/feedback - Update feedback (document owner only)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+  const documentId = context.params.id;
   try {
     const session = await auth();
     
@@ -254,7 +244,6 @@ export async function PUT(
 
     await connectDB();
 
-    const documentId = params.id;
     const body = await request.json();
     
     // Validate input
