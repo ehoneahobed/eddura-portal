@@ -37,6 +37,14 @@ interface DocumentReviewClientProps {
   initialData: DocumentReviewData;
 }
 
+// Type for form comments (without id, createdAt, updatedAt)
+type FormComment = {
+  content: string;
+  type: 'general' | 'suggestion' | 'correction' | 'question';
+  position: { start: number; end: number; text: string } | null;
+  status: 'pending' | 'addressed' | 'ignored';
+};
+
 export default function DocumentReviewClient({ initialData }: DocumentReviewClientProps) {
   const [data, setData] = useState<DocumentReviewData>(initialData);
   const [submitting, setSubmitting] = useState(false);
@@ -51,8 +59,9 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
     comments: data.existingFeedback?.comments.map((comment: FeedbackComment) => ({
       content: comment.content,
       type: comment.type,
-      position: comment.position || null
-    })) || [] as Omit<FeedbackComment, 'id' | 'createdAt' | 'updatedAt'>[]
+      position: comment.position || null,
+      status: comment.status || 'pending'
+    })) || [] as FormComment[]
   });
 
   // New comment state
@@ -73,7 +82,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       comments: [...prev.comments, {
         content: newComment.content,
         type: newComment.type,
-        position: newComment.position
+        position: newComment.position,
+        status: 'pending'
       }]
     }));
 
