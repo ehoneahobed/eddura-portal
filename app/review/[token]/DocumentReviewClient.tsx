@@ -340,6 +340,21 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
               {drawerOpen ? 'Hide Comments' : 'Show Comments'}
             </Button>
           </div>
+          
+          {/* Desktop Feedback Toggle Button */}
+          {!isResolved && (
+            <div className="hidden lg:flex justify-end mb-4">
+              <Button 
+                onClick={() => setFeedbackSidebarOpen(!feedbackSidebarOpen)} 
+                variant={feedbackSidebarOpen ? "default" : "outline"}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                {feedbackSidebarOpen ? 'Hide Feedback' : 'Show Feedback'}
+              </Button>
+            </div>
+          )}
           {/* Document Info */}
           <Card className="mb-6">
             <CardHeader>
@@ -439,7 +454,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                           zIndex: 10,
                           transform: 'translateY(-50%)'
                         }}
-                        className="bg-primary text-white px-2 py-1 rounded shadow hover:bg-primary/90 transition-colors"
+                        className="bg-green-600 text-white px-2 py-1 rounded shadow hover:bg-green-700 transition-colors"
                         onClick={handleAddSelectionComment}
                       >
                         Add Comment
@@ -964,13 +979,14 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         </div>
       )} */}
 
-      {/* Desktop Toggle Button */}
+      {/* Desktop Floating Toggle Button - Fallback */}
       {!isResolved && (
         <div className="hidden lg:block fixed bottom-4 right-4 z-50">
           <Button
             onClick={() => setFeedbackSidebarOpen(!feedbackSidebarOpen)}
             size="lg"
             className="rounded-full h-14 w-14 shadow-lg"
+            title="Toggle Feedback Panel"
           >
             <MessageSquare className="h-6 w-6" />
           </Button>
