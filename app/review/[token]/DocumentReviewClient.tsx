@@ -29,6 +29,7 @@ import { Document } from '@/types/documents';
 import { DocumentShare, DocumentFeedback, FeedbackComment } from '@/types/feedback';
 import { toast } from 'sonner';
 
+
 interface DocumentReviewData {
   document: Document;
   share: DocumentShare;
@@ -93,6 +94,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
   const [isResolved, setIsResolved] = useState(initialData.existingFeedback?.isResolved || false);
   const [feedbackSidebarOpen, setFeedbackSidebarOpen] = useState(true); // Show sidebar by default
   const canEdit = initialData.share.canComment && !isResolved && (!initialData.share.expiresAt || new Date() < new Date(initialData.share.expiresAt));
+  const [infoBannerOpen, setInfoBannerOpen] = useState(true); // For the info banner
+  const [isMobile, setIsMobile] = useState(false); // Mobile state
 
   // Form state
   const [form, setForm] = useState({
@@ -126,6 +129,17 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
     left: number;
   } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Mobile detection effect
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Add Comment function (move this above all usages)
   const addComment = () => {
@@ -470,11 +484,14 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                         style={{
                           position: 'absolute',
                           top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0),
-                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + 2,
-                          zIndex: 10,
-                          transform: 'translateY(-50%)'
+                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + (isMobile ? 0 : 2),
+                          zIndex: 50, // Higher z-index for mobile
+                          transform: 'translateY(-50%)',
+                          minWidth: isMobile ? 120 : undefined,
+                          fontSize: isMobile ? 16 : undefined,
+                          padding: isMobile ? '8px 16px' : undefined,
                         }}
-                        className="bg-green-600 text-white px-2 py-1 rounded shadow hover:bg-green-700 transition-colors text-xs"
+                        className="bg-green-600 text-white px-2 py-1 rounded shadow hover:bg-green-700 transition-colors text-xs lg:text-xs"
                         onClick={handleAddSelectionComment}
                       >
                         Add Comment
@@ -1031,6 +1048,16 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         </div>
       )}
 
+      {/* --- Info Banner --- */}
+      {infoBannerOpen && (
+        <div className="mb-4 p-3 bg-blue-100 text-blue-900 rounded flex items-center justify-between">
+          <div>
+            <b>How to review:</b> Highlight any part of the document to add a comment. Use the feedback panel for general feedback or to rate the document.
+          </div>
+          <button onClick={() => setInfoBannerOpen(false)} className="ml-4 text-blue-900 hover:text-blue-700">×</button>
+        </div>
+      )}
+
       {canEdit && (
         <div className="flex gap-2 mt-4 justify-end">
           <Button
@@ -1049,6 +1076,182 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
             }}
           >
             Keep Open
+          </Button>
+        </div>
+      )}
+
+      {/* --- Mobile Feedback Drawer --- */}
+      {isMobile && !isResolved && (
+        <Drawer open={feedbackSidebarOpen} onClose={() => setFeedbackSidebarOpen(false)}>
+          <DrawerContent className="h-[80vh]">
+            {/* Feedback form content (reuse sidebar content) */}
+            <div className="p-4 overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Provide Feedback</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFeedbackSidebarOpen(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label htmlFor="mobileReviewerName">Your Name *</Label>
+                    <Input
+                      id="mobileReviewerName"
+                      placeholder="John Doe"
+                      value={form.reviewerName}
+                      onChange={(e) => setForm(prev => ({ ...prev, reviewerName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="mobileReviewerEmail">Email (Optional)</Label>
+                    <Input
+                      id="mobileReviewerEmail"
+                      type="email"
+                      placeholder="john@example.com"
+                      value={form.reviewerEmail}
+                      onChange={(e) => setForm(prev => ({ ...prev, reviewerEmail: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Overall Rating (Optional)</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    {renderStars(parseInt(form.overallRating) || 0)}
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {form.overallRating ? `${form.overallRating}/5` : 'Click to rate'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="mobileGeneralFeedback">General Feedback (Optional)</Label>
+                  <Textarea
+                    id="mobileGeneralFeedback"
+                    placeholder="Share your overall thoughts about this document..."
+                    value={form.generalFeedback}
+                    onChange={(e) => setForm(prev => ({ ...prev, generalFeedback: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Comments ({form.comments.length})</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!newComment.content.trim()) {
+                          toast.error('Comment content is required');
+                          return;
+                        }
+                        addComment();
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      Add Comment
+                    </Button>
+                  </div>
+
+                  <div className="border rounded-lg p-4 space-y-3">
+                    <div>
+                      <Label htmlFor="mobileCommentContent">Comment *</Label>
+                      <Textarea
+                        id="mobileCommentContent"
+                        placeholder="Add your comment here..."
+                        value={newComment.content}
+                        onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <Label htmlFor="mobileCommentType">Type</Label>
+                        <Select
+                          value={newComment.type}
+                          onValueChange={(value) => setNewComment(prev => ({ ...prev, type: value as any }))}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">General</SelectItem>
+                            <SelectItem value="suggestion">Suggestion</SelectItem>
+                            <SelectItem value="correction">Correction</SelectItem>
+                            <SelectItem value="question">Question</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        onClick={addComment}
+                        disabled={!newComment.content.trim()}
+                        size="sm"
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {form.comments.map((comment, index) => (
+                      <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                        {getCommentTypeIcon(comment.type)}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className={getCommentTypeColor(comment.type)}>
+                              {comment.type}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeComment(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                          <p className="text-sm">{comment.content}</p>
+                          {comment.position && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Highlighted: "{comment.position.text}"
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
+                  className="w-full"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Feedback'}
+                </Button>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+
+      {/* --- Mobile FAB for Add Comment --- */}
+      {isMobile && selectionInfo && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button
+            onClick={handleAddSelectionComment}
+            className="bg-green-600 text-white rounded-full h-14 w-14 shadow-lg flex items-center justify-center text-lg"
+            style={{ fontSize: 18 }}
+          >
+            +
           </Button>
         </div>
       )}
