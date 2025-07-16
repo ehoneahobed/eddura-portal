@@ -91,7 +91,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
   const [hoveredComment, setHoveredComment] = useState<FormComment | null>(null);
   const [hoveredAnchor, setHoveredAnchor] = useState<HTMLSpanElement | null>(null);
   const [isResolved, setIsResolved] = useState(initialData.existingFeedback?.isResolved || false);
-  const [feedbackSidebarOpen, setFeedbackSidebarOpen] = useState(false);
+  const [feedbackSidebarOpen, setFeedbackSidebarOpen] = useState(true); // Show sidebar by default
   const canEdit = initialData.share.canComment && !isResolved && (!initialData.share.expiresAt || new Date() < new Date(initialData.share.expiresAt));
 
   // Form state
