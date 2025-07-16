@@ -333,9 +333,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       {/* Main Layout */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Main Content Area */}
-        <div className={`flex-1 transition-all duration-300 ${
-          feedbackSidebarOpen ? 'lg:max-w-[calc(100%-400px)]' : 'lg:max-w-full'
-        }`}>
+        <div className="flex-1">
           {/* Show Comments Button (Mobile Only) */}
           <div className="flex justify-end mb-2 lg:hidden">
             <Button onClick={() => setDrawerOpen((open) => !open)} variant="outline" size="sm">
@@ -566,14 +564,13 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           {/* Toggle Drawer Button */}
           {/* This button is now moved to the top */}
 
-          {/* Comments Drawer (Mobile Only) */}
-          {drawerOpen && (
+          {/* Comments Drawer (Mobile Only) - Temporarily Hidden */}
+          {/* {drawerOpen && (
             <div className="lg:hidden">
               <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
                 <DrawerContent className="w-96">
                   <div className="p-4">
                     <h2 className="text-lg font-semibold mb-4">Comments</h2>
-                    {/* Comments List (move from main area) */}
                     <div className="space-y-2">
                       {form.comments.map((comment, index) => (
                         <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
@@ -608,7 +605,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                 </DrawerContent>
               </Drawer>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Feedback Sidebar (Desktop Only) */}
@@ -616,7 +613,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           <div className={`hidden lg:block transition-all duration-300 ${
             feedbackSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'
           }`}>
-            <div className="sticky top-4">
+            <div className="sticky top-4 h-fit">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -790,8 +787,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           </div>
         )}
 
-        {/* Feedback Drawer (Mobile Only) */}
-        {!isResolved && (
+        {/* Feedback Drawer (Mobile Only) - Temporarily Hidden */}
+        {/* {!isResolved && (
           <Drawer open={feedbackSidebarOpen} onOpenChange={setFeedbackSidebarOpen}>
             <DrawerContent className="h-[80vh]">
               <div className="p-4 overflow-y-auto">
@@ -807,7 +804,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                   </Button>
                 </div>
                 <div className="space-y-4">
-                  {/* Reviewer Info */}
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <Label htmlFor="mobileReviewerName">Your Name *</Label>
@@ -830,7 +826,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                     </div>
                   </div>
 
-                  {/* Overall Rating */}
                   <div>
                     <Label>Overall Rating (Optional)</Label>
                     <div className="flex items-center gap-2 mt-2">
@@ -841,7 +836,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                     </div>
                   </div>
 
-                  {/* General Feedback */}
                   <div>
                     <Label htmlFor="mobileGeneralFeedback">General Feedback (Optional)</Label>
                     <Textarea
@@ -853,7 +847,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                     />
                   </div>
 
-                  {/* Comments */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label>Comments ({form.comments.length})</Label>
@@ -873,7 +866,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                       </Button>
                     </div>
 
-                    {/* New Comment Form */}
                     <div className="border rounded-lg p-4 space-y-3">
                       <div>
                         <Label htmlFor="mobileCommentContent">Comment *</Label>
@@ -914,7 +906,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                       </div>
                     </div>
 
-                    {/* Comments List */}
                     <div className="space-y-2">
                       {form.comments.map((comment, index) => (
                         <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
@@ -945,7 +936,6 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <Button
                     onClick={handleSubmit}
                     disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
@@ -957,11 +947,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
               </div>
             </DrawerContent>
           </Drawer>
-        )}
+        )} */}
       </div>
 
-      {/* Floating Action Button for Mobile */}
-      {!isResolved && (
+      {/* Floating Action Button for Mobile - Temporarily Hidden */}
+      {/* {!isResolved && (
         <div className="lg:hidden fixed bottom-4 right-4 z-50">
           <Button
             onClick={() => setFeedbackSidebarOpen(true)}
@@ -971,7 +961,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
             <MessageSquare className="h-6 w-6" />
           </Button>
         </div>
-      )}
+      )} */}
 
       {/* Desktop Toggle Button */}
       {!isResolved && (
