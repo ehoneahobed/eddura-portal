@@ -125,7 +125,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           documentShareId: data.share._id,
           reviewerName: form.reviewerName,
           reviewerEmail: form.reviewerEmail || undefined,
-          comments: form.comments.map(({ content, type, position }) => ({ content, type, position })),
+          comments: form.comments.map(({ content, type, position }) =>
+            position && position.start !== undefined && position.end !== undefined && position.text !== undefined
+              ? { content, type, position }
+              : { content, type }
+          ),
           overallRating: form.overallRating ? parseInt(form.overallRating) : undefined,
           generalFeedback: form.generalFeedback || undefined
         }),
