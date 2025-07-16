@@ -307,6 +307,19 @@ export default function TaskManagementPage() {
     router.push('/scholarships');
   };
 
+  // Filter applications based on search term and status filter
+  const filteredApplications = applications.filter((application) => {
+    // Search filter
+    const matchesSearch = !searchTerm || 
+      application.scholarshipId?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      application.status.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || application.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
@@ -523,7 +536,7 @@ export default function TaskManagementPage() {
 
           {/* Applications List */}
           <div className="space-y-4">
-            {applications.length === 0 ? (
+            {filteredApplications.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
                   <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -541,7 +554,7 @@ export default function TaskManagementPage() {
                 </CardContent>
               </Card>
             ) : (
-              applications.map((application) => {
+              filteredApplications.map((application) => {
                 const statusInfo = getStatusInfo(application.status);
                 const StatusIcon = statusInfo.icon;
                 
