@@ -83,6 +83,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
   const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(null);
   const [hoveredComment, setHoveredComment] = useState<FormComment | null>(null);
   const [hoveredAnchor, setHoveredAnchor] = useState<HTMLSpanElement | null>(null);
+  const [isResolved, setIsResolved] = useState(initialData.existingFeedback?.isResolved || false);
+  const canEdit = initialData.share.canComment && !isResolved && (!initialData.share.expiresAt || new Date() < new Date(initialData.share.expiresAt));
 
   // Form state
   const [form, setForm] = useState({
@@ -759,6 +761,33 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           </Card>
         </div>
       </div>
+      {!canEdit && (
+        <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
+          Commenting is closed for this document.
+        </div>
+      )}
+      {canEdit && (
+        <div className="flex gap-2 mt-4 justify-end">
+          <Button
+            variant="success"
+            onClick={async () => {
+              // Mark as Done: set isResolved to true (simulate API call)
+              setIsResolved(true);
+              toast.success('Feedback marked as done. Commenting is now closed.');
+            }}
+          >
+            Mark as Done
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              toast.info('You can continue adding comments.');
+            }}
+          >
+            Keep Open
+          </Button>
+        </div>
+      )}
     </>
   );
 }
