@@ -361,135 +361,135 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                 </div>
               </CardContent>
             )}
-
-            {/* Document Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Document Content
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {showContent ? (
-                  <div className="prose max-w-none">
-                    <div
-                      ref={contentRef}
-                      className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto relative"
-                      style={{ position: 'relative' }}
-                    >
-                      {/* Render highlighted segments with popover on hover */}
-                      {getHighlightedSegments(document.content, form.comments).map((seg, i) =>
-                        seg.highlight ? (
-                          <Popover
-                            key={i}
-                            open={hoveredComment === seg.comment}
-                            onOpenChange={(open) => {
-                              if (!open) setHoveredComment(null);
-                            }}
-                          >
-                            <span
-                              ref={el => {
-                                if (hoveredComment === seg.comment) setHoveredAnchor(el);
-                              }}
-                              className="bg-yellow-200 cursor-pointer transition-colors duration-200 hover:bg-yellow-300 rounded px-0.5"
-                              onMouseEnter={() => setHoveredComment(seg.comment)}
-                              onMouseLeave={() => setHoveredComment(null)}
-                            >
-                              {seg.text}
-                            </span>
-                            <PopoverContent side="top" align="center">
-                              <div className="mb-1 text-xs text-muted-foreground">
-                                <Badge className={getCommentTypeColor(seg.comment.type)}>
-                                  {seg.comment.type}
-                                </Badge>
-                              </div>
-                              <div className="text-sm">{seg.comment.content}</div>
-                            </PopoverContent>
-                          </Popover>
-                        ) : (
-                          <span key={i}>{seg.text}</span>
-                        )
-                      )}
-                      {selectionInfo && (
-                        <button
-                          style={{
-                            position: 'absolute',
-                            top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0) - 40,
-                            left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0),
-                            zIndex: 10
+          </Card>
+          {/* Document Content (not nested in Card) */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Document Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {showContent ? (
+                <div className="prose max-w-none">
+                  <div
+                    ref={contentRef}
+                    className="whitespace-pre-wrap bg-muted p-4 rounded-lg max-h-96 overflow-y-auto relative"
+                    style={{ position: 'relative' }}
+                  >
+                    {/* Render highlighted segments with popover on hover */}
+                    {getHighlightedSegments(document.content, form.comments).map((seg, i) =>
+                      seg.highlight ? (
+                        <Popover
+                          key={i}
+                          open={hoveredComment === seg.comment}
+                          onOpenChange={(open) => {
+                            if (!open) setHoveredComment(null);
                           }}
-                          className="bg-primary text-white px-2 py-1 rounded shadow"
-                          onClick={handleAddSelectionComment}
                         >
-                          Add Comment
-                        </button>
-                      )}
-                      {/* Popover for comment input */}
-                      {popoverPosition && (
-                        <Popover open={commentPopoverOpen} onOpenChange={setCommentPopoverOpen}>
-                          <PopoverContent
-                            side="right"
-                            align="start"
-                            style={{
-                              position: 'absolute',
-                              top: popoverPosition.top - (contentRef.current?.getBoundingClientRect().top || 0),
-                              left: popoverPosition.left - (contentRef.current?.getBoundingClientRect().left || 0),
-                              zIndex: 20
+                          <span
+                            ref={el => {
+                              if (hoveredComment === seg.comment) setHoveredAnchor(el);
                             }}
+                            className="bg-yellow-200 cursor-pointer transition-colors duration-200 hover:bg-yellow-300 rounded px-0.5"
+                            onMouseEnter={() => setHoveredComment(seg.comment)}
+                            onMouseLeave={() => setHoveredComment(null)}
                           >
-                            <div className="mb-2 text-xs text-muted-foreground">
-                              Commenting on: <span className="font-semibold">"{newComment.position?.text}"</span>
+                            {seg.text}
+                          </span>
+                          <PopoverContent side="top" align="center">
+                            <div className="mb-1 text-xs text-muted-foreground">
+                              <Badge className={getCommentTypeColor(seg.comment.type)}>
+                                {seg.comment.type}
+                              </Badge>
                             </div>
-                            <div className="mb-2">
-                              <Label htmlFor="popoverCommentContent">Comment *</Label>
-                              <Textarea
-                                id="popoverCommentContent"
-                                placeholder="Add your comment here..."
-                                value={newComment.content}
-                                onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
-                                rows={3}
-                              />
-                            </div>
-                            <div className="mb-2">
-                              <Label htmlFor="popoverCommentType">Type</Label>
-                              <Select
-                                value={newComment.type}
-                                onValueChange={(value) => setNewComment(prev => ({ ...prev, type: value as any }))}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="general">General</SelectItem>
-                                  <SelectItem value="suggestion">Suggestion</SelectItem>
-                                  <SelectItem value="correction">Correction</SelectItem>
-                                  <SelectItem value="question">Question</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Button
-                              onClick={handlePopoverAddComment}
-                              disabled={!newComment.content.trim()}
-                              size="sm"
-                              className="w-full mt-2"
-                            >
-                              <Send className="h-4 w-4 mr-1" />
-                              Add Comment
-                            </Button>
+                            <div className="text-sm">{seg.comment.content}</div>
                           </PopoverContent>
                         </Popover>
-                      )}
-                    </div>
+                      ) : (
+                        <span key={i}>{seg.text}</span>
+                      )
+                    )}
+                    {selectionInfo && (
+                      <button
+                        style={{
+                          position: 'absolute',
+                          top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0) - 40,
+                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0),
+                          zIndex: 10
+                        }}
+                        className="bg-primary text-white px-2 py-1 rounded shadow"
+                        onClick={handleAddSelectionComment}
+                      >
+                        Add Comment
+                      </button>
+                    )}
+                    {/* Popover for comment input */}
+                    {popoverPosition && (
+                      <Popover open={commentPopoverOpen} onOpenChange={setCommentPopoverOpen}>
+                        <PopoverContent
+                          side="right"
+                          align="start"
+                          style={{
+                            position: 'absolute',
+                            top: popoverPosition.top - (contentRef.current?.getBoundingClientRect().top || 0),
+                            left: popoverPosition.left - (contentRef.current?.getBoundingClientRect().left || 0),
+                            zIndex: 20
+                          }}
+                        >
+                          <div className="mb-2 text-xs text-muted-foreground">
+                            Commenting on: <span className="font-semibold">"{newComment.position?.text}"</span>
+                          </div>
+                          <div className="mb-2">
+                            <Label htmlFor="popoverCommentContent">Comment *</Label>
+                            <Textarea
+                              id="popoverCommentContent"
+                              placeholder="Add your comment here..."
+                              value={newComment.content}
+                              onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
+                              rows={3}
+                            />
+                          </div>
+                          <div className="mb-2">
+                            <Label htmlFor="popoverCommentType">Type</Label>
+                            <Select
+                              value={newComment.type}
+                              onValueChange={(value) => setNewComment(prev => ({ ...prev, type: value as any }))}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="general">General</SelectItem>
+                                <SelectItem value="suggestion">Suggestion</SelectItem>
+                                <SelectItem value="correction">Correction</SelectItem>
+                                <SelectItem value="question">Question</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Button
+                            onClick={handlePopoverAddComment}
+                            disabled={!newComment.content.trim()}
+                            size="sm"
+                            className="w-full mt-2"
+                          >
+                            <Send className="h-4 w-4 mr-1" />
+                            Add Comment
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <EyeOff className="h-8 w-8 mx-auto mb-2" />
-                    <p>Content is hidden</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <EyeOff className="h-8 w-8 mx-auto mb-2" />
+                  <p>Content is hidden</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
             {/* Existing Feedback */}
             {existingFeedback && (
