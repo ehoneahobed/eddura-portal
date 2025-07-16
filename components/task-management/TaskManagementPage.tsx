@@ -141,7 +141,7 @@ export default function TaskManagementPage() {
           return true;
         });
         console.log('Fetched applications:', applications);
-        console.log('Application details:', applications.map(app => ({
+        console.log('Application details:', applications.map((app: any) => ({
           id: app._id,
           status: app.status,
           hasScholarshipId: !!app.scholarshipId,
