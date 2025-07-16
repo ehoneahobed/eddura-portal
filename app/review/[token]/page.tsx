@@ -37,6 +37,72 @@ interface DocumentReviewData {
   existingFeedback?: DocumentFeedback;
 }
 
+function toFrontendDocument(document: any): Document {
+  return {
+    _id: document._id.toString(),
+    title: document.title,
+    type: document.type,
+    content: document.content,
+    version: document.version,
+    isActive: document.isActive,
+    description: document.description,
+    tags: document.tags,
+    targetProgram: document.targetProgram,
+    targetScholarship: document.targetScholarship,
+    targetInstitution: document.targetInstitution,
+    wordCount: document.wordCount,
+    characterCount: document.characterCount,
+    lastEditedAt: document.lastEditedAt instanceof Date ? document.lastEditedAt.toISOString() : document.lastEditedAt,
+    createdAt: document.createdAt instanceof Date ? document.createdAt.toISOString() : document.createdAt,
+    updatedAt: document.updatedAt instanceof Date ? document.updatedAt.toISOString() : document.updatedAt
+  };
+}
+
+function toFrontendDocumentShare(share: any): DocumentShare {
+  return {
+    _id: share._id.toString(),
+    documentId: share.documentId.toString(),
+    userId: share.userId.toString(),
+    shareType: share.shareType,
+    email: share.email,
+    shareToken: share.shareToken,
+    isActive: share.isActive,
+    expiresAt: share.expiresAt instanceof Date ? share.expiresAt.toISOString() : share.expiresAt,
+    canComment: share.canComment,
+    canEdit: share.canEdit,
+    canDownload: share.canDownload,
+    message: share.message,
+    reviewerName: share.reviewerName,
+    createdAt: share.createdAt instanceof Date ? share.createdAt.toISOString() : share.createdAt,
+    updatedAt: share.updatedAt instanceof Date ? share.updatedAt.toISOString() : share.updatedAt
+  };
+}
+
+function toFrontendDocumentFeedback(feedback: any): DocumentFeedback {
+  return {
+    _id: feedback._id.toString(),
+    documentId: feedback.documentId.toString(),
+    documentShareId: feedback.documentShareId.toString(),
+    reviewerName: feedback.reviewerName,
+    reviewerEmail: feedback.reviewerEmail,
+    comments: feedback.comments.map((comment: any) => ({
+      id: comment.id,
+      content: comment.content,
+      position: comment.position,
+      type: comment.type,
+      status: comment.status,
+      createdAt: comment.createdAt instanceof Date ? comment.createdAt.toISOString() : comment.createdAt,
+      updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt.toISOString() : comment.updatedAt
+    })),
+    overallRating: feedback.overallRating,
+    generalFeedback: feedback.generalFeedback,
+    isResolved: feedback.isResolved,
+    resolvedAt: feedback.resolvedAt instanceof Date ? feedback.resolvedAt.toISOString() : feedback.resolvedAt,
+    createdAt: feedback.createdAt instanceof Date ? feedback.createdAt.toISOString() : feedback.createdAt,
+    updatedAt: feedback.updatedAt instanceof Date ? feedback.updatedAt.toISOString() : feedback.updatedAt
+  };
+}
+
 async function getDocumentReviewData(token: string): Promise<DocumentReviewData> {
   await connectDB();
 
@@ -67,54 +133,9 @@ async function getDocumentReviewData(token: string): Promise<DocumentReviewData>
   });
 
   return {
-    document: {
-      _id: (document._id as any).toString(),
-      title: document.title,
-      type: document.type,
-      content: document.content,
-      description: document.description,
-      wordCount: document.wordCount,
-      characterCount: document.characterCount,
-      createdAt: document.createdAt instanceof Date ? document.createdAt.toISOString() : document.createdAt,
-      updatedAt: document.updatedAt instanceof Date ? document.updatedAt.toISOString() : document.updatedAt,
-      version: document.version,
-      isActive: document.isActive,
-      lastEditedAt: document.lastEditedAt instanceof Date ? document.lastEditedAt.toISOString() : document.lastEditedAt
-    },
-    share: {
-      _id: (share._id as any).toString(),
-      documentId: (share.documentId as any).toString(),
-      userId: (share.userId as any).toString(),
-      shareToken: share.shareToken,
-      isActive: share.isActive,
-      shareType: share.shareType,
-      email: share.email,
-      reviewerName: share.reviewerName,
-      message: share.message,
-      canComment: share.canComment,
-      canEdit: share.canEdit,
-      canDownload: share.canDownload,
-      expiresAt: share.expiresAt instanceof Date ? share.expiresAt.toISOString() : share.expiresAt,
-      createdAt: share.createdAt instanceof Date ? share.createdAt.toISOString() : share.createdAt,
-      updatedAt: share.updatedAt instanceof Date ? share.updatedAt.toISOString() : share.updatedAt
-    },
-    existingFeedback: existingFeedback ? {
-      _id: (existingFeedback._id as any).toString(),
-      documentId: (existingFeedback.documentId as any).toString(),
-      documentShareId: (existingFeedback.documentShareId as any).toString(),
-      reviewerName: existingFeedback.reviewerName,
-      reviewerEmail: existingFeedback.reviewerEmail,
-      comments: existingFeedback.comments.map((comment: any) => ({
-        ...comment,
-        createdAt: comment.createdAt instanceof Date ? comment.createdAt.toISOString() : comment.createdAt,
-        updatedAt: comment.updatedAt instanceof Date ? comment.updatedAt.toISOString() : comment.updatedAt
-      })),
-      overallRating: existingFeedback.overallRating,
-      generalFeedback: existingFeedback.generalFeedback,
-      isResolved: existingFeedback.isResolved,
-      createdAt: existingFeedback.createdAt instanceof Date ? existingFeedback.createdAt.toISOString() : existingFeedback.createdAt,
-      updatedAt: existingFeedback.updatedAt instanceof Date ? existingFeedback.updatedAt.toISOString() : existingFeedback.updatedAt
-    } : undefined
+    document: toFrontendDocument(document),
+    share: toFrontendDocumentShare(share),
+    existingFeedback: existingFeedback ? toFrontendDocumentFeedback(existingFeedback) : undefined
   };
 }
 

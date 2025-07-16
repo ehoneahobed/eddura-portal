@@ -62,7 +62,8 @@ const DocumentShareSchema: Schema = new Schema<IDocumentShare>({
     type: String,
     required: true,
     unique: true,
-    index: true
+    index: true,
+    default: generateShareToken
   },
   isActive: {
     type: Boolean,
@@ -110,7 +111,7 @@ DocumentShareSchema.pre('save', function(this: IDocumentShare, next: any) {
 });
 
 // Helper function to generate unique share token
-function generateShareToken(): string {
+export function generateShareToken(): string {
   return Math.random().toString(36).substring(2, 15) + 
          Math.random().toString(36).substring(2, 15) +
          Date.now().toString(36);

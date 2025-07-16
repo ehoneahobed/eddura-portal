@@ -45,8 +45,7 @@ export interface IFeedbackComment {
 
 const FeedbackCommentSchema: Schema = new Schema<IFeedbackComment>({
   id: {
-    type: String,
-    required: true
+    type: String
   },
   content: {
     type: String,
@@ -90,8 +89,7 @@ const DocumentFeedbackSchema: Schema = new Schema<IDocumentFeedback>({
   documentShareId: {
     type: Schema.Types.ObjectId,
     ref: 'DocumentShare',
-    required: true,
-    index: true
+    required: true
   },
   
   // Reviewer information
