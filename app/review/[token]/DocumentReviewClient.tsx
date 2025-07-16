@@ -315,7 +315,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           You've been invited to review this document and provide feedback
         </p>
       </div>
-
+      {!canEdit && (
+        <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
+          Commenting is closed for this document.
+        </div>
+      )}
       <div className="flex flex-row gap-4">
         <div className={drawerOpen ? 'flex-1 max-w-3xl' : 'flex-1 max-w-5xl'}>
           {/* Document Info */}
@@ -761,17 +765,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           </Card>
         </div>
       </div>
-      {!canEdit && (
-        <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
-          Commenting is closed for this document.
-        </div>
-      )}
       {canEdit && (
         <div className="flex gap-2 mt-4 justify-end">
           <Button
             variant="success"
             onClick={async () => {
-              // Mark as Done: set isResolved to true (simulate API call)
               setIsResolved(true);
               toast.success('Feedback marked as done. Commenting is now closed.');
             }}
