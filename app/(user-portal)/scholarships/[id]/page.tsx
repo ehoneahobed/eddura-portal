@@ -220,6 +220,7 @@ function ScholarshipDetailContent() {
         },
         body: JSON.stringify({
           scholarshipId: scholarshipId,
+          applicationType: 'scholarship',
         }),
       });
 
