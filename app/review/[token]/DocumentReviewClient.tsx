@@ -336,8 +336,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
         <div className={`flex-1 transition-all duration-300 ${
           feedbackSidebarOpen ? 'lg:max-w-[calc(100%-400px)]' : 'lg:max-w-full'
         }`}>
-          {/* Show Comments Button (Top) */}
-          <div className="flex justify-end mb-2">
+          {/* Show Comments Button (Mobile Only) */}
+          <div className="flex justify-end mb-2 lg:hidden">
             <Button onClick={() => setDrawerOpen((open) => !open)} variant="outline" size="sm">
               {drawerOpen ? 'Hide Comments' : 'Show Comments'}
             </Button>
@@ -566,46 +566,48 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           {/* Toggle Drawer Button */}
           {/* This button is now moved to the top */}
 
-          {/* Comments Drawer */}
+          {/* Comments Drawer (Mobile Only) */}
           {drawerOpen && (
-            <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-              <DrawerContent className="w-96">
-                <div className="p-4">
-                  <h2 className="text-lg font-semibold mb-4">Comments</h2>
-                  {/* Comments List (move from main area) */}
-                  <div className="space-y-2">
-                    {form.comments.map((comment, index) => (
-                      <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                        {getCommentTypeIcon(comment.type)}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge className={getCommentTypeColor(comment.type)}>
-                              {comment.type}
-                            </Badge>
-                            {!isResolved && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeComment(index)}
-                                className="h-6 w-6 p-0"
-                              >
-                                ×
-                              </Button>
+            <div className="lg:hidden">
+              <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+                <DrawerContent className="w-96">
+                  <div className="p-4">
+                    <h2 className="text-lg font-semibold mb-4">Comments</h2>
+                    {/* Comments List (move from main area) */}
+                    <div className="space-y-2">
+                      {form.comments.map((comment, index) => (
+                        <div key={index} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                          {getCommentTypeIcon(comment.type)}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className={getCommentTypeColor(comment.type)}>
+                                {comment.type}
+                              </Badge>
+                              {!isResolved && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeComment(index)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  ×
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-sm">{comment.content}</p>
+                            {comment.position && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Highlighted: "{comment.position.text}"
+                              </p>
                             )}
                           </div>
-                          <p className="text-sm">{comment.content}</p>
-                          {comment.position && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Highlighted: "{comment.position.text}"
-                            </p>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </DrawerContent>
-            </Drawer>
+                </DrawerContent>
+              </Drawer>
+            </div>
           )}
         </div>
 
