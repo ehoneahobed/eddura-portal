@@ -108,6 +108,9 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
     })) || [] as FormComment[]
   });
 
+  // Track if we have existing feedback to determine if we're editing or creating new
+  const hasExistingFeedback = !!data.existingFeedback;
+
   // New comment state
   const [newComment, setNewComment] = useState({
     content: '',
@@ -225,6 +228,17 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       ...prev,
       comments: prev.comments.filter((_, i) => i !== index)
     }));
+    
+    // If we have existing feedback, also update the data state to reflect the removal
+    if (hasExistingFeedback && data.existingFeedback) {
+      setData(prev => ({
+        ...prev,
+        existingFeedback: {
+          ...prev.existingFeedback!,
+          comments: prev.existingFeedback!.comments.filter((_, i) => i !== index)
+        }
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -240,8 +254,13 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
 
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/documents/${data.document._id}/feedback`, {
-        method: 'POST',
+      const method = hasExistingFeedback ? 'PUT' : 'POST';
+      const url = hasExistingFeedback 
+        ? `/api/documents/${data.document._id}/feedback/${data.existingFeedback!._id}`
+        : `/api/documents/${data.document._id}/feedback`;
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -260,7 +279,8 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
       });
 
       if (response.ok) {
-        toast.success('Feedback submitted successfully!');
+        const successMessage = hasExistingFeedback ? 'Feedback updated successfully!' : 'Feedback submitted successfully!';
+        toast.success(successMessage);
         // Update the data to show the submitted feedback
         const feedbackData = await response.json();
         setData(prev => ({
@@ -450,11 +470,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                         style={{
                           position: 'absolute',
                           top: selectionInfo.top - (contentRef.current?.getBoundingClientRect().top || 0),
-                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + 5,
+                          left: selectionInfo.left - (contentRef.current?.getBoundingClientRect().left || 0) + 2,
                           zIndex: 10,
                           transform: 'translateY(-50%)'
                         }}
-                        className="bg-green-600 text-white px-2 py-1 rounded shadow hover:bg-green-700 transition-colors"
+                        className="bg-green-600 text-white px-2 py-1 rounded shadow hover:bg-green-700 transition-colors text-xs"
                         onClick={handleAddSelectionComment}
                       >
                         Add Comment
@@ -532,11 +552,11 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Your Previous Feedback
+                  {hasExistingFeedback ? 'Your Feedback' : 'Your Previous Feedback'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {existingFeedback.overallRating && (
+                {form.overallRating && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Rating:</span>
                     <div className="flex">
@@ -544,30 +564,48 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                         <Star
                           key={i}
                           className={`h-4 w-4 ${
-                            i < existingFeedback.overallRating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                            i < parseInt(form.overallRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
                           }`}
                         />
                       ))}
                     </div>
                   </div>
                 )}
-                {existingFeedback.generalFeedback && (
+                {form.generalFeedback && (
                   <div>
                     <p className="font-medium mb-2">General Feedback:</p>
-                    <p className="text-sm bg-muted p-3 rounded">{existingFeedback.generalFeedback}</p>
+                    <p className="text-sm bg-muted p-3 rounded">{form.generalFeedback}</p>
                   </div>
                 )}
                 <div>
-                  <p className="font-medium mb-2">Comments ({existingFeedback.comments.length}):</p>
+                  <p className="font-medium mb-2">Comments ({form.comments.length}):</p>
                   <div className="space-y-2">
-                    {existingFeedback.comments.map((comment, index) => (
+                    {form.comments.map((comment, index) => (
                       <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
                         {getCommentTypeIcon(comment.type)}
                         <div className="flex-1">
-                          <Badge className={`${getCommentTypeColor(comment.type)} mb-1`}>
-                            {comment.type}
-                          </Badge>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className={`${getCommentTypeColor(comment.type)}`}>
+                              {comment.type}
+                            </Badge>
+                            {canEdit && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeComment(index)}
+                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                title="Remove comment"
+                              >
+                                ×
+                              </Button>
+                            )}
+                          </div>
                           <p className="text-sm">{comment.content}</p>
+                          {comment.position && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Highlighted: "{comment.position.text}"
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -795,7 +833,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                     disabled={submitting || !form.reviewerName.trim() || form.comments.length === 0}
                     className="w-full"
                   >
-                    {submitting ? 'Submitting...' : 'Submit Feedback'}
+                    {submitting ? 'Submitting...' : hasExistingFeedback ? 'Update Feedback' : 'Submit Feedback'}
                   </Button>
                 </CardContent>
               </Card>
