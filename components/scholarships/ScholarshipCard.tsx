@@ -118,7 +118,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
                 {formatValue(scholarship.value, scholarship.currency)}
               </span>
             </div>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs pointer-events-none">
               {scholarship.frequency}
             </Badge>
           </div>
@@ -165,12 +165,12 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
               <p className="text-xs font-medium text-gray-700 mb-2">Requirements:</p>
               <div className="flex flex-wrap gap-1">
                 {requirements.slice(0, 3).map((req, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
+                  <Badge key={index} variant="secondary" className="text-xs pointer-events-none">
                     {req}
                   </Badge>
                 ))}
                 {requirements.length > 3 && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs pointer-events-none">
                     +{requirements.length - 3} more
                   </Badge>
                 )}
@@ -192,15 +192,14 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
               </span>
             </div>
             <div className="flex gap-1">
-              {/* Opening Date Status */}
-              {scholarship.openingDate && (
-                <Badge className={`text-xs ${scholarshipStatus.openingDateInfo.color}`}>
-                  {scholarshipStatus.openingDateInfo.status}
-                </Badge>
-              )}
-              {/* Deadline Status */}
-              <Badge className={`text-xs ${scholarshipStatus.deadlineInfo.color}`}>
-                {scholarshipStatus.deadlineInfo.status}
+              {/* Unified Status Badge - Show only one status */}
+              <Badge 
+                className={`text-xs ${scholarshipStatus.isNotYetOpen ? scholarshipStatus.openingDateInfo.color : scholarshipStatus.deadlineInfo.color} pointer-events-none`}
+              >
+                {scholarshipStatus.isNotYetOpen 
+                  ? scholarshipStatus.openingDateInfo.status 
+                  : scholarshipStatus.deadlineInfo.status
+                }
               </Badge>
             </div>
           </div>
@@ -219,12 +218,12 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             <div className="mb-4">
               <div className="flex flex-wrap gap-1">
                 {scholarship.tags.slice(0, 3).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge key={index} variant="outline" className="text-xs pointer-events-none">
                     {tag}
                   </Badge>
                 ))}
                 {scholarship.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs pointer-events-none">
                     +{scholarship.tags.length - 3}
                   </Badge>
                 )}

@@ -215,4 +215,70 @@ export function useScholarshipsByFrequency(frequency: string) {
     isError: error,
     mutate,
   };
+}
+
+// Custom hook for searchable components (optimized for search without aggressive refresh)
+export function useScholarshipsForSearch(params: ScholarshipsQueryParams = {}) {
+  const {
+    page = 1,
+    limit = 10,
+    search = '',
+    provider = '',
+    coverage,
+    frequency,
+    degreeLevel,
+    minValue,
+    maxValue,
+    eligibleNationalities = [],
+    countryResidency = [],
+    sortBy = 'title',
+    sortOrder = 'asc',
+    includeExpired = false,
+    status
+  } = params;
+
+  const queryString = buildQueryString({
+    page,
+    limit,
+    search,
+    provider,
+    coverage: coverage || undefined,
+    frequency: frequency || undefined,
+    degreeLevel: degreeLevel || undefined,
+    minValue: minValue || undefined,
+    maxValue: maxValue || undefined,
+    eligibleNationalities,
+    countryResidency,
+    sortBy,
+    sortOrder,
+    includeExpired,
+    status: status || undefined
+  });
+
+  const { data, error, isLoading, mutate } = useSWR<ScholarshipsData>(
+    `/api/scholarships?${queryString}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false, // Disable reconnect revalidation for search
+      dedupingInterval: 1000, // Shorter deduping for search
+      keepPreviousData: true, // Keep previous data while loading new data
+    }
+  );
+
+  return {
+    scholarships: data?.scholarships || [],
+    pagination: data?.pagination || {
+      currentPage: 1,
+      totalPages: 1,
+      totalCount: 0,
+      limit: limit,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    isLoading,
+    isError: error,
+    mutate,
+    isEmpty: !isLoading && (!data?.scholarships || data.scholarships.length === 0),
+  };
 } 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,14 +95,27 @@ export default function ScholarshipsPage() {
     limit: 15 // Show 15 scholarships per page
   });
   const [sortBy, setSortBy] = useState('relevance');
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSearchTermRef = useRef<string>('');
 
-  // Debounced search effect
+  // Improved debounced search effect
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set a new timeout for the current search term
+    searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      lastSearchTermRef.current = searchTerm;
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchTerm]);
 
   // Focus restoration effect
@@ -116,9 +130,14 @@ export default function ScholarshipsPage() {
     fetchScholarships();
   }, [pagination.currentPage, debouncedSearchTerm, selectedFilters, sortBy, selectedStatus]);
 
-  const fetchScholarships = async () => {
+    const fetchScholarships = async () => {
+    // Don't show loading state for search operations if we already have results
+    const isSearchOperation = debouncedSearchTerm && scholarships.length > 0;
+    
     try {
-      setIsLoading(true);
+      if (!isSearchOperation) {
+        setIsLoading(true);
+      }
       
       // Build query parameters
       const params = new URLSearchParams({
@@ -182,7 +201,10 @@ export default function ScholarshipsPage() {
     } catch (error) {
       console.error('Error fetching scholarships:', error);
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we set it to true
+      if (!isSearchOperation) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -241,7 +263,8 @@ export default function ScholarshipsPage() {
     return diffDays;
   };
 
-  if (isLoading) {
+  // Show loading state only on initial load, not during search
+  if (isLoading && scholarships.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <motion.div
@@ -466,12 +489,20 @@ export default function ScholarshipsPage() {
           className="mb-6"
         >
           <div className="flex items-center justify-between">
-            <p className="text-gray-600">
-              Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
-              <span className="font-semibold">{pagination.totalCount}</span> scholarships
-              {searchTerm && ` for "${searchTerm}"`}
-              {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-600">
+                Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
+                <span className="font-semibold">{pagination.totalCount}</span> scholarships
+                {searchTerm && ` for "${searchTerm}"`}
+                {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
+              </p>
+              {isLoading && scholarships.length > 0 && (
+                <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Updating...</span>
+                </div>
+              )}
+            </div>
             
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Sort by:</span>
