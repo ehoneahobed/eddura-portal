@@ -80,6 +80,29 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
   } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Add Comment function (move this above all usages)
+  const addComment = () => {
+    if (!newComment.content.trim()) {
+      toast.error('Comment content is required');
+      return;
+    }
+    setForm(prev => ({
+      ...prev,
+      comments: [...prev.comments, {
+        content: newComment.content,
+        type: newComment.type,
+        position: newComment.position ? { ...newComment.position } : undefined,
+        status: 'pending'
+      }]
+    }));
+    setNewComment({
+      content: '',
+      type: 'general',
+      position: null
+    });
+    toast.success('Comment added');
+  };
+
   // Handle text selection in the document content
   useEffect(() => {
     const handleMouseUp = (e: MouseEvent) => {
