@@ -108,7 +108,7 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
 
   // Debounced search effect
   useEffect(() => {
@@ -126,7 +126,7 @@ export default function MyClonedDocumentsPage() {
     if (session?.user?.id) {
       fetchClonedDocuments();
     }
-  }, [session?.user?.id, pagination.page, categoryFilter, typeFilter, sortBy, fetchClonedDocuments]);
+  }, [session?.user?.id, fetchClonedDocuments]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
