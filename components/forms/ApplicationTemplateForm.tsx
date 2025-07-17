@@ -180,6 +180,7 @@ export default function ApplicationTemplateForm({
     }
     
     const initialValues = template || {
+      applicationType: 'scholarship',
       scholarshipId,
       title: '',
       description: '',
