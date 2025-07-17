@@ -32,6 +32,7 @@ import './Program';
 import './Application';
 import './UserInterest';
 import './ApplicationPackage';
+import './ScholarshipApplication';
 
 // Export all models for convenience
 export { default as User } from './User';
@@ -55,4 +56,5 @@ export { default as ApplicationFormRequest } from './ApplicationFormRequest';
 export { default as ApplicationTemplate } from './ApplicationTemplate';
 export { default as Application } from './Application';
 export { default as UserInterest } from './UserInterest';
-export { default as ApplicationPackage } from './ApplicationPackage'; 
+export { default as ApplicationPackage } from './ApplicationPackage';
+export { default as ScholarshipApplication } from './ScholarshipApplication'; 
