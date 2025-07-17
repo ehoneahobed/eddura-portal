@@ -109,7 +109,11 @@ interface ApplicationPackage {
   interestId: UserInterest;
 }
 
-export default function ApplicationPackageDashboard() {
+interface ApplicationPackageDashboardProps {
+  userId?: string;
+}
+
+export default function ApplicationPackageDashboard({ userId }: ApplicationPackageDashboardProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [interests, setInterests] = useState<UserInterest[]>([]);

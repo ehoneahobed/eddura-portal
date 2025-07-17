@@ -43,7 +43,11 @@ interface School {
   city: string;
 }
 
-export default function CreateInterestForm() {
+interface CreateInterestFormProps {
+  userId: string;
+}
+
+export default function CreateInterestForm({ userId }: CreateInterestFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [interestType, setInterestType] = useState<'program' | 'school' | 'external'>('program');
