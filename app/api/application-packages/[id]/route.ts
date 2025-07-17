@@ -19,7 +19,7 @@ export async function GET(
     await connectDB();
 
     const applicationPackage = await ApplicationPackage.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id
     })
     .populate('interestId')
@@ -60,8 +60,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -84,7 +85,7 @@ export async function PUT(
     await connectDB();
 
     const applicationPackage = await ApplicationPackage.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id
     });
 
@@ -142,8 +143,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -154,7 +156,7 @@ export async function DELETE(
     await connectDB();
 
     const applicationPackage = await ApplicationPackage.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       userId: session.user.id
     });
 

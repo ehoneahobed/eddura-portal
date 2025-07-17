@@ -6,8 +6,9 @@ import UserInterest from '@/models/UserInterest';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -18,7 +19,7 @@ export async function GET(
     await connectDB();
 
     const interest = await UserInterest.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id
     })
     .populate('programId', 'name degreeType fieldOfStudy schoolId applicationRequirements')
@@ -44,8 +45,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -70,7 +72,7 @@ export async function PUT(
     await connectDB();
 
     const interest = await UserInterest.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id
     });
 
@@ -115,8 +117,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -127,7 +130,7 @@ export async function DELETE(
     await connectDB();
 
     const interest = await UserInterest.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       userId: session.user.id
     });
 
