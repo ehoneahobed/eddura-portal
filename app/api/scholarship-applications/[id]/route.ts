@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import ScholarshipApplication from '@/models/ScholarshipApplication';
 import { z } from 'zod';
 
@@ -34,7 +34,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    await connectToDatabase();
+    await connectDB();
 
     const application = await ScholarshipApplication.findOne({
       _id: id,
@@ -71,7 +71,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    await connectToDatabase();
+    await connectDB();
 
     const body = await request.json();
     const validatedData = updateScholarshipApplicationSchema.parse(body);
@@ -128,7 +128,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await connectToDatabase();
+    await connectDB();
 
     const application = await ScholarshipApplication.findOneAndDelete({
       _id: id,

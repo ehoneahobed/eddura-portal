@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const body = await request.json();
     const validatedData = createScholarshipApplicationSchema.parse(body);
