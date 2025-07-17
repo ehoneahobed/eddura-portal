@@ -30,9 +30,14 @@ export default function CreateApplicationTemplatePage() {
       await createApplicationTemplate(templateData);
       toast.success('Application template created successfully');
       router.push('/admin/application-templates');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating template:', error);
-      toast.error('Failed to create application template');
+      // Show backend error message if available
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to create application template');
+      }
     } finally {
       setIsCreating(false);
     }
