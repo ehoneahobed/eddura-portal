@@ -18,6 +18,7 @@ export interface ApplicationTemplateQueryParams {
  * Interface for creating/updating application templates
  */
 export interface ApplicationTemplateFormData {
+  applicationType: 'scholarship' | 'school' | 'program';
   scholarshipId: string;
   title: string;
   description?: string;
