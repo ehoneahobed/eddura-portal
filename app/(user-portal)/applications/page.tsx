@@ -1,13 +1,13 @@
 import { Metadata } from 'next';
-import ApplicationsPage from '@/components/applications/ApplicationsPage';
+import ApplicationPackageDashboard from '@/components/applications/ApplicationPackageDashboard';
 
 export const metadata: Metadata = {
-  title: 'My Applications - Eddura',
-  description: 'Track and manage your scholarship applications. View progress, status, and continue where you left off.',
-  keywords: 'applications, scholarship applications, application tracking, application status',
+  title: 'Application Management - Eddura',
+  description: 'Track and manage your program interests and application packages. View progress, status, and manage your entire application journey.',
+  keywords: 'applications, program interests, application packages, application tracking, application management',
   openGraph: {
-    title: 'My Applications - Eddura',
-    description: 'Track and manage your scholarship applications. View progress, status, and continue where you left off.',
+    title: 'Application Management - Eddura',
+    description: 'Track and manage your program interests and application packages. View progress, status, and manage your entire application journey.',
     type: 'website',
     url: 'https://eddura.com/applications',
     siteName: 'Eddura',
@@ -15,5 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function ApplicationsPageRoute() {
-  return <ApplicationsPage />;
+  return <ApplicationPackageDashboard />;
 }

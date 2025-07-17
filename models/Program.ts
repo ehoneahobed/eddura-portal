@@ -84,6 +84,33 @@ export interface IProgram extends Document {
   createdAt: Date;
   /** Date the program was last updated (auto-managed by Mongoose) */
   updatedAt: Date;
+  
+  // Application-related fields
+  /** Official school application portal URL */
+  applicationUrl?: string;
+  /** Instructions on how to apply to this program */
+  applicationInstructions?: string;
+  /** Whether the program requires an interview */
+  requiresInterview?: boolean;
+  /** Type of interview required */
+  interviewType?: 'in-person' | 'virtual' | 'phone' | 'multiple';
+  /** Detailed notes about the interview process */
+  interviewNotes?: string;
+  
+  // Application requirements
+  /** Detailed application requirements */
+  applicationRequirements?: {
+    /** Required document types */
+    documents: string[];
+    /** Application deadlines */
+    deadlines: string[];
+    /** Additional notes about requirements */
+    additionalNotes?: string;
+    /** Whether interview is required */
+    interviewRequired?: boolean;
+    /** Interview process details */
+    interviewProcess?: string;
+  };
 }
 
 const ProgramSchema: Schema = new Schema<IProgram>(
@@ -140,6 +167,25 @@ const ProgramSchema: Schema = new Schema<IProgram>(
       type: String,
       enum: ['Undergraduate', 'Postgraduate'],
       required: true
+    },
+    
+    // Application-related fields
+    applicationUrl: { type: String, trim: true },
+    applicationInstructions: { type: String, trim: true },
+    requiresInterview: { type: Boolean, default: false },
+    interviewType: {
+      type: String,
+      enum: ['in-person', 'virtual', 'phone', 'multiple']
+    },
+    interviewNotes: { type: String, trim: true },
+    
+    // Application requirements
+    applicationRequirements: {
+      documents: [{ type: String, trim: true }],
+      deadlines: [{ type: String, trim: true }],
+      additionalNotes: { type: String, trim: true },
+      interviewRequired: { type: Boolean, default: false },
+      interviewProcess: { type: String, trim: true }
     },
   },
   { 
