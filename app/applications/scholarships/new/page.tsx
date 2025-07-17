@@ -1,10 +1,9 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import CreateScholarshipApplicationForm from '@/components/applications/CreateScholarshipApplicationForm';
 
 export default async function NewScholarshipApplicationPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.id) {
     redirect('/auth/signin');
