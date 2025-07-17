@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
+// Import models index to ensure proper registration order
+import '@/models/index';
 import Scholarship from '@/models/Scholarship';
 
 export async function GET(request: NextRequest) {
@@ -33,20 +35,23 @@ export async function GET(request: NextRequest) {
     
     // Build filter object
     const filter: any = {};
+    const conditions = [];
     
     // Enhanced search filter - search in more fields
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { provider: { $regex: search, $options: 'i' } },
-        { scholarshipDetails: { $regex: search, $options: 'i' } },
-        { 'eligibility.degreeLevels': { $regex: search, $options: 'i' } },
-        { 'eligibility.fieldsOfStudy': { $regex: search, $options: 'i' } },
-        { linkedSchool: { $regex: search, $options: 'i' } },
-        { linkedProgram: { $regex: search, $options: 'i' } },
-        { coverage: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } }
-      ];
+      conditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { provider: { $regex: search, $options: 'i' } },
+          { scholarshipDetails: { $regex: search, $options: 'i' } },
+          { 'eligibility.degreeLevels': { $regex: search, $options: 'i' } },
+          { 'eligibility.fieldsOfStudy': { $regex: search, $options: 'i' } },
+          { linkedSchool: { $regex: search, $options: 'i' } },
+          { linkedProgram: { $regex: search, $options: 'i' } },
+          { coverage: { $regex: search, $options: 'i' } },
+          { tags: { $regex: search, $options: 'i' } }
+        ]
+      });
     }
     
     // Provider filter
@@ -66,28 +71,36 @@ export async function GET(request: NextRequest) {
     
     // Degree level filter
     if (degreeLevel && degreeLevel !== 'all') {
-      filter['eligibility.degreeLevels'] = { $in: [degreeLevel] };
+      // Check if the degree level exists in the array OR if the array is empty (meaning all levels are accepted)
+      const degreeLevelCondition = {
+        $or: [
+          { 'eligibility.degreeLevels': { $in: [degreeLevel] } },
+          { 'eligibility.degreeLevels': { $size: 0 } } // Empty array means all levels accepted
+        ]
+      };
+      conditions.push(degreeLevelCondition);
     }
 
     // Field of study filter
     if (fieldOfStudy && fieldOfStudy !== 'all') {
-      filter['eligibility.fieldsOfStudy'] = { $regex: fieldOfStudy, $options: 'i' };
-    }
-
-    // Value range filter
-    if (minValue || maxValue) {
-      filter.value = {};
-      if (minValue) {
-        filter.value.$gte = parseFloat(minValue);
-      }
-      if (maxValue) {
-        filter.value.$lte = parseFloat(maxValue);
-      }
+      // Check if the field of study exists in the array OR if the array is empty (meaning all fields accepted)
+      conditions.push({
+        $or: [
+          { 'eligibility.fieldsOfStudy': { $regex: fieldOfStudy, $options: 'i' } },
+          { 'eligibility.fieldsOfStudy': { $size: 0 } } // Empty array means all fields accepted
+        ]
+      });
     }
 
     // Nationality filter
     if (nationality && nationality !== 'all') {
-      filter['eligibility.nationalities'] = { $in: [nationality] };
+      // Check if the nationality exists in the array OR if the array is empty (meaning all nationalities accepted)
+      conditions.push({
+        $or: [
+          { 'eligibility.nationalities': { $in: [nationality] } },
+          { 'eligibility.nationalities': { $size: 0 } } // Empty array means all nationalities accepted
+        ]
+      });
     }
 
     // Min GPA filter
@@ -113,20 +126,37 @@ export async function GET(request: NextRequest) {
     if (status) {
       switch (status) {
         case 'active':
-          filter.deadline = { $gte: now.toISOString() };
+          // Active: opening date has passed (or no opening date) AND deadline hasn't passed
+          conditions.push({
+            $and: [
+              { deadline: { $gte: now.toISOString() } },
+              {
+                $or: [
+                  { openingDate: { $exists: false } },
+                  { openingDate: { $lte: now.toISOString() } }
+                ]
+              }
+            ]
+          });
           break;
         case 'expired':
+          // Expired: deadline has passed
           filter.deadline = { $lt: now.toISOString() };
           break;
         case 'coming-soon':
-          const sixMonthsFromNow = new Date();
-          sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-          filter.deadline = { 
-            $gte: now.toISOString(),
-            $lte: sixMonthsFromNow.toISOString()
-          };
+          // Coming Soon: opening date is within 3 months from now
+          const threeMonthsFromNow = new Date();
+          threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+          conditions.push({
+            $and: [
+              { openingDate: { $exists: true } },
+              { openingDate: { $gte: now.toISOString() } },
+              { openingDate: { $lte: threeMonthsFromNow.toISOString() } }
+            ]
+          });
           break;
         case 'urgent':
+          // Urgent: deadline is within 30 days
           const thirtyDaysFromNow = new Date();
           thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
           filter.deadline = { 
@@ -140,28 +170,34 @@ export async function GET(request: NextRequest) {
       filter.deadline = { $gte: now.toISOString() };
     }
     
+    // Apply all conditions using $and if there are multiple conditions
+    if (conditions.length > 0) {
+      if (conditions.length === 1) {
+        Object.assign(filter, conditions[0]);
+      } else {
+        filter.$and = conditions;
+      }
+    }
+    
     // Get total count for pagination
     const totalCount = await Scholarship.countDocuments(filter);
     
-    // Build sort object with custom logic for expired scholarships
+    // Build sort object with simple sorting logic
     let sortObject: any = {};
     
-    if (includeExpired && sortBy === 'deadline') {
-      // When including expired and sorting by deadline, use a compound sort
-      // to show active scholarships first, then expired ones
-      const now = new Date();
-      sortObject = {
-        $expr: {
-          $cond: {
-            if: { $gte: ['$deadline', now.toISOString()] },
-            then: 0,
-            else: 1
-          }
-        },
-        deadline: sortOrder === 'asc' ? 1 : -1
-      };
+    if (sortBy === 'relevance' && search) {
+      // For relevance with search, sort by creation date (newest first)
+      // The search filter already handles relevance through the query
+      sortObject = { createdAt: -1 };
+    } else if (includeExpired && sortBy === 'deadline') {
+      // When including expired and sorting by deadline, use simple deadline sorting
+      // Active/expired prioritization is handled by the filter logic
+      sortObject = { deadline: sortOrder === 'asc' ? 1 : -1 };
+    } else if (sortBy === 'openingDate') {
+      // For opening date, use simple sorting (null values will be sorted naturally)
+      sortObject = { openingDate: sortOrder === 'asc' ? 1 : -1 };
     } else {
-      // Normal sorting
+      // Normal sorting for other fields
       sortObject[sortBy] = sortOrder === 'asc' ? 1 : -1;
     }
     

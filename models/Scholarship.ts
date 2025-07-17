@@ -148,6 +148,8 @@ ScholarshipSchema.index({ deadline: 1 });
 ScholarshipSchema.index({ openingDate: 1 });
 ScholarshipSchema.index({ value: -1 });
 ScholarshipSchema.index({ 'eligibility.degreeLevels': 1 });
+ScholarshipSchema.index({ title: 1 }); // For alphabetical sorting
+ScholarshipSchema.index({ createdAt: -1 }); // For newest/oldest sorting
 
 const Scholarship: Model<IScholarship> = mongoose.models.Scholarship || mongoose.model<IScholarship>('Scholarship', ScholarshipSchema);
 

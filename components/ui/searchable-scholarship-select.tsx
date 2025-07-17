@@ -21,7 +21,7 @@ import {
   GraduationCap,
   Building
 } from 'lucide-react';
-import { useScholarships, useScholarship } from '@/hooks/use-scholarships';
+import { useScholarshipsForSearch, useScholarship } from '@/hooks/use-scholarships';
 import { Scholarship } from '@/types';
 
 interface SearchableScholarshipSelectProps {
@@ -71,12 +71,13 @@ export default function SearchableScholarshipSelect({
   // Fetch specific scholarship if value is provided but not found in search results
   const { scholarship: specificScholarship, isLoading: isLoadingSpecific } = useScholarship(value);
 
-  // Debounce search term
+  // Debounce search term with improved logic
   React.useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
     
+    // Set a new timeout for the current search term
     debounceTimeout.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
       setPage(1); // Reset to first page when search changes
@@ -103,7 +104,7 @@ export default function SearchableScholarshipSelect({
     sortOrder: 'asc' as const
   };
 
-  const { scholarships, pagination, isLoading, isError } = useScholarships(queryParams);
+  const { scholarships, pagination, isLoading, isError } = useScholarshipsForSearch(queryParams);
 
   // Load recent scholarships from localStorage
   React.useEffect(() => {
@@ -271,13 +272,13 @@ export default function SearchableScholarshipSelect({
             <Badge 
               key={index} 
               variant="secondary" 
-              className={`text-xs px-2 py-0.5 ${getCoverageColor(scholarship.coverage)}`}
+              className={`text-xs px-2 py-0.5 ${getCoverageColor(scholarship.coverage)} pointer-events-none`}
             >
               {coverage}
             </Badge>
           ))}
           {scholarship.coverage.length > 2 && (
-            <Badge variant="secondary" className="text-xs px-2 py-0.5">
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 pointer-events-none">
               +{scholarship.coverage.length - 2} more
             </Badge>
           )}
@@ -506,7 +507,7 @@ export default function SearchableScholarshipSelect({
           
           {/* Search Results */}
           <ScrollArea className="max-h-96">
-            {isLoading && page === 1 ? (
+            {isLoading && page === 1 && scholarships.length === 0 ? (
               <div className="px-3 py-8 text-center text-gray-500">
                 <div className="animate-spin w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto mb-2"></div>
                 Searching scholarships...
@@ -521,8 +522,14 @@ export default function SearchableScholarshipSelect({
               </div>
             ) : (
               <div>
-                <div className="px-3 py-2 text-xs text-gray-600 bg-gray-50 sticky top-0">
-                  {pagination.totalCount ? `${scholarships.length} of ${pagination.totalCount} scholarships` : `${scholarships.length} scholarships`}
+                <div className="px-3 py-2 text-xs text-gray-600 bg-gray-50 sticky top-0 flex items-center justify-between">
+                  <span>{pagination.totalCount ? `${scholarships.length} of ${pagination.totalCount} scholarships` : `${scholarships.length} scholarships`}</span>
+                  {isLoading && scholarships.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="animate-spin w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full"></div>
+                      <span>Updating...</span>
+                    </div>
+                  )}
                 </div>
                 
                 {scholarships.map((scholarship: Scholarship) => (

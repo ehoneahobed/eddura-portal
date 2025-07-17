@@ -49,7 +49,7 @@ function formatCurrency(amount: number, currency: string): string {
 // Loading skeleton for program details
 function ProgramDetailSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <Skeleton className="h-8 w-64 mb-4" />
         <Skeleton className="h-6 w-96" />
@@ -124,7 +124,7 @@ export default function ProgramDetailPage() {
 
   if (isError || !program) {
     return (
-      <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center items-center py-20">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -141,7 +141,7 @@ export default function ProgramDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <header className="mb-8">
         <Button 

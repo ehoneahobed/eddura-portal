@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -19,16 +19,28 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import ScholarshipCard from './ScholarshipCard';
 import ScholarshipFilters from './ScholarshipFilters';
+
+// Define the Filters interface locally since it's not exported from ScholarshipFilters
+interface Filters {
+  frequency: string;
+  minGPA: string;
+  hasEssay: boolean;
+  hasCV: boolean;
+  hasRecommendations: boolean;
+}
 
 interface Scholarship {
   _id: string;
@@ -39,6 +51,7 @@ interface Scholarship {
   currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   deadline: string;
+  openingDate?: string;
   eligibility: {
     degreeLevels?: string[];
     fieldsOfStudy?: string[];
@@ -54,6 +67,8 @@ interface Scholarship {
   linkedProgram?: string;
   coverage: string[];
   tags?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface PaginationInfo {
@@ -65,19 +80,26 @@ interface PaginationInfo {
   limit: number;
 }
 
+// Define sorting options with descriptions
+const SORT_OPTIONS = [
+  { value: 'relevance', label: 'Relevance', description: 'Best matches for your search' },
+  { value: 'alphabetical', label: 'Alphabetical', description: 'A-Z by title' },
+  { value: 'deadline', label: 'Deadline', description: 'Earliest deadline first' },
+  { value: 'opening-date', label: 'Opening Date', description: 'Applications opening soon' },
+  { value: 'newest', label: 'Newest', description: 'Recently added' },
+  { value: 'oldest', label: 'Oldest', description: 'Added first' }
+] as const;
+
+type SortOption = typeof SORT_OPTIONS[number]['value'];
+
 export default function ScholarshipsPage() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFilters, setSelectedFilters] = useState({
-    degreeLevel: 'all',
-    fieldOfStudy: 'all',
+  const [selectedFilters, setSelectedFilters] = useState<Filters>({
     frequency: 'all',
-    minValue: '',
-    maxValue: '',
-    nationality: 'all',
     minGPA: '',
     hasEssay: false,
     hasCV: false,
@@ -93,15 +115,28 @@ export default function ScholarshipsPage() {
     hasPrevPage: false,
     limit: 15 // Show 15 scholarships per page
   });
-  const [sortBy, setSortBy] = useState('relevance');
+  const [sortBy, setSortBy] = useState<SortOption>('relevance');
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSearchTermRef = useRef<string>('');
 
-  // Debounced search effect
+  // Improved debounced search effect
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set a new timeout for the current search term
+    searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      lastSearchTermRef.current = searchTerm;
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchTerm]);
 
   // Focus restoration effect
@@ -116,9 +151,14 @@ export default function ScholarshipsPage() {
     fetchScholarships();
   }, [pagination.currentPage, debouncedSearchTerm, selectedFilters, sortBy, selectedStatus]);
 
-  const fetchScholarships = async () => {
+    const fetchScholarships = async () => {
+    // Don't show loading state for search operations if we already have results
+    const isSearchOperation = debouncedSearchTerm && scholarships.length > 0;
+    
     try {
-      setIsLoading(true);
+      if (!isSearchOperation) {
+        setIsLoading(true);
+      }
       
       // Build query parameters
       const params = new URLSearchParams({
@@ -134,23 +174,8 @@ export default function ScholarshipsPage() {
       }
 
       // Add filter parameters
-      if (selectedFilters.degreeLevel !== 'all') {
-        params.append('degreeLevel', selectedFilters.degreeLevel);
-      }
-      if (selectedFilters.fieldOfStudy !== 'all') {
-        params.append('fieldOfStudy', selectedFilters.fieldOfStudy);
-      }
       if (selectedFilters.frequency !== 'all') {
         params.append('frequency', selectedFilters.frequency);
-      }
-      if (selectedFilters.minValue) {
-        params.append('minValue', selectedFilters.minValue);
-      }
-      if (selectedFilters.maxValue) {
-        params.append('maxValue', selectedFilters.maxValue);
-      }
-      if (selectedFilters.nationality !== 'all') {
-        params.append('nationality', selectedFilters.nationality);
       }
       if (selectedFilters.minGPA) {
         params.append('minGPA', selectedFilters.minGPA);
@@ -182,24 +207,33 @@ export default function ScholarshipsPage() {
     } catch (error) {
       console.error('Error fetching scholarships:', error);
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we set it to true
+      if (!isSearchOperation) {
+        setIsLoading(false);
+      }
     }
   };
 
-  const getSortByParam = (sort: string) => {
+  const getSortByParam = (sort: SortOption): string => {
     switch (sort) {
+      case 'alphabetical': return 'title';
       case 'deadline': return 'deadline';
-      case 'value': return 'value';
+      case 'opening-date': return 'openingDate';
       case 'newest': return 'createdAt';
-      default: return 'createdAt'; // relevance defaults to newest
+      case 'oldest': return 'createdAt';
+      case 'relevance': 
+      default: return 'createdAt'; // relevance defaults to newest for now
     }
   };
 
-  const getSortOrder = (sort: string) => {
+  const getSortOrder = (sort: SortOption): string => {
     switch (sort) {
+      case 'alphabetical': return 'asc';
       case 'deadline': return 'asc';
-      case 'value': return 'desc';
+      case 'opening-date': return 'asc';
       case 'newest': return 'desc';
+      case 'oldest': return 'asc';
+      case 'relevance': 
       default: return 'desc';
     }
   };
@@ -210,12 +244,7 @@ export default function ScholarshipsPage() {
 
   const clearFilters = () => {
     setSelectedFilters({
-      degreeLevel: 'all',
-      fieldOfStudy: 'all',
       frequency: 'all',
-      minValue: '',
-      maxValue: '',
-      nationality: 'all',
       minGPA: '',
       hasEssay: false,
       hasCV: false,
@@ -241,7 +270,18 @@ export default function ScholarshipsPage() {
     return diffDays;
   };
 
-  if (isLoading) {
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Currently Accepting';
+      case 'expired': return 'Expired';
+      case 'coming-soon': return 'Opening Soon (3 months)';
+      case 'urgent': return 'Urgent (30 days)';
+      default: return status;
+    }
+  };
+
+  // Show loading state only on initial load, not during search
+  if (isLoading && scholarships.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <motion.div
@@ -336,37 +376,13 @@ export default function ScholarshipsPage() {
 
                 {/* Quick Filters */}
                 <div className="flex gap-2">
-                  <Select 
-                    value={selectedFilters.degreeLevel} 
-                    onValueChange={(value) => {
-                      setSelectedFilters(prev => ({ ...prev, degreeLevel: value }));
-                      setPagination(prev => ({ ...prev, currentPage: 1 }));
-                    }}
-                    onOpenChange={(open) => {
-                      if (!open && searchInputRef.current) {
-                        // Restore focus to search input when select closes
-                        setTimeout(() => {
-                          searchInputRef.current?.focus();
-                        }, 0);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Degree Level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="Bachelor">Bachelor</SelectItem>
-                      <SelectItem value="Master">Master</SelectItem>
-                      <SelectItem value="PhD">PhD</SelectItem>
-                    </SelectContent>
-                  </Select>
+
 
                   <Select 
                     value={selectedFilters.frequency} 
                     onValueChange={(value) => {
-                      setSelectedFilters(prev => ({ ...prev, frequency: value }));
-                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                      setSelectedFilters((prev: Filters) => ({ ...prev, frequency: value }));
+                      setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
                     }}
                     onOpenChange={(open) => {
                       if (!open && searchInputRef.current) {
@@ -392,7 +408,7 @@ export default function ScholarshipsPage() {
                     value={selectedStatus} 
                     onValueChange={(value) => {
                       setSelectedStatus(value);
-                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                      setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
                     }}
                     onOpenChange={(open) => {
                       if (!open && searchInputRef.current) {
@@ -408,12 +424,29 @@ export default function ScholarshipsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="active">Currently Accepting</SelectItem>
                       <SelectItem value="expired">Expired</SelectItem>
-                      <SelectItem value="coming-soon">Coming Soon</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="coming-soon">Opening Soon (3 months)</SelectItem>
+                      <SelectItem value="urgent">Urgent (30 days)</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="max-w-xs">
+                          <p><strong>Currently Accepting:</strong> Applications are open and deadline hasn't passed</p>
+                          <p><strong>Opening Soon:</strong> Applications will open within 3 months</p>
+                          <p><strong>Urgent:</strong> Deadline is within 30 days</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
                   <Button
                     variant="outline"
@@ -449,7 +482,7 @@ export default function ScholarshipsPage() {
                     filters={selectedFilters}
                     onFiltersChange={(filters) => {
                       setSelectedFilters(filters);
-                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                      setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
                     }}
                   />
                 </motion.div>
@@ -466,18 +499,26 @@ export default function ScholarshipsPage() {
           className="mb-6"
         >
           <div className="flex items-center justify-between">
-            <p className="text-gray-600">
-              Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
-              <span className="font-semibold">{pagination.totalCount}</span> scholarships
-              {searchTerm && ` for "${searchTerm}"`}
-              {selectedStatus !== 'all' && ` (${selectedStatus} status)`}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-600">
+                Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
+                <span className="font-semibold">{pagination.totalCount}</span> scholarships
+                {searchTerm && ` for "${searchTerm}"`}
+                {selectedStatus !== 'all' && ` (${getStatusLabel(selectedStatus)})`}
+              </p>
+              {isLoading && scholarships.length > 0 && (
+                <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Updating...</span>
+                </div>
+              )}
+            </div>
             
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Sort by:</span>
               <Select value={sortBy} onValueChange={(value) => {
-                setSortBy(value);
-                setPagination(prev => ({ ...prev, currentPage: 1 }));
+                setSortBy(value as SortOption);
+                setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
               }}
               onOpenChange={(open) => {
                 if (!open && searchInputRef.current) {
@@ -487,14 +528,18 @@ export default function ScholarshipsPage() {
                   }, 0);
                 }
               }}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="relevance">Relevance</SelectItem>
-                  <SelectItem value="deadline">Deadline</SelectItem>
-                  <SelectItem value="value">Value</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
+                  {SORT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex flex-col">
+                        <span>{option.label}</span>
+                        <span className="text-xs text-gray-500">{option.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -78,6 +78,11 @@ export default function MyClonedDocumentsPage() {
   });
 
   const fetchClonedDocuments = useCallback(async () => {
+    if (!session?.user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -103,21 +108,25 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
 
   // Debounced search effect
   useEffect(() => {
+    if (!session?.user?.id) return;
+    
     const timer = setTimeout(() => {
       setPagination(prev => ({ ...prev, page: 1 }));
       fetchClonedDocuments();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, fetchClonedDocuments]);
+  }, [searchTerm, session?.user?.id, fetchClonedDocuments]);
 
   useEffect(() => {
-    fetchClonedDocuments();
-  }, [pagination.page, categoryFilter, typeFilter, sortBy, fetchClonedDocuments]);
+    if (session?.user?.id) {
+      fetchClonedDocuments();
+    }
+  }, [session?.user?.id, fetchClonedDocuments]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

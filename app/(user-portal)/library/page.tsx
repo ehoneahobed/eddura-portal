@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ interface LibraryDocument {
 }
 
 export default function LibraryPage() {
+  const { data: session } = useSession();
   const [documents, setDocuments] = useState<LibraryDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,6 +83,11 @@ export default function LibraryPage() {
   });
 
   const fetchDocuments = useCallback(async () => {
+    if (!session?.user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -113,11 +120,13 @@ export default function LibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
 
   useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+    if (session?.user?.id) {
+      fetchDocuments();
+    }
+  }, [session?.user?.id, fetchDocuments]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

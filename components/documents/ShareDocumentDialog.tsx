@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Share2, Mail, Link, Copy, Check, Calendar, User, MessageSquare } from 'lucide-react';
+import { Share2, Mail, Link, Copy, Check, Calendar, User, MessageSquare, Loader2 } from 'lucide-react';
 import { Document } from '@/types/documents';
 import { DocumentShare } from '@/types/feedback';
 import { toast } from 'sonner';
@@ -32,6 +32,8 @@ export default function ShareDocumentDialog({
   const [loading, setLoading] = useState(false);
   const [shares, setShares] = useState<DocumentShare[]>([]);
   const [loadingShares, setLoadingShares] = useState(false);
+  const [copyingStates, setCopyingStates] = useState<{ [key: string]: boolean }>({});
+  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
 
   // Email sharing form
   const [emailForm, setEmailForm] = useState({
@@ -78,11 +80,6 @@ export default function ShareDocumentDialog({
   }, [open]);
 
   const handleEmailShare = async () => {
-    if (!emailForm.email.trim()) {
-      toast.error('Email is required');
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await fetch(`/api/documents/${document._id}/share`, {
@@ -99,7 +96,7 @@ export default function ShareDocumentDialog({
 
       if (response.ok) {
         const data = await response.json();
-        toast.success('Document shared successfully');
+        toast.success('Document shared successfully via email');
         onShareCreated?.(data.share);
         setEmailForm({
           email: '',
@@ -161,12 +158,36 @@ export default function ShareDocumentDialog({
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string, shareId: string) => {
+    // Set copying state for this specific share
+    setCopyingStates(prev => ({ ...prev, [shareId]: true }));
+    
     try {
       await navigator.clipboard.writeText(text);
-      toast.success('Link copied to clipboard');
+      
+      // Show success feedback
+      toast.success('Share link copied to clipboard!', {
+        description: 'You can now paste this link anywhere to share your document.',
+        duration: 3000,
+      });
+      
+      // Set copied state for visual feedback
+      setCopiedStates(prev => ({ ...prev, [shareId]: true }));
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedStates(prev => ({ ...prev, [shareId]: false }));
+      }, 2000);
+      
     } catch (error) {
-      toast.error('Failed to copy link');
+      console.error('Failed to copy link:', error);
+      toast.error('Failed to copy link to clipboard', {
+        description: 'Please try selecting and copying the link manually.',
+        duration: 4000,
+      });
+    } finally {
+      // Reset copying state
+      setCopyingStates(prev => ({ ...prev, [shareId]: false }));
     }
   };
 
@@ -186,6 +207,36 @@ export default function ShareDocumentDialog({
 
   const getShareTypeLabel = (shareType: string) => {
     return shareType === 'email' ? 'Email Share' : 'Link Share';
+  };
+
+  const getCopyButtonContent = (shareId: string) => {
+    const isCopying = copyingStates[shareId];
+    const isCopied = copiedStates[shareId];
+    
+    if (isCopying) {
+      return (
+        <>
+          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+          Copying...
+        </>
+      );
+    }
+    
+    if (isCopied) {
+      return (
+        <>
+          <Check className="h-3 w-3 mr-1" />
+          Copied!
+        </>
+      );
+    }
+    
+    return (
+      <>
+        <Copy className="h-3 w-3 mr-1" />
+        Copy Link
+      </>
+    );
   };
 
   return (
@@ -429,12 +480,13 @@ export default function ShareDocumentDialog({
                       <div className="flex items-center gap-2">
                         {share.shareType === 'link' && (
                           <Button
-                            variant="outline"
+                            variant={copiedStates[share._id] ? "default" : "outline"}
                             size="sm"
-                            onClick={() => copyToClipboard(`${window.location.origin}/review/${share.shareToken}`)}
+                            onClick={() => copyToClipboard(`${window.location.origin}/review/${share.shareToken}`, share._id)}
+                            disabled={copyingStates[share._id]}
+                            className={copiedStates[share._id] ? "bg-green-600 hover:bg-green-700 text-white" : ""}
                           >
-                            <Copy className="h-3 w-3 mr-1" />
-                            Copy Link
+                            {getCopyButtonContent(share._id)}
                           </Button>
                         )}
                       </div>

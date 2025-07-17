@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
+// Import models index to ensure proper registration order
+import '@/models/index';
 import Program from '@/models/Program';
 
 export async function GET(
@@ -30,7 +32,14 @@ export async function GET(
       );
     }
     
-    return NextResponse.json(program);
+    // Transform the response to match frontend expectations
+    const transformedProgram = {
+      ...program,
+      school: program.schoolId, // Rename schoolId to school
+      schoolId: program.schoolId?._id // Keep the original ID as schoolId
+    };
+    
+    return NextResponse.json(transformedProgram);
   } catch (error) {
     console.error('Error fetching program:', error);
     return NextResponse.json(
@@ -70,7 +79,15 @@ export async function PUT(
       );
     }
     
-    return NextResponse.json(updatedProgram);
+    // Transform the response to match frontend expectations
+    const transformed = updatedProgram.toObject ? updatedProgram.toObject() : updatedProgram;
+    const transformedProgram = {
+      ...transformed,
+      school: transformed.schoolId, // Rename schoolId to school
+      schoolId: transformed.schoolId?._id // Keep the original ID as schoolId
+    };
+    
+    return NextResponse.json(transformedProgram);
   } catch (error) {
     console.error('Error updating program:', error);
     
