@@ -32,7 +32,8 @@ export default function CreateApplicationTemplatePage() {
       router.push('/admin/application-templates');
     } catch (error) {
       console.error('Error creating template:', error);
-      toast.error('Failed to create application template');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create application template';
+      toast.error(errorMessage);
     } finally {
       setIsCreating(false);
     }
