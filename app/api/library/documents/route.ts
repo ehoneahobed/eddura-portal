@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import LibraryDocument from '@/models/LibraryDocument';
 import DocumentClone from '@/models/DocumentClone';
 import DocumentRating from '@/models/DocumentRating';
+import DocumentView from '@/models/DocumentView';
 
 // GET /api/library/documents - Browse published library documents
 export async function GET(request: NextRequest) {
@@ -127,9 +128,19 @@ export async function GET(request: NextRequest) {
       isCloned: clonedDocumentIds.has(doc._id.toString())
     }));
 
-    // Increment view count for each document (async, don't wait)
+    // Track views and increment view count for each document (async, don't wait)
     documents.forEach(doc => {
-      LibraryDocument.findByIdAndUpdate(doc._id, { $inc: { viewCount: 1 } }).catch(console.error);
+      Promise.all([
+        LibraryDocument.findByIdAndUpdate(doc._id, { $inc: { viewCount: 1 } }),
+        DocumentView.create({
+          documentId: doc._id,
+          userId: session.user.type === 'user' ? session.user.id : undefined,
+          userType: session.user.type === 'admin' ? 'admin' : session.user.type === 'user' ? 'user' : 'anonymous',
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+          userAgent: request.headers.get('user-agent') || undefined,
+          referrer: request.headers.get('referer') || undefined,
+        })
+      ]).catch(console.error);
     });
 
     return NextResponse.json({
