@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import LibraryDocument from '@/models/LibraryDocument';
+import DocumentView from '@/models/DocumentView';
+import DocumentClone from '@/models/DocumentClone';
+import DocumentRating from '@/models/DocumentRating';
 import { z } from 'zod';
 
 // Validation schema for creating/updating library documents
@@ -82,8 +85,31 @@ export async function GET(request: NextRequest) {
       LibraryDocument.countDocuments(query)
     ]);
 
+    // Get real-time stats for each document
+    const documentsWithRealStats = await Promise.all(
+      documents.map(async (doc) => {
+        const [viewCount, cloneCount, ratingCount, avgRating] = await Promise.all([
+          DocumentView.countDocuments({ documentId: doc._id }),
+          DocumentClone.countDocuments({ originalDocumentId: doc._id }),
+          DocumentRating.countDocuments({ documentId: doc._id }),
+          DocumentRating.aggregate([
+            { $match: { documentId: doc._id } },
+            { $group: { _id: null, avg: { $avg: '$rating' } } }
+          ])
+        ]);
+
+        return {
+          ...doc,
+          viewCount,
+          cloneCount,
+          ratingCount,
+          averageRating: avgRating[0]?.avg || 0
+        };
+      })
+    );
+
     return NextResponse.json({
-      documents,
+      documents: documentsWithRealStats,
       pagination: {
         page,
         limit,
