@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import LibraryDocument from '@/models/LibraryDocument';
 import DocumentClone from '@/models/DocumentClone';
 import DocumentRating from '@/models/DocumentRating';
+import DocumentView from '@/models/DocumentView';
 import Document from '@/models/Document';
 import { DocumentType } from '@/types/documents';
 import { z } from 'zod';
@@ -45,8 +46,18 @@ export async function GET(
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
-    // Increment view count (async)
-    LibraryDocument.findByIdAndUpdate(resolvedParams.id, { $inc: { viewCount: 1 } }).catch(console.error);
+    // Track view and increment view count (async)
+    Promise.all([
+      LibraryDocument.findByIdAndUpdate(resolvedParams.id, { $inc: { viewCount: 1 } }),
+      DocumentView.create({
+        documentId: resolvedParams.id,
+        userId: session.user.type === 'user' ? session.user.id : undefined,
+        userType: session.user.type === 'admin' ? 'admin' : session.user.type === 'user' ? 'user' : 'anonymous',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+        referrer: request.headers.get('referer') || undefined,
+      })
+    ]).catch(console.error);
 
     return NextResponse.json({ document });
   } catch (error) {
