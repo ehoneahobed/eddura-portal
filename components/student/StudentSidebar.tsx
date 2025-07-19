@@ -62,6 +62,12 @@ const navigation = [
     description: 'Track your applications'
   },
   { 
+    name: 'Application Management', 
+    href: '/applications/manage', 
+    icon: Target,
+    description: 'Manage application packages'
+  },
+  { 
     name: 'Documents', 
     href: '/documents', 
     icon: Folder,

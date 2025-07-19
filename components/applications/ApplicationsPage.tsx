@@ -18,7 +18,8 @@ import {
   Loader2,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -172,13 +173,21 @@ export default function ApplicationsPage() {
             Track and manage your scholarship applications
           </p>
         </div>
-        <Button 
-          onClick={() => router.push('/scholarships')}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Find Scholarships
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => router.push('/applications/manage')}
+          >
+            Application Management
+          </Button>
+          <Button 
+            onClick={() => router.push('/scholarships')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Find Scholarships
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -237,6 +246,32 @@ export default function ApplicationsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Application Management CTA */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Target className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Application Management System</h3>
+                <p className="text-gray-600">
+                  Create application packages, track requirements, and manage your entire application journey
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => router.push('/applications/manage')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Open Application Management
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>

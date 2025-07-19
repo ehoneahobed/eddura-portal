@@ -152,7 +152,7 @@ export default function EditContentPage() {
     } finally {
       setLoading(false);
     }
-  }, [contentId, reset]);
+  }, [contentId, reset, router]);
 
   useEffect(() => {
     fetchContent();

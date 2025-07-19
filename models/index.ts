@@ -31,6 +31,8 @@ import './ApplicationTemplate';
 // 2. Models that reference other models (import after dependencies)
 import './Program';
 import './Application';
+import './ApplicationRequirement';
+import './RequirementsTemplate';
 
 // Export all models for convenience
 export { default as User } from './User';
@@ -53,4 +55,6 @@ export { default as Task } from './Task';
 export { default as SavedScholarship } from './SavedScholarship';
 export { default as ApplicationFormRequest } from './ApplicationFormRequest';
 export { default as ApplicationTemplate } from './ApplicationTemplate';
-export { default as Application } from './Application'; 
+export { default as Application } from './Application';
+export { default as ApplicationRequirement } from './ApplicationRequirement';
+export { default as RequirementsTemplate } from './RequirementsTemplate'; 

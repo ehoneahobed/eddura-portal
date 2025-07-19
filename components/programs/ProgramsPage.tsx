@@ -301,7 +301,7 @@ export default function ProgramsPage() {
             </div>
             {schoolSearch && (
               <p className="text-sm text-gray-500 mt-2 text-center">
-                Searching for "{schoolSearch}"...
+                Searching for &quot;{schoolSearch}&quot;...
               </p>
             )}
           </div>
@@ -333,7 +333,7 @@ export default function ProgramsPage() {
                 >
                   Showing <span className="font-semibold text-blue-600">{schools.length}</span> of{' '}
                   <span className="font-semibold">{schoolPagination.totalCount}</span> schools
-                  {schoolSearch && ` matching "${schoolSearch}"`}
+                  {schoolSearch && ` matching &quot;${schoolSearch}&quot;`}
                 </motion.p>
               </div>
 
@@ -408,7 +408,7 @@ export default function ProgramsPage() {
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">No schools found</h3>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    We couldn't find any schools matching your search criteria. 
+                    We couldn&apos;t find any schools matching your search criteria. 
                     Try adjusting your search terms or browse all schools.
                   </p>
                   <Button 

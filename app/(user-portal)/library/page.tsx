@@ -120,7 +120,7 @@ export default function LibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -434,14 +434,14 @@ export default function LibraryPage() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => window.open('/applications', '_blank')}
+              onClick={() => window.open('/applications/manage', '_blank')}
               className="h-auto p-4 flex flex-col items-center space-y-2"
             >
               <Award className="h-6 w-6" />
               <div className="text-center">
-                <div className="font-medium">My Applications</div>
+                <div className="font-medium">Application Management</div>
                 <div className="text-sm text-muted-foreground">
-                  Track applications
+                  Manage applications
                 </div>
               </div>
             </Button>

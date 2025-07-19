@@ -45,7 +45,10 @@ export async function GET(request: NextRequest) {
     const transformedApplications = applications.map(app => {
       let applicationData: any = {
         _id: app._id,
+        name: app.name,
+        description: app.description,
         status: app.status,
+        priority: app.priority,
         progress: app.progress,
         currentSectionId: app.currentSectionId,
         startedAt: app.startedAt,
@@ -53,7 +56,22 @@ export async function GET(request: NextRequest) {
         submittedAt: app.submittedAt,
         estimatedTimeRemaining: app.estimatedTimeRemaining,
         notes: app.notes,
-        applicationType: app.applicationType
+        applicationType: app.applicationType,
+        applicationDeadline: app.applicationDeadline,
+        targetId: app.targetId,
+        targetName: app.targetName,
+        isExternal: app.isExternal,
+        externalSchoolName: app.externalSchoolName,
+        externalProgramName: app.externalProgramName,
+        externalApplicationUrl: app.externalApplicationUrl,
+        createdAt: app.createdAt,
+        updatedAt: app.updatedAt,
+        requirementsProgress: app.requirementsProgress || {
+          total: 0,
+          completed: 0,
+          required: 0,
+          requiredCompleted: 0
+        }
       };
 
       // Add the appropriate data based on application type
@@ -128,236 +146,272 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { scholarshipId, schoolId, programId, applicationType } = await request.json();
+    const body = await request.json();
+    const { 
+      name,
+      description,
+      applicationType,
+      targetId,
+      targetName,
+      externalSchoolName,
+      externalProgramName,
+      externalScholarshipName,
+      externalApplicationUrl,
+      externalType,
+      applicationDeadline,
+      priority,
+      notes,
+      isExternal
+    } = body;
 
-    if (!applicationType) {
-      return NextResponse.json({ error: 'Application type is required' }, { status: 400 });
+    if (!name || !applicationType) {
+      return NextResponse.json({ error: 'Name and application type are required' }, { status: 400 });
     }
 
-    let targetId;
-    if (applicationType === 'scholarship' && scholarshipId) {
-      targetId = scholarshipId;
-    } else if (applicationType === 'school' && schoolId) {
-      targetId = schoolId;
-    } else if (applicationType === 'program' && programId) {
-      targetId = programId;
-    } else {
-      return NextResponse.json({ error: 'Valid ID is required for the application type' }, { status: 400 });
+    // Validate that the name is not undefined, null, empty, or "undefined"
+    if (!name || !name.trim() || name.trim() === 'undefined') {
+      return NextResponse.json({ error: 'Please provide a valid application package name' }, { status: 400 });
     }
 
     await connectDB();
 
-    // Check if application already exists
-    const existingApplication = await Application.findOne({
-      userId: session.user.id,
-      applicationType,
-      ...(applicationType === 'scholarship' && { scholarshipId }),
-      ...(applicationType === 'school' && { schoolId }),
-      ...(applicationType === 'program' && { programId }),
-      isActive: true
-    });
+    // Check if application package already exists with the same name
+    // Skip the check if the name is "undefined" or empty, as these are invalid names
+    if (name.trim() && name.trim() !== 'undefined') {
+      const existingApplication = await Application.findOne({
+        userId: session.user.id,
+        name: name.trim(),
+        isActive: true
+      });
 
-    if (existingApplication) {
-      return NextResponse.json({ 
-        error: 'Application already exists',
-        applicationId: existingApplication._id 
-      }, { status: 409 });
+      if (existingApplication) {
+        return NextResponse.json({ 
+          error: 'Application package with this name already exists',
+          applicationId: existingApplication._id 
+        }, { status: 409 });
+      }
     }
 
-    // Get the target entity and application template
-    let targetEntity;
-    let applicationTemplate;
+    // Validate target entity if provided
+    let targetEntity = null;
+    let applicationTemplate = null;
 
-    if (applicationType === 'scholarship') {
-      targetEntity = await Scholarship.findById(scholarshipId);
-      if (!targetEntity) {
-        return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
-      }
-      applicationTemplate = await ApplicationTemplate.findOne({
-        applicationType: 'scholarship',
-        scholarshipId: scholarshipId,
-        isActive: true
-      });
-    } else if (applicationType === 'school') {
-      targetEntity = await School.findById(schoolId);
-      if (!targetEntity) {
-        return NextResponse.json({ error: 'School not found' }, { status: 404 });
-      }
-      applicationTemplate = await ApplicationTemplate.findOne({
-        applicationType: 'school',
-        schoolId: schoolId,
-        isActive: true
-      });
-    } else if (applicationType === 'program') {
-      targetEntity = await Program.findById(programId);
-      if (!targetEntity) {
-        return NextResponse.json({ error: 'Program not found' }, { status: 404 });
-      }
-      applicationTemplate = await ApplicationTemplate.findOne({
-        applicationType: 'program',
-        programId: programId,
-        isActive: true
-      });
-    }
-
-          if (!applicationTemplate) {
-        // Create a default application template
-        const entityName = (targetEntity as any).title || (targetEntity as any).name || 'Application';
-        const templateData: any = {
-          title: `${entityName} Application`,
-          description: `Application form for ${entityName}`,
-          version: '1.0.0',
-          isActive: true,
-          sections: [
-            {
-              id: 'personal-info',
-              title: 'Personal Information',
-              description: 'Basic personal and contact information',
-              order: 1,
-              questions: [
-                {
-                  id: 'first-name',
-                  type: 'text',
-                  title: 'First Name',
-                  required: true,
-                  order: 1,
-                  placeholder: 'Enter your first name'
-                },
-                {
-                  id: 'last-name',
-                  type: 'text',
-                  title: 'Last Name',
-                  required: true,
-                  order: 2,
-                  placeholder: 'Enter your last name'
-                },
-                {
-                  id: 'email',
-                  type: 'email',
-                  title: 'Email Address',
-                  required: true,
-                  order: 3,
-                  placeholder: 'Enter your email address'
-                },
-                {
-                  id: 'phone',
-                  type: 'phone',
-                  title: 'Phone Number',
-                  required: false,
-                  order: 4,
-                  placeholder: 'Enter your phone number'
-                }
-              ]
-            },
-            {
-              id: 'academic-info',
-              title: 'Academic Information',
-              description: 'Your educational background and achievements',
-              order: 2,
-              questions: [
-                {
-                  id: 'current-school',
-                  type: 'text',
-                  title: 'Current School/University',
-                  required: true,
-                  order: 1,
-                  placeholder: 'Enter your current school or university'
-                },
-                {
-                  id: 'gpa',
-                  type: 'gpa',
-                  title: 'Current GPA',
-                  required: true,
-                  order: 2,
-                  placeholder: 'Enter your current GPA (e.g., 3.8)'
-                },
-                {
-                  id: 'major',
-                  type: 'text',
-                  title: 'Major/Field of Study',
-                  required: true,
-                  order: 3,
-                  placeholder: 'Enter your major or field of study'
-                }
-              ]
-            },
-            {
-              id: 'essay',
-              title: 'Personal Statement',
-              description: 'Tell us about yourself and why you deserve this opportunity',
-              order: 3,
-              questions: [
-                {
-                  id: 'personal-statement',
-                  type: 'textarea',
-                  title: 'Personal Statement',
-                  description: 'Please write a personal statement explaining your academic goals, achievements, and why you deserve this opportunity.',
-                  required: true,
-                  order: 1,
-                  placeholder: 'Write your personal statement here...',
-                  maxLength: 1000,
-                  helpText: 'Maximum 1000 characters'
-                }
-              ]
-            }
-          ],
-          estimatedTime: 30,
-          allowDraftSaving: true
-        };
-
-        // Add the appropriate reference based on application type
-        templateData.applicationType = applicationType;
-        if (applicationType === 'scholarship') {
-          templateData.scholarshipId = scholarshipId;
-        } else if (applicationType === 'school') {
-          templateData.schoolId = schoolId;
-        } else if (applicationType === 'program') {
-          templateData.programId = programId;
+    if (targetId && !isExternal) {
+      if (applicationType === 'scholarship') {
+        targetEntity = await Scholarship.findById(targetId);
+        if (!targetEntity) {
+          return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
         }
+        applicationTemplate = await ApplicationTemplate.findOne({
+          applicationType: 'scholarship',
+          scholarshipId: targetId,
+          isActive: true
+        });
+      } else if (applicationType === 'school') {
+        targetEntity = await School.findById(targetId);
+        if (!targetEntity) {
+          return NextResponse.json({ error: 'School not found' }, { status: 404 });
+        }
+        applicationTemplate = await ApplicationTemplate.findOne({
+          applicationType: 'school',
+          schoolId: targetId,
+          isActive: true
+        });
+      } else if (applicationType === 'program') {
+        targetEntity = await Program.findById(targetId);
+        if (!targetEntity) {
+          return NextResponse.json({ error: 'Program not found' }, { status: 404 });
+        }
+        applicationTemplate = await ApplicationTemplate.findOne({
+          applicationType: 'program',
+          programId: targetId,
+          isActive: true
+        });
+      }
+    }
 
-        applicationTemplate = new ApplicationTemplate(templateData);
+    // Create default application template if none exists
+    if (!applicationTemplate && targetEntity) {
+      const entityName = (targetEntity as any).title || (targetEntity as any).name || 'Application';
+      const templateData: any = {
+        title: `${entityName} Application`,
+        description: `Application form for ${entityName}`,
+        version: '1.0.0',
+        isActive: true,
+        sections: [
+          {
+            id: 'personal-info',
+            title: 'Personal Information',
+            description: 'Basic personal and contact information',
+            order: 1,
+            questions: [
+              {
+                id: 'first-name',
+                type: 'text',
+                title: 'First Name',
+                required: true,
+                order: 1,
+                placeholder: 'Enter your first name'
+              },
+              {
+                id: 'last-name',
+                type: 'text',
+                title: 'Last Name',
+                required: true,
+                order: 2,
+                placeholder: 'Enter your last name'
+              },
+              {
+                id: 'email',
+                type: 'email',
+                title: 'Email Address',
+                required: true,
+                order: 3,
+                placeholder: 'Enter your email address'
+              },
+              {
+                id: 'phone',
+                type: 'phone',
+                title: 'Phone Number',
+                required: false,
+                order: 4,
+                placeholder: 'Enter your phone number'
+              }
+            ]
+          },
+          {
+            id: 'academic-info',
+            title: 'Academic Information',
+            description: 'Your educational background and achievements',
+            order: 2,
+            questions: [
+              {
+                id: 'current-school',
+                type: 'text',
+                title: 'Current School/University',
+                required: true,
+                order: 1,
+                placeholder: 'Enter your current school or university'
+              },
+              {
+                id: 'gpa',
+                type: 'gpa',
+                title: 'Current GPA',
+                required: true,
+                order: 2,
+                placeholder: 'Enter your current GPA (e.g., 3.8)'
+              },
+              {
+                id: 'major',
+                type: 'text',
+                title: 'Major/Field of Study',
+                required: true,
+                order: 3,
+                placeholder: 'Enter your major or field of study'
+              }
+            ]
+          },
+          {
+            id: 'essay',
+            title: 'Personal Statement',
+            description: 'Tell us about yourself and why you deserve this opportunity',
+            order: 3,
+            questions: [
+              {
+                id: 'personal-statement',
+                type: 'textarea',
+                title: 'Personal Statement',
+                description: 'Please write a personal statement explaining your academic goals, achievements, and why you deserve this opportunity.',
+                required: true,
+                order: 1,
+                placeholder: 'Write your personal statement here...',
+                maxLength: 1000,
+                helpText: 'Maximum 1000 characters'
+              }
+            ]
+          }
+        ],
+        estimatedTime: 30,
+        allowDraftSaving: true
+      };
 
+      // Add the appropriate reference based on application type
+      templateData.applicationType = applicationType;
+      if (applicationType === 'scholarship') {
+        templateData.scholarshipId = targetId;
+      } else if (applicationType === 'school') {
+        templateData.schoolId = targetId;
+      } else if (applicationType === 'program') {
+        templateData.programId = targetId;
+      }
+
+      applicationTemplate = new ApplicationTemplate(templateData);
       await applicationTemplate.save();
     }
 
-    // Create new application
+    // Create new application package
     const applicationData: any = {
       userId: session.user.id,
+      name: name.trim(),
+      description: description?.trim() || '',
       applicationType,
-      applicationTemplateId: applicationTemplate._id,
       status: 'draft',
-      sections: applicationTemplate.sections.map((section: any) => ({
+      priority: priority || 'medium',
+      notes: notes?.trim() || '',
+      applicationDeadline: applicationDeadline || null,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // Add target information
+    if (targetId && !isExternal) {
+      applicationData.targetId = targetId;
+      applicationData.targetName = targetName;
+      
+      // Add the appropriate reference based on application type
+      if (applicationType === 'scholarship') {
+        applicationData.scholarshipId = targetId;
+      } else if (applicationType === 'school') {
+        applicationData.schoolId = targetId;
+      } else if (applicationType === 'program') {
+        applicationData.programId = targetId;
+      }
+    }
+
+    // Add external information
+    if (isExternal || applicationType === 'external') {
+      applicationData.isExternal = true;
+      applicationData.externalSchoolName = externalSchoolName?.trim() || '';
+      applicationData.externalProgramName = externalProgramName?.trim() || '';
+      applicationData.externalScholarshipName = externalScholarshipName?.trim() || '';
+      applicationData.externalApplicationUrl = externalApplicationUrl?.trim() || '';
+      applicationData.externalType = externalType || 'unknown';
+    }
+
+    // Add application template if available
+    if (applicationTemplate) {
+      applicationData.applicationTemplateId = applicationTemplate._id;
+      applicationData.sections = applicationTemplate.sections.map((section: any) => ({
         sectionId: section.id,
         responses: [],
         isComplete: false,
         startedAt: new Date()
-      })),
-      currentSectionId: applicationTemplate.sections[0]?.id,
-      progress: 0,
-      startedAt: new Date(),
-      lastActivityAt: new Date(),
-      isActive: true
-    };
-
-    // Add the appropriate reference based on application type
-    if (applicationType === 'scholarship') {
-      applicationData.scholarshipId = scholarshipId;
-    } else if (applicationType === 'school') {
-      applicationData.schoolId = schoolId;
-    } else if (applicationType === 'program') {
-      applicationData.programId = programId;
+      }));
+      applicationData.currentSectionId = applicationTemplate.sections[0]?.id;
+      applicationData.progress = 0;
     }
 
     const application = new Application(applicationData);
-
     await application.save();
 
     return NextResponse.json({ 
-      message: 'Application created successfully',
-      applicationId: application._id 
+      message: 'Application package created successfully',
+      applicationId: application._id,
+      application: application
     });
   } catch (error) {
-    console.error('Error creating application:', error);
+    console.error('Error creating application package:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

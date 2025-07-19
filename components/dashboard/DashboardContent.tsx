@@ -267,6 +267,16 @@ export default function DashboardContent() {
                         </div>
                       </Button>
                     </Link>
+                    
+                    <Link href="/applications/manage">
+                      <Button className="h-20 w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white">
+                        <div className="text-left">
+                          <Target className="w-6 h-6 mb-2" />
+                          <p className="font-semibold">Application Management</p>
+                          <p className="text-sm opacity-90">Manage your applications</p>
+                        </div>
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
@@ -444,6 +454,12 @@ export default function DashboardContent() {
                       <Button variant="ghost" className="w-full justify-start">
                         <Award className="w-4 h-4 mr-2" />
                         Browse Scholarships
+                      </Button>
+                    </Link>
+                    <Link href="/applications/manage" className="block">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Target className="w-4 h-4 mr-2" />
+                        Application Management
                       </Button>
                     </Link>
                     <Button variant="ghost" className="w-full justify-start">

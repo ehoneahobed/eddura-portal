@@ -202,7 +202,7 @@ export default function DocumentFeedbackViewer({
             Document Feedback
           </DialogTitle>
           <DialogDescription>
-            Review and manage feedback for "{document.title}"
+            Review and manage feedback for &quot;{document.title}&quot;
           </DialogDescription>
         </DialogHeader>
 
@@ -542,7 +542,7 @@ export default function DocumentFeedbackViewer({
                           <p className="mb-2">{comment.content}</p>
                           {comment.position && (
                             <div className="text-sm text-muted-foreground">
-                              <p>Highlighted text: "{comment.position.text}"</p>
+                              <p>Highlighted text: &quot;{comment.position.text}&quot;</p>
                             </div>
                           )}
                         </div>

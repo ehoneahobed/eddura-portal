@@ -56,6 +56,7 @@ export interface IScholarship extends Document {
   pastRecipients?: string;
   createdAt: Date;
   updatedAt: Date;
+  requirementsTemplateId?: Schema.Types.ObjectId;
 }
 
 const ScholarshipSchema: Schema = new Schema<IScholarship>(
@@ -134,6 +135,11 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
     faqLink: { type: String, trim: true },
     disbursementDetails: { type: String, trim: true },
     pastRecipients: { type: String, trim: true },
+    requirementsTemplateId: {
+      type: Schema.Types.ObjectId,
+      ref: 'RequirementsTemplate',
+      required: false
+    },
   },
   { 
     timestamps: true,

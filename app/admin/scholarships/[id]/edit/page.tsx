@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,13 +29,7 @@ export default function EditScholarshipPage({ params }: EditScholarshipPageProps
     getParams();
   }, [params]);
 
-  useEffect(() => {
-    if (scholarshipId) {
-      fetchScholarship();
-    }
-  }, [scholarshipId]);
-
-  const fetchScholarship = async () => {
+  const fetchScholarship = useCallback(async () => {
     if (!scholarshipId) return;
     
     try {
@@ -56,7 +50,13 @@ export default function EditScholarshipPage({ params }: EditScholarshipPageProps
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [scholarshipId, toast, router]);
+
+  useEffect(() => {
+    if (scholarshipId) {
+      fetchScholarship();
+    }
+  }, [scholarshipId, fetchScholarship]);
 
   const handleUpdate = async (data: Partial<Scholarship>) => {
     if (!scholarshipId) return;

@@ -248,7 +248,7 @@ export default function ShareDocumentDialog({
             Share Document for Feedback
           </DialogTitle>
           <DialogDescription>
-            Share "{document.title}" with others to get feedback and reviews
+            Share &quot;{document.title}&quot; with others to get feedback and reviews
           </DialogDescription>
         </DialogHeader>
 
