@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ interface ApplicationPackage {
 }
 
 export default function ApplicationPackagesPage() {
+  const router = useRouter();
   const [packages, setPackages] = useState<ApplicationPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -389,7 +391,12 @@ export default function ApplicationPackagesPage() {
                 
                 <CardContent className="space-y-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{pkg.name}</h3>
+                    <h3 
+                      className="font-semibold text-gray-900 mb-1 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => router.push(`/applications/${pkg._id}`)}
+                    >
+                      {pkg.name}
+                    </h3>
                     {pkg.description && (
                       <p className="text-sm text-gray-600 line-clamp-2">{pkg.description}</p>
                     )}
@@ -473,6 +480,19 @@ export default function ApplicationPackagesPage() {
                       className="flex-1"
                     >
                       Progress
+                    </Button>
+                  </div>
+                  
+                  {/* Full Management Link */}
+                  <div className="pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      onClick={() => router.push(`/applications/${pkg._id}`)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Manage Full Application
                     </Button>
                   </div>
                 </CardContent>

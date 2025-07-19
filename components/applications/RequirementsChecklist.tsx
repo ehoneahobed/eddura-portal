@@ -546,9 +546,11 @@ export const RequirementsChecklist: React.FC<RequirementsChecklistProps> = ({
             <RequirementCard
               key={requirement._id}
               requirement={requirement}
+              applicationId={applicationId}
               onStatusUpdate={updateRequirementStatus}
               onDocumentLink={linkDocumentToRequirement}
               onRequirementUpdate={updateRequirement}
+              onRequirementRefresh={fetchRequirements}
             />
           ))
         )}

@@ -14,7 +14,8 @@ import {
   Edit,
   Link,
   ExternalLink,
-  MoreVertical
+  MoreVertical,
+  Unlink
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -76,16 +77,20 @@ interface RequirementData {
 
 interface RequirementCardProps {
   requirement: RequirementData;
+  applicationId: string;
   onStatusUpdate: (requirementId: string, status: RequirementStatus, notes?: string) => Promise<void>;
   onDocumentLink: (requirementId: string, documentId: string, notes?: string) => Promise<void>;
   onRequirementUpdate?: (requirementId: string, updates: Partial<RequirementData>) => Promise<void>;
+  onRequirementRefresh?: () => void;
 }
 
 export const RequirementCard: React.FC<RequirementCardProps> = ({
   requirement,
+  applicationId,
   onStatusUpdate,
   onDocumentLink,
-  onRequirementUpdate
+  onRequirementUpdate,
+  onRequirementRefresh
 }) => {
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
@@ -189,6 +194,33 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
       setShowNotes(false);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDocumentAction = async () => {
+    if (requirement.linkedDocumentId) {
+      // Unlink document
+      try {
+        console.log('Unlinking document from requirement:', requirement._id, 'in application:', applicationId);
+        
+        const response = await fetch(`/api/applications/${applicationId}/requirements/${requirement._id}/unlink-document`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          console.log('Document unlinked successfully');
+          // Refresh the requirement data
+          onRequirementRefresh?.();
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Failed to unlink document:', response.status, errorData);
+        }
+      } catch (error) {
+        console.error('Error unlinking document:', error);
+      }
+    } else {
+      // Show document linking modal
+      setShowDocumentModal(true);
     }
   };
 
@@ -576,9 +608,13 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
                     {showNotes ? 'Hide Notes' : 'Add Notes'}
                   </DropdownMenuItem>
                   {requirement.requirementType === 'document' && (
-                    <DropdownMenuItem onClick={() => setShowDocumentModal(true)}>
-                      <Link className="h-4 w-4 mr-2" />
-                      Link Document
+                    <DropdownMenuItem onClick={handleDocumentAction}>
+                      {requirement.linkedDocumentId ? (
+                        <Unlink className="h-4 w-4 mr-2" />
+                      ) : (
+                        <Link className="h-4 w-4 mr-2" />
+                      )}
+                      {requirement.linkedDocumentId ? 'Unlink Document' : 'Link Document'}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

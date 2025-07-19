@@ -58,7 +58,27 @@ export async function GET(request: NextRequest) {
       .sort({ updatedAt: -1 })
       .lean();
 
-    return NextResponse.json({ documents });
+    // Transform documents to match expected format
+    const transformedDocuments = documents.map(doc => ({
+      _id: doc._id,
+      title: doc.title,
+      description: doc.description,
+      documentType: doc.type, // Map 'type' to 'documentType'
+      type: doc.type,
+      category: DOCUMENT_TYPE_CONFIG[doc.type]?.category || 'Other',
+      status: doc.isActive ? 'approved' : 'draft',
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+      createdBy: {
+        name: session.user.name || 'Unknown'
+      },
+      linkedToRequirements: [], // Will be populated when linking is implemented
+      tags: doc.tags || [],
+      wordCount: doc.wordCount || 0,
+      characterCount: doc.characterCount || 0
+    }));
+
+    return NextResponse.json({ data: transformedDocuments });
   } catch (error) {
     console.error('Error fetching documents:', error);
     return NextResponse.json(

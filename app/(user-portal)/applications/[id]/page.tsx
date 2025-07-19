@@ -1,13 +1,13 @@
 import { Metadata } from 'next';
-import ApplicationForm from '@/components/applications/ApplicationForm';
+import ApplicationPackageManager from '@/components/applications/ApplicationPackageManager';
 
 export const metadata: Metadata = {
-  title: 'Application Form - Eddura',
-  description: 'Complete your scholarship application step by step.',
-  keywords: 'application form, scholarship application, apply for scholarship',
+  title: 'Application Package Management - Eddura',
+  description: 'Manage your application package end-to-end including documents, requirements, interviews, and submission tracking.',
+  keywords: 'application management, documents, requirements, interviews, submission tracking',
   openGraph: {
-    title: 'Application Form - Eddura',
-    description: 'Complete your scholarship application step by step.',
+    title: 'Application Package Management - Eddura',
+    description: 'Manage your application package end-to-end including documents, requirements, interviews, and submission tracking.',
     type: 'website',
     url: 'https://eddura.com/applications',
     siteName: 'Eddura',
@@ -21,5 +21,5 @@ interface ApplicationPageProps {
 export default async function ApplicationPage({ params }: ApplicationPageProps) {
   const resolvedParams = await params;
   
-  return <ApplicationForm applicationId={resolvedParams.id} />;
+  return <ApplicationPackageManager applicationId={resolvedParams.id} />;
 }
