@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,6 +64,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -194,14 +204,14 @@ export default function ApplicationPackageManager({ applicationId }: Application
   const [selectedRequirement, setSelectedRequirement] = useState<Requirement | null>(null);
   const [showQuickLinkModal, setShowQuickLinkModal] = useState(false);
   const [quickLinkRequirement, setQuickLinkRequirement] = useState<Requirement | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  // Application form tracking
+  const [applicationFormStatus, setApplicationFormStatus] = useState<'not_started' | 'draft' | 'in_progress' | 'ready_for_submission' | 'submitted' | 'completed'>('not_started');
+  const [applicationFormProgress, setApplicationFormProgress] = useState(0);
+  const [applicationFormId, setApplicationFormId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchApplicationData();
-    }
-  }, [session?.user?.id, applicationId]);
-
-  const fetchApplicationData = async () => {
+  const fetchApplicationData = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -210,6 +220,40 @@ export default function ApplicationPackageManager({ applicationId }: Application
       if (appResponse.ok) {
         const appData = await appResponse.json();
         setApplication(appData.application);
+
+        // Fetch application form status for scholarship packages
+        if (appData.application?.applicationType === 'scholarship' && !appData.application?.isExternal) {
+          console.log('Fetching application form status for scholarship:', appData.application.targetId);
+          
+          // Use the applications API to get all applications for this user
+          const formResponse = await fetch('/api/applications');
+          if (formResponse.ok) {
+            const formData = await formResponse.json();
+            console.log('All applications:', formData.applications);
+            
+            // Find the current package in the list to get its applicationFormId and status
+            const currentPackage = formData.applications?.find((app: any) => app._id === applicationId);
+            console.log('Current package:', currentPackage);
+            
+            if (currentPackage?.applicationFormId) {
+              // Use the status and progress from the main applications API
+              setApplicationFormId(currentPackage.applicationFormId);
+              setApplicationFormStatus(currentPackage.applicationFormStatus || 'not_started');
+              setApplicationFormProgress(currentPackage.applicationFormProgress || 0);
+              console.log('Set application form data from main API:', {
+                id: currentPackage.applicationFormId,
+                status: currentPackage.applicationFormStatus,
+                progress: currentPackage.applicationFormProgress
+              });
+            } else {
+              // Reset form data if no form found
+              setApplicationFormId(null);
+              setApplicationFormStatus('not_started');
+              setApplicationFormProgress(0);
+              console.log('No application form found, resetting data');
+            }
+          }
+        }
       }
 
       // Fetch documents
@@ -246,12 +290,31 @@ export default function ApplicationPackageManager({ applicationId }: Application
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [applicationId]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchApplicationData();
+    }
+  }, [session?.user?.id, applicationId, fetchApplicationData]);
+
+  // Refresh data when returning to the page
+  useEffect(() => {
+    const handleFocus = () => {
+      if (session?.user?.id) {
+        fetchApplicationData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [session?.user?.id, fetchApplicationData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft': return 'bg-gray-100 text-gray-800';
       case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+      case 'ready_for_submission': return 'bg-green-100 text-green-800';
       case 'submitted': return 'bg-blue-100 text-blue-800';
       case 'accepted': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
@@ -561,6 +624,86 @@ export default function ApplicationPackageManager({ applicationId }: Application
     }
   };
 
+  const handleCreateApplicationForm = async () => {
+    console.log('handleCreateApplicationForm called');
+    console.log('application:', application);
+    console.log('applicationId:', applicationId);
+    
+    try {
+      if (!application?.targetId) {
+        console.log('No targetId found in application');
+        toast.error('No scholarship associated with this package');
+        return;
+      }
+
+      console.log('Making API call to create form...');
+      const response = await fetch('/api/applications/create-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          packageId: applicationId,
+          scholarshipId: application.targetId,
+        }),
+      });
+
+      console.log('API response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Form created successfully:', data);
+        toast.success('Application form created successfully');
+        setApplicationFormId(data.applicationId);
+        setApplicationFormStatus('draft');
+        setApplicationFormProgress(0);
+        // Refresh the application data to ensure everything is up to date
+        await fetchApplicationData();
+        // Navigate to the new application form
+        router.push(`/applications/${data.applicationId}/form`);
+      } else {
+        const error = await response.json();
+        console.log('API error:', error);
+        if (error.applicationId) {
+          // Application form already exists, navigate to it
+          toast.success('Application form found');
+          setApplicationFormId(error.applicationId);
+          // Refresh the application data to ensure everything is up to date
+          await fetchApplicationData();
+          router.push(`/applications/${error.applicationId}/form`);
+        } else {
+          toast.error(error.error || 'Failed to create application form');
+        }
+      }
+    } catch (error) {
+      console.error('Error creating application form:', error);
+      toast.error('Failed to create application form');
+    }
+  };
+
+  const handleDeleteApplication = async () => {
+    try {
+      setIsDeleting(true);
+      
+      const response = await fetch(`/api/applications/${applicationId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Application package deleted successfully');
+        router.push('/applications/packages');
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete application package');
+      }
+    } catch (error) {
+      console.error('Error deleting application package:', error);
+      toast.error('Failed to delete application package');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
@@ -579,7 +722,7 @@ export default function ApplicationPackageManager({ applicationId }: Application
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Not Found</h2>
-          <p className="text-gray-600 mb-4">The application package you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-4">The application package you&apos;re looking for doesn&apos;t exist.</p>
           <Button onClick={() => router.push('/applications/packages')}>
             Back to Application Packages
           </Button>
@@ -618,6 +761,15 @@ export default function ApplicationPackageManager({ applicationId }: Application
               <Badge className={getPriorityColor(application.priority)}>
                 {application.priority}
               </Badge>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Package
+              </Button>
             </div>
           </div>
         </div>
@@ -626,10 +778,13 @@ export default function ApplicationPackageManager({ applicationId }: Application
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="requirements">Requirements</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            {application.applicationType === 'scholarship' && !application.isExternal && (
+              <TabsTrigger value="application-form">Application Form</TabsTrigger>
+            )}
             <TabsTrigger value="interviews">Interviews</TabsTrigger>
             <TabsTrigger value="submission">Submission</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
@@ -637,16 +792,87 @@ export default function ApplicationPackageManager({ applicationId }: Application
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Critical Alerts & Status */}
+            <div className="space-y-4">
+              {/* Deadline Alert */}
+              {application.applicationDeadline && daysUntilDeadline !== null && daysUntilDeadline <= 7 && (
+                <Card className="border-red-200 bg-red-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-red-800">Application Deadline Approaching!</h3>
+                        <p className="text-red-700 text-sm">
+                          {daysUntilDeadline === 0 
+                            ? 'Your application is due today!'
+                            : daysUntilDeadline < 0
+                            ? `Your application is ${Math.abs(daysUntilDeadline)} days overdue!`
+                            : `Your application is due in ${daysUntilDeadline} day${daysUntilDeadline === 1 ? '' : 's'}!`
+                          }
+                        </p>
+                      </div>
+                      <Button variant="destructive" size="sm" onClick={() => setActiveTab('submission')}>
+                        Submit Now
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Submission Status Alert */}
+              {submissionStatus?.applicationSubmitted && (
+                <Card className="border-green-200 bg-green-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-green-800">Application Submitted!</h3>
+                        <p className="text-green-700 text-sm">
+                          Submitted on {submissionStatus.submittedAt ? format(new Date(submissionStatus.submittedAt), 'PPP') : 'Unknown date'}
+                          {submissionStatus.confirmationNumber && ` • Confirmation: ${submissionStatus.confirmationNumber}`}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab('submission')}>
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Upcoming Interview Alert */}
+              {interviews.filter(i => i.status === 'scheduled' && i.scheduledDate && new Date(i.scheduledDate) > new Date()).length > 0 && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-blue-800">Upcoming Interview!</h3>
+                        <p className="text-blue-700 text-sm">
+                          You have {interviews.filter(i => i.status === 'scheduled' && i.scheduledDate && new Date(i.scheduledDate) > new Date()).length} scheduled interview(s)
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab('interviews')}>
+                        View Interviews
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Main Dashboard Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Application Details */}
+              {/* Application Details & Progress */}
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="h-5 w-5" />
-                    Application Details
+                    Application Overview
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  {/* Basic Info */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-gray-600">Type</Label>
@@ -662,49 +888,152 @@ export default function ApplicationPackageManager({ applicationId }: Application
                       <p className="mt-1 font-medium">{application.targetName || 'External Application'}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Progress</Label>
+                      <Label className="text-sm font-medium text-gray-600">Status</Label>
                       <div className="mt-1">
-                        <Progress value={application.progress} className="h-2" />
-                        <p className="text-sm text-gray-600 mt-1">{application.progress}% complete</p>
+                        <Badge className={getStatusColor(application.status)}>
+                          {application.status.replace('_', ' ')}
+                        </Badge>
                       </div>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Requirements</Label>
-                      <p className="mt-1 font-medium">
-                        {application.requirementsProgress.completed}/{application.requirementsProgress.total} completed
-                      </p>
+                      <Label className="text-sm font-medium text-gray-600">Priority</Label>
+                      <div className="mt-1">
+                        <Badge className={getPriorityColor(application.priority)}>
+                          {application.priority}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Progress Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">Overall Progress</Label>
+                      <div className="mt-2">
+                        <Progress value={application.progress} className="h-3" />
+                        <p className="text-sm text-gray-600 mt-1">{application.progress}% complete</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600">Requirements</p>
+                        <p className="text-lg font-semibold">
+                          {application.requirementsProgress.completed}/{application.requirementsProgress.total}
+                        </p>
+                        <p className="text-xs text-gray-500">completed</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600">Required</p>
+                        <p className="text-lg font-semibold">
+                          {application.requirementsProgress.requiredCompleted}/{application.requirementsProgress.required}
+                        </p>
+                        <p className="text-xs text-gray-500">completed</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deadline Section */}
                   {application.applicationDeadline && (
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <span className="font-medium">Application Deadline</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600">
-                          {format(new Date(application.applicationDeadline), 'PPP')}
-                        </span>
+                        <div>
+                          <span className="text-gray-600">
+                            {format(new Date(application.applicationDeadline), 'PPP')}
+                          </span>
+                          {daysUntilDeadline !== null && (
+                            <p className="text-sm text-gray-500">
+                              {daysUntilDeadline > 0 
+                                ? `${daysUntilDeadline} days remaining`
+                                : daysUntilDeadline === 0
+                                ? 'Due today'
+                                : `${Math.abs(daysUntilDeadline)} days overdue`
+                              }
+                            </p>
+                          )}
+                        </div>
                         {daysUntilDeadline !== null && (
                           <Badge variant={daysUntilDeadline <= 7 ? 'destructive' : daysUntilDeadline <= 30 ? 'secondary' : 'default'}>
-                            {daysUntilDeadline > 0 
-                              ? `${daysUntilDeadline} days remaining`
-                              : daysUntilDeadline === 0
-                              ? 'Due today'
-                              : `${Math.abs(daysUntilDeadline)} days overdue`
-                            }
+                            {daysUntilDeadline <= 7 ? 'Urgent' : daysUntilDeadline <= 30 ? 'Soon' : 'Plenty of Time'}
                           </Badge>
                         )}
                       </div>
                     </div>
                   )}
 
+                  {/* Application Form Status - Only for scholarship packages */}
+                  {application.applicationType === 'scholarship' && !application.isExternal && (
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Application Form</span>
+                        <Badge className={cn(
+                          'text-xs',
+                          applicationFormStatus === 'not_started' ? 'bg-gray-100 text-gray-800' :
+                          applicationFormStatus === 'draft' ? 'bg-blue-100 text-blue-800' :
+                          applicationFormStatus === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                          applicationFormStatus === 'ready_for_submission' ? 'bg-green-100 text-green-800' :
+                          applicationFormStatus === 'submitted' ? 'bg-blue-100 text-blue-800' :
+                          'bg-purple-100 text-purple-800'
+                        )}>
+                          {applicationFormStatus.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        {applicationFormProgress > 0 && (
+                          <div>
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span>Form Progress</span>
+                              <span>{applicationFormProgress}%</span>
+                            </div>
+                            <Progress value={applicationFormProgress} className="h-2" />
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          {applicationFormId ? (
+                            <Button 
+                              size="sm"
+                              onClick={() => router.push(`/applications/${applicationFormId}/form`)}
+                              className="flex-1"
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              {applicationFormStatus === 'submitted' || applicationFormStatus === 'completed'
+                                ? 'View Form'
+                                : 'Continue Form'
+                              }
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm"
+                              onClick={handleCreateApplicationForm}
+                              className="flex-1"
+                              variant="outline"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Start Form
+                            </Button>
+                          )}
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setActiveTab('application-form')}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* External Application Link */}
                   {application.externalApplicationUrl && (
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <ExternalLink className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium">External Application</span>
+                        <span className="font-medium">External Application Portal</span>
                       </div>
                       <Button asChild variant="outline" size="sm">
                         <a href={application.externalApplicationUrl} target="_blank" rel="noopener noreferrer">
@@ -717,52 +1046,201 @@ export default function ApplicationPackageManager({ applicationId }: Application
                 </CardContent>
               </Card>
 
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab('requirements')}
-                  >
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                    Manage Requirements
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab('documents')}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Link Documents
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab('interviews')}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Schedule Interviews
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab('submission')}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Track Submission
-                  </Button>
-                </CardContent>
-              </Card>
+              {/* Quick Actions & Stats */}
+              <div className="space-y-6">
+                {/* Quick Actions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab('requirements')}
+                    >
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Manage Requirements
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab('documents')}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Link Documents
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab('interviews')}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Schedule Interviews
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab('submission')}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Track Submission
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Key Statistics */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Key Statistics</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Total Interviews</span>
+                      <Badge variant="outline">{interviews.length}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Scheduled</span>
+                      <Badge variant="outline">{interviews.filter(i => i.status === 'scheduled').length}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Completed</span>
+                      <Badge variant="outline">{interviews.filter(i => i.status === 'completed').length}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Documents Linked</span>
+                      <Badge variant="outline">{documents.filter(d => d.linkedToRequirements && d.linkedToRequirements.length > 0).length}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Submission Status</span>
+                      <Badge variant={submissionStatus?.applicationSubmitted ? 'default' : 'secondary'}>
+                        {submissionStatus?.applicationSubmitted ? 'Submitted' : 'Not Submitted'}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
+
+            {/* Timeline & Important Dates */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Timeline & Important Dates
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Application Timeline */}
+                  <div className="flex items-start gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium">Application Created</h4>
+                      <p className="text-sm text-gray-600">{format(new Date(application.createdAt), 'PPP')}</p>
+                    </div>
+                  </div>
+
+                  {/* Deadline */}
+                  {application.applicationDeadline && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className={cn(
+                          "w-3 h-3 rounded-full",
+                          daysUntilDeadline !== null && daysUntilDeadline <= 7 ? "bg-red-500" : "bg-orange-500"
+                        )}></div>
+                        <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">Application Deadline</h4>
+                        <p className="text-sm text-gray-600">{format(new Date(application.applicationDeadline), 'PPP')}</p>
+                        {daysUntilDeadline !== null && (
+                          <Badge variant={daysUntilDeadline <= 7 ? 'destructive' : 'secondary'} className="mt-1">
+                            {daysUntilDeadline > 0 
+                              ? `${daysUntilDeadline} days remaining`
+                              : daysUntilDeadline === 0
+                              ? 'Due today'
+                              : `${Math.abs(daysUntilDeadline)} days overdue`
+                            }
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submission */}
+                  {submissionStatus?.applicationSubmitted && submissionStatus.submittedAt && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">Application Submitted</h4>
+                        <p className="text-sm text-gray-600">{format(new Date(submissionStatus.submittedAt), 'PPP')}</p>
+                        {submissionStatus.confirmationNumber && (
+                          <p className="text-sm text-gray-500">Confirmation: {submissionStatus.confirmationNumber}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upcoming Interviews */}
+                  {interviews.filter(i => i.status === 'scheduled' && i.scheduledDate && new Date(i.scheduledDate) > new Date()).map((interview, index) => (
+                    <div key={interview._id} className="flex items-start gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        {index < interviews.filter(i => i.status === 'scheduled' && i.scheduledDate && new Date(i.scheduledDate) > new Date()).length - 1 && (
+                          <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">Interview - {interview.interviewer || 'TBD'}</h4>
+                        <p className="text-sm text-gray-600">
+                          {interview.scheduledDate ? format(new Date(interview.scheduledDate), 'PPP p') : 'TBD'}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {interview.type === 'video' ? 'Video Call' : interview.type === 'phone' ? 'Phone Call' : 'In Person'}
+                          </Badge>
+                          {interview.isVirtual && interview.meetingLink && (
+                            <Button size="sm" variant="ghost" asChild>
+                              <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Follow-up Required */}
+                  {submissionStatus?.followUpRequired && submissionStatus.nextFollowUpDate && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">Follow-up Required</h4>
+                        <p className="text-sm text-gray-600">{format(new Date(submissionStatus.nextFollowUpDate), 'PPP')}</p>
+                        {submissionStatus.followUpNotes && (
+                          <p className="text-sm text-gray-500">{submissionStatus.followUpNotes}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Progress Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>Progress Overview</CardTitle>
+                <CardTitle>Detailed Progress</CardTitle>
               </CardHeader>
               <CardContent>
                 <ProgressTracker applicationId={applicationId} />
@@ -798,13 +1276,23 @@ export default function ApplicationPackageManager({ applicationId }: Application
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Document Management</span>
-                  <Button size="sm" onClick={() => setShowDocumentLinker(true)}>
-                    <LinkIcon className="h-4 w-4 mr-2" />
-                    Link Documents
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => router.push('/documents')}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Document
+                    </Button>
+                    <Button size="sm" onClick={() => setShowDocumentLinker(true)}>
+                      <LinkIcon className="h-4 w-4 mr-2" />
+                      Link Documents
+                    </Button>
+                  </div>
                 </CardTitle>
                 <CardDescription>
-                  Link documents to requirements and track their status
+                  Create new documents or link existing ones to requirements
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -881,14 +1369,27 @@ export default function ApplicationPackageManager({ applicationId }: Application
                                       Unlink Document
                                     </Button>
                                   ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleQuickLink(requirement)}
-                                    >
-                                      <LinkIcon className="h-3 w-3 mr-1" />
-                                      Link Document
-                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleQuickLink(requirement)}
+                                        disabled={documents.length === 0}
+                                      >
+                                        <LinkIcon className="h-3 w-3 mr-1" />
+                                        Link Document
+                                      </Button>
+                                      {documents.length === 0 && (
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => router.push('/documents')}
+                                        >
+                                          <Plus className="h-3 w-3 mr-1" />
+                                          Create Document
+                                        </Button>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -971,7 +1472,22 @@ export default function ApplicationPackageManager({ applicationId }: Application
                           <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
                             <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                             <p>No documents available</p>
-                            <p className="text-sm">Create documents in your document library first</p>
+                            <p className="text-sm mb-4">Create documents in your document library first</p>
+                            <div className="flex items-center justify-center gap-2">
+                              <Button 
+                                onClick={() => router.push('/documents')}
+                                className="flex items-center gap-2"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Create Your First Document
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                onClick={() => router.push('/documents')}
+                              >
+                                Browse Document Library
+                              </Button>
+                            </div>
                           </div>
                         ) : (
                           documents.slice(0, 3).map(doc => (
@@ -1088,6 +1604,122 @@ export default function ApplicationPackageManager({ applicationId }: Application
             </Card>
           </TabsContent>
 
+          {/* Application Form Tab - Only for scholarship packages */}
+          {application.applicationType === 'scholarship' && !application.isExternal && (
+            <TabsContent value="application-form" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Scholarship Application Form
+                  </CardTitle>
+                  <CardDescription>
+                    Fill out the official application form for {application.targetName}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Application Form Status */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <FileText className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Application Form Status</h3>
+                        <p className="text-sm text-gray-600">
+                          {applicationFormStatus === 'not_started' && 'No application form has been started yet'}
+                          {applicationFormStatus === 'draft' && 'Application form is in draft stage'}
+                          {applicationFormStatus === 'in_progress' && 'Application form is in progress'}
+                          {applicationFormStatus === 'ready_for_submission' && 'Application form is complete and ready for submission to the scholarship provider'}
+                          {applicationFormStatus === 'submitted' && 'Application has been submitted to the scholarship provider'}
+                          {applicationFormStatus === 'completed' && 'Application form is completed'}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className={cn(
+                      'text-sm',
+                      applicationFormStatus === 'not_started' ? 'bg-gray-100 text-gray-800' :
+                      applicationFormStatus === 'draft' ? 'bg-blue-100 text-blue-800' :
+                      applicationFormStatus === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                      applicationFormStatus === 'submitted' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+                    )}>
+                      {applicationFormStatus.replace('_', ' ')}
+                    </Badge>
+                  </div>
+
+                  {/* Progress Bar */}
+                  {applicationFormProgress > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">Form Progress</span>
+                        <span className="text-sm text-gray-600">{applicationFormProgress}%</span>
+                      </div>
+                      <Progress value={applicationFormProgress} className="h-2" />
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    {applicationFormId ? (
+                      <Button 
+                        onClick={() => router.push(`/applications/${applicationFormId}/form`)}
+                        className="flex-1"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        {applicationFormStatus === 'ready_for_submission' || applicationFormStatus === 'submitted' || applicationFormStatus === 'completed'
+                          ? 'Review Application Form'
+                          : 'Continue Application Form'
+                        }
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => {
+                          console.log('Start Application Form button clicked');
+                          handleCreateApplicationForm();
+                        }}
+                        className="flex-1"
+                        variant="outline"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Start Application Form
+                      </Button>
+                    )}
+                    
+                    {applicationFormId && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => router.push(`/applications/${applicationFormId}/view`)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Form
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Information */}
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-blue-900">About Application Forms</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          This platform helps you prepare your scholarship application by providing a structured form 
+                          that matches the official requirements. Once completed, you can download your responses 
+                          and copy them to the actual scholarship provider&apos;s website or portal.
+                        </p>
+                        <p className="text-sm text-blue-600 mt-2">
+                          <strong>Note:</strong> This platform does not submit applications directly to scholarship providers. 
+                          You&apos;ll need to manually submit your completed application to the official scholarship portal.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
           {/* Interviews Tab */}
           <TabsContent value="interviews" className="space-y-6">
             <InterviewScheduler
@@ -1195,6 +1827,35 @@ export default function ApplicationPackageManager({ applicationId }: Application
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Application Package</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &ldquo;{application?.name}&rdquo;? This action cannot be undone.
+                <br /><br />
+                <strong>This will also delete:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>All associated interviews</li>
+                  <li>All requirement links</li>
+                  <li>All submission tracking data</li>
+                </ul>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteApplication}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Package'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

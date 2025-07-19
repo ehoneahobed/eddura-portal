@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
+import Interview from '@/models/Interview';
 
 export async function PATCH(
   request: NextRequest,
@@ -27,15 +28,21 @@ export async function PATCH(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // For now, return success - this will be enhanced when we add interview model
+    // Update the interview
+    const interview = await Interview.findOneAndUpdate(
+      { _id: interviewId, applicationId },
+      { $set: updates },
+      { new: true }
+    );
+
+    if (!interview) {
+      return NextResponse.json({ error: 'Interview not found' }, { status: 404 });
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Interview updated successfully',
-      interview: {
-        _id: interviewId,
-        ...updates,
-        updatedAt: new Date().toISOString()
-      }
+      interview: interview
     });
 
   } catch (error) {
@@ -70,7 +77,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // For now, return success - this will be enhanced when we add interview model
+    // Delete the interview
+    const interview = await Interview.findOneAndDelete({ _id: interviewId, applicationId });
+
+    if (!interview) {
+      return NextResponse.json({ error: 'Interview not found' }, { status: 404 });
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Interview deleted successfully'

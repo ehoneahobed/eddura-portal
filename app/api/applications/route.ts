@@ -29,6 +29,41 @@ export async function GET(request: NextRequest) {
     .populate('applicationTemplateId', 'title estimatedTime')
     .sort({ lastActivityAt: -1 });
 
+    // For scholarship applications, check if there's a corresponding application form
+    const applicationsWithFormStatus = await Promise.all(
+      applications.map(async (app) => {
+        let applicationFormStatus = 'not_started';
+        let applicationFormProgress = 0;
+        let applicationFormId = null;
+
+        // Only check for application forms for scholarship packages that are not external
+        if (app.applicationType === 'scholarship' && app.scholarshipId && !app.isExternal) {
+          // Check if there's an application form for this scholarship
+          const applicationForm = await Application.findOne({
+            userId: session.user.id,
+            scholarshipId: app.scholarshipId,
+            applicationType: 'scholarship',
+            isActive: true,
+            // Exclude the current application package itself
+            _id: { $ne: app._id }
+          });
+
+          if (applicationForm) {
+            applicationFormId = applicationForm._id;
+            applicationFormStatus = applicationForm.status;
+            applicationFormProgress = applicationForm.progress || 0;
+          }
+        }
+
+        return {
+          ...app.toObject(),
+          applicationFormStatus,
+          applicationFormProgress,
+          applicationFormId
+        };
+      })
+    );
+
     console.log('Raw applications from DB:', applications);
     console.log('Raw application details:', applications.map(app => ({
       id: app._id,
@@ -42,7 +77,7 @@ export async function GET(request: NextRequest) {
     })));
     
     // Transform applications to include proper data
-    const transformedApplications = applications.map(app => {
+    const transformedApplications = applicationsWithFormStatus.map(app => {
       let applicationData: any = {
         _id: app._id,
         name: app.name,
@@ -71,7 +106,11 @@ export async function GET(request: NextRequest) {
           completed: 0,
           required: 0,
           requiredCompleted: 0
-        }
+        },
+        // Application form tracking
+        applicationFormStatus: app.applicationFormStatus,
+        applicationFormProgress: app.applicationFormProgress,
+        applicationFormId: app.applicationFormId
       };
 
       // Add the appropriate data based on application type

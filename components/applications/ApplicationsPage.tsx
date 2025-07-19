@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
@@ -39,7 +39,7 @@ interface Application {
     currency?: string;
     deadline: string;
   };
-  status: 'draft' | 'in_progress' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'waitlisted' | 'withdrawn';
+  status: 'draft' | 'in_progress' | 'ready_for_submission' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'waitlisted' | 'withdrawn';
   progress: number;
   currentSectionId?: string;
   startedAt: string;
@@ -58,6 +58,24 @@ export default function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  const filterApplications = useCallback(() => {
+    let filtered = applications;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(app => 
+        app.scholarshipId.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(app => app.status === statusFilter);
+    }
+
+    setFilteredApplications(filtered);
+  }, [applications, searchTerm, statusFilter]);
+
   useEffect(() => {
     if (session?.user?.id) {
       fetchApplications();
@@ -66,7 +84,7 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     filterApplications();
-  }, [applications, searchTerm, statusFilter]);
+  }, [filterApplications]);
 
   const fetchApplications = async () => {
     try {
@@ -85,30 +103,14 @@ export default function ApplicationsPage() {
     }
   };
 
-  const filterApplications = () => {
-    let filtered = applications;
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(app => 
-        app.scholarshipId.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(app => app.status === statusFilter);
-    }
-
-    setFilteredApplications(filtered);
-  };
-
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'draft':
         return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: 'Draft' };
       case 'in_progress':
         return { color: 'bg-blue-100 text-blue-800', icon: Play, label: 'In Progress' };
+      case 'ready_for_submission':
+        return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Ready for Submission' };
       case 'submitted':
         return { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Submitted' };
       case 'under_review':
@@ -401,6 +403,14 @@ export default function ApplicationsPage() {
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Continue
+                          </Button>
+                        ) : application.status === 'ready_for_submission' ? (
+                          <Button 
+                            onClick={() => handleViewApplication(application._id)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Review
                           </Button>
                         ) : (
                           <Button 

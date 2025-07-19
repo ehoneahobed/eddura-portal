@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -124,7 +124,7 @@ export const RequirementsChecklist: React.FC<RequirementsChecklistProps> = ({
   }, [requirements]);
 
   // Fetch requirements
-  const fetchRequirements = async () => {
+  const fetchRequirements = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -157,7 +157,7 @@ export const RequirementsChecklist: React.FC<RequirementsChecklistProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [applicationId, filters, sortBy, sortOrder]);
 
   // Update requirement status
   const updateRequirementStatus = async (requirementId: string, status: RequirementStatus, notes?: string) => {
@@ -284,7 +284,7 @@ export const RequirementsChecklist: React.FC<RequirementsChecklistProps> = ({
 
   useEffect(() => {
     fetchRequirements();
-  }, [applicationId, filters, sortBy, sortOrder]);
+  }, [applicationId, filters, sortBy, sortOrder, fetchRequirements]);
 
   const getStatusIcon = (status: RequirementStatus) => {
     switch (status) {

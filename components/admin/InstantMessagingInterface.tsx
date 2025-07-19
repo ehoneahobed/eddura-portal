@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -119,50 +119,7 @@ export default function InstantMessagingInterface() {
   const [selectedUsers, setSelectedUsers] = useState<AdminUser[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchMessages();
-      fetchAdmins();
-    }
-  }, [session?.user]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const fetchMessages = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/admin/messages?limit=100');
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data.messages);
-        buildConversations(data.messages);
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchAdmins = async () => {
-    try {
-      const response = await fetch('/api/admin/admins');
-      if (response.ok) {
-        const data = await response.json();
-        setAdmins(data.admins);
-      }
-    } catch (error) {
-      console.error('Error fetching admins:', error);
-    }
-  };
-
-  const buildConversations = (allMessages: Message[]) => {
+  const buildConversations = useCallback((allMessages: Message[]) => {
     const conversationMap = new Map<string, Conversation>();
     
     allMessages.forEach(message => {
@@ -194,6 +151,49 @@ export default function InstantMessagingInterface() {
     });
     
     setConversations(Array.from(conversationMap.values()));
+  }, [session?.user?.id]);
+
+  const fetchMessages = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/admin/messages?limit=100');
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages);
+        buildConversations(data.messages);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [buildConversations]);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchMessages();
+      fetchAdmins();
+    }
+  }, [session?.user, fetchMessages]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  const fetchAdmins = async () => {
+    try {
+      const response = await fetch('/api/admin/admins');
+      if (response.ok) {
+        const data = await response.json();
+        setAdmins(data.admins);
+      }
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+    }
   };
 
   const handleSendMessage = async () => {

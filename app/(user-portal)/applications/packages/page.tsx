@@ -19,7 +19,25 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { 
   Plus, 
   Search, 
@@ -33,7 +51,11 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Play,
+  CheckCircle,
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -42,8 +64,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ApplicationPackageBuilder } from '@/components/applications/ApplicationPackageBuilder';
-import { RequirementsChecklist } from '@/components/applications/RequirementsChecklist';
-import { ProgressTracker } from '@/components/applications/ProgressTracker';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 interface ApplicationPackage {
@@ -71,6 +92,10 @@ interface ApplicationPackage {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  // Application form tracking
+  applicationFormStatus?: 'not_started' | 'draft' | 'in_progress' | 'submitted' | 'completed';
+  applicationFormProgress?: number;
+  applicationFormId?: string;
 }
 
 export default function ApplicationPackagesPage() {
@@ -79,9 +104,9 @@ export default function ApplicationPackagesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<ApplicationPackage | null>(null);
-  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
-  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [packageToDelete, setPackageToDelete] = useState<ApplicationPackage | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -99,6 +124,8 @@ export default function ApplicationPackagesPage() {
         throw new Error(data.error || 'Failed to fetch application packages');
       }
 
+
+      
       setPackages(data.applications || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch application packages');
@@ -210,6 +237,91 @@ export default function ApplicationPackagesPage() {
     fetchPackages(); // Refresh the list
   };
 
+  const handleDeletePackage = async () => {
+    if (!packageToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      
+      const response = await fetch(`/api/applications/${packageToDelete._id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Application package deleted successfully');
+        setShowDeleteDialog(false);
+        setPackageToDelete(null);
+        fetchPackages(); // Refresh the list
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete application package');
+      }
+    } catch (error) {
+      console.error('Error deleting application package:', error);
+      toast.error('Failed to delete application package');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const confirmDelete = (pkg: ApplicationPackage) => {
+    setPackageToDelete(pkg);
+    setShowDeleteDialog(true);
+  };
+
+
+
+  const getApplicationFormStatusColor = (status?: string) => {
+    switch (status) {
+      case 'not_started':
+        return 'bg-gray-100 text-gray-800';
+      case 'draft':
+        return 'bg-blue-100 text-blue-800';
+      case 'in_progress':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'submitted':
+        return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getApplicationFormStatusText = (status?: string) => {
+    switch (status) {
+      case 'not_started':
+        return 'Not Started';
+      case 'draft':
+        return 'Draft';
+      case 'in_progress':
+        return 'In Progress';
+      case 'submitted':
+        return 'Submitted';
+      case 'completed':
+        return 'Completed';
+      default:
+        return 'Not Started';
+    }
+  };
+
+  const getApplicationFormStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'not_started':
+        return <Plus className="h-4 w-4" />;
+      case 'draft':
+        return <FileText className="h-4 w-4" />;
+      case 'in_progress':
+        return <Play className="h-4 w-4" />;
+      case 'submitted':
+        return <Clock className="h-4 w-4" />;
+      case 'completed':
+        return <CheckCircle className="h-4 w-4" />;
+      default:
+        return <Plus className="h-4 w-4" />;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -249,21 +361,84 @@ export default function ApplicationPackagesPage() {
             Manage your application packages and track requirements progress
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Package
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            // Test the new flow
-            console.log('Testing application package creation...');
-            setShowCreateModal(true);
-          }}
-        >
-          Test New Flow
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Package
+          </Button>
+
+        </div>
       </div>
+
+
+
+      {/* Scholarship Application Forms Summary */}
+      {filteredPackages.some(pkg => pkg.applicationType === 'scholarship' && !pkg.isExternal) ? (
+        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <FileText className="h-8 w-8 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Scholarship Application Forms</h3>
+                  <p className="text-gray-600">
+                    Track your scholarship application forms and progress
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">
+                  {filteredPackages.filter(pkg => pkg.applicationType === 'scholarship' && !pkg.isExternal).length}
+                </div>
+                <div className="text-sm text-gray-600">Scholarship Packages</div>
+                <div className="text-sm text-gray-600">
+                  {filteredPackages.filter(pkg => 
+                    pkg.applicationType === 'scholarship' && !pkg.isExternal && pkg.applicationFormId
+                  ).length} with forms
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {filteredPackages.filter(pkg => 
+                    pkg.applicationType === 'scholarship' && !pkg.isExternal && !pkg.applicationFormId
+                  ).length} packages need application forms
+                </div>
+
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="mb-6 bg-gray-50 border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-gray-100 rounded-lg">
+                  <FileText className="h-8 w-8 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Scholarship Application Forms</h3>
+                  <p className="text-gray-600">
+                    Create a scholarship application package to see the application form functionality
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Scholarship Package
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card className="mb-6">
@@ -362,25 +537,10 @@ export default function ApplicationPackagesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedPackage(pkg);
-                          setShowRequirementsModal(true);
-                        }}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Requirements
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedPackage(pkg);
-                          setShowProgressModal(true);
-                        }}>
-                          <Target className="h-4 w-4 mr-2" />
-                          View Progress
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Package
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => confirmDelete(pkg)}
+                        >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete Package
                         </DropdownMenuItem>
@@ -408,7 +568,7 @@ export default function ApplicationPackagesPage() {
                       <p className="text-sm text-gray-600">{pkg.externalSchoolName}</p>
                     )}
                     {pkg.notes && (
-                      <p className="text-sm text-gray-500 italic">"{pkg.notes}"</p>
+                      <p className="text-sm text-gray-500 italic">&ldquo;{pkg.notes}&rdquo;</p>
                     )}
                   </div>
 
@@ -424,6 +584,18 @@ export default function ApplicationPackagesPage() {
                     {!pkg.targetId && !pkg.isExternal && (
                       <Badge variant="outline" className="text-orange-600">
                         Unassociated
+                      </Badge>
+                    )}
+                    {pkg.applicationType === 'scholarship' && !pkg.isExternal && pkg.applicationFormId && (
+                      <Badge className="bg-green-100 text-green-800">
+                        <FileText className="h-3 w-3 mr-1" />
+                        Form Ready
+                      </Badge>
+                    )}
+                    {pkg.applicationType === 'scholarship' && !pkg.isExternal && !pkg.applicationFormId && (
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        <Plus className="h-3 w-3 mr-1" />
+                        Needs Form
                       </Badge>
                     )}
                   </div>
@@ -458,41 +630,81 @@ export default function ApplicationPackagesPage() {
                     </div>
                   )}
 
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedPackage(pkg);
-                        setShowRequirementsModal(true);
-                      }}
-                      className="flex-1"
-                    >
-                      Requirements
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setSelectedPackage(pkg);
-                        setShowProgressModal(true);
-                      }}
-                      className="flex-1"
-                    >
-                      Progress
-                    </Button>
-                  </div>
-                  
-                  {/* Full Management Link */}
+                  {/* Application Form Status - Only for scholarship packages */}
+                  {pkg.applicationType === 'scholarship' && !pkg.isExternal && (
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <h4 className="text-sm font-medium text-gray-900 cursor-help">
+                                Application Form
+                                <span className="ml-1 text-gray-400">ⓘ</span>
+                              </h4>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Fill out the official application form for this scholarship</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <Badge className={getApplicationFormStatusColor(pkg.applicationFormStatus)}>
+                          {getApplicationFormStatusIcon(pkg.applicationFormStatus)}
+                          <span className="ml-1">{getApplicationFormStatusText(pkg.applicationFormStatus)}</span>
+                        </Badge>
+                      </div>
+                      
+                      {pkg.applicationFormProgress !== undefined && pkg.applicationFormProgress > 0 && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span>Form Progress</span>
+                            <span>{pkg.applicationFormProgress}%</span>
+                          </div>
+                          <Progress value={pkg.applicationFormProgress} className="h-2" />
+                        </div>
+                      )}
+                      
+
+                    </div>
+                  )}
+
+                  {/* External Scholarship Note */}
+                  {pkg.applicationType === 'scholarship' && pkg.isExternal && (
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-medium text-gray-900">External Application</h4>
+                        <Badge className="bg-gray-100 text-gray-800">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          External
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 mb-3">
+                        This scholarship uses an external application system.
+                      </p>
+                      
+                      {pkg.externalApplicationUrl && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => window.open(pkg.externalApplicationUrl, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Apply Externally
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Primary Action Button */}
                   <div className="pt-2">
                     <Button
-                      variant="ghost"
                       size="sm"
-                      className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={() => router.push(`/applications/${pkg._id}`)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      Manage Full Application
+                      Manage Application
                     </Button>
                   </div>
                 </CardContent>
@@ -517,37 +729,36 @@ export default function ApplicationPackagesPage() {
         </Dialog>
       )}
 
-      {/* Requirements Modal */}
-      {showRequirementsModal && selectedPackage && (
-        <Dialog open={showRequirementsModal} onOpenChange={setShowRequirementsModal}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Requirements: {selectedPackage.name}</DialogTitle>
-            </DialogHeader>
-            <RequirementsChecklist
-              applicationId={selectedPackage._id}
-              applicationName={selectedPackage.name}
-              onRequirementUpdate={handlePackageUpdate}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
 
-      {/* Progress Modal */}
-      {showProgressModal && selectedPackage && (
-        <Dialog open={showProgressModal} onOpenChange={setShowProgressModal}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Progress: {selectedPackage.name}</DialogTitle>
-            </DialogHeader>
-            <ProgressTracker
-              applicationId={selectedPackage._id}
-              applicationDeadline={selectedPackage.applicationDeadline ? new Date(selectedPackage.applicationDeadline) : undefined}
-              onRefresh={handlePackageUpdate}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Application Package</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &ldquo;{packageToDelete?.name}&rdquo;? This action cannot be undone.
+              <br /><br />
+              <strong>This will also delete:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>All associated interviews</li>
+                <li>All requirement links</li>
+                <li>All submission tracking data</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeletePackage}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Package'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

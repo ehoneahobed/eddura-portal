@@ -87,7 +87,7 @@ export default function InterviewScheduler({
   const [formData, setFormData] = useState({
     type: 'video' as 'video' | 'phone' | 'in_person',
     scheduledDate: '',
-    scheduledTime: '',
+    scheduledTime: '12:00', // Default to 12:00 PM
     duration: 30,
     interviewer: '',
     location: '',
@@ -97,6 +97,8 @@ export default function InterviewScheduler({
     meetingPassword: '',
     notes: ''
   });
+
+
 
   // Filter interviews
   const filteredInterviews = interviews.filter(interview => {
@@ -119,7 +121,7 @@ export default function InterviewScheduler({
     setFormData({
       type: 'video',
       scheduledDate: '',
-      scheduledTime: '',
+      scheduledTime: '12:00', // Default to 12:00 PM
       duration: 30,
       interviewer: '',
       location: '',
@@ -132,16 +134,19 @@ export default function InterviewScheduler({
   };
 
   const handleCreateInterview = async () => {
-    if (!formData.scheduledDate || !formData.scheduledTime) {
-      toast.error('Please select a date and time');
+    if (!formData.scheduledDate) {
+      toast.error('Please select a date');
       return;
     }
 
+    // Use default time (12:00 PM) if no time is selected
+    const timeToUse = formData.scheduledTime || '12:00';
+
     try {
       setIsSubmitting(true);
-      const scheduledDateTime = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
+      const scheduledDateTime = new Date(`${formData.scheduledDate}T${timeToUse}`);
       
-      await onInterviewCreate({
+      const interviewData = {
         type: formData.type,
         scheduledDate: scheduledDateTime.toISOString(),
         duration: formData.duration,
@@ -152,13 +157,16 @@ export default function InterviewScheduler({
         meetingId: formData.meetingId,
         meetingPassword: formData.meetingPassword,
         notes: formData.notes,
-        status: 'scheduled'
-      });
+        status: 'scheduled' as const
+      };
+      
+      await onInterviewCreate(interviewData);
 
       toast.success('Interview scheduled successfully');
       setShowCreateDialog(false);
       resetForm();
     } catch (error) {
+      console.error('Error creating interview:', error);
       toast.error('Failed to schedule interview');
     } finally {
       setIsSubmitting(false);
@@ -232,7 +240,7 @@ export default function InterviewScheduler({
     setFormData({
       type: interview.type,
       scheduledDate: interview.scheduledDate ? format(parseISO(interview.scheduledDate), 'yyyy-MM-dd') : '',
-      scheduledTime: interview.scheduledDate ? format(parseISO(interview.scheduledDate), 'HH:mm') : '',
+      scheduledTime: interview.scheduledDate ? format(parseISO(interview.scheduledDate), 'HH:mm') : '12:00',
       duration: interview.duration || 30,
       interviewer: interview.interviewer || '',
       location: interview.location || '',
@@ -382,7 +390,7 @@ export default function InterviewScheduler({
           </Select>
         </div>
 
-        <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
+                    <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Schedule Interview
         </Button>
@@ -696,12 +704,13 @@ export default function InterviewScheduler({
               </div>
               
               <div>
-                <Label htmlFor="time">Time</Label>
+                <Label htmlFor="time">Time (optional - defaults to 12:00 PM)</Label>
                 <Input
                   id="time"
                   type="time"
                   value={formData.scheduledTime}
                   onChange={(e) => setFormData({...formData, scheduledTime: e.target.value})}
+                  placeholder="12:00"
                 />
               </div>
             </div>

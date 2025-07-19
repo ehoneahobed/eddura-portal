@@ -147,11 +147,7 @@ export default function ScholarshipsPage() {
     }
   }, [scholarships]);
 
-  useEffect(() => {
-    fetchScholarships();
-  }, [pagination.currentPage, debouncedSearchTerm, selectedFilters, sortBy, selectedStatus]);
-
-    const fetchScholarships = async () => {
+  const fetchScholarships = useCallback(async () => {
     // Don't show loading state for search operations if we already have results
     const isSearchOperation = debouncedSearchTerm && scholarships.length > 0;
     
@@ -212,7 +208,12 @@ export default function ScholarshipsPage() {
         setIsLoading(false);
       }
     }
-  };
+  }, [debouncedSearchTerm, scholarships.length, pagination, sortBy, selectedFilters, selectedStatus]);
+
+  // Effect to fetch scholarships when dependencies change
+  useEffect(() => {
+    fetchScholarships();
+  }, [fetchScholarships]);
 
   const getSortByParam = (sort: SortOption): string => {
     switch (sort) {

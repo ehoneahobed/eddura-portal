@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,26 +134,7 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
   const currentStepIndex = currentSteps.findIndex(step => step.id === currentStep);
   const progress = ((currentStepIndex + 1) / currentSteps.length) * 100;
 
-  // Fetch data based on application type
-  useEffect(() => {
-    if (currentStep === 'target-selection') {
-      fetchData();
-    }
-  }, [currentStep, applicationData.applicationType]);
-
-  const fetchData = async () => {
-    if (applicationData.applicationType === 'school') {
-      await fetchSchools();
-    } else if (applicationData.applicationType === 'program') {
-      await fetchPrograms();
-    } else if (applicationData.applicationType === 'scholarship') {
-      await fetchScholarships();
-      await fetchSavedScholarships();
-      await fetchStartedApplications();
-    }
-  };
-
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     setIsLoadingSchools(true);
     try {
       const params = new URLSearchParams({
@@ -172,9 +153,9 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     } finally {
       setIsLoadingSchools(false);
     }
-  };
+  }, [searchQuery]);
 
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async () => {
     setIsLoadingPrograms(true);
     try {
       const params = new URLSearchParams({
@@ -193,9 +174,9 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     } finally {
       setIsLoadingPrograms(false);
     }
-  };
+  }, [searchQuery]);
 
-  const fetchScholarships = async () => {
+  const fetchScholarships = useCallback(async () => {
     setIsLoadingScholarships(true);
     try {
       const params = new URLSearchParams({
@@ -215,9 +196,9 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     } finally {
       setIsLoadingScholarships(false);
     }
-  };
+  }, [searchQuery]);
 
-  const fetchSavedScholarships = async () => {
+  const fetchSavedScholarships = useCallback(async () => {
     setIsLoadingSavedScholarships(true);
     try {
       const response = await fetch('/api/user/saved-scholarships');
@@ -263,9 +244,9 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     } finally {
       setIsLoadingSavedScholarships(false);
     }
-  };
+  }, []);
 
-  const fetchStartedApplications = async () => {
+  const fetchStartedApplications = useCallback(async () => {
     setIsLoadingStartedApplications(true);
     try {
       const response = await fetch('/api/applications?status=in_progress&applicationType=scholarship');
@@ -288,7 +269,28 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     } finally {
       setIsLoadingStartedApplications(false);
     }
-  };
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    if (applicationData.applicationType === 'school') {
+      await fetchSchools();
+    } else if (applicationData.applicationType === 'program') {
+      await fetchPrograms();
+    } else if (applicationData.applicationType === 'scholarship') {
+      await fetchScholarships();
+      await fetchSavedScholarships();
+      await fetchStartedApplications();
+    }
+  }, [applicationData.applicationType, fetchSchools, fetchPrograms, fetchScholarships, fetchSavedScholarships, fetchStartedApplications]);
+
+  // Fetch data based on application type
+  useEffect(() => {
+    if (currentStep === 'target-selection') {
+      fetchData();
+    }
+  }, [currentStep, fetchData]);
+
+
 
   // Handle search with debouncing
   useEffect(() => {
@@ -299,7 +301,7 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, currentStep, fetchData]);
 
   const updateApplicationData = (field: string, value: any) => {
     setApplicationData(prev => ({ ...prev, [field]: value }));
@@ -965,7 +967,7 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
                     <h4 className="font-medium text-blue-900">Next Steps</h4>
                   </div>
                   <p className="text-sm text-blue-700">
-                    After creating your application package, you'll be able to:
+                    After creating your application package, you&apos;ll be able to:
                   </p>
                   <ul className="text-sm text-blue-700 mt-2 space-y-1">
                     <li>• Review and customize all requirements</li>
@@ -983,7 +985,7 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
                     <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Template Selected</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      You haven't selected a requirements template. You can add requirements manually after creating your application package.
+                      You haven&apos;t selected a requirements template. You can add requirements manually after creating your application package.
                     </p>
                     <Button
                       variant="outline"

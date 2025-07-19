@@ -397,7 +397,7 @@ export default function DocumentLinker({
                   <Badge variant="secondary">{filteredDocuments.length}</Badge>
                 </CardTitle>
                 <CardDescription>
-                  Click "Link Document" next to any requirement to connect your document to it
+                  Click &ldquo;Link Document&rdquo; next to any requirement to connect your document to it
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

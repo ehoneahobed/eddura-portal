@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Application from '@/models/Application';
+import Interview from '@/models/Interview';
 
 export async function GET(
   request: NextRequest,
@@ -29,10 +30,12 @@ export async function GET(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // For now, return empty interviews array - this will be enhanced when we add interview model
+    // Fetch interviews for this application
+    const interviews = await Interview.find({ applicationId }).sort({ scheduledDate: 1 });
+
     return NextResponse.json({
       success: true,
-      interviews: []
+      interviews: interviews
     });
 
   } catch (error) {
@@ -68,17 +71,19 @@ export async function POST(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // For now, return success - this will be enhanced when we add interview model
+    // Create new interview
+    const interview = new Interview({
+      applicationId,
+      ...interviewData
+    });
+
+    await interview.save();
+
     return NextResponse.json({
       success: true,
       message: 'Interview scheduled successfully',
-      interview: {
-        _id: 'temp-id-' + Date.now(),
-        ...interviewData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    });
+      interview: interview
+    }, { status: 201 });
 
   } catch (error) {
     console.error('Error creating interview:', error);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -60,31 +60,7 @@ export default function ContentVersioning({
   const [compareVersion1, setCompareVersion1] = useState<string>('');
   const [compareVersion2, setCompareVersion2] = useState<string>('');
 
-  useEffect(() => {
-    fetchVersions();
-  }, [contentId]);
-
-  const fetchVersions = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/content/${contentId}/versions`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setVersions(data.data);
-      } else {
-        // Fallback to mock data
-        setVersions(generateMockVersions());
-      }
-    } catch (error) {
-      console.error('Error fetching versions:', error);
-      setVersions(generateMockVersions());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateMockVersions = (): ContentVersion[] => {
+  const generateMockVersions = useCallback((): ContentVersion[] => {
     const mockVersions: ContentVersion[] = [];
     const authors = ['John Doe', 'Jane Smith', 'Admin User'];
     const changes = [
@@ -111,7 +87,33 @@ export default function ContentVersioning({
     }
 
     return mockVersions;
-  };
+  }, [currentVersion]);
+
+  const fetchVersions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/content/${contentId}/versions`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setVersions(data.data);
+      } else {
+        // Fallback to mock data
+        setVersions(generateMockVersions());
+      }
+    } catch (error) {
+      console.error('Error fetching versions:', error);
+      setVersions(generateMockVersions());
+    } finally {
+      setLoading(false);
+    }
+  }, [contentId, generateMockVersions]);
+
+  useEffect(() => {
+    fetchVersions();
+  }, [contentId, fetchVersions]);
+
+
 
   const handleRestore = async (version: ContentVersion) => {
     if (!onRestore) return;

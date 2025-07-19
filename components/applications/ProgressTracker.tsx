@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +52,7 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Fetch progress data
-  const fetchProgress = async () => {
+  const fetchProgress = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -70,11 +70,11 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [applicationId]);
 
   useEffect(() => {
     fetchProgress();
-  }, [applicationId]);
+  }, [applicationId, fetchProgress]);
 
   const getStatusIcon = (status: RequirementStatus) => {
     switch (status) {

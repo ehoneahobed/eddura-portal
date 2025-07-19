@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Image from 'next/image';
 
 import ProgramCard from './ProgramCard';
 import SchoolCard from './SchoolCard';
@@ -107,29 +108,7 @@ export default function ProgramsPage() {
   });
   const [isLoadingSchools, setIsLoadingSchools] = useState(true);
 
-  // Fetch schools on mount and when search/pagination changes
-  useEffect(() => {
-    fetchSchools();
-  }, [schoolSearch, schoolPagination.currentPage]);
-
-  // Fetch programs when a school is selected
-  useEffect(() => {
-    if (selectedSchool) {
-      fetchPrograms(selectedSchool._id);
-    } else {
-      setPrograms([]);
-      setFilteredPrograms([]);
-    }
-  }, [selectedSchool]);
-
-  // Only filter programs if a school is selected
-  useEffect(() => {
-    if (selectedSchool) {
-      filterPrograms();
-    }
-  }, [programs, searchTerm, selectedFilters, selectedSchool]);
-
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     setIsLoadingSchools(true);
     try {
       const params = new URLSearchParams({
@@ -149,7 +128,89 @@ export default function ProgramsPage() {
     } finally {
       setIsLoadingSchools(false);
     }
-  };
+  }, [schoolSearch, schoolPagination]);
+
+  const filterPrograms = useCallback(() => {
+    let filtered = [...programs];
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(program =>
+        program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        program.fieldOfStudy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        program.school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        program.school.country.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Degree type filter
+    if (selectedFilters.degreeType && selectedFilters.degreeType !== 'all') {
+      filtered = filtered.filter(program =>
+        program.degreeType === selectedFilters.degreeType
+      );
+    }
+
+    // Field of study filter
+    if (selectedFilters.fieldOfStudy && selectedFilters.fieldOfStudy !== 'all') {
+      filtered = filtered.filter(program =>
+        program.fieldOfStudy === selectedFilters.fieldOfStudy
+      );
+    }
+
+    // Mode filter
+    if (selectedFilters.mode && selectedFilters.mode !== 'all') {
+      filtered = filtered.filter(program =>
+        program.mode === selectedFilters.mode
+      );
+    }
+
+    // Program level filter
+    if (selectedFilters.programLevel && selectedFilters.programLevel !== 'all') {
+      filtered = filtered.filter(program =>
+        program.programLevel === selectedFilters.programLevel
+      );
+    }
+
+    // Country filter
+    if (selectedFilters.country) {
+      filtered = filtered.filter(program =>
+        program.school.country.toLowerCase().includes(selectedFilters.country.toLowerCase())
+      );
+    }
+
+    // Max tuition filter
+    if (selectedFilters.maxTuition) {
+      filtered = filtered.filter(program =>
+        program.tuitionFees.international <= parseInt(selectedFilters.maxTuition)
+      );
+    }
+
+    setFilteredPrograms(filtered);
+  }, [programs, searchTerm, selectedFilters]);
+
+  // Fetch schools on mount and when search/pagination changes
+  useEffect(() => {
+    fetchSchools();
+  }, [fetchSchools]);
+
+  // Fetch programs when a school is selected
+  useEffect(() => {
+    if (selectedSchool) {
+      fetchPrograms(selectedSchool._id);
+    } else {
+      setPrograms([]);
+      setFilteredPrograms([]);
+    }
+  }, [selectedSchool]);
+
+  // Only filter programs if a school is selected
+  useEffect(() => {
+    if (selectedSchool) {
+      filterPrograms();
+    }
+  }, [filterPrograms, selectedSchool]);
+
+
 
   // Handle school search with debouncing
   const handleSchoolSearch = (value: string) => {
@@ -178,70 +239,7 @@ export default function ProgramsPage() {
     }
   };
 
-  const filterPrograms = () => {
-    let filtered = [...programs];
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(program =>
-        program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        program.fieldOfStudy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        program.school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        program.school.country.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Degree type filter
-    if (selectedFilters.degreeType && selectedFilters.degreeType !== 'all') {
-      filtered = filtered.filter(program =>
-        program.degreeType === selectedFilters.degreeType
-      );
-    }
-
-    // Field of study filter
-    if (selectedFilters.fieldOfStudy && selectedFilters.fieldOfStudy !== 'all') {
-      filtered = filtered.filter(program =>
-        program.fieldOfStudy.toLowerCase().includes(selectedFilters.fieldOfStudy.toLowerCase())
-      );
-    }
-
-    // Mode filter
-    if (selectedFilters.mode && selectedFilters.mode !== 'all') {
-      filtered = filtered.filter(program =>
-        program.mode === selectedFilters.mode
-      );
-    }
-
-    // Program level filter
-    if (selectedFilters.programLevel && selectedFilters.programLevel !== 'all') {
-      filtered = filtered.filter(program =>
-        program.programLevel === selectedFilters.programLevel
-      );
-    }
-
-    // Country filter
-    if (selectedFilters.country) {
-      filtered = filtered.filter(program =>
-        program.school.country.toLowerCase().includes(selectedFilters.country.toLowerCase())
-      );
-    }
-
-    // Ranking filter
-    if (selectedFilters.minRanking) {
-      filtered = filtered.filter(program =>
-        program.school.globalRanking && program.school.globalRanking <= parseInt(selectedFilters.minRanking)
-      );
-    }
-
-    // Tuition filter
-    if (selectedFilters.maxTuition) {
-      filtered = filtered.filter(program =>
-        program.tuitionFees.international <= parseInt(selectedFilters.maxTuition)
-      );
-    }
-
-    setFilteredPrograms(filtered);
-  };
 
   const clearFilters = () => {
     setSelectedFilters({
@@ -443,9 +441,11 @@ export default function ProgramsPage() {
         
         <div className="flex items-center gap-4 mb-6">
           {selectedSchool.logoUrl && (
-            <img
+            <Image
               src={selectedSchool.logoUrl}
               alt={selectedSchool.name}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-lg object-cover border"
             />
           )}

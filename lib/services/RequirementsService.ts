@@ -291,9 +291,19 @@ export class RequirementsService {
     try {
       const progress = await this.calculateApplicationProgress(applicationId);
       
+      // Determine application status based on progress
+      let status = 'draft';
+      if (progress.percentage > 0 && progress.percentage < 100) {
+        status = 'in_progress';
+      } else if (progress.percentage === 100) {
+        status = 'submitted'; // This could be changed to 'ready_to_submit' if you want a separate status
+      }
+      
       await Application.findByIdAndUpdate(applicationId, {
         requirementsProgress: progress,
-        progress: progress.percentage
+        progress: progress.percentage,
+        status: status,
+        lastActivityAt: new Date()
       });
     } catch (error) {
       throw new Error(`Failed to update application progress: ${error instanceof Error ? error.message : 'Unknown error'}`);
