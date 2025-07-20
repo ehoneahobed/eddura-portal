@@ -9,7 +9,7 @@ import { UpdateRequirementData } from '@/types/requirements';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -17,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const requirementId = params.id;
+    const { id: requirementId } = await params;
     if (!requirementId) {
       return NextResponse.json({ error: 'Requirement ID is required' }, { status: 400 });
     }
@@ -47,7 +47,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -55,7 +55,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const requirementId = params.id;
+    const { id: requirementId } = await params;
     const body: UpdateRequirementData = await request.json();
 
     const requirement = await RequirementsService.updateRequirement(requirementId, body);
@@ -80,7 +80,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -88,7 +88,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const requirementId = params.id;
+    const { id: requirementId } = await params;
 
     await RequirementsService.deleteRequirement(requirementId);
     

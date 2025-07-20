@@ -186,6 +186,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const bypassDuplicateCheck = searchParams.get('bypassDuplicateCheck') === 'true';
+    
+    console.log('=== API REQUEST DEBUG ===');
+    console.log('Raw request body:', JSON.stringify(body, null, 2));
+    console.log('Request URL:', request.url);
+    console.log('Bypass duplicate check:', bypassDuplicateCheck);
+    
     const { 
       name,
       description,
@@ -202,13 +210,34 @@ export async function POST(request: NextRequest) {
       notes,
       isExternal
     } = body;
+    
+    console.log('=== EXTRACTED FIELDS ===');
+    console.log('name:', name);
+    console.log('name type:', typeof name);
+    console.log('name length:', name?.length);
+    console.log('name trimmed:', name?.trim());
+    console.log('name === "undefined":', name === 'undefined');
+    console.log('name === undefined:', name === undefined);
+    console.log('name === null:', name === null);
+    console.log('name === "":', name === '');
+    console.log('applicationType:', applicationType);
+    console.log('targetId:', targetId);
+    console.log('targetName:', targetName);
 
+    console.log('=== VALIDATION CHECKS ===');
+    console.log('!name:', !name);
+    console.log('!applicationType:', !applicationType);
+    console.log('name.trim():', name?.trim());
+    console.log('name.trim() === "undefined":', name?.trim() === 'undefined');
+    
     if (!name || !applicationType) {
+      console.log('Validation failed: Missing name or applicationType');
       return NextResponse.json({ error: 'Name and application type are required' }, { status: 400 });
     }
 
     // Validate that the name is not undefined, null, empty, or "undefined"
     if (!name || !name.trim() || name.trim() === 'undefined') {
+      console.log('Validation failed: Invalid name format');
       return NextResponse.json({ error: 'Please provide a valid application package name' }, { status: 400 });
     }
 
@@ -216,19 +245,94 @@ export async function POST(request: NextRequest) {
 
     // Check if application package already exists with the same name
     // Skip the check if the name is "undefined" or empty, as these are invalid names
-    if (name.trim() && name.trim() !== 'undefined') {
+    console.log('=== DUPLICATE CHECK ===');
+    console.log('bypassDuplicateCheck:', bypassDuplicateCheck);
+    console.log('name.trim():', name?.trim());
+    console.log('name.trim() !== "undefined":', name?.trim() !== 'undefined');
+    console.log('Should check for duplicates:', !bypassDuplicateCheck && name.trim() && name.trim() !== 'undefined');
+    
+    if (!bypassDuplicateCheck && name.trim() && name.trim() !== 'undefined') {
+      const trimmedName = name.trim();
+      console.log('Checking for duplicate name:', {
+        userId: session.user.id,
+        name: trimmedName,
+        nameLength: trimmedName.length
+      });
+
+      // First, let's see all applications for this user to debug
+      const allUserApplications = await Application.find({
+        userId: session.user.id,
+        isActive: true
+      }).select('name');
+
+      console.log('All user applications:', allUserApplications.map(app => ({
+        name: app.name,
+        nameLength: app.name.length
+      })));
+
+      // Check for exact match first
       const existingApplication = await Application.findOne({
         userId: session.user.id,
-        name: name.trim(),
+        name: trimmedName,
         isActive: true
       });
 
+      console.log('Existing application found:', existingApplication ? {
+        id: existingApplication._id,
+        name: existingApplication.name,
+        nameLength: existingApplication.name.length
+      } : 'None');
+
       if (existingApplication) {
+        console.log('DUPLICATE FOUND - returning 409 error');
+        // Generate a suggested unique name
+        let suggestedName = trimmedName;
+        let counter = 1;
+        
+        // Keep checking until we find a unique name
+        while (true) {
+          const testName = counter === 1 ? suggestedName : `${suggestedName} (${counter})`;
+          const testApplication = await Application.findOne({
+            userId: session.user.id,
+            name: testName,
+            isActive: true
+          });
+          
+          if (!testApplication) {
+            suggestedName = testName;
+            break;
+          }
+          counter++;
+        }
+
         return NextResponse.json({ 
           error: 'Application package with this name already exists',
-          applicationId: existingApplication._id 
+          applicationId: existingApplication._id,
+          suggestedName: suggestedName
         }, { status: 409 });
       }
+
+      // Also check for case-insensitive match as a fallback
+      const caseInsensitiveMatch = await Application.findOne({
+        userId: session.user.id,
+        name: { $regex: new RegExp(`^${trimmedName}$`, 'i') },
+        isActive: true
+      });
+
+      if (caseInsensitiveMatch && caseInsensitiveMatch.name !== trimmedName) {
+        console.log('Case-insensitive match found:', {
+          submitted: trimmedName,
+          existing: caseInsensitiveMatch.name
+        });
+        
+        return NextResponse.json({ 
+          error: 'Application package with this name already exists (case-insensitive match)',
+          applicationId: caseInsensitiveMatch._id,
+          suggestedName: `${trimmedName} (1)`
+        }, { status: 409 });
+      }
+    } else {
+      console.log('Skipping duplicate check due to bypass or invalid name');
     }
 
     // Validate target entity if provided

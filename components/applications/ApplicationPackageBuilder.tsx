@@ -335,6 +335,78 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     updateApplicationData('targetId', targetId);
     updateApplicationData('targetName', targetName);
     
+    // Don't auto-generate if we're already submitting
+    if (isSubmitting) {
+      console.log('Skipping auto-generation - already submitting');
+      return;
+    }
+    
+    // Auto-generate application package name if not already set
+    console.log('=== AUTO-GENERATION DEBUG ===');
+    console.log('targetId:', targetId);
+    console.log('targetName:', targetName);
+    console.log('applicationType:', applicationData.applicationType);
+    console.log('programs available:', programs.length);
+    console.log('schools available:', schools.length);
+    console.log('scholarships available:', scholarships.length);
+    
+    setApplicationData(prevData => {
+      console.log('Auto-generation check:', {
+        currentName: prevData.name,
+        nameExists: !!prevData.name,
+        nameTrimmed: prevData.name?.trim(),
+        shouldGenerate: !prevData.name || !prevData.name.trim(),
+        nameIsUserEntered: prevData.name && prevData.name.trim() && 
+          !prevData.name.includes('Application') && 
+          !prevData.name.includes('Test Application Package') &&
+          !prevData.name.includes('Application Package')
+      });
+
+      // Only auto-generate if the name is empty or looks like it was auto-generated
+      const shouldAutoGenerate = !prevData.name || 
+        !prevData.name.trim() || 
+        prevData.name.includes('Test Application Package') ||
+        prevData.name.includes('Application Package');
+
+      if (shouldAutoGenerate) {
+        let generatedName = '';
+        
+        if (prevData.applicationType === 'program') {
+          const selectedProgram = programs.find(p => p._id === targetId);
+          console.log('Selected program:', selectedProgram);
+          if (selectedProgram) {
+            generatedName = `${selectedProgram.school.name} ${selectedProgram.name} Application`;
+            console.log('Generated program name:', generatedName);
+          }
+        } else if (prevData.applicationType === 'school') {
+          const selectedSchool = schools.find(s => s._id === targetId);
+          console.log('Selected school:', selectedSchool);
+          if (selectedSchool) {
+            generatedName = `${selectedSchool.name} Application`;
+            console.log('Generated school name:', generatedName);
+          }
+        } else if (prevData.applicationType === 'scholarship') {
+          const selectedScholarship = scholarships.find(s => s._id === targetId);
+          console.log('Selected scholarship:', selectedScholarship);
+          if (selectedScholarship) {
+            generatedName = `${selectedScholarship.title} Application`;
+            console.log('Generated scholarship name:', generatedName);
+          }
+        }
+        
+        if (generatedName) {
+          console.log('Returning updated data with generated name:', generatedName);
+          return { ...prevData, name: generatedName };
+        } else {
+          console.log('No name generated, returning original data');
+        }
+      } else {
+        console.log('Name already exists or user entered, not generating');
+      }
+      
+      return prevData;
+    });
+    
     // Auto-select specific template if available
     if (applicationData.applicationType === 'scholarship') {
       // Find the selected scholarship and get its template
@@ -362,8 +434,33 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
   };
 
   const handleSubmit = async () => {
+    console.log('=== SUBMIT CALLED ===', new Date().toISOString());
+    console.log('isSubmitting before:', isSubmitting);
+    
+    if (isSubmitting) {
+      console.log('Already submitting, preventing duplicate submission');
+      return;
+    }
+    
     setIsSubmitting(true);
+    console.log('isSubmitting after:', true);
+    
     try {
+      // Debug: Log the data being sent
+      console.log('=== FRONTEND SUBMIT DEBUG ===');
+      console.log('Full applicationData:', applicationData);
+      console.log('name:', applicationData.name);
+      console.log('name type:', typeof applicationData.name);
+      console.log('name length:', applicationData.name?.length);
+      console.log('name trimmed:', applicationData.name?.trim());
+      console.log('name === "undefined":', applicationData.name === 'undefined');
+      console.log('name === undefined:', applicationData.name === undefined);
+      console.log('name === null:', applicationData.name === null);
+      console.log('name === "":', applicationData.name === '');
+      console.log('applicationType:', applicationData.applicationType);
+      console.log('targetId:', applicationData.targetId);
+      console.log('targetName:', applicationData.targetName);
+
       // Create the application first
       const response = await fetch('/api/applications', {
         method: 'POST',
@@ -372,7 +469,71 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create application package');
+        const errorData = await response.json();
+        
+        // Handle 409 conflict (duplicate name)
+        if (response.status === 409) {
+          if (errorData.suggestedName) {
+            // Ask user if they want to use the suggested name
+            const useSuggestedName = window.confirm(
+              `An application package with the name "${applicationData.name}" already exists. Would you like to use the suggested name "${errorData.suggestedName}" instead?`
+            );
+            
+            if (useSuggestedName) {
+              // Update the name and try again with the new name directly
+              console.log('User accepted suggested name, retrying with:', errorData.suggestedName);
+              
+              // Create a new request with the suggested name
+              const updatedData = { ...applicationData, name: errorData.suggestedName };
+              console.log('Retrying with updated data:', updatedData);
+              
+              const retryResponse = await fetch('/api/applications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+              });
+
+              if (!retryResponse.ok) {
+                const retryErrorData = await retryResponse.json();
+                throw new Error(retryErrorData.error || 'Failed to create application package with suggested name');
+              }
+
+              const retryResult = await retryResponse.json();
+              const applicationId = retryResult.applicationId;
+
+              // Apply template if one was selected
+              if (applicationData.selectedTemplateId) {
+                try {
+                  const templateResponse = await fetch(`/api/requirements-templates/${applicationData.selectedTemplateId}/apply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ applicationId })
+                  });
+
+                  if (templateResponse.ok) {
+                    console.log('Template applied successfully');
+                  } else {
+                    console.warn('Failed to apply template, but application was created');
+                  }
+                } catch (templateError) {
+                  console.warn('Error applying template:', templateError);
+                }
+              }
+
+              // Call the onComplete callback with the created application
+              onComplete(retryResult.application);
+              return; // Exit early since we handled the retry
+            } else {
+              // User chose not to use suggested name, show error
+              throw new Error(`Application package with this name already exists. Please choose a different name.`);
+            }
+          } else {
+            // No suggested name, show generic error
+            throw new Error(`Application package with the name "${applicationData.name}" already exists. Please choose a different name.`);
+          }
+        }
+        
+        throw new Error(errorData.error || 'Failed to create application package');
       }
 
       const result = await response.json();
@@ -401,6 +562,8 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
       onComplete(result.application);
     } catch (error) {
       console.error('Error creating application package:', error);
+      // Show error to user (you might want to add a toast notification here)
+      alert(error instanceof Error ? error.message : 'Failed to create application package');
     } finally {
       setIsSubmitting(false);
     }
@@ -420,6 +583,40 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
                 onChange={(e) => updateApplicationData('name', e.target.value)}
                 required
               />
+              <p className="text-sm text-gray-600">
+                Choose a unique name for this application package. The name will be auto-generated when you select a program, school, or scholarship.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('Setting test name...');
+                  updateApplicationData('name', 'Test Application Package ' + Date.now());
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+              >
+                Set Test Name (Debug)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const uniqueName = `Application Package ${Date.now()}`;
+                  console.log('Setting unique name:', uniqueName);
+                  updateApplicationData('name', uniqueName);
+                }}
+                className="text-sm text-green-600 hover:text-green-800 underline ml-2"
+              >
+                Generate Unique Name
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('Testing submission with current name:', applicationData.name);
+                  handleSubmit();
+                }}
+                className="text-sm text-red-600 hover:text-red-800 underline ml-2"
+              >
+                Test Submit
+              </button>
             </div>
 
             <div className="space-y-2">

@@ -95,6 +95,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showView, setShowView] = useState(false);
   const [notes, setNotes] = useState(requirement.notes || '');
   const [isUpdating, setIsUpdating] = useState(false);
   
@@ -572,6 +573,240 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* View Details Section */}
+              {showView && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                  <h4 className="font-medium text-gray-900 mb-3">Requirement Details</h4>
+                  
+                  <div className="space-y-4">
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Name</Label>
+                        <p className="text-sm text-gray-900">{requirement.name}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Category</Label>
+                        <Badge variant="outline" className={`text-xs ${getCategoryColor(requirement.category)}`}>
+                          {requirement.category}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Type</Label>
+                        <Badge variant="outline" className="text-xs">
+                          {requirement.requirementType}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Status</Label>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(requirement.status)}
+                          <Badge variant="outline" className={`text-xs ${getStatusColor(requirement.status)}`}>
+                            {requirement.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {requirement.description && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Description</Label>
+                        <p className="text-sm text-gray-900">{requirement.description}</p>
+                      </div>
+                    )}
+
+                    {/* Requirements */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Required</Label>
+                        <p className="text-sm text-gray-900">{requirement.isRequired ? 'Yes' : 'No'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Optional</Label>
+                        <p className="text-sm text-gray-900">{requirement.isOptional ? 'Yes' : 'No'}</p>
+                      </div>
+                    </div>
+
+                    {/* Type-specific details */}
+                    {requirement.requirementType === 'document' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {requirement.wordLimit && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Word Limit</Label>
+                            <p className="text-sm text-gray-900">{requirement.wordLimit}</p>
+                          </div>
+                        )}
+                        {requirement.characterLimit && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Character Limit</Label>
+                            <p className="text-sm text-gray-900">{requirement.characterLimit}</p>
+                          </div>
+                        )}
+                        {requirement.documentType && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Document Type</Label>
+                            <p className="text-sm text-gray-900">{requirement.documentType}</p>
+                          </div>
+                        )}
+                        {requirement.maxFileSize && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Max File Size</Label>
+                            <p className="text-sm text-gray-900">{requirement.maxFileSize} MB</p>
+                          </div>
+                        )}
+                        {requirement.allowedFileTypes && requirement.allowedFileTypes.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Allowed File Types</Label>
+                            <p className="text-sm text-gray-900">{requirement.allowedFileTypes.join(', ')}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {requirement.requirementType === 'test_score' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {requirement.testType && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Test Type</Label>
+                            <p className="text-sm text-gray-900">{requirement.testType}</p>
+                          </div>
+                        )}
+                        {requirement.minScore && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Minimum Score</Label>
+                            <p className="text-sm text-gray-900">{requirement.minScore}</p>
+                          </div>
+                        )}
+                        {requirement.maxScore && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Maximum Score</Label>
+                            <p className="text-sm text-gray-900">{requirement.maxScore}</p>
+                          </div>
+                        )}
+                        {requirement.scoreFormat && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Score Format</Label>
+                            <p className="text-sm text-gray-900">{requirement.scoreFormat}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {requirement.requirementType === 'fee' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {requirement.applicationFeeAmount && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Fee Amount</Label>
+                            <p className="text-sm text-gray-900">
+                              {requirement.applicationFeeAmount} {requirement.applicationFeeCurrency || 'USD'}
+                            </p>
+                          </div>
+                        )}
+                        {requirement.applicationFeeDescription && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Fee Description</Label>
+                            <p className="text-sm text-gray-900">{requirement.applicationFeeDescription}</p>
+                          </div>
+                        )}
+                        {requirement.applicationFeePaid !== undefined && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Fee Paid</Label>
+                            <p className="text-sm text-gray-900">{requirement.applicationFeePaid ? 'Yes' : 'No'}</p>
+                          </div>
+                        )}
+                        {requirement.applicationFeePaidAt && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Paid At</Label>
+                            <p className="text-sm text-gray-900">
+                              {new Date(requirement.applicationFeePaidAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {requirement.requirementType === 'interview' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {requirement.interviewType && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Interview Type</Label>
+                            <p className="text-sm text-gray-900">{requirement.interviewType}</p>
+                          </div>
+                        )}
+                        {requirement.interviewDuration && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Duration</Label>
+                            <p className="text-sm text-gray-900">{requirement.interviewDuration} minutes</p>
+                          </div>
+                        )}
+                        {requirement.interviewNotes && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Interview Notes</Label>
+                            <p className="text-sm text-gray-900">{requirement.interviewNotes}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Timestamps */}
+                    {(requirement.submittedAt || requirement.verifiedAt) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {requirement.submittedAt && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Submitted At</Label>
+                            <p className="text-sm text-gray-900">
+                              {new Date(requirement.submittedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        )}
+                        {requirement.verifiedAt && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Verified At</Label>
+                            <p className="text-sm text-gray-900">
+                              {new Date(requirement.verifiedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* External URL */}
+                    {requirement.externalUrl && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">External URL</Label>
+                        <a 
+                          href={requirement.externalUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {requirement.externalUrl}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {requirement.notes && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Notes</Label>
+                        <p className="text-sm text-gray-900">{requirement.notes}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setShowView(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2 ml-4">
@@ -599,6 +834,10 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setShowView(!showView)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    {showView ? 'Hide Details' : 'View Details'}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowEdit(!showEdit)}>
                     <Edit className="h-4 w-4 mr-2" />
                     {showEdit ? 'Hide Edit' : 'Edit Requirement'}

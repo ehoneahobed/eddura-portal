@@ -8,7 +8,7 @@ import { RequirementsService } from '@/lib/services/RequirementsService';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
     if (!applicationId) {
       return NextResponse.json({ error: 'Application ID is required' }, { status: 400 });
     }
