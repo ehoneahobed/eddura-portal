@@ -54,6 +54,38 @@ export interface IScholarship extends Document {
   faqLink?: string;
   disbursementDetails?: string;
   pastRecipients?: string;
+  
+  // Relationship fields
+  /** Linked school names (not IDs for flexibility) */
+  linkedSchools?: string[];
+  /** Linked program names */
+  linkedPrograms?: string[];
+  /** Linked school IDs (for schools in our system) */
+  linkedSchoolIds?: mongoose.Types.ObjectId[];
+  /** Linked program IDs (for programs in our system) */
+  linkedProgramIds?: mongoose.Types.ObjectId[];
+  
+  // Application integration
+  /** Whether we provide an application form */
+  hasApplicationForm?: boolean;
+  /** Reference to ApplicationTemplate */
+  applicationFormId?: mongoose.Types.ObjectId;
+  /** Whether scholarship requires interview */
+  requiresInterview?: boolean;
+  /** Type of interview required */
+  interviewType?: 'in-person' | 'virtual' | 'phone';
+  
+  // Scholarship-specific requirements
+  /** Additional scholarship requirements */
+  scholarshipRequirements?: {
+    /** Additional documents beyond program requirements */
+    documents: string[];
+    /** Additional criteria */
+    additionalCriteria?: string;
+    /** Application deadline */
+    applicationDeadline: string;
+  };
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -134,6 +166,28 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
     faqLink: { type: String, trim: true },
     disbursementDetails: { type: String, trim: true },
     pastRecipients: { type: String, trim: true },
+    
+    // Relationship fields
+    linkedSchools: [{ type: String, trim: true }],
+    linkedPrograms: [{ type: String, trim: true }],
+    linkedSchoolIds: [{ type: Schema.Types.ObjectId, ref: 'School' }],
+    linkedProgramIds: [{ type: Schema.Types.ObjectId, ref: 'Program' }],
+    
+    // Application integration
+    hasApplicationForm: { type: Boolean, default: false },
+    applicationFormId: { type: Schema.Types.ObjectId, ref: 'ApplicationTemplate' },
+    requiresInterview: { type: Boolean, default: false },
+    interviewType: {
+      type: String,
+      enum: ['in-person', 'virtual', 'phone']
+    },
+    
+    // Scholarship-specific requirements
+    scholarshipRequirements: {
+      documents: [{ type: String, trim: true }],
+      additionalCriteria: { type: String, trim: true },
+      applicationDeadline: { type: String, required: true }
+    },
   },
   { 
     timestamps: true,
