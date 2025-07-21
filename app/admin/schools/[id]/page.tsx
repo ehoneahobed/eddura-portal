@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { Globe, Mail, Phone, Home, Users, Building2, Languages, Award, Calendar, Link2, Facebook, Twitter, Linkedin, Youtube, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Loader2 } from 'lucide-react';
@@ -18,13 +18,7 @@ const SchoolViewPage = () => {
   const [error, setError] = useState<string | null>(null);
   const schoolId = params.id as string;
   
-  useEffect(() => {
-    if (schoolId) {
-      fetchSchool();
-    }
-  }, [schoolId]);
-  
-  const fetchSchool = async () => {
+  const fetchSchool = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/schools/${schoolId}`);
@@ -41,7 +35,13 @@ const SchoolViewPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [schoolId]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchSchool();
+    }
+  }, [schoolId, fetchSchool]);
 
   // Helper to display value or fallback
   const show = (value: any, fallback = 'Not provided') => {

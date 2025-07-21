@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,7 +55,7 @@ export default function ShareDocumentDialog({
   });
 
   // Load existing shares when dialog opens
-  const loadShares = async () => {
+  const loadShares = useCallback(async () => {
     if (!open) return;
     
     setLoadingShares(true);
@@ -70,14 +70,14 @@ export default function ShareDocumentDialog({
     } finally {
       setLoadingShares(false);
     }
-  };
+  }, [open, document._id]);
 
   // Load shares when dialog opens
   useEffect(() => {
     if (open) {
       loadShares();
     }
-  }, [open]);
+  }, [open, loadShares]);
 
   const handleEmailShare = async () => {
     setLoading(true);
@@ -248,7 +248,7 @@ export default function ShareDocumentDialog({
             Share Document for Feedback
           </DialogTitle>
           <DialogDescription>
-            Share "{document.title}" with others to get feedback and reviews
+            Share &quot;{document.title}&quot; with others to get feedback and reviews
           </DialogDescription>
         </DialogHeader>
 

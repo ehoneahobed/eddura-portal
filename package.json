@@ -20,7 +20,9 @@
     "test:unit": "jest --config jest.config.js --testPathPattern=tests/unit",
     "test:all": "npm run test && npm run test:e2e",
     "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js",
-    "seed:content": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-content.ts"
+    "seed:content": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-content.ts",
+    "seed:templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-requirements-templates.ts",
+    "seed:program-templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-program-scholarship-templates.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

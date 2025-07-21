@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,11 +75,7 @@ export default function TemplateManagement() {
     pages: 0
   });
 
-  useEffect(() => {
-    fetchTemplates();
-  }, [pagination.page, templateFilter, statusFilter, categoryFilter]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -105,7 +101,11 @@ export default function TemplateManagement() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination]);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
@@ -107,13 +107,7 @@ export default function TaskManagementPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchData();
-    }
-  }, [session?.user?.id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -173,7 +167,13 @@ export default function TaskManagementPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchData();
+    }
+  }, [session?.user?.id, fetchData]);
 
   const calculateStats = (apps: Application[], taskList: Task[]) => {
     try {
@@ -542,7 +542,7 @@ export default function TaskManagementPage() {
                   <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
                   <p className="text-gray-600 mb-4">
-                    You haven't started any applications yet.
+                    You haven&apos;t started any applications yet.
                   </p>
                   <Button 
                     onClick={handleAddApplication}

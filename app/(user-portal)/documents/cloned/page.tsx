@@ -108,7 +108,7 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
 
   // Debounced search effect
   useEffect(() => {

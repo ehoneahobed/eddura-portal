@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,11 +69,7 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [aiRefinementModalOpen, setAiRefinementModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchDocument();
-  }, [documentId]);
-
-  const fetchDocument = async () => {
+  const fetchDocument = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/user/cloned-documents/${documentId}`);
@@ -93,7 +89,11 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [documentId]);
+
+  useEffect(() => {
+    fetchDocument();
+  }, [documentId, fetchDocument]);
 
   const handleSave = async () => {
     setIsSaving(true);

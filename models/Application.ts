@@ -13,6 +13,10 @@ export type ApplicationStatus =
   | 'waitlisted'      // Application is on waitlist
   | 'withdrawn';      // Application has been withdrawn
 
+export type ApplicationPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export type ApplicationPhase = 'interest' | 'preparation' | 'application' | 'interview' | 'decision' | 'accepted' | 'rejected';
+
 /**
  * Interface for individual question responses
  */
@@ -40,15 +44,72 @@ export interface ISectionResponse {
  */
 export interface IApplication extends Document {
   userId: mongoose.Types.ObjectId;
-  applicationType: 'scholarship' | 'school' | 'program';
+  applicationType: 'scholarship' | 'school' | 'program' | 'external';
+  
+  // Target identification (flexible for internal/external)
+  targetId?: string; // Generic target ID for any type
+  targetName?: string; // Human-readable target name
   scholarshipId?: mongoose.Types.ObjectId;
   schoolId?: mongoose.Types.ObjectId;
   programId?: mongoose.Types.ObjectId;
-  applicationTemplateId: mongoose.Types.ObjectId;
+  
+  // External application support
+  isExternal?: boolean;
+  externalSchoolName?: string;
+  externalProgramName?: string;
+  externalScholarshipName?: string;
+  externalApplicationUrl?: string;
+  externalType?: 'program' | 'scholarship' | 'school';
+  
+  // Application package details
+  name: string; // e.g., "MIT Computer Science Application"
+  description?: string;
+  applicationTemplateId?: mongoose.Types.ObjectId; // Made optional
   status: ApplicationStatus;
+  priority: ApplicationPriority;
+  
+  // Requirements management
+  requirements: mongoose.Types.ObjectId[]; // References to ApplicationRequirement
+  requirementsProgress: {
+    total: number;
+    completed: number;
+    required: number;
+    requiredCompleted: number;
+    optional: number;
+    optionalCompleted: number;
+  };
+  
+  // Interview management
+  requiresInterview?: boolean;
+  interviewScheduled?: boolean;
+  interviewDate?: Date;
+  interviewType?: 'in-person' | 'virtual' | 'phone';
+  interviewNotes?: string;
+  interviewStatus?: 'pending' | 'scheduled' | 'completed' | 'cancelled';
+  
+  // Timeline and deadlines
+  applicationDeadline?: Date;
+  decisionDate?: Date;
+  appliedAt?: Date;
+  decision?: 'accepted' | 'rejected' | 'waitlisted' | 'conditional';
+  
+  // Scholarship integration
+  linkedScholarships?: {
+    scholarshipId: mongoose.Types.ObjectId;
+    scholarshipName: string;
+    status: 'interested' | 'applied' | 'awarded' | 'rejected';
+    applicationId?: mongoose.Types.ObjectId; // Separate application for scholarship
+  }[];
+  
+  // Progress tracking
+  progress: number; // 0-100%
+  currentPhase: ApplicationPhase;
+  
+  // Form responses (for internal applications)
   sections: ISectionResponse[];
   currentSectionId?: string;  // Current section being worked on
-  progress: number;  // Overall progress percentage (0-100)
+  
+  // Legacy fields for backward compatibility
   startedAt: Date;
   lastActivityAt: Date;
   submittedAt?: Date;
@@ -84,9 +145,13 @@ const ApplicationSchema: Schema = new Schema<IApplication>({
   },
   applicationType: {
     type: String,
-    enum: ['scholarship', 'school', 'program'],
+    enum: ['scholarship', 'school', 'program', 'external'],
     required: true
   },
+  
+  // Target identification (flexible for internal/external)
+  targetId: { type: String, trim: true },
+  targetName: { type: String, trim: true },
   scholarshipId: { 
     type: Schema.Types.ObjectId, 
     ref: 'Scholarship'
@@ -99,10 +164,24 @@ const ApplicationSchema: Schema = new Schema<IApplication>({
     type: Schema.Types.ObjectId, 
     ref: 'Program'
   },
+  
+  // External application support
+  isExternal: { type: Boolean, default: false },
+  externalSchoolName: { type: String, trim: true },
+  externalProgramName: { type: String, trim: true },
+  externalScholarshipName: { type: String, trim: true },
+  externalApplicationUrl: { type: String, trim: true },
+  externalType: {
+    type: String,
+    enum: ['program', 'scholarship', 'school']
+  },
+  
+  // Application package details
+  name: { type: String, required: true, trim: true },
+  description: { type: String, trim: true },
   applicationTemplateId: { 
     type: Schema.Types.ObjectId, 
-    ref: 'ApplicationTemplate', 
-    required: true 
+    ref: 'ApplicationTemplate'
   },
   status: { 
     type: String, 
@@ -110,14 +189,80 @@ const ApplicationSchema: Schema = new Schema<IApplication>({
     default: 'draft',
     required: true 
   },
-  sections: [SectionResponseSchema],
-  currentSectionId: { type: String },
+  priority: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'urgent'],
+    default: 'medium'
+  },
+  
+  // Requirements management
+  requirements: [{
+    type: Schema.Types.ObjectId,
+    ref: 'ApplicationRequirement'
+  }],
+  requirementsProgress: {
+    total: { type: Number, default: 0 },
+    completed: { type: Number, default: 0 },
+    required: { type: Number, default: 0 },
+    requiredCompleted: { type: Number, default: 0 },
+    optional: { type: Number, default: 0 },
+    optionalCompleted: { type: Number, default: 0 }
+  },
+  
+  // Interview management
+  requiresInterview: { type: Boolean, default: false },
+  interviewScheduled: { type: Boolean, default: false },
+  interviewDate: { type: Date },
+  interviewType: {
+    type: String,
+    enum: ['in-person', 'virtual', 'phone']
+  },
+  interviewNotes: { type: String, trim: true },
+  interviewStatus: {
+    type: String,
+    enum: ['pending', 'scheduled', 'completed', 'cancelled'],
+    default: 'pending'
+  },
+  
+  // Timeline and deadlines
+  applicationDeadline: { type: Date },
+  decisionDate: { type: Date },
+  appliedAt: { type: Date },
+  decision: {
+    type: String,
+    enum: ['accepted', 'rejected', 'waitlisted', 'conditional']
+  },
+  
+  // Scholarship integration
+  linkedScholarships: [{
+    scholarshipId: { type: Schema.Types.ObjectId, ref: 'Scholarship' },
+    scholarshipName: { type: String, trim: true },
+    status: {
+      type: String,
+      enum: ['interested', 'applied', 'awarded', 'rejected'],
+      default: 'interested'
+    },
+    applicationId: { type: Schema.Types.ObjectId, ref: 'Application' }
+  }],
+  
+  // Progress tracking
   progress: { 
     type: Number, 
     default: 0, 
     min: 0, 
     max: 100 
   },
+  currentPhase: {
+    type: String,
+    enum: ['interest', 'preparation', 'application', 'interview', 'decision', 'accepted', 'rejected'],
+    default: 'interest'
+  },
+  
+  // Form responses (for internal applications)
+  sections: [SectionResponseSchema],
+  currentSectionId: { type: String },
+  
+  // Legacy fields for backward compatibility
   startedAt: { type: Date, default: Date.now },
   lastActivityAt: { type: Date, default: Date.now },
   submittedAt: { type: Date },
@@ -134,10 +279,15 @@ const ApplicationSchema: Schema = new Schema<IApplication>({
 // Indexes for efficient querying
 ApplicationSchema.index({ userId: 1, applicationType: 1 });
 ApplicationSchema.index({ userId: 1, status: 1 });
+ApplicationSchema.index({ userId: 1, priority: 1 });
+ApplicationSchema.index({ userId: 1, currentPhase: 1 });
 ApplicationSchema.index({ scholarshipId: 1, status: 1 });
 ApplicationSchema.index({ schoolId: 1, status: 1 });
 ApplicationSchema.index({ programId: 1, status: 1 });
 ApplicationSchema.index({ status: 1 });
+ApplicationSchema.index({ priority: 1 });
+ApplicationSchema.index({ currentPhase: 1 });
+ApplicationSchema.index({ applicationDeadline: 1 });
 ApplicationSchema.index({ lastActivityAt: -1 });
 ApplicationSchema.index({ createdAt: -1 });
 
@@ -175,6 +325,12 @@ ApplicationSchema.virtual('applicationTemplate', {
   localField: 'applicationTemplateId',
   foreignField: '_id',
   justOne: true
+});
+
+ApplicationSchema.virtual('applicationRequirements', {
+  ref: 'ApplicationRequirement',
+  localField: 'requirements',
+  foreignField: '_id'
 });
 
 // Pre-save middleware to update lastActivityAt

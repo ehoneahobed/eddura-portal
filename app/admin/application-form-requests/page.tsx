@@ -84,7 +84,7 @@ export default function ApplicationFormRequestsPage() {
 
   useEffect(() => {
     fetchRequests();
-  }, [search, statusFilter]);
+  }, [fetchRequests]);
 
   const handleStatusUpdate = async () => {
     if (!selectedRequest || !updateStatus) return;

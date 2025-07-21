@@ -148,7 +148,7 @@ export default function MediaUpload({ onSelect, currentValue, className = '' }: 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full">
-            <Image className="w-4 h-4 mr-2" />
+            <Image className="w-4 h-4 mr-2" aria-label="Image icon" />
             {currentValue ? 'Change Image' : 'Select Image'}
           </Button>
         </DialogTrigger>
@@ -214,7 +214,7 @@ export default function MediaUpload({ onSelect, currentValue, className = '' }: 
             <div className="flex-1 overflow-auto">
               {filteredFiles.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <Image className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <Image className="w-12 h-12 mx-auto mb-4 text-gray-300" aria-label="No images icon" />
                   <p>No images found</p>
                   {searchTerm && (
                     <p className="text-sm">Try adjusting your search terms</p>

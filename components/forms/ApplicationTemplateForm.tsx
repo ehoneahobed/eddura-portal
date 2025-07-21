@@ -218,7 +218,7 @@ export default function ApplicationTemplateForm({
     name: 'sections'
   });
 
-  const watchedSections = watch('sections') || [];
+  const watchedSections = useMemo(() => watch('sections') || [], [watch]);
   const allFormData = watch();
 
   // Auto-save functionality
@@ -254,6 +254,12 @@ export default function ApplicationTemplateForm({
     };
   }, [allFormData, isLoading, getValues, saveFormData]);
 
+  // Helper function to update sections and force re-render
+  const updateSections = useCallback((updatedSections: FormSection[]) => {
+    setValue('sections', updatedSections);
+    setForceRender((prev: number) => prev + 1);
+  }, [setValue]);
+
   // Ensure fileConfig is initialized for file type questions
   useEffect(() => {
     const updatedSections = [...watchedSections];
@@ -271,7 +277,7 @@ export default function ApplicationTemplateForm({
     if (hasChanges) {
       updateSections(updatedSections);
     }
-  }, [watchedSections, setValue, forceRender]);
+  }, [watchedSections, setValue, forceRender, updateSections]);
 
   // Warn user about unsaved changes when leaving the page
   useEffect(() => {
@@ -336,12 +342,6 @@ export default function ApplicationTemplateForm({
       reset(savedData);
       toast.success('Form data restored from saved draft');
     }
-  };
-
-  // Helper function to update sections and force re-render
-  const updateSections = (updatedSections: FormSection[]) => {
-    setValue('sections', updatedSections);
-    setForceRender((prev: number) => prev + 1);
   };
 
   const addSection = () => {

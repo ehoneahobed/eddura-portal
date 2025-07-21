@@ -395,7 +395,7 @@ export default function CreateDocumentDialog({
                 {!formData.content && (
                   <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded-md">
                     <Info className="h-4 w-4 inline mr-1" />
-                    <strong>Tip:</strong> You can leave content empty and use the "Generate with AI" button to create content, or write your own content manually.
+                    <strong>Tip:</strong> You can leave content empty and use the &quot;Generate with AI&quot; button to create content, or write your own content manually.
                   </div>
                 )}
                 {selectedTypeConfig?.maxWords && wordCount > selectedTypeConfig.maxWords && (

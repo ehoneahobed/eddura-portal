@@ -136,7 +136,7 @@ export default function AdminLibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.page, pagination.limit, searchTerm, statusFilter, reviewStatusFilter, categoryFilter, targetAudienceFilter]);
+  }, [pagination, searchTerm, statusFilter, reviewStatusFilter, categoryFilter, targetAudienceFilter]);
 
   useEffect(() => {
     fetchDocuments();

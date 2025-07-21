@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,14 +124,7 @@ export default function MessagingInterface() {
     tags: [] as string[]
   });
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchMessages();
-      fetchAdmins();
-    }
-  }, [session?.user, currentPage, typeFilter, priorityFilter, statusFilter]);
-
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -154,7 +147,14 @@ export default function MessagingInterface() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, typeFilter, priorityFilter, statusFilter]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchMessages();
+      fetchAdmins();
+    }
+  }, [session?.user, fetchMessages]);
 
   const fetchAdmins = async () => {
     try {

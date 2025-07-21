@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Building, Star, Users, Globe, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface School {
   _id: string;
@@ -37,9 +38,11 @@ const SchoolCard: React.FC<SchoolCardProps> = ({ school, onSelect }) => {
           <div className="flex-shrink-0">
             {school.logoUrl ? (
               <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-100 group-hover:border-blue-200 transition-colors shadow-sm">
-                <img
+                <Image
                   src={school.logoUrl}
                   alt={school.name}
+                  width={64}
+                  height={64}
                   className="w-full h-full object-cover"
                 />
               </div>
