@@ -162,7 +162,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 />
                 {errors?.sections?.[sectionIndex]?.questions?.[questionIndex]?.fileConfig?.maxSize && (
                   <span className="text-xs text-red-600">
-                    {errors.sections[sectionIndex].questions[questionIndex].fileConfig.maxSize.message}
+                    {errors.sections?.[sectionIndex]?.questions?.[questionIndex]?.fileConfig?.maxSize?.message}
                   </span>
                 )}
               </div>
@@ -180,7 +180,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 />
                 {errors?.sections?.[sectionIndex]?.questions?.[questionIndex]?.fileConfig?.maxFiles && (
                   <span className="text-xs text-red-600">
-                    {errors.sections[sectionIndex].questions[questionIndex].fileConfig.maxFiles.message}
+                    {errors.sections?.[sectionIndex]?.questions?.[questionIndex]?.fileConfig?.maxFiles?.message}
                   </span>
                 )}
               </div>
@@ -206,7 +206,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 />
                 {errors?.sections?.[sectionIndex]?.questions?.[questionIndex]?.minLength && (
                   <span className="text-xs text-red-600">
-                    {errors.sections[sectionIndex].questions[questionIndex].minLength.message}
+                    {errors.sections?.[sectionIndex]?.questions?.[questionIndex]?.minLength?.message}
                   </span>
                 )}
               </div>
@@ -233,7 +233,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 />
                 {errors?.sections?.[sectionIndex]?.questions?.[questionIndex]?.maxLength && (
                   <span className="text-xs text-red-600">
-                    {errors.sections[sectionIndex].questions[questionIndex].maxLength.message}
+                    {errors.sections?.[sectionIndex]?.questions?.[questionIndex]?.maxLength?.message}
                   </span>
                 )}
               </div>
@@ -251,7 +251,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 />
                 {errors?.sections?.[sectionIndex]?.questions?.[questionIndex]?.minWords && (
                   <span className="text-xs text-red-600">
-                    {errors.sections[sectionIndex].questions[questionIndex].minWords.message}
+                    {errors.sections?.[sectionIndex]?.questions?.[questionIndex]?.minWords?.message}
                   </span>
                 )}
               </div>
@@ -278,7 +278,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 />
                 {errors?.sections?.[sectionIndex]?.questions?.[questionIndex]?.maxWords && (
                   <span className="text-xs text-red-600">
-                    {errors.sections[sectionIndex].questions[questionIndex].maxWords.message}
+                    {errors.sections?.[sectionIndex]?.questions?.[questionIndex]?.maxWords?.message}
                   </span>
                 )}
               </div>
