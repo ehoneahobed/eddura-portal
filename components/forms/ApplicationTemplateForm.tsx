@@ -8,19 +8,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
+// import { Separator } from '@/components/ui/separator';
 import { 
   Plus, 
   Trash2, 
   GripVertical, 
   Copy, 
   Settings, 
-  HelpCircle,
+  // HelpCircle,
   FileText,
-  Calendar,
-  Clock,
+  // Calendar,
+  // Clock,
   Save,
   Award,
   CheckCircle,
@@ -32,21 +32,25 @@ import {
   Question, 
   QuestionType,
   QuestionOption,
-  FileUploadConfig,
-  ValidationRule
+  // FileUploadConfig,
+  // ValidationRule
 } from '@/types';
 import { 
   createDefaultQuestion, 
   createDefaultSection, 
   generateId,
-  getQuestionTypeDisplayName,
-  getQuestionTypeDescription,
+  // getQuestionTypeDisplayName,
+  // getQuestionTypeDescription,
   reorderQuestions,
   reorderSections
 } from '@/hooks/use-application-templates';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { toast } from 'sonner';
 import SearchableScholarshipSelect from '@/components/ui/searchable-scholarship-select';
+// --- Refactored: use SectionEditor for each section ---
+// Import SectionEditor
+import SectionEditor from './SectionEditor';
+import useSWRMutation from 'swr/mutation';
 
 interface ApplicationTemplateFormProps {
   template?: ApplicationTemplate;
@@ -80,10 +84,21 @@ const questionTypes: { value: QuestionType; label: string; description: string }
   { value: 'test_score', label: 'Test Score', description: 'Standardized test scores' }
 ];
 
-const fileTypes = [
+const _fileTypes = [
   'pdf', 'doc', 'docx', 'txt', 'rtf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff',
   'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', '7z'
 ];
+
+// --- SWR mutation fetcher for submitting the application template ---
+async function submitTemplate(url: string, { arg }: { arg: ApplicationTemplate }) {
+  const res = await fetch(url, {
+    method: arg.id ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
 
 export default function ApplicationTemplateForm({ 
   template, 
@@ -93,8 +108,8 @@ export default function ApplicationTemplateForm({
   isLoading,
   allowScholarshipChange
 }: ApplicationTemplateFormProps) {
-  const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
+  // const [activeSection, setActiveSection] = useState<string | null>(null);
+  // const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [forceRender, setForceRender] = useState(0);
@@ -292,7 +307,12 @@ export default function ApplicationTemplateForm({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  const handleFormSubmit = (data: ApplicationTemplate) => {
+  const { trigger: submitTemplateMutation, isMutating, error: submitError } = useSWRMutation(
+    '/api/application-templates',
+    submitTemplate
+  );
+
+  const handleFormSubmit = async (data: ApplicationTemplate) => {
     // Validate that we have at least one section with questions
     if (!data.sections || data.sections.length === 0) {
       toast.error('Please add at least one section to the form');
@@ -322,7 +342,14 @@ export default function ApplicationTemplateForm({
 
     // Clear saved data before submitting
     clearSavedData();
-    onSubmit(submissionData);
+    try {
+      await submitTemplateMutation(submissionData);
+      toast.success('Application template created successfully');
+      onSubmit(submissionData); // Call the original onSubmit prop
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create application template';
+      toast.error(errorMessage);
+    }
   };
 
   const handleCancel = () => {
@@ -757,336 +784,31 @@ export default function ApplicationTemplateForm({
             <Droppable droppableId="sections" type="section">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-6">
+                  {/* --- Render sections using SectionEditor --- */}
                   {sections.map((section, sectionIndex) => (
-                    <Draggable
+                    <SectionEditor
                       key={section.id}
-                      draggableId={section.id}
-                      index={sectionIndex}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className="border rounded-lg p-6 bg-gray-50"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                              <div {...provided.dragHandleProps}>
-                                <GripVertical className="w-5 h-5 text-gray-400 cursor-move" />
-                              </div>
-                              <Input
-                                {...register(`sections.${sectionIndex}.title` as const)}
-                                placeholder="Section Title"
-                                className="w-64 h-9"
-                              />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                onClick={() => duplicateSection(sectionIndex)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={() => removeSectionHandler(sectionIndex)}
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          <Textarea
-                            {...register(`sections.${sectionIndex}.description` as const)}
-                            placeholder="Section description (optional)"
-                            rows={2}
-                            className="mb-4 resize-none"
-                          />
-
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-medium text-gray-900">Questions</h4>
-                            <Button
-                              type="button"
-                              onClick={() => addQuestion(sectionIndex)}
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Add Question
-                            </Button>
-                          </div>
-
-                          <Droppable droppableId={`${sectionIndex}-questions`} type="question">
-                            {(provided) => (
-                              <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
-                                {watchedSections[sectionIndex]?.questions?.map((question, questionIndex) => (
-                                  <Draggable
-                                    key={question.id}
-                                    draggableId={question.id}
-                                    index={questionIndex}
-                                  >
-                                    {(provided) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        className="border rounded-lg p-4 bg-white"
-                                      >
-                                        <div className="flex items-center justify-between mb-3">
-                                          <div className="flex items-center gap-2">
-                                            <div {...provided.dragHandleProps}>
-                                              <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                                            </div>
-                                            <Select
-                                              value={question.type}
-                                              onValueChange={(value: QuestionType) => 
-                                                updateQuestionType(sectionIndex, questionIndex, value)
-                                              }
-                                            >
-                                              <SelectTrigger className="w-48">
-                                                <SelectValue />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                {questionTypes.map((type) => (
-                                                  <SelectItem key={type.value} value={type.value}>
-                                                    <div>
-                                                      <div className="font-medium">{type.label}</div>
-                                                      <div className="text-xs text-gray-500">{type.description}</div>
-                                                    </div>
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <Button
-                                              type="button"
-                                              onClick={() => duplicateQuestion(sectionIndex, questionIndex)}
-                                              variant="outline"
-                                              size="sm"
-                                            >
-                                              <Copy className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                              type="button"
-                                              onClick={() => removeQuestion(sectionIndex, questionIndex)}
-                                              variant="outline"
-                                              size="sm"
-                                              className="text-red-600 hover:text-red-700"
-                                            >
-                                              <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                          </div>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                          <Input
-                                            {...register(`sections.${sectionIndex}.questions.${questionIndex}.title` as const)}
-                                            placeholder="Question title"
-                                            className="h-9"
-                                          />
-
-                                          <Textarea
-                                            {...register(`sections.${sectionIndex}.questions.${questionIndex}.description` as const)}
-                                            placeholder="Question description (optional)"
-                                            rows={2}
-                                            className="resize-none"
-                                          />
-
-                                          <Input
-                                            {...register(`sections.${sectionIndex}.questions.${questionIndex}.placeholder` as const)}
-                                            placeholder="Placeholder text"
-                                            className="h-9"
-                                          />
-
-                                          <div className="flex items-center space-x-2">
-                                            <Switch
-                                              checked={question.required ?? false}
-                                              onCheckedChange={(checked) => {
-                                                const currentSections = getValues('sections') || [];
-                                                const updatedSections = [...currentSections];
-                                                updatedSections[sectionIndex].questions[questionIndex].required = checked;
-                                                updateSections(updatedSections);
-                                              }}
-                                            />
-                                            <Label>Required</Label>
-                                          </div>
-
-                                          {/* Question Options for choice-based questions */}
-                                          {(question.type === 'select' || question.type === 'multiselect' || 
-                                            question.type === 'radio' || question.type === 'checkbox') && (
-                                            <div className="space-y-3">
-                                              <div className="flex items-center justify-between">
-                                                <Label>Options</Label>
-                                                <Button
-                                                  type="button"
-                                                  onClick={() => addQuestionOption(sectionIndex, questionIndex)}
-                                                  variant="outline"
-                                                  size="sm"
-                                                >
-                                                  <Plus className="w-4 h-4" />
-                                                </Button>
-                                              </div>
-                                              <div className="space-y-2">
-                                                {question.options?.map((option, optionIndex) => (
-                                                  <div key={optionIndex} className="flex items-center gap-2">
-                                                    <Input
-                                                      {...register(`sections.${sectionIndex}.questions.${questionIndex}.options.${optionIndex}.value` as const)}
-                                                      placeholder="Value"
-                                                      className="h-8"
-                                                    />
-                                                    <Input
-                                                      {...register(`sections.${sectionIndex}.questions.${questionIndex}.options.${optionIndex}.label` as const)}
-                                                      placeholder="Label"
-                                                      className="h-8"
-                                                    />
-                                                    <Button
-                                                      type="button"
-                                                      onClick={() => removeQuestionOption(sectionIndex, questionIndex, optionIndex)}
-                                                      variant="outline"
-                                                      size="sm"
-                                                      className="text-red-600 hover:text-red-700"
-                                                    >
-                                                      <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                          {/* File Upload Configuration */}
-                                          {question.type === 'file' && (
-                                            <div className="space-y-3 p-3 border rounded-lg bg-gray-50">
-                                              <Label>File Upload Settings</Label>
-                                              <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                  <Label className="text-sm">Max Size (MB)</Label>
-                                                  <Input
-                                                    type="number"
-                                                    min={1}
-                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.fileConfig.maxSize` as const, { 
-                                                      valueAsNumber: true,
-                                                      setValueAs: (value) => value || 5
-                                                    })}
-                                                    className="h-8"
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Label className="text-sm">Max Files</Label>
-                                                  <Input
-                                                    type="number"
-                                                    min={1}
-                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.fileConfig.maxFiles` as const, { 
-                                                      valueAsNumber: true,
-                                                      setValueAs: (value) => value || 1
-                                                    })}
-                                                    className="h-8"
-                                                  />
-                                                </div>
-                                              </div>
-                                            </div>
-                                          )}
-
-                                          <Textarea
-                                            {...register(`sections.${sectionIndex}.questions.${questionIndex}.helpText` as const)}
-                                            placeholder="Help text for this question"
-                                            rows={2}
-                                            className="resize-none"
-                                          />
-
-                                          {/* Length and Word Limits for text-based questions */}
-                                          {(question.type === 'text' || question.type === 'textarea' || 
-                                            question.type === 'essay' || question.type === 'statement') && (
-                                            <div className="space-y-3 p-3 border rounded-lg bg-gray-50">
-                                              <Label>Length Limits</Label>
-                                              <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                  <Label className="text-sm">Min Characters</Label>
-                                                  <Input
-                                                    type="number"
-                                                    min={0}
-                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.minLength` as const, { 
-                                                      valueAsNumber: true,
-                                                      setValueAs: (value) => value || undefined
-                                                    })}
-                                                    placeholder="Optional"
-                                                    className="h-8"
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Label className="text-sm">Max Characters</Label>
-                                                  <Input
-                                                    type="number"
-                                                    min={0}
-                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.maxLength` as const, { 
-                                                      valueAsNumber: true,
-                                                      setValueAs: (value) => value || undefined
-                                                    })}
-                                                    placeholder="Optional"
-                                                    className="h-8"
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Label className="text-sm">Min Words</Label>
-                                                  <Input
-                                                    type="number"
-                                                    min={0}
-                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.minWords` as const, { 
-                                                      valueAsNumber: true,
-                                                      setValueAs: (value) => value || undefined
-                                                    })}
-                                                    placeholder="Optional"
-                                                    className="h-8"
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Label className="text-sm">Max Words</Label>
-                                                  <Input
-                                                    type="number"
-                                                    min={0}
-                                                    {...register(`sections.${sectionIndex}.questions.${questionIndex}.maxWords` as const, { 
-                                                      valueAsNumber: true,
-                                                      setValueAs: (value) => value || undefined
-                                                    })}
-                                                    placeholder="Optional"
-                                                    className="h-8"
-                                                  />
-                                                </div>
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                ))}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-
-                          {/* Add Question Button at Bottom */}
-                          <div className="flex justify-center mt-6 pt-4 border-t border-gray-200">
-                            <Button
-                              type="button"
-                              onClick={() => addQuestion(sectionIndex)}
-                              variant="outline"
-                              size="default"
-                              className="flex items-center gap-2 border-dashed border-2 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Add Another Question
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
+                      section={section}
+                      sectionIndex={sectionIndex}
+                      control={control}
+                      errors={errors}
+                      register={register}
+                      onDuplicateSection={duplicateSection}
+                      onRemoveSection={removeSectionHandler}
+                      onAddQuestion={addQuestion}
+                      onDuplicateQuestion={duplicateQuestion}
+                      onRemoveQuestion={removeQuestion}
+                      onUpdateQuestionType={updateQuestionType}
+                      onToggleRequired={(sectionIdx, questionIdx, checked) => {
+                        // Implement toggle required logic here or pass a handler
+                        const currentSections = getValues('sections') || [];
+                        const updatedSections = [...currentSections];
+                        updatedSections[sectionIdx].questions[questionIdx].required = checked;
+                        updateSections(updatedSections);
+                      }}
+                      onAddOption={addQuestionOption}
+                      onRemoveOption={removeQuestionOption}
+                    />
                   ))}
                   {provided.placeholder}
                   
@@ -1150,11 +872,11 @@ export default function ApplicationTemplateForm({
           </Button>
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isMutating}
             className="flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            {isLoading ? 'Saving...' : 'Save Template'}
+            {isLoading || isMutating ? 'Saving...' : 'Save Template'}
           </Button>
         </div>
       </form>
