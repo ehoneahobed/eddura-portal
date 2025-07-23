@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import ApplicationTemplateForm from '@/components/forms/ApplicationTemplateForm';
 import { ApplicationTemplate } from '@/types';
-import { createApplicationTemplate } from '@/hooks/use-application-templates';
+import { createApplicationTemplate, ApplicationTemplateFormData } from '@/hooks/use-application-templates';
 import { toast } from 'sonner';
 
 export default function CreateApplicationTemplatePage() {
@@ -26,14 +26,19 @@ export default function CreateApplicationTemplatePage() {
 
     setIsCreating(true);
     try {
-      const templateData = data as ApplicationTemplate;
+      const templateData = data as ApplicationTemplateFormData;
       await createApplicationTemplate(templateData);
       toast.success('Application template created successfully');
       router.push('/admin/application-templates');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating template:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create application template';
-      toast.error(errorMessage);
+      // Show backend error message if available
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to create application template');
+      }
+
     } finally {
       setIsCreating(false);
     }

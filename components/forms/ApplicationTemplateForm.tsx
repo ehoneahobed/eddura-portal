@@ -320,9 +320,27 @@ export default function ApplicationTemplateForm({
     }
 
     for (const section of data.sections) {
+      if (!section.title || section.title.trim() === '') {
+        toast.error('All sections must have a title');
+        return;
+      }
       if (!section.questions || section.questions.length === 0) {
         toast.error(`Section "${section.title}" must have at least one question`);
         return;
+      }
+      for (const question of section.questions) {
+        if (!question.title || question.title.trim() === '') {
+          toast.error(`All questions in section "${section.title}" must have a title`);
+          return;
+        }
+        if (!question.type) {
+          toast.error(`All questions in section "${section.title}" must have a type`);
+          return;
+        }
+        if (!question.id) {
+          toast.error(`All questions in section "${section.title}" must have an id`);
+          return;
+        }
       }
     }
 
