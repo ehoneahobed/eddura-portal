@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function DemoMarkdownEditorPage() {
-  const [content1, setContent1] = useState('# Welcome to the Markdown Editor Demo\n\nThis is a **bold** text and this is *italic* text.\n\n## Features\n- Live preview\n- Word count\n- Character count\n- Fullscreen mode\n- Markdown formatting\n\n```javascript\nconsole.log("Hello, World!");\n```');
+  const [content1, setContent1] = useState('# Welcome to the Markdown Editor Demo\n\nThis is a **bold** text and this is *italic* text.\n\n## Features\n- Live preview\n- Word count\n- Character count\n- Fullscreen mode\n- Markdown formatting\n\n```javascript\nconsole.log(&quot;Hello, World!&quot;);\n```');
   
   const [content2, setContent2] = useState('Write your essay here...\n\nYou can use:\n- **Bold text**\n- *Italic text*\n- `Code snippets`\n- [Links](https://example.com)\n- And much more!');
   
@@ -159,7 +159,7 @@ export default function DemoMarkdownEditorPage() {
               <h4 className="font-semibold mb-3">Advanced Features</h4>
               <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono space-y-2">
                 <div>```javascript</div>
-                <div>console.log("Code block");</div>
+                <div>console.log(&quot;Code block&quot;);</div>
                 <div>```</div>
                 <div>[Link text](url)</div>
                 <div>![Image alt](image.jpg)</div>

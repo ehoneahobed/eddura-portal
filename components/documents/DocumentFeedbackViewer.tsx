@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,14 +46,7 @@ export default function DocumentFeedbackViewer({
   const [selectedComment, setSelectedComment] = useState<FeedbackComment | null>(null);
   const [updating, setUpdating] = useState(false);
 
-  // Load feedback when dialog opens
-  useEffect(() => {
-    if (open) {
-      loadFeedback();
-    }
-  }, [open, document._id]);
-
-  const loadFeedback = async () => {
+  const loadFeedback = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/documents/${document._id}/feedback`);
@@ -70,7 +63,14 @@ export default function DocumentFeedbackViewer({
     } finally {
       setLoading(false);
     }
-  };
+  }, [document._id]);
+
+  // Load feedback when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadFeedback();
+    }
+  }, [open, document._id, loadFeedback]);
 
   const updateCommentStatus = async (feedbackId: string, commentId: string, status: 'pending' | 'addressed' | 'ignored') => {
     setUpdating(true);
@@ -202,7 +202,7 @@ export default function DocumentFeedbackViewer({
             Document Feedback
           </DialogTitle>
           <DialogDescription>
-            Review and manage feedback for "{document.title}"
+            Review and manage feedback for &quot;{document.title}&quot;
           </DialogDescription>
         </DialogHeader>
 
@@ -542,7 +542,7 @@ export default function DocumentFeedbackViewer({
                           <p className="mb-2">{comment.content}</p>
                           {comment.position && (
                             <div className="text-sm text-muted-foreground">
-                              <p>Highlighted text: "{comment.position.text}"</p>
+                              <p>Highlighted text: &quot;{comment.position.text}&quot;</p>
                             </div>
                           )}
                         </div>

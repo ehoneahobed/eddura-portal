@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
@@ -95,13 +95,7 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchApplication();
-    }
-  }, [session?.user?.id, applicationId]);
-
-  const fetchApplication = async () => {
+  const fetchApplication = useCallback(async () => {
     try {
       const response = await fetch(`/api/applications/${applicationId}`);
       if (response.ok) {
@@ -118,7 +112,13 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [applicationId, router]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchApplication();
+    }
+  }, [session?.user?.id, applicationId, fetchApplication]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {

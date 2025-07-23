@@ -84,6 +84,11 @@ export interface IProgram extends Document {
   createdAt: Date;
   /** Date the program was last updated (auto-managed by Mongoose) */
   updatedAt: Date;
+  requirementsTemplateId: {
+    type: Schema.Types.ObjectId,
+    ref: 'RequirementsTemplate',
+    required: false
+  };
 }
 
 const ProgramSchema: Schema = new Schema<IProgram>(
@@ -140,6 +145,11 @@ const ProgramSchema: Schema = new Schema<IProgram>(
       type: String,
       enum: ['Undergraduate', 'Postgraduate'],
       required: true
+    },
+    requirementsTemplateId: {
+      type: Schema.Types.ObjectId,
+      ref: 'RequirementsTemplate',
+      required: false
     },
   },
   { 

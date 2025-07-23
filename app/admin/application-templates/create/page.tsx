@@ -38,6 +38,7 @@ export default function CreateApplicationTemplatePage() {
       } else {
         toast.error('Failed to create application template');
       }
+
     } finally {
       setIsCreating(false);
     }

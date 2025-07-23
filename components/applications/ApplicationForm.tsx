@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,7 +22,8 @@ import {
   Briefcase,
   User,
   MapPin,
-  Calculator
+  Calculator,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,7 +90,7 @@ interface Application {
     sections: FormSection[];
     estimatedTime: number;
   };
-  status: 'draft' | 'in_progress' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'waitlisted' | 'withdrawn';
+  status: 'draft' | 'in_progress' | 'ready_for_submission' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'waitlisted' | 'withdrawn';
   sections: {
     sectionId: string;
     responses: {
@@ -127,13 +128,27 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
   const [showHelp, setShowHelp] = useState(false);
   const [completedSections, setCompletedSections] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchApplication();
-    }
-  }, [session?.user?.id, applicationId]);
+  const updateApplicationStatus = useCallback(async (status: string) => {
+    try {
+      const response = await fetch(`/api/applications/${applicationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
 
-  const fetchApplication = async () => {
+      if (response.ok) {
+        console.log(`Application status updated to ${status}`);
+      } else {
+        console.error('Failed to update application status');
+      }
+    } catch (error) {
+      console.error('Error updating application status:', error);
+    }
+  }, [applicationId]);
+
+  const fetchApplication = useCallback(async () => {
     try {
       const response = await fetch(`/api/applications/${applicationId}`);
       if (response.ok) {
@@ -163,6 +178,11 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
             .filter((section: any) => section.isComplete)
             .map((section: any) => section.sectionId)
         );
+
+        // Update status to 'in_progress' if it's still 'draft'
+        if (data.application.status === 'draft') {
+          await updateApplicationStatus('in_progress');
+        }
       } else {
         toast.error('Failed to fetch application');
         router.push('/applications');
@@ -174,6 +194,63 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
     } finally {
       setIsLoading(false);
     }
+  }, [applicationId, router, updateApplicationStatus]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchApplication();
+    }
+  }, [session?.user?.id, applicationId, fetchApplication]);
+
+
+
+  const downloadApplication = () => {
+    if (!application) return;
+
+    // Create a formatted document with all responses
+    let content = `Application Form: ${application.applicationTemplateId.title}\n`;
+    content += `Scholarship: ${application.scholarshipId.title}\n`;
+    content += `Date: ${new Date().toLocaleDateString()}\n\n`;
+
+    application.applicationTemplateId.sections.forEach((section: FormSection) => {
+      content += `## ${section.title}\n`;
+      if (section.description) {
+        content += `${section.description}\n\n`;
+      }
+
+      section.questions.forEach((question: Question) => {
+        const response = responses[question.id];
+        content += `**${question.title}**`;
+        if (question.required) {
+          content += ` (Required)`;
+        }
+        content += `\n`;
+
+        if (response) {
+          if (Array.isArray(response)) {
+            content += response.join(', ');
+          } else {
+            content += String(response);
+          }
+        } else {
+          content += '[Not answered]';
+        }
+        content += `\n\n`;
+      });
+    });
+
+    // Create and download the file
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${application.scholarshipId.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_application.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast.success('Application downloaded successfully!');
   };
 
   if (isLoading) {
@@ -232,6 +309,34 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
           isComplete: true
         }),
       });
+
+      // Update progress based on current section completion
+      const totalQuestions = currentSection.questions.length;
+      const answeredQuestions = currentSection.questions.filter((q: Question) => {
+        const response = newResponses[q.id];
+        if (!response) return false;
+        if (Array.isArray(response)) return response.length > 0;
+        if (typeof response === 'string') return response.trim().length > 0;
+        return true;
+      }).length;
+
+      const sectionProgress = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
+      
+      // Calculate overall progress (simplified - you might want to make this more sophisticated)
+      const overallProgress = Math.round(sectionProgress);
+      
+      // Update application progress
+      await updateApplicationStatus('in_progress');
+      await fetch(`/api/applications/${applicationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          progress: overallProgress,
+          currentSectionId: currentSection.id
+        }),
+      });
     } catch (error) {
       console.error('Error saving response:', error);
       toast.error('Failed to save response');
@@ -259,11 +364,21 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
       });
       
       if (isLastSection) {
-        // Submit application
-        await fetch(`/api/applications/${applicationId}/submit`, {
-          method: 'POST',
+        // Mark application as ready for submission
+        await fetch(`/api/applications/${applicationId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            status: 'ready_for_submission',
+            progress: 100
+          }),
         });
-        toast.success('Application submitted successfully!');
+        toast.success('Application form completed! Your application is ready for submission to the scholarship provider.', {
+          description: 'You can now download your responses and submit them to the official scholarship portal.',
+          duration: 5000,
+        });
         router.push('/applications');
       } else {
         // Move to next section
@@ -976,16 +1091,29 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                         </span>
                       </div>
                       
-                      <Button
-                        onClick={handleNext}
-                        disabled={!canProceed() || isSubmitting}
-                        className="flex items-center space-x-2 bg-[#007fbd] hover:bg-[#004d73] text-white"
-                      >
-                        <span>
-                          {isLastSection ? 'Submit Application' : 'Next Section'}
-                        </span>
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        {application.status === 'ready_for_submission' && (
+                          <Button
+                            onClick={downloadApplication}
+                            variant="outline"
+                            className="flex items-center space-x-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download</span>
+                          </Button>
+                        )}
+                        
+                        <Button
+                          onClick={handleNext}
+                          disabled={!canProceed() || isSubmitting}
+                          className="flex items-center space-x-2 bg-[#007fbd] hover:bg-[#004d73] text-white"
+                        >
+                          <span>
+                            {isLastSection ? 'Save & Review' : 'Next Section'}
+                          </span>
+                          <ArrowRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

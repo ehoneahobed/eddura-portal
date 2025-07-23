@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import ScholarshipActions from '@/components/scholarships/ScholarshipActions';
-import { Award, Info, BarChart2, UserCheck, ShieldCheck, DollarSign, Clock, Edit, Trash2, Link2, FileText, Users, BookOpen, Plus, Loader2 } from 'lucide-react';
+import { Award, Info, BarChart2, UserCheck, ShieldCheck, Clock, Link2, FileText, Users, BookOpen, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -19,13 +19,7 @@ const ScholarshipViewPage = () => {
   const [error, setError] = useState<string | null>(null);
   const scholarshipId = params.id as string;
   
-  useEffect(() => {
-    if (scholarshipId) {
-      fetchScholarshipAndTemplates();
-    }
-  }, [scholarshipId]);
-  
-  const fetchScholarshipAndTemplates = async () => {
+  const fetchScholarshipAndTemplates = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -49,7 +43,13 @@ const ScholarshipViewPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [scholarshipId]);
+
+  useEffect(() => {
+    if (scholarshipId) {
+      fetchScholarshipAndTemplates();
+    }
+  }, [scholarshipId, fetchScholarshipAndTemplates]);
 
   // Helper to display value or fallback
   const show = (value: any, fallback = 'Not provided') => {

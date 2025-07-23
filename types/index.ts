@@ -250,6 +250,7 @@ export interface FormSection {
 
 export interface ApplicationTemplate {
   id: string;
+  applicationType: 'scholarship' | 'school' | 'program';
   scholarshipId: string;
   title: string;
   description?: string;

@@ -443,7 +443,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
           <h1 className="text-3xl font-bold">Document Review</h1>
         </div>
         <p className="text-muted-foreground">
-          You've been invited to review this document and provide feedback
+          You&apos;ve been invited to review this document and provide feedback
         </p>
       </div>
       {!canEdit && (
@@ -600,7 +600,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                           }}
                         >
                           <div className="mb-2 text-xs text-muted-foreground">
-                            Commenting on: <span className="font-semibold">"{newComment.position?.text}"</span>
+                            Commenting on: <span className="font-semibold">&quot;{newComment.position?.text}&quot;</span>
                           </div>
                           <div className="mb-2">
                             <Label htmlFor="popoverCommentContent">Comment *</Label>
@@ -709,7 +709,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                           <p className="text-sm">{comment.content}</p>
                           {comment.position && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Highlighted: "{comment.position.text}"
+                              Highlighted: &quot;{comment.position.text}&quot;
                             </p>
                           )}
                         </div>
@@ -754,7 +754,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                             <p className="text-sm">{comment.content}</p>
                             {comment.position && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Highlighted: "{comment.position.text}"
+                                Highlighted: &quot;{comment.position.text}&quot;
                               </p>
                             )}
                           </div>
@@ -924,7 +924,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                             <p className="text-sm">{comment.content}</p>
                             {comment.position && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Highlighted: "{comment.position.text}"
+                                Highlighted: &quot;{comment.position.text}&quot;
                               </p>
                             )}
                           </div>
@@ -1310,7 +1310,7 @@ export default function DocumentReviewClient({ initialData }: DocumentReviewClie
                           <p className="text-sm">{comment.content}</p>
                           {comment.position && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Highlighted: "{comment.position.text}"
+                              Highlighted: &quot;{comment.position.text}&quot;
                             </p>
                           )}
                         </div>

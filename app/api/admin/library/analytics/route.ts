@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import LibraryDocument from '@/models/LibraryDocument';
 import DocumentClone from '@/models/DocumentClone';
 import DocumentRating from '@/models/DocumentRating';
+import DocumentView from '@/models/DocumentView';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,11 @@ export async function GET(request: NextRequest) {
     
     if (!session?.user || session.user.type !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user has permission to view analytics
+    if (!session.user.permissions?.includes("content:read")) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     await connectDB();
@@ -69,35 +75,47 @@ export async function GET(request: NextRequest) {
       { $sort: { count: -1 } }
     ]);
 
-    // Generate recent activity data (simulated for now)
+    // Generate recent activity data structure
     const recentActivity = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
       recentActivity.push({
         date: date.toISOString().split('T')[0],
-        views: Math.floor(Math.random() * 50) + 10,
-        clones: Math.floor(Math.random() * 20) + 5,
-        ratings: Math.floor(Math.random() * 10) + 1
+        views: 0,
+        clones: 0,
+        ratings: 0
       });
     }
 
-    // Get actual clone and rating data from related collections
-    const cloneData = await DocumentClone.aggregate([
-      { $match: { createdAt: { $gte: startDate } } },
-      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
-      { $sort: { _id: 1 } }
-    ]);
-
-    const ratingData = await DocumentRating.aggregate([
-      { $match: { createdAt: { $gte: startDate } } },
-      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
-      { $sort: { _id: 1 } }
+    // Get actual view, clone and rating data from related collections
+    const [viewData, cloneData, ratingData] = await Promise.all([
+      DocumentView.aggregate([
+        { $match: { createdAt: { $gte: startDate } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      DocumentClone.aggregate([
+        { $match: { createdAt: { $gte: startDate } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      DocumentRating.aggregate([
+        { $match: { createdAt: { $gte: startDate } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ])
     ]);
 
     // Merge actual data with recent activity
     const activityMap = new Map();
     recentActivity.forEach(day => {
-      activityMap.set(day.date, { ...day, clones: 0, ratings: 0 });
+      activityMap.set(day.date, { ...day, views: 0, clones: 0, ratings: 0 });
+    });
+
+    viewData.forEach(item => {
+      if (activityMap.has(item._id)) {
+        activityMap.get(item._id).views = item.count;
+      }
     });
 
     cloneData.forEach(item => {

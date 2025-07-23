@@ -104,7 +104,7 @@ export async function createApplicationTemplate(data: ApplicationTemplateFormDat
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || 'Failed to create application template');
+    throw new Error(error.details || error.error || 'Failed to create application template');
   }
 
   return response.json();
@@ -158,7 +158,7 @@ export function createDefaultQuestion(type: Question['type'], order: number): Qu
   return {
     id: generateId(),
     type,
-    title: '',
+    title: `Question ${order}`,
     description: '',
     placeholder: '',
     required: false,
@@ -185,7 +185,7 @@ export function createDefaultQuestion(type: Question['type'], order: number): Qu
 export function createDefaultSection(order: number): FormSection {
   return {
     id: generateId(),
-    title: 'New Section',
+    title: `Section ${order}`,
     description: '',
     order,
     questions: [createDefaultQuestion('text', 1)],

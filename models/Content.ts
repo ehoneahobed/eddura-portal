@@ -294,7 +294,6 @@ const ContentSchema: Schema = new Schema<IContent>(
 );
 
 // Indexes for better query performance
-ContentSchema.index({ slug: 1 });
 ContentSchema.index({ type: 1, status: 1 });
 ContentSchema.index({ status: 1, publishDate: -1 });
 ContentSchema.index({ categories: 1 });

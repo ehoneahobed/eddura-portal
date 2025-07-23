@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +43,7 @@ export default function ScholarshipsWithoutApplicationFormsPage() {
   const [search, setSearch] = useState('');
   const [providerFilter, setProviderFilter] = useState('all');
 
-  const fetchScholarships = async (page = 1) => {
+  const fetchScholarships = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -64,11 +64,11 @@ export default function ScholarshipsWithoutApplicationFormsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, providerFilter]);
 
   useEffect(() => {
     fetchScholarships();
-  }, [search, providerFilter]);
+  }, [fetchScholarships]);
 
   const formatValue = (value?: number | string, currency?: string) => {
     if (!value) return 'Not specified';

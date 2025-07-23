@@ -1,34 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import ApplicationTemplate from '@/models/ApplicationTemplate';
+import mongoose from 'mongoose';
+import RequirementsTemplate from '../../../models/RequirementsTemplate';
 
-export async function GET() {
+/**
+ * GET /api/test-templates
+ * Test endpoint to debug templates
+ */
+export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-    console.log('Database connected for test');
+    console.log('Testing templates endpoint...');
     
-    // Simple count query first
-    const count = await ApplicationTemplate.countDocuments();
-    console.log('Application templates count:', count);
+    // Test database connection
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      return NextResponse.json({ error: 'MONGODB_URI not set' }, { status: 500 });
+    }
     
-    // Simple find without populate
-    const templates = await ApplicationTemplate.find().limit(5);
-    console.log('Found templates:', templates.length);
+    console.log('MongoDB URI exists');
+    
+    // Test model
+    const count = await RequirementsTemplate.countDocuments();
+    console.log('Template count:', count);
+    
+    // Test finding system templates
+    const systemTemplates = await RequirementsTemplate.find({ isSystemTemplate: true });
+    console.log('System templates found:', systemTemplates.length);
     
     return NextResponse.json({
       success: true,
-      count,
-      templatesCount: templates.length,
-      templates: templates.map((t: any) => ({
-        id: t._id.toString(),
-        title: t.title,
-        scholarshipId: t.scholarshipId?.toString()
-      }))
+      totalTemplates: count,
+      systemTemplates: systemTemplates.length,
+      templates: systemTemplates.map(t => ({ id: t._id, name: t.name, category: t.category }))
     });
   } catch (error) {
-    console.error('Test error:', error);
+    console.error('Error in test templates:', error);
     return NextResponse.json(
-      { error: 'Test failed', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

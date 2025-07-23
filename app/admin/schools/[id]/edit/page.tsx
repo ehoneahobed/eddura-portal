@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,21 +21,7 @@ export default function EditSchoolPage({ params }: EditSchoolPageProps) {
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params;
-      setSchoolId(resolvedParams.id);
-    };
-    getParams();
-  }, [params]);
-
-  useEffect(() => {
-    if (schoolId) {
-      fetchSchool();
-    }
-  }, [schoolId]);
-
-  const fetchSchool = async () => {
+  const fetchSchool = useCallback(async () => {
     if (!schoolId) return;
     
     try {
@@ -56,7 +42,21 @@ export default function EditSchoolPage({ params }: EditSchoolPageProps) {
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [schoolId, toast, router]);
+
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setSchoolId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchSchool();
+    }
+  }, [schoolId, fetchSchool]);
 
   const handleUpdate = async (data: Partial<School>) => {
     if (!schoolId) return;

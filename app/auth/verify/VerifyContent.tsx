@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,7 @@ export default function VerifyContent() {
   const router = useRouter();
   const token = searchParams.get("token");
 
-  useEffect(() => {
-    if (!token) {
-      setError("Invalid verification link");
-      setIsLoading(false);
-      return;
-    }
-
-    verifyEmail();
-  }, [token]);
-
-  const verifyEmail = async () => {
+  const verifyEmail = useCallback(async () => {
     try {
       const response = await fetch("/api/auth/verify", {
         method: "POST",
@@ -48,7 +38,17 @@ export default function VerifyContent() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      setError("Invalid verification link");
+      setIsLoading(false);
+      return;
+    }
+
+    verifyEmail();
+  }, [token, verifyEmail]);
 
   if (isLoading) {
     return (

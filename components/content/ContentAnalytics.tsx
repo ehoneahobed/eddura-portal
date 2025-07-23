@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,31 +47,7 @@ export default function ContentAnalytics({ contentId, viewCount, engagementRate,
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [contentId, timeRange]);
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/content/${contentId}/analytics?period=${timeRange}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAnalyticsData(data.data);
-      } else {
-        // Fallback to mock data for demo
-        setAnalyticsData(generateMockData());
-      }
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-      setAnalyticsData(generateMockData());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateMockData = (): AnalyticsData => {
+  const generateMockData = useCallback((): AnalyticsData => {
     const baseViews = viewCount || Math.floor(Math.random() * 1000) + 100;
     const baseEngagement = engagementRate || Math.random() * 0.3 + 0.1;
     const baseConversion = conversionRate || Math.random() * 0.05 + 0.01;
@@ -92,7 +68,31 @@ export default function ContentAnalytics({ contentId, viewCount, engagementRate,
         conversion: Math.random() * 0.02 - 0.01
       }
     };
-  };
+  }, [viewCount, engagementRate, conversionRate, timeRange]);
+
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/content/${contentId}/analytics?period=${timeRange}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAnalyticsData(data.data);
+      } else {
+        // Fallback to mock data for demo
+        setAnalyticsData(generateMockData());
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      setAnalyticsData(generateMockData());
+    } finally {
+      setLoading(false);
+    }
+  }, [contentId, timeRange, generateMockData]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [contentId, timeRange, fetchAnalytics]);
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;

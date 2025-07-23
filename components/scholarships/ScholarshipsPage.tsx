@@ -147,11 +147,7 @@ export default function ScholarshipsPage() {
     }
   }, [scholarships]);
 
-  useEffect(() => {
-    fetchScholarships();
-  }, [pagination.currentPage, debouncedSearchTerm, selectedFilters, sortBy, selectedStatus]);
-
-    const fetchScholarships = async () => {
+  const fetchScholarships = useCallback(async () => {
     // Don't show loading state for search operations if we already have results
     const isSearchOperation = debouncedSearchTerm && scholarships.length > 0;
     
@@ -212,7 +208,12 @@ export default function ScholarshipsPage() {
         setIsLoading(false);
       }
     }
-  };
+  }, [debouncedSearchTerm, scholarships.length, pagination, sortBy, selectedFilters, selectedStatus]);
+
+  // Effect to fetch scholarships when dependencies change
+  useEffect(() => {
+    fetchScholarships();
+  }, [fetchScholarships]);
 
   const getSortByParam = (sort: SortOption): string => {
     switch (sort) {
@@ -440,7 +441,7 @@ export default function ScholarshipsPage() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <div className="max-w-xs">
-                          <p><strong>Currently Accepting:</strong> Applications are open and deadline hasn't passed</p>
+                          <p><strong>Currently Accepting:</strong> Applications are open and deadline hasn&apos;t passed</p>
                           <p><strong>Opening Soon:</strong> Applications will open within 3 months</p>
                           <p><strong>Urgent:</strong> Deadline is within 30 days</p>
                         </div>
@@ -503,7 +504,7 @@ export default function ScholarshipsPage() {
               <p className="text-gray-600">
                 Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
                 <span className="font-semibold">{pagination.totalCount}</span> scholarships
-                {searchTerm && ` for "${searchTerm}"`}
+                {searchTerm && ` for &quot;${searchTerm}&quot;`}
                 {selectedStatus !== 'all' && ` (${getStatusLabel(selectedStatus)})`}
               </p>
               {isLoading && scholarships.length > 0 && (
