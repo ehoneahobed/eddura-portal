@@ -19,14 +19,17 @@ const UpdateDocumentSchema = z.object({
 });
 
 // GET /api/documents/[id] - Fetch document or generate download URL
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest) {
   try {
+    // Extract the document ID from the URL
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop();
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     await connectDB();
-    const document = await Document.findById(params.id);
+    const document = await Document.findById(id);
     if (!document) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
