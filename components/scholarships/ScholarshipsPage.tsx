@@ -208,7 +208,7 @@ export default function ScholarshipsPage() {
         setIsLoading(false);
       }
     }
-  }, [debouncedSearchTerm, scholarships.length, pagination, sortBy, selectedFilters, selectedStatus]);
+  }, [debouncedSearchTerm, pagination, sortBy, selectedFilters, selectedStatus]);
 
   // Effect to fetch scholarships when dependencies change
   useEffect(() => {
