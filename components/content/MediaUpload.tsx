@@ -70,9 +70,9 @@ export default function MediaUpload({ onSelect, currentValue, className = '' }: 
           continue;
         }
 
+        // Step 1: Get presigned URL from backend
         const formData = new FormData();
         formData.append('file', file);
-
         const response = await fetch('/api/media/upload', {
           method: 'POST',
           body: formData,
@@ -80,16 +80,29 @@ export default function MediaUpload({ onSelect, currentValue, className = '' }: 
 
         if (response.ok) {
           const result = await response.json();
+          const { presignedUrl, data } = result;
+          // Step 2: Upload file directly to S3
+          const s3Upload = await fetch(presignedUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type,
+            },
+          });
+          if (!s3Upload.ok) {
+            toast.error(`Failed to upload ${file.name} to S3`);
+            continue;
+          }
+          // Step 3: Update UI
           const newFile: MediaFile = {
-            id: result.id,
-            filename: result.filename,
+            id: data.id,
+            filename: data.filename,
             originalName: file.name,
-            url: result.url,
+            url: data.url,
             mimeType: file.type,
             size: file.size,
             uploadedAt: new Date(),
           };
-          
           setMediaFiles(prev => [newFile, ...prev]);
           toast.success(`${file.name} uploaded successfully`);
         } else {

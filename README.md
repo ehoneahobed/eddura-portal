@@ -223,3 +223,40 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Built with ❤️ by the Eddura Team**
 
 *Transforming educational management with innovative technology solutions.*
+
+## AWS S3 Configuration for File Uploads
+
+To enable S3 uploads for media and document files, add the following environment variables to your `.env` file:
+
+```
+AWS_REGION=your-aws-region
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_S3_BUCKET=your-s3-bucket-name
+```
+
+- The IAM user should have permission to PutObject and GetObject for the specified bucket.
+- The bucket should be private by default for security.
+
+## S3 Upload Support for User Documents
+
+The platform now supports secure file uploads to AWS S3 for user documents such as transcripts, certificates, and other upload-based document types.
+
+### Supported Document Types
+- School Certificate
+- Transcript
+- Degree Certificate
+- Language Certificate
+- Other Certificate
+
+### How It Works
+1. When creating a new document of an upload-based type, you will see a file upload input instead of a text editor.
+2. Select your file (PDF, DOC, DOCX, or TXT, up to 10MB).
+3. The file is uploaded directly to S3 using a secure pre-signed URL.
+4. The document metadata, including the S3 file URL, is saved in the database.
+5. You can view and manage your uploaded documents from your document library.
+
+### Security
+- All files are stored privately in S3.
+- Only authenticated users can upload and access their own documents.
+- File type and size are validated on both frontend and backend.

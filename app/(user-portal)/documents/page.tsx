@@ -11,7 +11,7 @@ import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents'
 import CreateDocumentDialog from '@/components/documents/CreateDocumentDialog';
 import DocumentCard from '@/components/documents/DocumentCard';
 import { toast } from 'sonner';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
 export default function DocumentsPage() {
@@ -20,6 +20,11 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<Document | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
 
   // Fetch documents
   const fetchDocuments = async () => {
@@ -79,6 +84,30 @@ export default function DocumentsPage() {
       )
     );
     toast.success('Document updated successfully');
+  };
+
+  const handlePreview = async (doc: Document) => {
+    setPreviewDocument(doc);
+    setPreviewOpen(true);
+    if (doc.fileUrl) {
+      setPreviewLoading(true);
+      try {
+        const res = await fetch(`/api/documents/${doc._id}`);
+        if (!res.ok) {
+          const err = await res.json();
+          toast.error(err.error || 'Failed to get preview link');
+          return;
+        }
+        const { presignedUrl } = await res.json();
+        setPreviewUrl(presignedUrl);
+      } catch (err) {
+        toast.error('Failed to load file preview');
+      } finally {
+        setPreviewLoading(false);
+      }
+    } else {
+      setPreviewUrl(null);
+    }
   };
 
   if (loading) {
@@ -204,6 +233,7 @@ export default function DocumentsPage() {
                       document={document}
                       onDelete={handleDocumentDeleted}
                       onUpdate={handleDocumentUpdated}
+                      onPreview={handlePreview}
                     />
                   ))}
                 </div>
@@ -236,6 +266,7 @@ export default function DocumentsPage() {
                     document={document}
                     onDelete={handleDocumentDeleted}
                     onUpdate={handleDocumentUpdated}
+                    onPreview={handlePreview}
                   />
                 ))}
               </div>
@@ -250,6 +281,32 @@ export default function DocumentsPage() {
         onOpenChange={setCreateDialogOpen}
         onDocumentCreated={handleDocumentCreated}
       />
+      {/* File/Text Preview Modal */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Preview: {previewDocument?.title}</DialogTitle>
+          </DialogHeader>
+          {previewDocument?.fileUrl ? (
+            previewLoading ? (
+              <div className="text-center py-8">Loading preview...</div>
+            ) : previewUrl ? (
+              previewDocument.fileType?.includes('pdf') ? (
+                <iframe src={previewUrl} className="w-full h-[70vh] border rounded" />
+              ) : (
+                <div className="text-center py-8">
+                  <p>Preview not supported for this file type.</p>
+                  <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download File</a>
+                </div>
+              )
+            ) : null
+          ) : (
+            <div className="prose max-w-none whitespace-pre-wrap">
+              {previewDocument?.content}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

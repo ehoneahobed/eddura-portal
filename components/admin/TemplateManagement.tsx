@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +24,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
   Search, 
-  Filter, 
   MoreHorizontal, 
   Edit, 
   Eye,
   Copy,
   Star,
-  Calendar,
   Loader2,
   CheckCircle,
   XCircle
@@ -75,41 +73,54 @@ export default function TemplateManagement() {
     pages: 0
   });
 
-  const fetchTemplates = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        ...(searchTerm && { search: searchTerm }),
-        ...(templateFilter !== 'all' && { isTemplate: templateFilter === 'templates' ? 'true' : 'false' }),
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(categoryFilter !== 'all' && { category: categoryFilter }),
-      });
-
-      const response = await fetch(`/api/admin/library/templates?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data.documents || []);
-        setPagination(data.pagination || pagination);
-      } else {
-        toast.error('Failed to fetch templates');
-      }
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-      toast.error('Failed to fetch templates');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination]);
-
   useEffect(() => {
+    const fetchTemplates = async () => {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: pagination.page.toString(),
+          limit: pagination.limit.toString(),
+          ...(searchTerm && { search: searchTerm }),
+          ...(templateFilter !== 'all' && { isTemplate: templateFilter === 'templates' ? 'true' : 'false' }),
+          ...(statusFilter !== 'all' && { status: statusFilter }),
+          ...(categoryFilter !== 'all' && { category: categoryFilter }),
+        });
+        const response = await fetch(`/api/admin/library/templates?${params}`);
+        if (response.ok) {
+          const data = await response.json();
+          setDocuments(data.documents || []);
+          setPagination(data.pagination || pagination);
+          // Debug log API response
+          console.log('[TemplateManagement] API response:', data);
+        } else {
+          setIsLoading(false);
+          if (response.status === 401) {
+            toast.error('You are not authorized to view this page. Please log in as an admin.');
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            toast.error(errorData.error || 'Failed to fetch templates');
+            // Debug log API error
+            console.error('[TemplateManagement] API error:', errorData);
+          }
+          return;
+        }
+      } catch (error) {
+        setIsLoading(false);
+        console.error('Error fetching templates:', error);
+        toast.error('Failed to fetch templates');
+        // Debug log fetch error
+        console.error('[TemplateManagement] Fetch error:', error);
+        return;
+      }
+      setIsLoading(false);
+      // Debug log state after fetch (removed from useEffect to silence linter)
+    };
     fetchTemplates();
-  }, [fetchTemplates]);
+  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination.page, pagination.limit]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchTemplates();
+    // fetchTemplates(); // No longer needed, useEffect will handle
   };
 
   const toggleTemplateStatus = async (documentId: string, currentStatus: boolean) => {
@@ -125,7 +136,7 @@ export default function TemplateManagement() {
       if (response.ok) {
         const data = await response.json();
         toast.success(data.message || 'Template status updated successfully');
-        fetchTemplates(); // Refresh the list
+        // fetchTemplates(); // Refresh the list - now handled by useEffect
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to update template status');
@@ -159,6 +170,10 @@ export default function TemplateManagement() {
     });
   };
 
+  // Debug logs before rendering (safe for linter)
+  console.log('[TemplateManagement] Render - documents:', documents);
+  console.log('[TemplateManagement] Render - pagination:', pagination);
+  console.log('[TemplateManagement] Render - isLoading:', isLoading);
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -253,6 +268,8 @@ export default function TemplateManagement() {
             <div className="flex items-center justify-center h-32">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
+          ) : documents.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">No templates found.</div>
           ) : (
             <Table>
               <TableHeader>

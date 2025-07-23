@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import { DocumentType } from '@/types/documents';
 import { z } from 'zod';
+import { getPresignedDownloadUrl } from '@/lib/s3';
 
 // Validation schema for updating documents
 const UpdateDocumentSchema = z.object({
@@ -17,40 +18,41 @@ const UpdateDocumentSchema = z.object({
   isActive: z.boolean().optional()
 });
 
-// GET /api/documents/[id] - Get a specific document
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+// GET /api/documents/[id] - Fetch document or generate download URL
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await auth();
-    
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
     await connectDB();
-
-    const document = await Document.findOne({
-      _id: id,
-      userId: session.user.id
-    }).lean();
-
+    const document = await Document.findById(params.id);
     if (!document) {
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
-
+    if (String(document.userId) !== String(session.user.id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    // If upload-based and has fileUrl, generate pre-signed download URL
+    if (document.fileUrl) {
+      // Extract S3 key from fileUrl (fileUrl is a string)
+      const match = String(document.fileUrl).match(/\.amazonaws\.com\/(.+)$/);
+      const s3Key = match ? match[1] : null;
+      if (!s3Key) {
+        return NextResponse.json({ error: 'Invalid file URL' }, { status: 500 });
+      }
+      const presignedUrl = await getPresignedDownloadUrl({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Key: s3Key,
+        expiresIn: 300,
+      });
+      return NextResponse.json({ presignedUrl });
+    }
+    // Otherwise, return the document data (text-based)
     return NextResponse.json({ document });
   } catch (error) {
     console.error('Error fetching document:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
