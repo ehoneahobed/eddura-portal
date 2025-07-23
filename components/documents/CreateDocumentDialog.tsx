@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -128,6 +128,14 @@ const helpContent = {
   }
 };
 
+const UPLOAD_BASED_TYPES = [
+  DocumentType.SCHOOL_CERTIFICATE,
+  DocumentType.TRANSCRIPT,
+  DocumentType.DEGREE_CERTIFICATE,
+  DocumentType.LANGUAGE_CERTIFICATE,
+  DocumentType.OTHER_CERTIFICATE,
+];
+
 export default function CreateDocumentDialog({
   open,
   onOpenChange,
@@ -145,27 +153,45 @@ export default function CreateDocumentDialog({
     tags: [] as string[],
     targetProgram: '',
     targetScholarship: '',
-    targetInstitution: ''
+    targetInstitution: '',
+    fileUrl: '',
+    fileType: '',
+    fileSize: 0,
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [fileUploading, setFileUploading] = useState(false);
+  const [fileError, setFileError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.type || !formData.content) {
+    if (!formData.title || !formData.type || (formData.type && UPLOAD_BASED_TYPES.includes(formData.type as DocumentType) ? !formData.fileUrl : !formData.content)) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        // Only send file fields for upload-based types
+        ...(formData.type && UPLOAD_BASED_TYPES.includes(formData.type as DocumentType) ? {
+          fileUrl: formData.fileUrl,
+          fileType: formData.fileType,
+          fileSize: formData.fileSize,
+          content: '',
+        } : {
+          content: formData.content,
+        })
+      };
       const response = await fetch('/api/documents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -192,9 +218,16 @@ export default function CreateDocumentDialog({
       tags: [],
       targetProgram: '',
       targetScholarship: '',
-      targetInstitution: ''
+      targetInstitution: '',
+      fileUrl: '',
+      fileType: '',
+      fileSize: 0,
     });
     setTagInput('');
+    setFileError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Clear file input value
+    }
   };
 
   const addTag = () => {
@@ -229,9 +262,55 @@ export default function CreateDocumentDialog({
     setFormData(prev => ({ ...prev, content }));
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileUploading(true);
+    try {
+      // Step 1: Get presigned URL from backend
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      const res = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setFileError(err.error || 'Failed to get upload URL');
+        return;
+      }
+      const { presignedUrl, fileUrl, fileType, fileSize } = await res.json();
+      // Step 2: Upload file to S3
+      const s3Res = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+      if (!s3Res.ok) {
+        setFileError('Failed to upload file to S3');
+        return;
+      }
+      // Step 3: Store file metadata in formData
+      setFormData(prev => ({
+        ...prev,
+        fileUrl,
+        fileType,
+        fileSize,
+        content: '', // No text content for upload-based
+      }));
+      toast.success('File uploaded successfully');
+    } catch (err) {
+      setFileError('File upload failed');
+    } finally {
+      setFileUploading(false);
+    }
+  };
+
   const selectedTypeConfig = formData.type ? DOCUMENT_TYPE_CONFIG[formData.type] : null;
   const wordCount = formData.content.trim().split(/\s+/).filter(word => word.length > 0).length;
   const characterCount = formData.content.length;
+  const isUploadBased = formData.type && UPLOAD_BASED_TYPES.includes(formData.type as DocumentType);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -340,72 +419,92 @@ export default function CreateDocumentDialog({
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <FieldTooltip tooltip="The main body of your document. Write as much as you need - there are no character limits. Use the word and character counters to track your progress. You can also use AI generation to create content.">
-                    <Label htmlFor="content" className="flex items-center gap-2">
-                      Content
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </Label>
-                  </FieldTooltip>
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium">{wordCount}</span> words, <span className="font-medium">{characterCount.toLocaleString()}</span> characters
-                      {selectedTypeConfig?.maxWords && (
-                        <span className={wordCount > selectedTypeConfig.maxWords ? 'text-red-500' : 'text-green-600'}>
-                          {' '}/ {selectedTypeConfig.maxWords} recommended
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      {formData.content.trim() && (
+              {/* Content or File Upload */}
+              {isUploadBased ? (
+                <div className="space-y-2">
+                  <Label htmlFor="file-upload">Upload File *</Label>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                    disabled={fileUploading}
+                  />
+                  {fileUploading && <div className="text-blue-600 text-sm">Uploading...</div>}
+                  {formData.fileUrl && !fileUploading && (
+                    <div className="text-green-600 text-sm">File uploaded and ready.</div>
+                  )}
+                  {fileError && <div className="text-red-600 text-sm">{fileError}</div>}
+                </div>
+              ) : (
+                // Content
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <FieldTooltip tooltip="The main body of your document. Write as much as you need - there are no character limits. Use the word and character counters to track your progress. You can also use AI generation to create content.">
+                      <Label htmlFor="content" className="flex items-center gap-2">
+                        Content
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </Label>
+                    </FieldTooltip>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium">{wordCount}</span> words, <span className="font-medium">{characterCount.toLocaleString()}</span> characters
+                        {selectedTypeConfig?.maxWords && (
+                          <span className={wordCount > selectedTypeConfig.maxWords ? 'text-red-500' : 'text-green-600'}>
+                            {' '}/ {selectedTypeConfig.maxWords} recommended
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {formData.content.trim() && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setAiRefinementModalOpen(true)}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                            Refine with AI
+                          </Button>
+                        )}
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setAiRefinementModalOpen(true)}
+                          onClick={() => setAiModalOpen(true)}
                           className="flex items-center gap-2"
                         >
-                          <Edit3 className="h-4 w-4" />
-                          Refine with AI
+                          <Sparkles className="h-4 w-4" />
+                          Generate with AI
                         </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setAiModalOpen(true)}
-                        className="flex items-center gap-2"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        Generate with AI
-                      </Button>
+                      </div>
                     </div>
                   </div>
+                  <Textarea
+                    id="content"
+                    value={formData.content}
+                    onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                    placeholder={selectedTypeConfig?.placeholder || "Write your document content here, or use AI generation to create content..."}
+                    rows={15}
+                    className="font-mono text-sm resize-y"
+                  />
+                  {!formData.content && (
+                    <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded-md">
+                      <Info className="h-4 w-4 inline mr-1" />
+                      <strong>Tip:</strong> You can leave content empty and use the &quot;Generate with AI&quot; button to create content, or write your own content manually.
+                    </div>
+                  )}
+                  {selectedTypeConfig?.maxWords && wordCount > selectedTypeConfig.maxWords && (
+                    <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
+                      <Info className="h-4 w-4 inline mr-1" />
+                      Your document exceeds the recommended {selectedTypeConfig.maxWords} words for {selectedTypeConfig.label.toLowerCase()}s. 
+                      Consider editing for conciseness, but you can still save the document.
+                    </div>
+                  )}
                 </div>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder={selectedTypeConfig?.placeholder || "Write your document content here, or use AI generation to create content..."}
-                  rows={15}
-                  className="font-mono text-sm resize-y"
-                />
-                {!formData.content && (
-                  <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded-md">
-                    <Info className="h-4 w-4 inline mr-1" />
-                    <strong>Tip:</strong> You can leave content empty and use the &quot;Generate with AI&quot; button to create content, or write your own content manually.
-                  </div>
-                )}
-                {selectedTypeConfig?.maxWords && wordCount > selectedTypeConfig.maxWords && (
-                  <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
-                    <Info className="h-4 w-4 inline mr-1" />
-                    Your document exceeds the recommended {selectedTypeConfig.maxWords} words for {selectedTypeConfig.label.toLowerCase()}s. 
-                    Consider editing for conciseness, but you can still save the document.
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Tags */}
               <div className="space-y-2">
@@ -493,7 +592,7 @@ export default function CreateDocumentDialog({
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading || !formData.title || !formData.type}>
+                <Button type="submit" disabled={loading || !formData.title || !formData.type || (formData.type && UPLOAD_BASED_TYPES.includes(formData.type as DocumentType) ? !formData.fileUrl : !formData.content)}>
                   {loading ? 'Creating...' : 'Create Document'}
                 </Button>
               </div>

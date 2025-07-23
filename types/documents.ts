@@ -261,4 +261,8 @@ export interface Document {
   lastEditedAt: string;
   createdAt: string;
   updatedAt: string;
+  // Upload-based document fields
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: number;
 }

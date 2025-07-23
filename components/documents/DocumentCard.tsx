@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,9 +32,10 @@ interface DocumentCardProps {
   document: Document;
   onDelete: (documentId: string) => void;
   onUpdate: (document: Document) => void;
+  onPreview?: (document: Document) => void;
 }
 
-export default function DocumentCard({ document, onDelete, onUpdate }: DocumentCardProps) {
+export default function DocumentCard({ document, onDelete, onUpdate, onPreview }: DocumentCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
@@ -54,10 +55,17 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewText, setPreviewText] = useState<string | null>(null);
+  const previewTextFetched = useRef<string | null>(null);
 
   const typeConfig = DOCUMENT_TYPE_CONFIG[document.type];
   const wordCount = document.wordCount || 0;
   const characterCount = document.characterCount || 0;
+
+  const isUploadBased = !!document.fileUrl;
 
   const handleEdit = async () => {
     setLoading(true);
@@ -226,6 +234,63 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
     }
   };
 
+  const handleFileDownload = useCallback(async () => {
+    if (!document.fileUrl) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/documents/${document._id}`);
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to get download link');
+        return;
+      }
+      const { presignedUrl } = await res.json();
+      if (!presignedUrl) {
+        toast.error('No download URL received');
+        return;
+      }
+      // Trigger download
+      const a = window.document.createElement('a');
+      a.href = presignedUrl;
+      a.download = document.title || 'document';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      window.document.body.appendChild(a);
+      a.click();
+      setTimeout(() => window.document.body.removeChild(a), 100);
+      toast.success('Download started');
+    } catch (err) {
+      toast.error('Failed to download file');
+    } finally {
+      setLoading(false);
+    }
+  }, [document]);
+
+  // File preview logic
+  const handlePreview = async () => {
+    if (onPreview) {
+      onPreview(document);
+      return;
+    }
+    if (!document.fileUrl) return;
+    setPreviewLoading(true);
+    try {
+      const res = await fetch(`/api/documents/${document._id}`);
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to get preview link');
+        return;
+      }
+      const { presignedUrl } = await res.json();
+      setPreviewUrl(presignedUrl);
+      setPreviewOpen(true);
+    } catch (err) {
+      toast.error('Failed to load file preview');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -242,9 +307,25 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
     setEditData(prev => ({ ...prev, content }));
   };
 
+  useEffect(() => {
+    if (previewOpen && previewUrl && document.fileType?.startsWith('text/')) {
+      // Fetch text content for text file preview
+      if (previewTextFetched.current === previewUrl) return;
+      fetch(previewUrl)
+        .then(res => res.text())
+        .then(text => {
+          setPreviewText(text);
+          previewTextFetched.current = previewUrl;
+        })
+        .catch(() => setPreviewText('Failed to load text preview.'));
+    } else {
+      setPreviewText(null);
+    }
+  }, [previewOpen, previewUrl, document.fileType]);
+
   return (
     <>
-      <Card className="h-full flex flex-col">
+      <Card className="h-full flex flex-col cursor-pointer" onClick={isUploadBased ? handlePreview : undefined}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
@@ -285,6 +366,10 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
                 <DropdownMenuItem onClick={() => downloadDocument('docx')} disabled={loading}>
                   <Download className="h-4 w-4 mr-2" />
                   Download as Word
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleFileDownload} disabled={loading}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download File
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -365,26 +450,41 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
 
           {/* Download Actions */}
           <div className="flex gap-2 mt-4 pt-3 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => downloadDocument('pdf')}
-              disabled={loading}
-              className="flex-1"
-            >
-              <FileDown className="h-4 w-4 mr-2" />
-              PDF
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => downloadDocument('docx')}
-              disabled={loading}
-              className="flex-1"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Word
-            </Button>
+            {isUploadBased ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFileDownload}
+                disabled={loading}
+                className="flex-1"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download File
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadDocument('pdf')}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadDocument('docx')}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Word
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -609,6 +709,33 @@ export default function DocumentCard({ document, onDelete, onUpdate }: DocumentC
         onOpenChange={setFeedbackDialogOpen}
         document={document}
       />
+
+      {/* File Preview Modal */}
+      {isUploadBased && (
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Preview: {document.title}</DialogTitle>
+            </DialogHeader>
+            {previewLoading ? (
+              <div className="text-center py-8">Loading preview...</div>
+            ) : previewUrl ? (
+              document.fileType?.includes('pdf') ? (
+                <iframe src={previewUrl} className="w-full h-[70vh] border rounded" />
+              ) : document.fileType?.startsWith('image/') ? (
+                <img src={previewUrl} alt={document.title} className="max-h-[70vh] mx-auto rounded border" />
+              ) : document.fileType?.startsWith('text/') ? (
+                <pre className="bg-gray-100 p-4 rounded max-h-[70vh] overflow-auto whitespace-pre-wrap text-xs">{previewText ?? 'Loading text...'}</pre>
+              ) : (
+                <div className="text-center py-8">
+                  <p>Preview not supported for this file type.</p>
+                  <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download File</a>
+                </div>
+              )
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

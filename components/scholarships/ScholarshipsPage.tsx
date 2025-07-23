@@ -198,7 +198,19 @@ export default function ScholarshipsPage() {
       if (response.ok) {
         const data = await response.json();
         setScholarships(data.scholarships || []);
-        setPagination(data.pagination || pagination);
+        setPagination(prev => {
+          if (!data.pagination ||
+            (prev.currentPage === data.pagination.currentPage &&
+             prev.totalPages === data.pagination.totalPages &&
+             prev.totalCount === data.pagination.totalCount &&
+             prev.hasNextPage === data.pagination.hasNextPage &&
+             prev.hasPrevPage === data.pagination.hasPrevPage &&
+             prev.limit === data.pagination.limit)
+          ) {
+            return prev;
+          }
+          return data.pagination;
+        });
       }
     } catch (error) {
       console.error('Error fetching scholarships:', error);
@@ -208,7 +220,7 @@ export default function ScholarshipsPage() {
         setIsLoading(false);
       }
     }
-  }, [debouncedSearchTerm, scholarships.length, pagination, sortBy, selectedFilters, selectedStatus]);
+  }, [debouncedSearchTerm, pagination.currentPage, pagination.limit, sortBy, selectedFilters, selectedStatus]);
 
   // Effect to fetch scholarships when dependencies change
   useEffect(() => {

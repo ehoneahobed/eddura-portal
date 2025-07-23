@@ -2,13 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import MediaFile from '@/models/MediaFile';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { getPresignedUploadUrl } from '@/lib/s3';
 import { randomUUID } from 'crypto';
-
-// Ensure upload directory exists
-const uploadDir = join(process.cwd(), 'public', 'uploads');
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,11 +17,6 @@ export async function POST(request: NextRequest) {
     }
     
     await connectDB();
-    
-    // Ensure upload directory exists
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
     
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -58,26 +48,26 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const fileExtension = file.name.split('.').pop();
     const filename = `${randomUUID()}.${fileExtension}`;
-    const filepath = join(uploadDir, filename);
-    
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer as any);
-    
-    // Save file metadata to database
+    const s3Key = `media/${filename}`;
+    // Generate S3 pre-signed URL
+    const s3Url = await getPresignedUploadUrl({
+      Bucket: process.env.AWS_S3_BUCKET!,
+      Key: s3Key,
+      ContentType: file.type,
+      expiresIn: 300,
+    });
+    // Save file metadata to database (URL will be S3 object URL)
+    const s3ObjectUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
     const mediaFile = new MediaFile({
       filename,
       originalName: file.name,
       mimeType: file.type,
       size: file.size,
-      url: `/uploads/${filename}`,
+      url: s3ObjectUrl,
       uploadedBy: session.user.email,
-      alt: file.name.split('.')[0], // Use filename without extension as alt text
+      alt: file.name.split('.')[0],
     });
-    
     await mediaFile.save();
-    
     return NextResponse.json({
       success: true,
       data: {
@@ -87,8 +77,9 @@ export async function POST(request: NextRequest) {
         originalName: mediaFile.originalName,
         size: mediaFile.size,
         mimeType: mediaFile.mimeType,
+        presignedUrl: s3Url,
       },
-      message: 'File uploaded successfully'
+      message: 'S3 upload URL generated. Upload your file directly to S3 using this URL.'
     }, { status: 201 });
     
   } catch (error) {

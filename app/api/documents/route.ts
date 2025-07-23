@@ -4,6 +4,8 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { z } from 'zod';
+import { getPresignedUploadUrl } from '@/lib/s3';
+import { randomUUID } from 'crypto';
 
 // Validation schema for creating/updating documents
 const DocumentSchema = z.object({
@@ -88,8 +90,58 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/documents - Create a new document
+// POST /api/documents/upload - Get S3 presigned URL for file upload (for upload-based document types)
 export async function POST(request: NextRequest) {
+  const url = new URL(request.url);
+  if (url.pathname.endsWith('/upload')) {
+    try {
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      const formData = await request.formData();
+      const file = formData.get('file') as File;
+      if (!file) {
+        return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      }
+      // Accept only PDF, DOC, DOCX, TXT, etc.
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+      }
+      // 10MB limit
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return NextResponse.json({ error: 'File size exceeds 10MB limit' }, { status: 400 });
+      }
+      const fileExtension = file.name.split('.').pop();
+      const filename = `${randomUUID()}.${fileExtension}`;
+      const s3Key = `documents/${session.user.id}/${filename}`;
+      const s3Url = await getPresignedUploadUrl({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Key: s3Key,
+        ContentType: file.type,
+        expiresIn: 300,
+      });
+      const s3ObjectUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+      return NextResponse.json({
+        presignedUrl: s3Url,
+        fileUrl: s3ObjectUrl,
+        fileType: file.type,
+        fileSize: file.size,
+        filename,
+      }, { status: 201 });
+    } catch (error) {
+      console.error('Document upload error:', error);
+      return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 });
+    }
+  }
+  // POST /api/documents - Create a new document
   try {
     const session = await auth();
     

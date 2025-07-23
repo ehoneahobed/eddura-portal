@@ -27,6 +27,22 @@ export interface IStudentDocument extends MongooseDocument {
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
+
+  // File upload fields (for upload-based document types)
+  fileUrl: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  fileType: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  fileSize: {
+    type: Number,
+    default: null,
+  },
 }
 
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
@@ -109,7 +125,23 @@ const DocumentSchema: Schema = new Schema<IStudentDocument>({
   lastEditedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+
+  // File upload fields (for upload-based document types)
+  fileUrl: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  fileType: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  fileSize: {
+    type: Number,
+    default: null,
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
