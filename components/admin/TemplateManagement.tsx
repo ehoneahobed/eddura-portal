@@ -116,7 +116,7 @@ export default function TemplateManagement() {
       // Debug log state after fetch (removed from useEffect to silence linter)
     };
     fetchTemplates();
-  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination.page, pagination.limit]);
+  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination, pagination.page, pagination.limit]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

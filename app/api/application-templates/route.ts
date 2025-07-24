@@ -178,6 +178,32 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    // Check for existing template to prevent duplicates
+    const duplicateQuery: any = {
+      applicationType: body.applicationType,
+      isActive: true
+    };
+
+    // Add the appropriate ID field based on application type
+    if (body.applicationType === 'scholarship' && body.scholarshipId) {
+      duplicateQuery.scholarshipId = body.scholarshipId;
+    } else if (body.applicationType === 'school' && body.schoolId) {
+      duplicateQuery.schoolId = body.schoolId;
+    } else if (body.applicationType === 'program' && body.programId) {
+      duplicateQuery.programId = body.programId;
+    }
+
+    const existingTemplate = await ApplicationTemplate.findOne(duplicateQuery);
+    if (existingTemplate) {
+      return NextResponse.json(
+        { 
+          error: `An active application template already exists for this ${body.applicationType}`,
+          existingTemplateId: existingTemplate._id
+        },
+        { status: 409 }
+      );
+    }
     
     const template = new ApplicationTemplate({
       ...body,

@@ -381,6 +381,7 @@ export async function POST(request: NextRequest) {
         description: `Application form for ${entityName}`,
         version: '1.0.0',
         isActive: true,
+        applicationType: applicationType,
         sections: [
           {
             id: 'personal-info',
@@ -479,7 +480,6 @@ export async function POST(request: NextRequest) {
       };
 
       // Add the appropriate reference based on application type
-      templateData.applicationType = applicationType;
       if (applicationType === 'scholarship') {
         templateData.scholarshipId = targetId;
       } else if (applicationType === 'school') {
@@ -488,8 +488,21 @@ export async function POST(request: NextRequest) {
         templateData.programId = targetId;
       }
 
-      applicationTemplate = new ApplicationTemplate(templateData);
-      await applicationTemplate.save();
+      // Use findOneAndUpdate with upsert to prevent race conditions
+      applicationTemplate = await ApplicationTemplate.findOneAndUpdate(
+        {
+          applicationType: applicationType,
+          ...(applicationType === 'scholarship' ? { scholarshipId: targetId } : {}),
+          ...(applicationType === 'school' ? { schoolId: targetId } : {}),
+          ...(applicationType === 'program' ? { programId: targetId } : {})
+        },
+        templateData,
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true
+        }
+      );
     }
 
     // Create new application package

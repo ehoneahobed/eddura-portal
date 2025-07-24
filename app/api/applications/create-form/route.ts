@@ -63,122 +63,125 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Scholarship not found' }, { status: 404 });
     }
 
-    // Get or create application template
-    let applicationTemplate = await ApplicationTemplate.findOne({
+    // Get or create application template using findOneAndUpdate to prevent race conditions
+    const templateData = {
+      title: `${scholarship.title} Application`,
+      description: `Application form for ${scholarship.title}`,
+      version: '1.0.0',
+      isActive: true,
       applicationType: 'scholarship',
       scholarshipId: scholarshipId,
-      isActive: true
-    });
+      sections: [
+        {
+          id: 'personal-info',
+          title: 'Personal Information',
+          description: 'Basic personal and contact information',
+          order: 1,
+          questions: [
+            {
+              id: 'first-name',
+              type: 'text',
+              title: 'First Name',
+              required: true,
+              order: 1,
+              placeholder: 'Enter your first name'
+            },
+            {
+              id: 'last-name',
+              type: 'text',
+              title: 'Last Name',
+              required: true,
+              order: 2,
+              placeholder: 'Enter your last name'
+            },
+            {
+              id: 'email',
+              type: 'email',
+              title: 'Email Address',
+              required: true,
+              order: 3,
+              placeholder: 'Enter your email address'
+            },
+            {
+              id: 'phone',
+              type: 'phone',
+              title: 'Phone Number',
+              required: false,
+              order: 4,
+              placeholder: 'Enter your phone number'
+            }
+          ]
+        },
+        {
+          id: 'academic-info',
+          title: 'Academic Information',
+          description: 'Your educational background and achievements',
+          order: 2,
+          questions: [
+            {
+              id: 'current-school',
+              type: 'text',
+              title: 'Current School/University',
+              required: true,
+              order: 1,
+              placeholder: 'Enter your current school or university'
+            },
+            {
+              id: 'gpa',
+              type: 'gpa',
+              title: 'Current GPA',
+              required: true,
+              order: 2,
+              placeholder: 'Enter your current GPA (e.g., 3.8)'
+            },
+            {
+              id: 'major',
+              type: 'text',
+              title: 'Major/Field of Study',
+              required: true,
+              order: 3,
+              placeholder: 'Enter your major or field of study'
+            }
+          ]
+        },
+        {
+          id: 'essay',
+          title: 'Personal Statement',
+          description: 'Tell us about yourself and why you deserve this opportunity',
+          order: 3,
+          questions: [
+            {
+              id: 'personal-statement',
+              type: 'textarea',
+              title: 'Personal Statement',
+              description: 'Please write a personal statement explaining your academic goals, achievements, and why you deserve this opportunity.',
+              required: true,
+              order: 1,
+              placeholder: 'Write your personal statement here...',
+              maxLength: 1000,
+              helpText: 'Maximum 1000 characters'
+            }
+          ]
+        }
+      ],
+      estimatedTime: 30,
+      allowDraftSaving: true
+    };
 
-    if (!applicationTemplate) {
-      // Create default application template
-      const templateData = {
-        title: `${scholarship.title} Application`,
-        description: `Application form for ${scholarship.title}`,
-        version: '1.0.0',
-        isActive: true,
+    // Use findOneAndUpdate with upsert to prevent race conditions
+    const applicationTemplate = await ApplicationTemplate.findOneAndUpdate(
+      {
         applicationType: 'scholarship',
         scholarshipId: scholarshipId,
-        sections: [
-          {
-            id: 'personal-info',
-            title: 'Personal Information',
-            description: 'Basic personal and contact information',
-            order: 1,
-            questions: [
-              {
-                id: 'first-name',
-                type: 'text',
-                title: 'First Name',
-                required: true,
-                order: 1,
-                placeholder: 'Enter your first name'
-              },
-              {
-                id: 'last-name',
-                type: 'text',
-                title: 'Last Name',
-                required: true,
-                order: 2,
-                placeholder: 'Enter your last name'
-              },
-              {
-                id: 'email',
-                type: 'email',
-                title: 'Email Address',
-                required: true,
-                order: 3,
-                placeholder: 'Enter your email address'
-              },
-              {
-                id: 'phone',
-                type: 'phone',
-                title: 'Phone Number',
-                required: false,
-                order: 4,
-                placeholder: 'Enter your phone number'
-              }
-            ]
-          },
-          {
-            id: 'academic-info',
-            title: 'Academic Information',
-            description: 'Your educational background and achievements',
-            order: 2,
-            questions: [
-              {
-                id: 'current-school',
-                type: 'text',
-                title: 'Current School/University',
-                required: true,
-                order: 1,
-                placeholder: 'Enter your current school or university'
-              },
-              {
-                id: 'gpa',
-                type: 'gpa',
-                title: 'Current GPA',
-                required: true,
-                order: 2,
-                placeholder: 'Enter your current GPA (e.g., 3.8)'
-              },
-              {
-                id: 'major',
-                type: 'text',
-                title: 'Major/Field of Study',
-                required: true,
-                order: 3,
-                placeholder: 'Enter your major or field of study'
-              }
-            ]
-          },
-          {
-            id: 'essay',
-            title: 'Personal Statement',
-            description: 'Tell us about yourself and why you deserve this opportunity',
-            order: 3,
-            questions: [
-              {
-                id: 'personal-statement',
-                type: 'textarea',
-                title: 'Personal Statement',
-                description: 'Please write a personal statement explaining your academic goals, achievements, and why you deserve this opportunity.',
-                required: true,
-                order: 1,
-                placeholder: 'Write your personal statement here...',
-                maxLength: 1000,
-                helpText: 'Maximum 1000 characters'
-              }
-            ]
-          }
-        ],
-        estimatedTime: 30,
-        allowDraftSaving: true
-      };
-
-      applicationTemplate = new ApplicationTemplate(templateData);
-      await applicationTemplate.save();
-    }
+        isActive: true
+      },
+      templateData,
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true
+      }
+    );
 
     // Create the application form
     const applicationFormData = {

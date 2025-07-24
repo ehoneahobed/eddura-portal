@@ -16,6 +16,7 @@ import AIGenerationModal from './AIGenerationModal';
 import AIRefinementModal from './AIRefinementModal';
 import ShareDocumentDialog from './ShareDocumentDialog';
 import DocumentFeedbackViewer from './DocumentFeedbackViewer';
+import Image from 'next/image';
 
 // Tooltip component for version explanation
 const VersionTooltip = ({ children }: { children: React.ReactNode }) => (
@@ -723,7 +724,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
               document.fileType?.includes('pdf') ? (
                 <iframe src={previewUrl} className="w-full h-[70vh] border rounded" />
               ) : document.fileType?.startsWith('image/') ? (
-                <img src={previewUrl} alt={document.title} className="max-h-[70vh] mx-auto rounded border" />
+                <Image src={previewUrl} alt={document.title} className="max-h-[70vh] mx-auto rounded border" width={800} height={600} style={{ objectFit: 'contain' }} />
               ) : document.fileType?.startsWith('text/') ? (
                 <pre className="bg-gray-100 p-4 rounded max-h-[70vh] overflow-auto whitespace-pre-wrap text-xs">{previewText ?? 'Loading text...'}</pre>
               ) : (

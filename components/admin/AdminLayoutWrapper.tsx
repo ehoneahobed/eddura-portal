@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
@@ -13,6 +13,7 @@ interface AdminLayoutWrapperProps {
 export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [isChecking, setIsChecking] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -26,13 +27,14 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
     
     setIsChecking(false);
     
-    if (!session?.user || session.user.type !== "admin") {
+    // Only redirect if not already on the login page
+    if ((!session?.user || session.user.type !== "admin") && pathname !== "/admin-auth/login") {
       console.log("❌ [ADMIN_WRAPPER] Not authenticated or not admin, redirecting...");
       router.push("/admin-auth/login");
-    } else {
+    } else if (session?.user && session.user.type === "admin") {
       console.log("✅ [ADMIN_WRAPPER] Admin authenticated:", session.user.email);
     }
-  }, [session, status, router]);
+  }, [session, status, router, pathname]);
 
   // Show loading while checking session
   if (status === "loading" || isChecking) {

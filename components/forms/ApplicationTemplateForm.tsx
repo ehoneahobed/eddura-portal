@@ -307,8 +307,13 @@ export default function ApplicationTemplateForm({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Fix: Dynamically set the endpoint for SWR mutation based on create vs update
+  const mutationEndpoint = template?.id
+    ? `/api/application-templates/${template.id}`
+    : '/api/application-templates';
+
   const { trigger: submitTemplateMutation, isMutating, error: submitError } = useSWRMutation(
-    '/api/application-templates',
+    mutationEndpoint,
     submitTemplate
   );
 
