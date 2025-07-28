@@ -199,7 +199,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: `An active application template already exists for this ${body.applicationType}`,
-          existingTemplateId: existingTemplate._id
+          existingTemplateId: existingTemplate._id,
+          existingTemplateTitle: existingTemplate.title,
+          message: `A template titled "${existingTemplate.title}" is already active for this ${body.applicationType}. You can either edit the existing template or create a new one with a different title.`
         },
         { status: 409 }
       );
