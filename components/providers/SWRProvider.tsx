@@ -13,7 +13,15 @@ export function SWRProvider({ children }: SWRProviderProps) {
         fetcher: async (url: string) => {
           const response = await fetch(url);
           if (!response.ok) {
-            throw new Error('Failed to fetch data');
+            // Try to get error details from response
+            let errorMessage = 'Failed to fetch data';
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.error || errorData.message || errorMessage;
+            } catch {
+              // If we can't parse the error response, use default message
+            }
+            throw new Error(errorMessage);
           }
           return response.json();
         },

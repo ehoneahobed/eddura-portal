@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       total: records.length,
       success: 0,
       failed: 0,
+      skipped: 0,
       errors: [] as any[],
       createdTemplates: [] as any[]
     };
@@ -172,6 +173,21 @@ export async function POST(request: NextRequest) {
           maxFileSize: firstRecord.templateMaxFileSize ? parseInt(firstRecord.templateMaxFileSize) : 10,
           allowedFileTypes: processArrayField(firstRecord.templateAllowedFileTypes)
         };
+
+        // Check for existing template to prevent duplicates
+        const existingTemplate = await ApplicationTemplate.findOne({
+          scholarshipId: scholarship._id,
+          isActive: true
+        });
+
+        if (existingTemplate) {
+          results.skipped++;
+          results.errors.push({
+            template: templateKey,
+            error: `An active application template already exists for scholarship "${scholarship.title}". Skipping import.`
+          });
+          continue; // Skip this template and continue with the next one
+        }
 
         // Create application template
         const template = new ApplicationTemplate(templateData);
