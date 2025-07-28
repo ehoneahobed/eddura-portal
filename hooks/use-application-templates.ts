@@ -103,20 +103,27 @@ export async function createApplicationTemplate(data: ApplicationTemplateFormDat
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      // If response.json() fails, create a basic error object
+      errorData = { error: 'Failed to create application template' };
+    }
     
     // Handle 409 conflict specifically
     if (response.status === 409) {
-      const errorMessage = error.message || error.error || 'An application template already exists for this scholarship';
+      const errorMessage = errorData.message || errorData.error || 'An application template already exists for this scholarship';
       const enhancedError = new Error(errorMessage);
       // Attach additional error data for the frontend to use
       (enhancedError as any).status = 409;
-      (enhancedError as any).existingTemplateId = error.existingTemplateId;
-      (enhancedError as any).existingTemplateTitle = error.existingTemplateTitle;
+      (enhancedError as any).existingTemplateId = errorData.existingTemplateId;
+      (enhancedError as any).existingTemplateTitle = errorData.existingTemplateTitle;
+      (enhancedError as any).originalError = errorData; // Store the original error data
       throw enhancedError;
     }
     
-    throw new Error(error.details || error.error || 'Failed to create application template');
+    throw new Error(errorData.details || errorData.error || 'Failed to create application template');
   }
 
   return response.json();

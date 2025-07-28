@@ -40,12 +40,25 @@ export default function CreateApplicationTemplatePage() {
     } catch (error: any) {
       console.error('Error creating template:', error);
       
+      // Try to parse error if it's a JSON string
+      let parsedError = error;
+      if (typeof error.message === 'string' && error.message.startsWith('{')) {
+        try {
+          parsedError = JSON.parse(error.message);
+        } catch {
+          // If parsing fails, use the original error
+        }
+      }
+      
       // Check if this is a 409 conflict error
-      if ((error as any).status === 409) {
+      // The error might be a JSON string with conflict information
+      if ((parsedError as any).status === 409 || (error as any).status === 409 || 
+          (parsedError.existingTemplateId && parsedError.error && parsedError.error.includes('already exists'))) {
+        const conflictError = parsedError.existingTemplateId ? parsedError : error;
         setConflictError({
-          message: error.message,
-          existingTemplateId: (error as any).existingTemplateId || '',
-          existingTemplateTitle: (error as any).existingTemplateTitle || 'Unknown Template'
+          message: conflictError.message || conflictError.error || 'An application template already exists for this scholarship',
+          existingTemplateId: (conflictError as any).existingTemplateId || '',
+          existingTemplateTitle: (conflictError as any).existingTemplateTitle || 'Unknown Template'
         });
         return; // Don't show toast, let the UI handle it
       }
