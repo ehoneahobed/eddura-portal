@@ -282,3 +282,49 @@ export function useScholarshipsForSearch(params: ScholarshipsQueryParams = {}) {
     isEmpty: !isLoading && (!data?.scholarships || data.scholarships.length === 0),
   };
 } 
+
+// Custom hook for scholarships without application templates
+export function useScholarshipsWithoutTemplates(params: ScholarshipsQueryParams = {}) {
+  const {
+    page = 1,
+    limit = 10,
+    search = '',
+    provider = '',
+    sortBy = 'title',
+    sortOrder = 'asc'
+  } = params;
+
+  const queryString = buildQueryString({
+    page,
+    limit,
+    search,
+    provider,
+    sortBy,
+    sortOrder
+  });
+
+  const { data, error, isLoading, mutate } = useSWR<ScholarshipsData>(
+    `/api/scholarships/without-application-forms?${queryString}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    }
+  );
+
+  return {
+    scholarships: data?.scholarships || [],
+    pagination: data?.pagination || {
+      currentPage: 1,
+      totalPages: 1,
+      totalCount: 0,
+      limit: limit,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    isLoading,
+    isError: error,
+    mutate,
+    isEmpty: !isLoading && (!data?.scholarships || data.scholarships.length === 0),
+  };
+} 

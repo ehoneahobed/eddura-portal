@@ -21,7 +21,7 @@ import {
   GraduationCap,
   Building
 } from 'lucide-react';
-import { useScholarshipsForSearch, useScholarship } from '@/hooks/use-scholarships';
+import { useScholarshipsForSearch, useScholarship, useScholarshipsWithoutTemplates } from '@/hooks/use-scholarships';
 import { Scholarship } from '@/types';
 
 interface SearchableScholarshipSelectProps {
@@ -30,6 +30,7 @@ interface SearchableScholarshipSelectProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  excludeWithTemplates?: boolean; // New prop to exclude scholarships that already have templates
 }
 
 interface FilterState {
@@ -48,7 +49,8 @@ export default function SearchableScholarshipSelect({
   onValueChange,
   placeholder = "Select a scholarship",
   disabled = false,
-  className
+  className,
+  excludeWithTemplates = false
 }: SearchableScholarshipSelectProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
@@ -104,7 +106,11 @@ export default function SearchableScholarshipSelect({
     sortOrder: 'asc' as const
   };
 
-  const { scholarships, pagination, isLoading, isError } = useScholarshipsForSearch(queryParams);
+  // Choose the appropriate hook based on the excludeWithTemplates prop
+  const searchHook = excludeWithTemplates ? useScholarshipsWithoutTemplates : useScholarshipsForSearch;
+  
+  // Fetch scholarships using the appropriate hook
+  const { scholarships, pagination, isLoading, isError } = searchHook(queryParams);
 
   // Load recent scholarships from localStorage
   React.useEffect(() => {

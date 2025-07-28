@@ -873,8 +873,12 @@ export default function ApplicationTemplateForm({
                   setValue('scholarshipId', value);
                   setHasUnsavedChanges(true);
                 }}
-                placeholder="Select a scholarship for this template"
+                placeholder="Select a scholarship without an existing template"
+                excludeWithTemplates={true}
               />
+              <p className="text-sm text-gray-600">
+                Only scholarships without existing application templates are shown. Each scholarship can have only one template.
+              </p>
               {errors.scholarshipId && (
                 <p className="text-sm text-red-600">{errors.scholarshipId.message}</p>
               )}
