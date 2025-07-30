@@ -333,12 +333,12 @@ AIReviewSchema.methods.getCategoryScore = function(category: ReviewCategory): nu
 
 // Method to get feedback by category
 AIReviewSchema.methods.getFeedbackByCategory = function(category: ReviewCategory): IAIReviewFeedback[] {
-  return this.feedback.filter(item => item.category === category);
+  return this.feedback.filter((item: IAIReviewFeedback) => item.category === category);
 };
 
 // Method to get feedback by type
 AIReviewSchema.methods.getFeedbackByType = function(type: FeedbackType): IAIReviewFeedback[] {
-  return this.feedback.filter(item => item.type === type);
+  return this.feedback.filter((item: IAIReviewFeedback) => item.type === type);
 };
 
 // Method to check if score is passing
