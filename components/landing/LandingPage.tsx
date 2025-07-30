@@ -103,29 +103,29 @@ export default function LandingPage() {
   ];
 
   const stats = [
-    { number: '95%', label: 'Success Rate', icon: TrendingUp, color: 'text-[#007fbd]' },
-    { number: '10x', label: 'Faster Applications', icon: Zap, color: 'text-[#007fbd]' },
-    { number: '50+', label: 'Universities', icon: Globe, color: 'text-[#007fbd]' },
-    { number: '1000+', label: 'Scholarships Available', icon: Award, color: 'text-[#007fbd]' }
+    { number: '95%', label: t('stats.successRate'), icon: TrendingUp, color: 'text-[#007fbd]' },
+    { number: '10x', label: t('stats.fasterApplications'), icon: Zap, color: 'text-[#007fbd]' },
+    { number: '50+', label: t('stats.universities'), icon: Globe, color: 'text-[#007fbd]' },
+    { number: '1000+', label: t('stats.scholarshipsAvailable'), icon: Award, color: 'text-[#007fbd]' }
   ];
 
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "Stanford University",
-      content: "Eddura&apos;s AI helped me craft the perfect personal statement. I got accepted to my dream program!",
+      name: t('testimonials.sarah.name'),
+      role: t('testimonials.sarah.role'),
+      content: t('testimonials.sarah.content'),
       avatar: "SC"
     },
     {
-      name: "Marcus Rodriguez",
-      role: "MIT Graduate",
-      content: "The automated application process saved me 40+ hours. The scholarship matching was spot-on.",
+      name: t('testimonials.marcus.name'),
+      role: t('testimonials.marcus.role'),
+      content: t('testimonials.marcus.content'),
       avatar: "MR"
     },
     {
-      name: "Priya Patel",
-      role: "Harvard University",
-      content: "From 3 applications to 15 successful submissions. Eddura transformed my academic journey.",
+      name: t('testimonials.priya.name'),
+      role: t('testimonials.priya.role'),
+      content: t('testimonials.priya.content'),
       avatar: "PP"
     }
   ];
@@ -216,15 +216,11 @@ export default function LandingPage() {
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold mb-8">
               <span className="text-[#00334e]">
-                Revolutionary
-              </span>
-              <br />
-              <span className="text-[#007fbd]">
-                Features
+                {t('features.title')}
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Built with cutting-edge technology to give you the ultimate competitive advantage.
+              {t('features.subtitle')}
             </p>
           </div>
           
@@ -257,11 +253,7 @@ export default function LandingPage() {
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold mb-8">
               <span className="text-[#00334e]">
-                Trusted by
-              </span>
-              <br />
-              <span className="text-[#007fbd]">
-                Top Students
+                {t('testimonials.title')}
               </span>
             </h2>
           </div>
@@ -299,14 +291,10 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <div className="p-12 rounded-3xl bg-white border border-[#007fbd]/20 shadow-xl">
             <h2 className="text-5xl md:text-6xl font-bold text-[#00334e] mb-8">
-              Ready to Transform
-              <br />
-              <span className="text-[#007fbd]">
-                Your Future?
-              </span>
+              {t('cta.title')}
             </h2>
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-              Join thousands of students who have already discovered their path to success with Eddura&apos;s intelligent platform.
+              {t('cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link href="#signup">
@@ -315,7 +303,7 @@ export default function LandingPage() {
                   className="text-lg px-8 py-4 bg-[#007fbd] hover:bg-[#004d73] text-white border-0 shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105"
                 >
                   <Rocket className="mr-2 h-5 w-5" />
-                  Start Your Journey
+                  {t('cta.button')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -326,7 +314,7 @@ export default function LandingPage() {
                   className="text-lg px-8 py-4 border-2 border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300"
                 >
                   <Play className="mr-2 h-5 w-5" />
-                  Watch Demo
+                  {t('cta.watchDemo')}
                 </Button>
               </Link>
             </div>
@@ -347,21 +335,21 @@ export default function LandingPage() {
               </div>
             </div>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              The future of academic applications. Powered by AI, designed for success.
+              {t('footer.tagline')}
             </p>
             <div className="flex justify-center space-x-8 mb-8">
               <Link href="#features" className="text-gray-600 hover:text-[#007fbd] transition-colors">
-                Features
+                {t('footer.features')}
               </Link>
               <Link href="#" className="text-gray-600 hover:text-[#007fbd] transition-colors">
-                Privacy
+                {t('footer.privacy')}
               </Link>
               <Link href="#" className="text-gray-600 hover:text-[#007fbd] transition-colors">
-                Terms
+                {t('footer.terms')}
               </Link>
             </div>
             <div className="border-t border-gray-200 pt-8">
-              <p className="text-gray-600">&copy; 2025 Eddura. All rights reserved.</p>
+              <p className="text-gray-600">{t('footer.copyright')}</p>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 import { 
   Sparkles, 
   Rocket, 
@@ -19,6 +20,7 @@ import {
 import { config } from '@/lib/config';
 
 export function ComingSoon() {
+  const t = useTranslations('comingSoon');
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [titleNumber, setTitleNumber] = useState(0);

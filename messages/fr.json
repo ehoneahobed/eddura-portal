@@ -338,7 +338,66 @@
     "cta": {
       "title": "Prêt à Transformer Votre Parcours Académique ?",
       "subtitle": "Rejoignez des milliers d'étudiants qui ont déjà découvert leurs opportunités parfaites",
-      "button": "Commencer Votre Parcours"
+      "button": "Commencer Votre Parcours",
+      "watchDemo": "Regarder la Démo"
+    },
+    "stats": {
+      "successRate": "Taux de Réussite",
+      "fasterApplications": "Candidatures Plus Rapides",
+      "universities": "Universités",
+      "scholarshipsAvailable": "Bourses Disponibles"
+    },
+    "testimonials": {
+      "title": "Approuvé par les Meilleurs Étudiants",
+      "sarah": {
+        "name": "Sarah Chen",
+        "role": "Université de Stanford",
+        "content": "L'IA d'Eddura m'a aidée à rédiger la déclaration personnelle parfaite. J'ai été acceptée dans mon programme de rêve !"
+      },
+      "marcus": {
+        "name": "Marcus Rodriguez",
+        "role": "Diplômé du MIT",
+        "content": "Le processus de candidature automatisé m'a fait gagner plus de 40 heures. La correspondance des bourses était parfaite."
+      },
+      "priya": {
+        "name": "Priya Patel",
+        "role": "Université de Harvard",
+        "content": "De 3 candidatures à 15 soumissions réussies. Eddura a transformé mon parcours académique."
+      }
+    },
+    "footer": {
+      "tagline": "L'avenir des candidatures académiques. Propulsé par l'IA, conçu pour le succès.",
+      "features": "Fonctionnalités",
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "copyright": "© 2025 Eddura. Tous droits réservés."
+    }
+  },
+  "comingSoon": {
+    "title": "Bientôt Disponible",
+    "subtitle": "Révolutionnez vos candidatures universitaires et de bourses avec des insights propulsés par l'IA. Obtenez des insights IA, des astuces d'essais, des bêtas précoces et connectez-vous avec les futurs leaders.",
+    "exploreAI": "Explorez Notre IA en Action",
+    "joinTelegram": "Rejoignez Notre Canal Telegram",
+    "getEarlyAccess": "Obtenir un Accès Précoce",
+    "emailPlaceholder": "Entrez votre adresse email",
+    "submitButton": "Obtenir un Accès Précoce",
+    "features": {
+      "aiIntelligence": {
+        "title": "Intelligence Propulsée par l'IA",
+        "description": "Les algorithmes d'apprentissage automatique avancés analysent votre profil et vous associent aux opportunités parfaites."
+      },
+      "globalOpportunities": {
+        "title": "Opportunités Mondiales",
+        "description": "Accès à 50+ universités et 1000+ opportunités de bourses dans le monde entier."
+      },
+      "fasterApplications": {
+        "title": "Candidatures 10x Plus Rapides",
+        "description": "Automatisez les tâches répétitives et optimisez votre stratégie de candidature avec des insights intelligents."
+      },
+      "successRate": {
+        "title": "95% de Taux de Réussite",
+        "description": "Antécédents prouvés d'aide aux étudiants pour être acceptés dans leurs programmes de rêve."
+      }
     }
   }
 }

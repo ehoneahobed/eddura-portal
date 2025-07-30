@@ -338,7 +338,66 @@
     "cta": {
       "title": "Ready to Transform Your Academic Journey?",
       "subtitle": "Join thousands of students who have already discovered their perfect opportunities",
-      "button": "Start Your Journey"
+      "button": "Start Your Journey",
+      "watchDemo": "Watch Demo"
+    },
+    "stats": {
+      "successRate": "Success Rate",
+      "fasterApplications": "Faster Applications",
+      "universities": "Universities",
+      "scholarshipsAvailable": "Scholarships Available"
+    },
+    "testimonials": {
+      "title": "Trusted by Top Students",
+      "sarah": {
+        "name": "Sarah Chen",
+        "role": "Stanford University",
+        "content": "Eddura's AI helped me craft the perfect personal statement. I got accepted to my dream program!"
+      },
+      "marcus": {
+        "name": "Marcus Rodriguez",
+        "role": "MIT Graduate",
+        "content": "The automated application process saved me 40+ hours. The scholarship matching was spot-on."
+      },
+      "priya": {
+        "name": "Priya Patel",
+        "role": "Harvard University",
+        "content": "From 3 applications to 15 successful submissions. Eddura transformed my academic journey."
+      }
+    },
+    "footer": {
+      "tagline": "The future of academic applications. Powered by AI, designed for success.",
+      "features": "Features",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "copyright": "© 2025 Eddura. All rights reserved."
+    }
+  },
+  "comingSoon": {
+    "title": "Coming Soon",
+    "subtitle": "Revolutionize your university & scholarship applications with AI-powered insights. Get AI-powered insights, essay hacks, early betas & connect with future leaders.",
+    "exploreAI": "Explore Our AI in Action",
+    "joinTelegram": "Join Our Telegram Channel",
+    "getEarlyAccess": "Get Early Access",
+    "emailPlaceholder": "Enter your email address",
+    "submitButton": "Get Early Access",
+    "features": {
+      "aiIntelligence": {
+        "title": "AI-Powered Intelligence",
+        "description": "Advanced machine learning algorithms analyze your profile and match you with perfect opportunities."
+      },
+      "globalOpportunities": {
+        "title": "Global Opportunities",
+        "description": "Access to 50+ universities and 1000+ scholarship opportunities worldwide."
+      },
+      "fasterApplications": {
+        "title": "10x Faster Applications",
+        "description": "Automate repetitive tasks and optimize your application strategy with intelligent insights."
+      },
+      "successRate": {
+        "title": "95% Success Rate",
+        "description": "Proven track record of helping students get accepted to their dream programs."
+      }
     }
   }
 }
