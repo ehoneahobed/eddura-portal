@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'next-auth/react';
 import StudentSidebar from '@/components/student/StudentSidebar';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -140,6 +141,9 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
 
               {/* Right side */}
               <div className="flex items-center space-x-4">
+                {/* Language Switcher */}
+                <LanguageSwitcher variant="compact" />
+                
                 {/* Only show user-specific elements when authenticated */}
                 {session?.user && (
                   <>

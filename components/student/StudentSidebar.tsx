@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { 
   Home, 
@@ -24,75 +25,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const navigation = [
-  { 
-    name: 'Overview', 
-    href: '/dashboard', 
-    icon: Home,
-    description: 'Your personalized dashboard'
-  },
-  { 
-    name: 'Task Management', 
-    href: '/task-management', 
-    icon: Target,
-    description: 'Manage applications and tasks'
-  },
-  { 
-    name: 'Scholarships', 
-    href: '/scholarships', 
-    icon: Award,
-    description: 'Find and apply for scholarships'
-  },
-  { 
-    name: 'Saved Scholarships', 
-    href: '/saved-scholarships', 
-    icon: Bookmark,
-    description: 'Your saved scholarships'
-  },
-  { 
-    name: 'Schools & Programs', 
-    href: '/programs', 
-    icon: GraduationCap,
-    description: 'Explore universities and programs'
-  },
-  { 
-    name: 'Applications', 
-    href: '/applications', 
-    icon: FileText,
-    description: 'Track your applications'
-  },
-  { 
-    name: 'Application Management', 
-    href: '/applications/manage', 
-    icon: Target,
-    description: 'Manage application packages'
-  },
-  { 
-    name: 'Documents', 
-    href: '/documents', 
-    icon: Folder,
-    description: 'Manage your documents'
-  },
-  { 
-    name: 'Document Library', 
-    href: '/library', 
-    icon: Library,
-    description: 'Browse and clone documents'
-  },
-  { 
-    name: 'My Cloned Documents', 
-    href: '/documents/cloned', 
-    icon: Copy,
-    description: 'Your cloned documents'
-  },
-  { 
-    name: 'Settings', 
-    href: '/settings', 
-    icon: Settings,
-    description: 'Account and preferences'
-  }
-];
-
 interface StudentSidebarProps {
   className?: string;
 }
@@ -100,6 +32,76 @@ interface StudentSidebarProps {
 export default function StudentSidebar({ className }: StudentSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations('navigation');
+
+  const navigation = [
+    { 
+      name: t('overview'), 
+      href: '/dashboard', 
+      icon: Home,
+      description: t('overview')
+    },
+    { 
+      name: t('taskManagement'), 
+      href: '/task-management', 
+      icon: Target,
+      description: t('taskManagement')
+    },
+    { 
+      name: t('scholarships'), 
+      href: '/scholarships', 
+      icon: Award,
+      description: t('scholarships')
+    },
+    { 
+      name: t('savedScholarships'), 
+      href: '/saved-scholarships', 
+      icon: Bookmark,
+      description: t('savedScholarships')
+    },
+    { 
+      name: t('schoolsPrograms'), 
+      href: '/programs', 
+      icon: GraduationCap,
+      description: t('schoolsPrograms')
+    },
+    { 
+      name: t('applications'), 
+      href: '/applications', 
+      icon: FileText,
+      description: t('applications')
+    },
+    { 
+      name: t('applicationManagement'), 
+      href: '/applications/manage', 
+      icon: Target,
+      description: t('applicationManagement')
+    },
+    { 
+      name: t('documents'), 
+      href: '/documents', 
+      icon: Folder,
+      description: t('documents')
+    },
+    { 
+      name: t('documentLibrary'), 
+      href: '/library', 
+      icon: Library,
+      description: t('documentLibrary')
+    },
+    { 
+      name: t('clonedDocuments'), 
+      href: '/documents/cloned', 
+      icon: Copy,
+      description: t('clonedDocuments')
+    },
+    { 
+      name: t('settings'), 
+      href: '/settings', 
+      icon: Settings,
+      description: t('settings')
+    }
+  ];
 
   return (
     <motion.div

@@ -4,7 +4,10 @@ import { Inter } from 'next/font/google';
 import { SWRProvider } from '@/components/providers/SWRProvider';
 import SessionProvider from '@/components/providers/SessionProvider';
 import ErrorBoundaryProvider from '@/components/providers/ErrorBoundaryProvider';
+import NextIntlProvider from '@/components/providers/NextIntlProvider';
 import { Toaster } from '@/components/ui/toaster';
+import { getMessages } from 'next-intl/server';
+import { locales } from '@/i18n';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -79,13 +82,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params?: Promise<{ locale?: string }>;
 }) {
+  const resolvedParams = params ? await params : { locale: undefined };
+  const locale = (resolvedParams.locale || 'en') as 'en' | 'fr';
+  const messages = await getMessages({ locale });
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -96,14 +105,16 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={inter.className}>
-        <ErrorBoundaryProvider>
-          <SessionProvider>
-            <SWRProvider>
-              {children}
-              <Toaster />
-            </SWRProvider>
-          </SessionProvider>
-        </ErrorBoundaryProvider>
+        <NextIntlProvider locale={locale} messages={messages}>
+          <ErrorBoundaryProvider>
+            <SessionProvider>
+              <SWRProvider>
+                {children}
+                <Toaster />
+              </SWRProvider>
+            </SessionProvider>
+          </ErrorBoundaryProvider>
+        </NextIntlProvider>
       </body>
     </html>
   );
