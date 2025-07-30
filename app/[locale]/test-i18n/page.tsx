@@ -7,6 +7,8 @@ import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 
 export default function TestI18nPage() {
   const t = useTranslations('common');
+  const navT = useTranslations('navigation');
+  const errorT = useTranslations('errors');
   const { currentLocale, switchLanguage } = useI18n();
 
   return (
@@ -70,10 +72,10 @@ export default function TestI18nPage() {
                 <div>
                   <strong>Navigation:</strong>
                   <ul className="ml-4 mt-1 space-y-1">
-                    <li>• {t('dashboard')}</li>
-                    <li>• {t('scholarships')}</li>
-                    <li>• {t('documents')}</li>
-                    <li>• {t('settings')}</li>
+                    <li>• {navT('dashboard')}</li>
+                    <li>• {navT('scholarships')}</li>
+                    <li>• {navT('documents')}</li>
+                    <li>• {navT('settings')}</li>
                   </ul>
                 </div>
               </div>
@@ -134,19 +136,19 @@ export default function TestI18nPage() {
               <div>
                 <strong className="text-red-700">Error Messages:</strong>
                 <ul className="ml-4 mt-1 space-y-1 text-sm">
-                  <li>• {t('somethingWentWrong')}</li>
-                  <li>• {t('tryAgain')}</li>
-                  <li>• {t('notFound')}</li>
-                  <li>• {t('unauthorized')}</li>
+                  <li>• {errorT('somethingWentWrong')}</li>
+                  <li>• {errorT('tryAgain')}</li>
+                  <li>• {errorT('notFound')}</li>
+                  <li>• {errorT('unauthorized')}</li>
                 </ul>
               </div>
               <div>
                 <strong className="text-red-700">File Errors:</strong>
                 <ul className="ml-4 mt-1 space-y-1 text-sm">
-                  <li>• {t('fileTooLarge')}</li>
-                  <li>• {t('unsupportedFormat')}</li>
-                  <li>• {t('uploadFailed')}</li>
-                  <li>• {t('downloadFailed')}</li>
+                  <li>• {errorT('fileTooLarge')}</li>
+                  <li>• {errorT('unsupportedFormat')}</li>
+                  <li>• {errorT('uploadFailed')}</li>
+                  <li>• {errorT('downloadFailed')}</li>
                 </ul>
               </div>
             </div>
