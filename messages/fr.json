@@ -252,7 +252,30 @@
     "invalidCredentials": "Email ou mot de passe invalide",
     "passwordResetSent": "Email de réinitialisation envoyé",
     "accountCreated": "Compte créé avec succès",
-    "passwordChanged": "Mot de passe changé avec succès"
+    "passwordChanged": "Mot de passe changé avec succès",
+    "login": {
+      "title": "Bon retour",
+      "subtitle": "Entrez vos identifiants pour accéder à votre compte",
+      "emailPlaceholder": "Entrez votre email",
+      "passwordPlaceholder": "Entrez votre mot de passe",
+      "submitButton": "Se connecter",
+      "loading": "Connexion en cours...",
+      "success": "Connexion réussie ! Redirection...",
+      "error": "Échec de la connexion. Veuillez réessayer."
+    },
+    "register": {
+      "title": "Créez votre compte",
+      "subtitle": "Entrez vos détails pour commencer",
+      "firstNamePlaceholder": "Entrez votre prénom",
+      "lastNamePlaceholder": "Entrez votre nom de famille",
+      "emailPlaceholder": "Entrez votre email",
+      "passwordPlaceholder": "Créez un mot de passe",
+      "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
+      "submitButton": "Créer un compte",
+      "loading": "Création du compte...",
+      "success": "Compte créé avec succès ! Redirection...",
+      "error": "Échec de l'inscription. Veuillez réessayer."
+    }
   },
   "errors": {
     "somethingWentWrong": "Quelque chose s'est mal passé",
@@ -274,5 +297,48 @@
     "title": "Eddura - Plateforme de gestion éducative",
     "description": "Eddura est une plateforme complète de gestion éducative pour les écoles, programmes et bourses d'études. Rationalisez la gestion de votre institution éducative avec nos outils puissants.",
     "keywords": "Eddura, gestion éducative, gestion scolaire, gestion de programmes, gestion de bourses, plateforme éducative, programmes académiques, institutions éducatives, gestion d'étudiants, technologie éducative"
+  },
+  "landing": {
+    "hero": {
+      "title": "Rendez Vos Candidatures Universitaires et de Bourses",
+      "subtitle": "Eddura est votre centre de commande propulsé par l'IA pour le succès académique. Commencez par notre quiz de découverte de carrière pour obtenir des recommandations de programmes personnalisées, puis créez des candidatures gagnantes pour chaque université et bourse.",
+      "cta": "Commencer le Quiz de Découverte de Carrière",
+      "learnMore": "En savoir plus",
+      "quizButton": "Passez Notre Quiz de Découverte de Carrière",
+      "createAccount": "Créer un Compte"
+    },
+    "features": {
+      "title": "Pourquoi choisir Eddura ?",
+      "subtitle": "Fonctionnalités puissantes conçues pour rendre votre parcours académique réussi",
+      "aiIntelligence": {
+        "title": "Intelligence Propulsée par l'IA",
+        "description": "Les algorithmes d'apprentissage automatique avancés analysent votre profil et vous associent automatiquement aux programmes et bourses parfaits."
+      },
+      "unifiedData": {
+        "title": "Centre de Données Unifié",
+        "description": "Source unique de vérité pour toutes vos données académiques. Téléchargez une fois, utilisez partout avec un auto-remplissage intelligent."
+      },
+      "smartStack": {
+        "title": "Pile d'Applications Intelligente",
+        "description": "Superposez vos candidatures avec des insights intelligents, le suivi des échéances et l'optimisation des progrès."
+      },
+      "globalNetwork": {
+        "title": "Réseau d'Opportunités Mondial",
+        "description": "Connectez-vous avec 50+ universités et 1000+ opportunités de bourses dans le monde entier."
+      },
+      "automation": {
+        "title": "Automatisation Intelligente",
+        "description": "Automatisez les tâches répétitives, générez du contenu personnalisé et optimisez votre stratégie de candidature."
+      },
+      "analytics": {
+        "title": "Analyses Prédictives",
+        "description": "Obtenez des insights sur votre probabilité de succès de candidature et optimisez votre stratégie en temps réel."
+      }
+    },
+    "cta": {
+      "title": "Prêt à Transformer Votre Parcours Académique ?",
+      "subtitle": "Rejoignez des milliers d'étudiants qui ont déjà découvert leurs opportunités parfaites",
+      "button": "Commencer Votre Parcours"
+    }
   }
 }

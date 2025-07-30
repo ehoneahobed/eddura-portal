@@ -252,7 +252,30 @@
     "invalidCredentials": "Invalid email or password",
     "passwordResetSent": "Password reset email sent",
     "accountCreated": "Account created successfully",
-    "passwordChanged": "Password changed successfully"
+    "passwordChanged": "Password changed successfully",
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Enter your credentials to access your account",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Enter your password",
+      "submitButton": "Sign In",
+      "loading": "Signing in...",
+      "success": "Login successful! Redirecting...",
+      "error": "Login failed. Please try again."
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Enter your details to get started",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastNamePlaceholder": "Enter your last name",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Create a password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "submitButton": "Create Account",
+      "loading": "Creating account...",
+      "success": "Account created successfully! Redirecting...",
+      "error": "Registration failed. Please try again."
+    }
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -274,5 +297,48 @@
     "title": "Eddura - Educational Management Platform",
     "description": "Eddura is a comprehensive educational management platform for schools, programs, and scholarships. Streamline your educational institution management with our powerful tools.",
     "keywords": "Eddura, educational management, school management, program management, scholarship management, education platform, academic programs, educational institutions, student management, education technology"
+  },
+  "landing": {
+    "hero": {
+      "title": "Make Your University & Scholarships Applications",
+      "subtitle": "Eddura is your AI-powered command center for academic success. Start with our career discovery quiz to get personalized program recommendations, then craft winning applications for every university and scholarship.",
+      "cta": "Start Career Discovery Quiz",
+      "learnMore": "Learn More",
+      "quizButton": "Take Our Career Discovery Quiz",
+      "createAccount": "Create Account"
+    },
+    "features": {
+      "title": "Why Choose Eddura?",
+      "subtitle": "Powerful features designed to make your academic journey successful",
+      "aiIntelligence": {
+        "title": "AI-Powered Intelligence",
+        "description": "Advanced machine learning algorithms analyze your profile and automatically match you with the perfect programs and scholarships."
+      },
+      "unifiedData": {
+        "title": "Unified Data Hub",
+        "description": "Single source of truth for all your academic data. Upload once, use everywhere with intelligent auto-population."
+      },
+      "smartStack": {
+        "title": "Smart Application Stack",
+        "description": "Layer your applications with intelligent insights, deadline tracking, and progress optimization."
+      },
+      "globalNetwork": {
+        "title": "Global Opportunity Network",
+        "description": "Connect with 50+ universities and 1000+ scholarship opportunities worldwide."
+      },
+      "automation": {
+        "title": "Intelligent Automation",
+        "description": "Automate repetitive tasks, generate personalized content, and optimize your application strategy."
+      },
+      "analytics": {
+        "title": "Predictive Analytics",
+        "description": "Get insights into your application success probability and optimize your strategy in real-time."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Academic Journey?",
+      "subtitle": "Join thousands of students who have already discovered their perfect opportunities",
+      "button": "Start Your Journey"
+    }
   }
 }

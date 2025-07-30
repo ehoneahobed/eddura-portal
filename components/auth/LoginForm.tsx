@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { 
   Eye, 
   EyeOff, 
@@ -31,6 +32,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);

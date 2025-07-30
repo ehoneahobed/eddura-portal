@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Hero } from './Hero';
 import { ComingSoon } from './ComingSoon';
@@ -35,6 +36,7 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
+  const t = useTranslations('landing');
   const [isVisible, setIsVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -58,43 +60,43 @@ export default function LandingPage() {
   const features = [
     {
       icon: Brain,
-      title: 'AI-Powered Intelligence',
-      description: 'Advanced machine learning algorithms analyze your profile and automatically match you with the perfect programs and scholarships.',
+      title: t('features.aiIntelligence.title'),
+      description: t('features.aiIntelligence.description'),
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     },
     {
       icon: Database,
-      title: 'Unified Data Hub',
-      description: 'Single source of truth for all your academic data. Upload once, use everywhere with intelligent auto-population.',
+      title: t('features.unifiedData.title'),
+      description: t('features.unifiedData.description'),
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     },
     {
       icon: Layers,
-      title: 'Smart Application Stack',
-      description: 'Layer your applications with intelligent insights, deadline tracking, and progress optimization.',
+      title: t('features.smartStack.title'),
+      description: t('features.smartStack.description'),
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     },
     {
       icon: Network,
-      title: 'Global Opportunity Network',
-      description: 'Connect with 50+ universities and 1000+ scholarship opportunities worldwide.',
+      title: t('features.globalNetwork.title'),
+      description: t('features.globalNetwork.description'),
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     },
     {
       icon: Cpu,
-      title: 'Intelligent Automation',
-      description: 'Automate repetitive tasks, generate personalized content, and optimize your application strategy.',
+      title: t('features.automation.title'),
+      description: t('features.automation.description'),
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     },
     {
       icon: Eye,
-      title: 'Predictive Analytics',
-      description: 'Get insights into your application success probability and optimize your strategy in real-time.',
+      title: t('features.analytics.title'),
+      description: t('features.analytics.description'),
       color: 'text-[#007fbd]',
       bgColor: 'bg-[#dbebfa]'
     }

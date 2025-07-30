@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import { MoveRight, Brain, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 function Hero() {
+  const t = useTranslations('landing.hero');
   const [titleNumber, setTitleNumber] = useState(0);
   const titles = useMemo(
     () => [
@@ -38,13 +40,13 @@ function Hero() {
             <Link href="/quiz">
               <Button variant="secondary" size="sm" className="gap-4 bg-[#dbebfa] hover:bg-[#007fbd] hover:text-white text-[#00334e] border-[#007fbd]/30 transition-all duration-300">
                 <Brain className="w-4 h-4" />
-                Take Our Career Discovery Quiz <MoveRight className="w-4 h-4" />
+                {t('quizButton')} <MoveRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-5xl md:text-7xl max-w-4xl tracking-tighter text-center font-regular text-[#00334e]">
-              Make Your University & Scholarships Applications
+              {t('title')}
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
                 &nbsp; {/* This non-breaking space helps maintain height */}
                 {titles.map((title, index) => (
@@ -72,7 +74,7 @@ function Hero() {
             </h1>
 
             <p className="text-lg md:text-xl leading-relaxed tracking-tight text-gray-600 max-w-3xl text-center">
-              Eddura is your <strong className="text-[#00334e]">AI-powered command center</strong> for academic success. Start with our <strong className="text-[#00334e]">career discovery quiz</strong> to get <strong className="text-[#00334e]">personalized program recommendations</strong>, then craft <strong className="text-[#00334e]">winning applications</strong> for every university and scholarship.
+              {t('subtitle')}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -80,14 +82,14 @@ function Hero() {
             <Link href="/quiz">
               <Button size="lg" className="gap-4 bg-[#007fbd] hover:bg-[#004d73] text-white border-0 shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105">
                 <Brain className="w-4 h-4" />
-                Start Career Discovery Quiz <MoveRight className="w-4 h-4" />
+                {t('cta')} <MoveRight className="w-4 h-4" />
               </Button>
             </Link>
             {/* Secondary CTA - Register */}
             <Link href="/auth/register">
               <Button size="lg" className="gap-4 border-2 border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300" variant="outline">
                 <Users className="w-4 h-4" />
-                Create Account
+                {t('createAccount')}
               </Button>
             </Link>
           </div>
