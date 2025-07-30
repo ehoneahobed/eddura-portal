@@ -4,9 +4,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { aiConfig, getActiveProvider } from '@/lib/ai-config';
 import { z } from 'zod';
-import connectToDatabase from '@/lib/mongodb';
-import { DocumentFeedback } from '@/types/feedback';
-import { ObjectId } from 'mongodb';
+import connectDB from '@/lib/mongodb';
+import DocumentFeedback from '@/models/DocumentFeedback';
+import Document from '@/models/Document';
 
 // Validation schema for AI feedback refinement request
 const RefineWithFeedbackRequestSchema = z.object({
@@ -129,14 +129,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Connect to database
+    await connectDB();
+
     // Fetch the selected feedback from the database
-    const { db } = await connectToDatabase();
-    const feedbackCollection = db.collection('documentFeedback');
-    
-    const feedback = await feedbackCollection.find({
-      _id: { $in: validatedData.feedbackIds.map(id => new ObjectId(id)) },
+    const feedback = await DocumentFeedback.find({
+      _id: { $in: validatedData.feedbackIds },
       documentId: validatedData.documentId
-    }).toArray();
+    }).lean();
 
     if (feedback.length === 0) {
       return NextResponse.json(
@@ -146,11 +146,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user owns the document
-    const documentCollection = db.collection('documents');
-    const document = await documentCollection.findOne({
-      _id: new ObjectId(validatedData.documentId),
+    const document = await Document.findOne({
+      _id: validatedData.documentId,
       userId: session.user.id
-    });
+    }).lean();
 
     if (!document) {
       return NextResponse.json(
@@ -193,22 +192,20 @@ export async function POST(request: NextRequest) {
 
     // If creating a new version, create a new document
     if (validatedData.refinementMode === 'new_version') {
-      const newDocument = {
+      const newDocument = new Document({
         title: `${document.title} (Refined Version)`,
         content: refinedContent,
         type: document.type,
         userId: session.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         isPublic: false,
         tags: [...(document.tags || []), 'ai-refined']
-      };
+      });
 
-      const result = await documentCollection.insertOne(newDocument);
+      const savedDocument = await newDocument.save();
       
       return NextResponse.json({
         content: refinedContent,
-        documentId: result.insertedId.toString(),
+        documentId: savedDocument._id.toString(),
         wordCount: refinedContent.trim().split(/\s+/).filter(word => word.length > 0).length,
         characterCount: refinedContent.length,
         originalWordCount: validatedData.currentContent.trim().split(/\s+/).filter(word => word.length > 0).length,
