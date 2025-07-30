@@ -5,7 +5,7 @@ import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { aiConfig, getActiveProvider } from '@/lib/ai-config';
 import { z } from 'zod';
 import connectDB from '@/lib/mongodb';
-import DocumentFeedback from '@/models/DocumentFeedback';
+import DocumentFeedback, { IDocumentFeedback } from '@/models/DocumentFeedback';
 import Document from '@/models/Document';
 
 // Validation schema for AI feedback refinement request
@@ -24,7 +24,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 // Function to craft feedback refinement prompt
 function craftFeedbackRefinementPrompt(
   currentContent: string,
-  feedback: DocumentFeedback[],
+  feedback: IDocumentFeedback[],
   documentType?: DocumentType,
   customInstructions?: string,
   refinementMode?: string
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     // Craft the feedback refinement prompt
     const prompt = craftFeedbackRefinementPrompt(
       validatedData.currentContent,
-      feedback as DocumentFeedback[],
+      feedback as IDocumentFeedback[],
       validatedData.documentType,
       validatedData.customInstructions,
       validatedData.refinementMode
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         content: refinedContent,
-        documentId: savedDocument._id.toString(),
+        documentId: savedDocument._id?.toString() || '',
         wordCount: refinedContent.trim().split(/\s+/).filter(word => word.length > 0).length,
         characterCount: refinedContent.length,
         originalWordCount: validatedData.currentContent.trim().split(/\s+/).filter(word => word.length > 0).length,

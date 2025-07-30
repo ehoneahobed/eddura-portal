@@ -6,8 +6,6 @@ import connectDB from "@/lib/mongodb";
 import { Resend } from "resend";
 import crypto from "crypto";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -86,6 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Send invite email
     try {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: "noreply@yourdomain.com",
         to: email,
