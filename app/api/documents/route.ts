@@ -23,12 +23,17 @@ const DocumentSchema = z.object({
 // GET /api/documents - Get all documents for the current user
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== DOCUMENTS API DEBUG ===');
     const session = await auth();
+    console.log('Session:', session);
+    console.log('Session user:', session?.user);
     
     if (!session?.user?.id) {
+      console.log('❌ No session or user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('✅ User authenticated:', session.user.id);
     await connectDB();
 
     const { searchParams } = new URL(request.url);
@@ -56,31 +61,43 @@ export async function GET(request: NextRequest) {
       query.isActive = isActive === 'true';
     }
 
+    console.log('Query:', query);
     const documents = await Document.find(query)
       .sort({ updatedAt: -1 })
       .lean();
+    
+    console.log('Found documents:', documents.length);
+    console.log('Sample documents:', documents.slice(0, 2));
 
     // Transform documents to match expected format
     const transformedDocuments = documents.map(doc => ({
       _id: doc._id,
       title: doc.title,
       description: doc.description,
+      content: doc.content, // Add the content field
       documentType: doc.type, // Map 'type' to 'documentType'
       type: doc.type,
       category: DOCUMENT_TYPE_CONFIG[doc.type]?.category || 'Other',
       status: doc.isActive ? 'approved' : 'draft',
+      isActive: doc.isActive,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
+      lastEditedAt: doc.lastEditedAt, // Include lastEditedAt field
       createdBy: {
         name: session.user.name || 'Unknown'
       },
       linkedToRequirements: [], // Will be populated when linking is implemented
       tags: doc.tags || [],
       wordCount: doc.wordCount || 0,
-      characterCount: doc.characterCount || 0
+      characterCount: doc.characterCount || 0,
+      targetProgram: doc.targetProgram || '',
+      targetScholarship: doc.targetScholarship || '',
+      targetInstitution: doc.targetInstitution || '',
+      version: doc.version || 1
     }));
 
-    return NextResponse.json({ data: transformedDocuments });
+    console.log('Transformed documents:', transformedDocuments.length);
+    return NextResponse.json({ documents: transformedDocuments });
   } catch (error) {
     console.error('Error fetching documents:', error);
     return NextResponse.json(

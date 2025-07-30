@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { MoreVertical, Edit, Trash2, Eye, Copy, Download, Calendar, FileText, HelpCircle, Clock, Sparkles, FileDown, Edit3, Share2, MessageSquare } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import { toast } from 'sonner';
+import { formatDate } from '@/lib/utils';
 import AIGenerationModal from './AIGenerationModal';
 import AIRefinementModal from './AIRefinementModal';
 import ShareDocumentDialog from './ShareDocumentDialog';
@@ -45,14 +46,14 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editData, setEditData] = useState({
-    title: document.title,
-    content: document.content,
+    title: document.title || '',
+    content: document.content || '',
     description: document.description || '',
     tags: document.tags || [],
     targetProgram: document.targetProgram || '',
     targetScholarship: document.targetScholarship || '',
     targetInstitution: document.targetInstitution || '',
-    isActive: document.isActive
+    isActive: document.isActive || true
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -138,7 +139,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(document.content);
+      await navigator.clipboard.writeText(document.content || '');
       toast.success('Document content copied to clipboard!', {
         description: 'You can now paste the content anywhere you need it.',
         duration: 3000,
@@ -292,13 +293,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   const handleAIContentGenerated = (content: string) => {
     setEditData(prev => ({ ...prev, content }));
@@ -431,7 +426,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
             </div>
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {formatDate(document.lastEditedAt)}
+              {formatDate(document.lastEditedAt || document.createdAt)}
             </span>
           </div>
 
@@ -533,11 +528,11 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
                 <Label htmlFor="edit-content">Content</Label>
                 <div className="flex items-center gap-2">
                   <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">{editData.content.trim().split(/\s+/).filter(word => word.length > 0).length}</span> words, 
-                    <span className="font-medium"> {editData.content.length.toLocaleString()}</span> characters
+                    <span className="font-medium">{editData.content?.trim().split(/\s+/).filter(word => word.length > 0).length || 0}</span> words, 
+                    <span className="font-medium"> {editData.content?.length.toLocaleString() || 0}</span> characters
                   </div>
                   <div className="flex gap-2">
-                    {editData.content.trim() && (
+                    {editData.content?.trim() && (
                       <Button
                         type="button"
                         variant="outline"
@@ -564,12 +559,12 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
               </div>
               <Textarea
                 id="edit-content"
-                value={editData.content}
+                value={editData.content || ''}
                 onChange={(e) => setEditData(prev => ({ ...prev, content: e.target.value }))}
                 rows={12}
                 className="font-mono text-sm resize-y"
               />
-              {editData.content !== document.content && (
+              {editData.content !== document.content && editData.content !== undefined && (
                 <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
                   <Clock className="h-4 w-4 inline mr-1" />
                   Changing the content will increment the version number from v{document.version} to v{document.version + 1}

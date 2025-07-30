@@ -82,7 +82,7 @@ export default function LibraryPage() {
     totalRated: 0
   });
 
-  const fetchDocuments = useCallback(async () => {
+  const fetchDocuments = useCallback(async (page = pagination.page, limit = pagination.limit) => {
     if (!session?.user?.id) {
       setIsLoading(false);
       return;
@@ -91,8 +91,8 @@ export default function LibraryPage() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
+        page: page.toString(),
+        limit: limit.toString(),
         ...(searchTerm && { search: searchTerm }),
         ...(categoryFilter !== 'all' && { category: categoryFilter }),
         ...(typeFilter !== 'all' && { type: typeFilter }),
@@ -120,17 +120,36 @@ export default function LibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (session?.user?.id) {
       fetchDocuments();
     }
   }, [session?.user?.id, fetchDocuments]);
 
+  // Debounced effect for filter changes
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    
+    const timeoutId = setTimeout(() => {
+      fetchDocuments(1, pagination.limit);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, session?.user?.id]);
+
+  // Handle pagination changes separately
+  useEffect(() => {
+    if (session?.user?.id && pagination.page > 1) { // Don't fetch on initial load
+      fetchDocuments(pagination.page, pagination.limit);
+    }
+  }, [pagination.page, pagination.limit, session?.user?.id, fetchDocuments]);
+
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchDocuments();
+    fetchDocuments(1, pagination.limit);
   };
 
   const handleCloneDocument = async (documentId: string) => {

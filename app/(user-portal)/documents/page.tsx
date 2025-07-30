@@ -10,6 +10,7 @@ import { Plus, FileText, Edit, Trash2, Eye, Copy, Download } from 'lucide-react'
 import { DocumentType, DOCUMENT_TYPE_CONFIG, Document } from '@/types/documents';
 import CreateDocumentDialog from '@/components/documents/CreateDocumentDialog';
 import DocumentCard from '@/components/documents/DocumentCard';
+import DocumentErrorBoundary from '@/components/documents/DocumentErrorBoundary';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -29,11 +30,17 @@ export default function DocumentsPage() {
   // Fetch documents
   const fetchDocuments = async () => {
     try {
+      console.log('Fetching documents...');
       const response = await fetch('/api/documents');
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Documents API response:', data);
         setDocuments(data.documents || []);
       } else {
+        const errorData = await response.json();
+        console.error('Documents API error:', errorData);
         toast.error('Failed to fetch documents');
       }
     } catch (error) {
@@ -124,7 +131,11 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <DocumentErrorBoundary
+      onRetry={fetchDocuments}
+      onCreateNew={() => setCreateDialogOpen(true)}
+    >
+      <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
@@ -306,7 +317,8 @@ export default function DocumentsPage() {
             </div>
           )}
         </DialogContent>
-      </Dialog>
-    </div>
+              </Dialog>
+      </div>
+    </DocumentErrorBoundary>
   );
 }

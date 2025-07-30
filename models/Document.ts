@@ -29,20 +29,9 @@ export interface IStudentDocument extends MongooseDocument {
   updatedAt: Date;
 
   // File upload fields (for upload-based document types)
-  fileUrl: {
-    type: String,
-    trim: true,
-    default: null,
-  },
-  fileType: {
-    type: String,
-    trim: true,
-    default: null,
-  },
-  fileSize: {
-    type: Number,
-    default: null,
-  },
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: number;
 }
 
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';

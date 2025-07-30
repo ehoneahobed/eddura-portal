@@ -128,7 +128,7 @@ export default function ProgramsPage() {
     } finally {
       setIsLoadingSchools(false);
     }
-  }, [schoolSearch, schoolPagination]);
+  }, [schoolSearch, schoolPagination.currentPage, schoolPagination.limit]);
 
   const filterPrograms = useCallback(() => {
     let filtered = [...programs];
@@ -188,10 +188,10 @@ export default function ProgramsPage() {
     setFilteredPrograms(filtered);
   }, [programs, searchTerm, selectedFilters]);
 
-  // Fetch schools on mount and when search/pagination changes
+  // Initial fetch on mount
   useEffect(() => {
     fetchSchools();
-  }, [fetchSchools]);
+  }, []); // Only run on mount
 
   // Fetch programs when a school is selected
   useEffect(() => {
@@ -217,6 +217,22 @@ export default function ProgramsPage() {
     setSchoolSearch(value);
     setSchoolPagination(prev => ({ ...prev, currentPage: 1 })); // Reset to first page
   };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchSchools();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [schoolSearch, fetchSchools]);
+
+  // Handle pagination changes
+  useEffect(() => {
+    if (schoolPagination.currentPage > 1) { // Don't fetch on initial load
+      fetchSchools();
+    }
+  }, [schoolPagination.currentPage, fetchSchools]);
 
   // Handle pagination
   const handlePageChange = (page: number) => {

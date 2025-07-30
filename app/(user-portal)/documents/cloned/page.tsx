@@ -39,6 +39,7 @@ import {
   FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatDate } from '@/lib/utils';
 
 interface ClonedDocument {
   _id: string;
@@ -77,7 +78,7 @@ export default function MyClonedDocumentsPage() {
     pages: 0
   });
 
-  const fetchClonedDocuments = useCallback(async () => {
+  const fetchClonedDocuments = useCallback(async (page = pagination.page, limit = pagination.limit) => {
     if (!session?.user?.id) {
       setIsLoading(false);
       return;
@@ -86,8 +87,8 @@ export default function MyClonedDocumentsPage() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
+        page: page.toString(),
+        limit: limit.toString(),
         ...(searchTerm && { search: searchTerm }),
         ...(categoryFilter !== 'all' && { category: categoryFilter }),
         ...(typeFilter !== 'all' && { type: typeFilter }),
@@ -108,7 +109,7 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
 
   // Debounced search effect
   useEffect(() => {
@@ -116,21 +117,33 @@ export default function MyClonedDocumentsPage() {
     
     const timer = setTimeout(() => {
       setPagination(prev => ({ ...prev, page: 1 }));
-      fetchClonedDocuments();
+      fetchClonedDocuments(1, pagination.limit);
     }, 500);
 
     return () => clearTimeout(timer);
   }, [searchTerm, session?.user?.id, fetchClonedDocuments]);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (session?.user?.id) {
       fetchClonedDocuments();
     }
   }, [session?.user?.id, fetchClonedDocuments]);
 
+  // Handle filter changes
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    
+    const timeoutId = setTimeout(() => {
+      fetchClonedDocuments(1, pagination.limit);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [categoryFilter, typeFilter, sortBy, session?.user?.id]);
+
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchClonedDocuments();
+    fetchClonedDocuments(1, pagination.limit);
   };
 
   const handleFilterChange = (filterType: 'category' | 'type' | 'sort', value: string) => {
@@ -173,13 +186,7 @@ export default function MyClonedDocumentsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+
 
   const getCategories = () => {
     const categories = new Set(documents.map(doc => doc.originalDocument.category));

@@ -258,7 +258,7 @@ export interface Document {
   targetInstitution?: string;
   wordCount?: number;
   characterCount?: number;
-  lastEditedAt: string;
+  lastEditedAt?: string;
   createdAt: string;
   updatedAt: string;
   // Upload-based document fields

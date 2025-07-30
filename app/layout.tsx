@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { SWRProvider } from '@/components/providers/SWRProvider';
 import SessionProvider from '@/components/providers/SessionProvider';
+import ErrorBoundaryProvider from '@/components/providers/ErrorBoundaryProvider';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -95,12 +96,14 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={inter.className}>
-        <SessionProvider>
-          <SWRProvider>
-            {children}
-            <Toaster />
-          </SWRProvider>
-        </SessionProvider>
+        <ErrorBoundaryProvider>
+          <SessionProvider>
+            <SWRProvider>
+              {children}
+              <Toaster />
+            </SWRProvider>
+          </SessionProvider>
+        </ErrorBoundaryProvider>
       </body>
     </html>
   );
