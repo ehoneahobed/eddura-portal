@@ -15,7 +15,8 @@ import {
   Link,
   ExternalLink,
   MoreVertical,
-  Unlink
+  Unlink,
+  Star
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ import { RequirementStatus, RequirementType, RequirementCategory } from '@/types
 import { DocumentLinkingModal } from '@/components/applications/DocumentLinkingModal';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import AIReviewModal from '@/components/applications/AIReviewModal';
 
 // Plain object interface for frontend use (without Mongoose Document methods)
 interface RequirementData {
@@ -96,6 +98,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
   const [showNotes, setShowNotes] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showView, setShowView] = useState(false);
+  const [showAIReview, setShowAIReview] = useState(false);
   const [notes, setNotes] = useState(requirement.notes || '');
   const [isUpdating, setIsUpdating] = useState(false);
   
@@ -856,6 +859,12 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
                       {requirement.linkedDocumentId ? 'Unlink Document' : 'Link Document'}
                     </DropdownMenuItem>
                   )}
+                  {requirement.requirementType === 'document' && requirement.linkedDocumentId && (
+                    <DropdownMenuItem onClick={() => setShowAIReview(true)}>
+                      <Star className="h-4 w-4 mr-2" />
+                      AI Review
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -868,6 +877,19 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
           requirement={requirement}
           onClose={() => setShowDocumentModal(false)}
           onDocumentLink={onDocumentLink}
+        />
+      )}
+
+      {showAIReview && (
+        <AIReviewModal
+          open={showAIReview}
+          onOpenChange={setShowAIReview}
+          applicationId={applicationId}
+          requirementId={requirement._id}
+          onReviewComplete={() => {
+            // Optionally refresh the requirement data after review
+            onRequirementRefresh?.();
+          }}
         />
       )}
     </>

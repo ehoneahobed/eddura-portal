@@ -298,16 +298,30 @@ export default function ApplicationPackageManager({ applicationId }: Application
     }
   }, [session?.user?.id, applicationId, fetchApplicationData]);
 
-  // Refresh data when returning to the page
+  // Refresh data when returning to the page from another tab
   useEffect(() => {
-    const handleFocus = () => {
-      if (session?.user?.id) {
-        fetchApplicationData();
+    let wasHidden = false;
+    let lastHiddenTime = 0;
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        wasHidden = true;
+        lastHiddenTime = Date.now();
+      } else if (document.visibilityState === 'visible' && wasHidden) {
+        // Only refresh if the page was hidden for more than 1 second (actual tab switch)
+        const timeHidden = Date.now() - lastHiddenTime;
+        if (timeHidden > 1000 && session?.user?.id) {
+          fetchApplicationData();
+        }
+        wasHidden = false;
       }
     };
 
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [session?.user?.id, fetchApplicationData]);
 
   const getStatusColor = (status: string) => {
