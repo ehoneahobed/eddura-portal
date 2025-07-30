@@ -45,8 +45,6 @@ export default function LanguageSwitcher({
         return t('english');
       case 'fr':
         return t('french');
-      default:
-        return locale.toUpperCase();
     }
   };
 

@@ -102,8 +102,6 @@ export default function StudentSidebar({ className }: StudentSidebarProps) {
       description: t('settings')
     }
   ];
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const pathname = usePathname();
 
   return (
     <motion.div

@@ -53,7 +53,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
     targetProgram: document.targetProgram || '',
     targetScholarship: document.targetScholarship || '',
     targetInstitution: document.targetInstitution || '',
-    isActive: document.isActive || true
+    isActive: document.isActive ?? true
   });
 
   const [tagInput, setTagInput] = useState('');

@@ -50,7 +50,7 @@ async function generateAIResponse(prompt: string): Promise<string> {
 /**
  * Craft AI review prompt based on requirement and document content
  */
-export function craftReviewPrompt(
+function craftReviewPrompt(
   requirement: any,
   document: any,
   application: any,
@@ -172,7 +172,7 @@ IMPORTANT RULES:
 /**
  * Parse AI response and validate structure
  */
-export function parseAIResponse(response: string): any {
+function parseAIResponse(response: string): any {
   try {
     // Clean the response - remove any markdown formatting
     let cleanedResponse = response.trim();

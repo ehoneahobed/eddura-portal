@@ -32,7 +32,11 @@ export async function GET() {
     console.log('✅ Database connection successful');
     
     // Check collections
-    const collections = await connectDB().then(db => db.connection.db.listCollections().toArray());
+    const db = await connectDB();
+    if (!db.connection.db) {
+      throw new Error('Database connection failed - no database instance');
+    }
+    const collections = await db.connection.db.listCollections().toArray();
     console.log('Collections:', collections.map(c => c.name));
     
     // Check documents

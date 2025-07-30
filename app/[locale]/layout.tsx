@@ -3,11 +3,11 @@ import { locales } from '@/i18n';
 
 interface LocaleLayoutProps {
   children: ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }
 
-export default function LocaleLayout({ children, params }: LocaleLayoutProps) {
-  const { locale } = params;
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+  const { locale } = await params;
 
   // Validate locale
   if (!locales.includes(locale as any)) {
