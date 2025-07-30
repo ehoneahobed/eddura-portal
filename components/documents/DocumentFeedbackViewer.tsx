@@ -22,11 +22,13 @@ import {
   HelpCircle,
   XCircle,
   Eye,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
 import { Document } from '@/types/documents';
 import { DocumentFeedback, FeedbackComment, FeedbackStats } from '@/types/feedback';
 import { toast } from 'sonner';
+import AIFeedbackRefinementModal from './AIFeedbackRefinementModal';
 
 interface DocumentFeedbackViewerProps {
   document: Document;
@@ -45,6 +47,7 @@ export default function DocumentFeedbackViewer({
   const [selectedFeedback, setSelectedFeedback] = useState<DocumentFeedback | null>(null);
   const [selectedComment, setSelectedComment] = useState<FeedbackComment | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [aiRefinementOpen, setAiRefinementOpen] = useState(false);
 
   const loadFeedback = useCallback(async () => {
     setLoading(true);
@@ -130,6 +133,37 @@ export default function DocumentFeedbackViewer({
       toast.error('Failed to update feedback status');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleAIRefinement = async (content: string, createNewVersion: boolean) => {
+    if (createNewVersion) {
+      // Navigate to the new document (it will be created by the API)
+      // For now, we'll just show a success message
+      toast.success('New version created successfully!');
+    } else {
+      // Update the current document content
+      try {
+        const response = await fetch(`/api/documents/${document._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: content
+          }),
+        });
+
+        if (response.ok) {
+          toast.success('Document updated with refined content!');
+          // You might want to refresh the document data here
+        } else {
+          toast.error('Failed to update document');
+        }
+      } catch (error) {
+        console.error('Error updating document:', error);
+        toast.error('Failed to update document');
+      }
     }
   };
 
@@ -255,6 +289,37 @@ export default function DocumentFeedbackViewer({
                     </div>
                   </div>
                   <Star className="h-8 w-8 text-yellow-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* AI Refinement Button */}
+        {feedback.length > 0 && (
+          <div className="mb-6">
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Sparkles className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">AI-Powered Document Refinement</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Use AI to rewrite your document incorporating selected feedback
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setAiRefinementOpen(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Refine with AI
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -569,6 +634,15 @@ export default function DocumentFeedbackViewer({
           </DialogContent>
         </Dialog>
       </DialogContent>
+
+      {/* AI Feedback Refinement Modal */}
+      <AIFeedbackRefinementModal
+        open={aiRefinementOpen}
+        onOpenChange={setAiRefinementOpen}
+        document={document}
+        feedback={feedback}
+        onContentRefined={handleAIRefinement}
+      />
     </Dialog>
   );
 }

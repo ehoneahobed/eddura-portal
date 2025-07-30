@@ -4,8 +4,6 @@ import User from "@/models/User";
 import { Resend } from "resend";
 import crypto from "crypto";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
@@ -47,6 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Send verification email
     try {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: "noreply@yourdomain.com",
         to: email,
