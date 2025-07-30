@@ -6,7 +6,7 @@ import '@/models/index';
 import User from '@/models/User';
 import Program from '@/models/Program';
 import School from '@/models/School';
-
+import Scholarship from '@/models/Scholarship';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const user = await User.findById(session.user.id)
-      .select('quizResponses quizCompleted quizCompletedAt careerPreferences')
+      .select('quizResponses quizCompleted quizCompletedAt careerPreferences aiAnalysis')
       .lean();
 
     if (!user) {
@@ -71,6 +71,25 @@ export async function GET(request: NextRequest) {
       .lean();
     }
 
+    // Get relevant scholarships based on career preferences
+    let recommendedScholarships: any[] = [];
+    if (user.careerPreferences?.primaryInterests?.length) {
+      const interestQueries = user.careerPreferences.primaryInterests.map((interest: string) => ({
+        $or: [
+          { name: { $regex: interest, $options: 'i' } },
+          { description: { $regex: interest, $options: 'i' } },
+          { eligibilityCriteria: { $regex: interest, $options: 'i' } }
+        ]
+      }));
+
+      recommendedScholarships = await Scholarship.find({
+        $or: interestQueries
+      })
+      .populate('schoolId', 'name country')
+      .limit(8)
+      .lean();
+    }
+
     // Calculate quiz insights
     const insights = {
       personalityTraits: user.careerPreferences?.personalityTraits || [],
@@ -81,18 +100,44 @@ export async function GET(request: NextRequest) {
       careerGoals: user.careerPreferences?.careerGoals || []
     };
 
-    // Calculate match score
+    // Calculate match score based on multiple factors
     let matchScore = 0;
+    let scoreFactors = 0;
+    
     if (user.careerPreferences?.recommendedFields?.length) {
-      matchScore = Math.min(95, 70 + (user.careerPreferences.recommendedFields.length * 5));
+      matchScore += user.careerPreferences.recommendedFields.length * 10;
+      scoreFactors++;
+    }
+    
+    if (user.careerPreferences?.primaryInterests?.length) {
+      matchScore += user.careerPreferences.primaryInterests.length * 5;
+      scoreFactors++;
+    }
+    
+    if (user.careerPreferences?.academicStrengths?.length) {
+      matchScore += user.careerPreferences.academicStrengths.length * 3;
+      scoreFactors++;
+    }
+    
+    if (user.careerPreferences?.workStyle?.length) {
+      matchScore += user.careerPreferences.workStyle.length * 2;
+      scoreFactors++;
+    }
+
+    // Normalize score to 0-100 range
+    if (scoreFactors > 0) {
+      matchScore = Math.min(95, Math.max(20, matchScore / scoreFactors));
+    } else {
+      matchScore = 50; // Default score if no preferences
     }
 
     const results = {
       quizCompleted: user.quizCompleted,
       quizCompletedAt: user.quizCompletedAt,
-      matchScore,
+      matchScore: Math.round(matchScore),
       insights,
       careerPreferences: user.careerPreferences,
+      aiAnalysis: user.aiAnalysis, // Include AI analysis if it exists
       recommendedPrograms: recommendedPrograms.map(program => ({
         id: program._id.toString(),
         name: program.name,
@@ -113,6 +158,18 @@ export async function GET(request: NextRequest) {
         country: school.country,
         globalRanking: school.globalRanking,
         programCount: 0 // This would need to be calculated
+      })),
+      recommendedScholarships: recommendedScholarships.map(scholarship => ({
+        id: scholarship._id.toString(),
+        name: scholarship.name,
+        description: scholarship.description,
+        amount: scholarship.amount,
+        eligibilityCriteria: scholarship.eligibilityCriteria,
+        school: scholarship.schoolId ? {
+          id: scholarship.schoolId._id.toString(),
+          name: scholarship.schoolId.name,
+          country: scholarship.schoolId.country
+        } : null
       })),
       quizResponses: user.quizResponses
     };

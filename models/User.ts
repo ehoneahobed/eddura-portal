@@ -28,6 +28,7 @@ export interface IUser extends Document {
   quizCompleted: boolean;
   quizCompletedAt?: Date;
   careerPreferences?: CareerPreferences;
+  aiAnalysis?: AIAnalysis;
   
   // Account Status
   isActive: boolean;
@@ -127,6 +128,96 @@ export interface CareerPreferences {
   recommendedFields: string[];
 }
 
+/**
+ * AI Analysis interface for storing AI-generated career and program recommendations
+ */
+export interface AIAnalysis {
+  careerInsights: {
+    primaryCareerPaths: Array<{
+      title: string;
+      description: string;
+      educationRequirements: string[];
+      skillsNeeded: string[];
+      growthPotential: string;
+      salaryRange: string;
+      workEnvironment: string;
+    }>;
+    alternativeCareerPaths: Array<{
+      title: string;
+      description: string;
+      educationRequirements: string[];
+      skillsNeeded: string[];
+      growthPotential: string;
+      salaryRange: string;
+      workEnvironment: string;
+    }>;
+    skillGaps: Array<{
+      skill: string;
+      importance: string;
+      howToDevelop: string;
+    }>;
+    personalityTraits: string[];
+    workStyle: string[];
+  };
+  programRecommendations: {
+    undergraduatePrograms: Array<{
+      fieldOfStudy: string;
+      programType: string;
+      duration: string;
+      whyRecommended: string;
+      careerOutcomes: string[];
+      prerequisites: string[];
+      costRange: string;
+    }>;
+    postgraduatePrograms: Array<{
+      fieldOfStudy: string;
+      programType: string;
+      duration: string;
+      whyRecommended: string;
+      careerOutcomes: string[];
+      prerequisites: string[];
+      costRange: string;
+    }>;
+    specializations: Array<{
+      area: string;
+      description: string;
+      careerRelevance: string;
+    }>;
+  };
+  scholarshipRecommendations: {
+    scholarshipTypes: Array<{
+      type: string;
+      description: string;
+      eligibilityCriteria: string[];
+      applicationTips: string[];
+    }>;
+    targetFields: string[];
+    applicationStrategy: {
+      timeline: string;
+      keyDocuments: string[];
+      strengthsToHighlight: string[];
+    };
+  };
+  actionPlan: {
+    immediateSteps: Array<{
+      action: string;
+      timeline: string;
+      priority: string;
+      resources: string[];
+    }>;
+    shortTermGoals: string[];
+    longTermGoals: string[];
+  };
+  summary: {
+    keyStrengths: string[];
+    areasForDevelopment: string[];
+    overallAssessment: string;
+    confidenceLevel: string;
+  };
+  generatedAt: Date;
+  analysisType: string;
+}
+
 const QuizResponsesSchema = new Schema<QuizResponses>({
   // Section 1: Education & Aspirations
   educationLevel: [{ type: String, trim: true }],
@@ -206,6 +297,93 @@ const CareerPreferencesSchema = new Schema<CareerPreferences>({
   recommendedFields: [{ type: String, trim: true }]
 }, { _id: false });
 
+const AIAnalysisSchema = new Schema<AIAnalysis>({
+  careerInsights: {
+    primaryCareerPaths: [{
+      title: { type: String, trim: true },
+      description: { type: String, trim: true },
+      educationRequirements: [{ type: String, trim: true }],
+      skillsNeeded: [{ type: String, trim: true }],
+      growthPotential: { type: String, trim: true },
+      salaryRange: { type: String, trim: true },
+      workEnvironment: { type: String, trim: true }
+    }],
+    alternativeCareerPaths: [{
+      title: { type: String, trim: true },
+      description: { type: String, trim: true },
+      educationRequirements: [{ type: String, trim: true }],
+      skillsNeeded: [{ type: String, trim: true }],
+      growthPotential: { type: String, trim: true },
+      salaryRange: { type: String, trim: true },
+      workEnvironment: { type: String, trim: true }
+    }],
+    skillGaps: [{
+      skill: { type: String, trim: true },
+      importance: { type: String, trim: true },
+      howToDevelop: { type: String, trim: true }
+    }],
+    personalityTraits: [{ type: String, trim: true }],
+    workStyle: [{ type: String, trim: true }]
+  },
+  programRecommendations: {
+    undergraduatePrograms: [{
+      fieldOfStudy: { type: String, trim: true },
+      programType: { type: String, trim: true },
+      duration: { type: String, trim: true },
+      whyRecommended: { type: String, trim: true },
+      careerOutcomes: [{ type: String, trim: true }],
+      prerequisites: [{ type: String, trim: true }],
+      costRange: { type: String, trim: true }
+    }],
+    postgraduatePrograms: [{
+      fieldOfStudy: { type: String, trim: true },
+      programType: { type: String, trim: true },
+      duration: { type: String, trim: true },
+      whyRecommended: { type: String, trim: true },
+      careerOutcomes: [{ type: String, trim: true }],
+      prerequisites: [{ type: String, trim: true }],
+      costRange: { type: String, trim: true }
+    }],
+    specializations: [{
+      area: { type: String, trim: true },
+      description: { type: String, trim: true },
+      careerRelevance: { type: String, trim: true }
+    }]
+  },
+  scholarshipRecommendations: {
+    scholarshipTypes: [{
+      type: { type: String, trim: true },
+      description: { type: String, trim: true },
+      eligibilityCriteria: [{ type: String, trim: true }],
+      applicationTips: [{ type: String, trim: true }]
+    }],
+    targetFields: [{ type: String, trim: true }],
+    applicationStrategy: {
+      timeline: { type: String, trim: true },
+      keyDocuments: [{ type: String, trim: true }],
+      strengthsToHighlight: [{ type: String, trim: true }]
+    }
+  },
+  actionPlan: {
+    immediateSteps: [{
+      action: { type: String, trim: true },
+      timeline: { type: String, trim: true },
+      priority: { type: String, trim: true },
+      resources: [{ type: String, trim: true }]
+    }],
+    shortTermGoals: [{ type: String, trim: true }],
+    longTermGoals: [{ type: String, trim: true }]
+  },
+  summary: {
+    keyStrengths: [{ type: String, trim: true }],
+    areasForDevelopment: [{ type: String, trim: true }],
+    overallAssessment: { type: String, trim: true },
+    confidenceLevel: { type: String, trim: true }
+  },
+  generatedAt: { type: Date, default: Date.now },
+  analysisType: { type: String, trim: true }
+}, { _id: false });
+
 const UserSchema: Schema = new Schema<IUser>({
   // Authentication & Basic Info
   email: { 
@@ -281,6 +459,7 @@ const UserSchema: Schema = new Schema<IUser>({
     type: Date 
   },
   careerPreferences: CareerPreferencesSchema,
+  aiAnalysis: AIAnalysisSchema,
   
   // Account Status
   isActive: { 
