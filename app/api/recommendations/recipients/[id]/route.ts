@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/auth/[...nextauth]/route';
+import { authConfig } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
 import Recipient from '@/models/Recipient';
 import User from '@/models/User';
@@ -14,7 +14,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
