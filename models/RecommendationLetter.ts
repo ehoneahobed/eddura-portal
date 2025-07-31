@@ -132,7 +132,8 @@ recommendationLetterSchema.virtual('fileExtension').get(function() {
 recommendationLetterSchema.pre('save', async function(next) {
   if (this.isNew) {
     // Get the latest version for this request
-    const latestLetter = await this.constructor.findOne(
+    const RecommendationLetterModel = mongoose.model('RecommendationLetter');
+    const latestLetter = await RecommendationLetterModel.findOne(
       { requestId: this.requestId },
       {},
       { sort: { version: -1 } }
