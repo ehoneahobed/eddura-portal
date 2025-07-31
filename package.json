@@ -25,7 +25,12 @@
     "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js",
     "seed:content": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-content.ts",
     "seed:templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-requirements-templates.ts",
-    "seed:program-templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-program-scholarship-templates.ts"
+    "seed:program-templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-program-scholarship-templates.ts",
+    "test:emails": "node scripts/test-recommendation-emails.js",
+    "test:email-functions": "node scripts/test-email-functions.js",
+    "test:create-recommendation": "node scripts/test-create-recommendation.js",
+    "test:api-endpoint": "node scripts/test-api-endpoint.js",
+    "test:recommendation-upload": "node scripts/test-recommendation-upload.js"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -101,6 +106,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.53.0",
+    "react-hot-toast": "^2.5.2",
     "react-phone-number-input": "^3.4.12",
     "react-resizable-panels": "^2.1.3",
     "recharts": "^2.12.7",

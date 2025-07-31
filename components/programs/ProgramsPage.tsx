@@ -114,14 +114,15 @@ export default function ProgramsPage() {
       const params = new URLSearchParams({
         page: schoolPagination.currentPage.toString(),
         limit: schoolPagination.limit.toString(),
-        ...(schoolSearch && { search: schoolSearch })
+        search: schoolSearch,
       });
-      
+
       const response = await fetch(`/api/schools?${params}`);
+      
       if (response.ok) {
         const data = await response.json();
         setSchools(data.schools || []);
-        setSchoolPagination(data.pagination || schoolPagination);
+        setSchoolPagination(prev => data.pagination || prev);
       }
     } catch (error) {
       console.error('Error fetching schools:', error);

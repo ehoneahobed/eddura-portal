@@ -82,25 +82,23 @@ export default function LibraryPage() {
     totalRated: 0
   });
 
-  const fetchDocuments = useCallback(async (page = pagination.page, limit = pagination.limit) => {
-    if (!session?.user?.id) {
-      setIsLoading(false);
-      return;
-    }
-
+  const fetchDocuments = useCallback(async (page = 1, limit = pagination.limit) => {
+    if (!session?.user?.id) return;
+    
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        ...(searchTerm && { search: searchTerm }),
-        ...(categoryFilter !== 'all' && { category: categoryFilter }),
-        ...(typeFilter !== 'all' && { type: typeFilter }),
-        ...(targetAudienceFilter !== 'all' && { targetAudience: targetAudienceFilter }),
-        sortBy,
+        search: searchTerm,
+        category: categoryFilter,
+        type: typeFilter,
+        targetAudience: targetAudienceFilter,
+        sortBy: sortBy,
       });
 
       const response = await fetch(`/api/library/documents?${params}`);
+      
       if (response.ok) {
         const data = await response.json();
         setDocuments(data.documents || []);

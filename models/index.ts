@@ -28,6 +28,11 @@ import './SavedScholarship';
 import './ApplicationFormRequest';
 import './ApplicationTemplate';
 
+// Recommendation letter models
+import './Recipient';
+import './RecommendationRequest';
+import './RecommendationLetter';
+
 // 2. Models that reference other models (import after dependencies)
 import './Program';
 import './Application';
@@ -57,4 +62,7 @@ export { default as ApplicationFormRequest } from './ApplicationFormRequest';
 export { default as ApplicationTemplate } from './ApplicationTemplate';
 export { default as Application } from './Application';
 export { default as ApplicationRequirement } from './ApplicationRequirement';
-export { default as RequirementsTemplate } from './RequirementsTemplate'; 
+export { default as RequirementsTemplate } from './RequirementsTemplate';
+export { default as Recipient } from './Recipient';
+export { default as RecommendationRequest } from './RecommendationRequest';
+export { default as RecommendationLetter } from './RecommendationLetter'; 

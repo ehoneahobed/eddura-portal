@@ -78,24 +78,22 @@ export default function MyClonedDocumentsPage() {
     pages: 0
   });
 
-  const fetchClonedDocuments = useCallback(async (page = pagination.page, limit = pagination.limit) => {
-    if (!session?.user?.id) {
-      setIsLoading(false);
-      return;
-    }
-
+  const fetchClonedDocuments = useCallback(async (page = 1, limit = pagination.limit) => {
+    if (!session?.user?.id) return;
+    
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        ...(searchTerm && { search: searchTerm }),
-        ...(categoryFilter !== 'all' && { category: categoryFilter }),
-        ...(typeFilter !== 'all' && { type: typeFilter }),
-        sortBy
+        search: searchTerm,
+        category: categoryFilter,
+        type: typeFilter,
+        sortBy: sortBy,
       });
 
       const response = await fetch(`/api/user/cloned-documents?${params}`);
+      
       if (response.ok) {
         const data = await response.json();
         setDocuments(data.documents || []);
