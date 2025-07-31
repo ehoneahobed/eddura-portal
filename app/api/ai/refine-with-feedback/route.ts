@@ -118,16 +118,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validatedData = RefineWithFeedbackRequestSchema.parse(body);
     
-    // Check if document type is coming soon (if provided)
-    if (validatedData.documentType) {
-      const typeConfig = DOCUMENT_TYPE_CONFIG[validatedData.documentType];
-      if (typeConfig?.comingSoon) {
-        return NextResponse.json(
-          { error: 'This document type is not supported for AI refinement' },
-          { status: 400 }
-        );
-      }
-    }
+
 
     // Connect to database
     await connectDB();

@@ -1,40 +1,40 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { createMocks } from 'node-mocks-http';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 
 // Mock NextAuth
-vi.mock('next-auth', () => ({
-  getServerSession: vi.fn(),
+jest.mock('next-auth', () => ({
+  getServerSession: jest.fn(),
 }));
 
 // Mock database models
-vi.mock('@/models/ApplicationRequirement', () => ({
+jest.mock('@/models/ApplicationRequirement', () => ({
   ApplicationRequirement: {
-    find: vi.fn(),
-    findById: vi.fn(),
-    create: vi.fn(),
-    findByIdAndUpdate: vi.fn(),
-    findByIdAndDelete: vi.fn(),
-    countDocuments: vi.fn(),
+    find: jest.fn(),
+    findById: jest.fn(),
+    create: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    countDocuments: jest.fn(),
   },
 }));
 
-vi.mock('@/models/RequirementsTemplate', () => ({
+jest.mock('@/models/RequirementsTemplate', () => ({
   RequirementsTemplate: {
-    find: vi.fn(),
-    findById: vi.fn(),
-    create: vi.fn(),
-    findByIdAndUpdate: vi.fn(),
-    findByIdAndDelete: vi.fn(),
-    countDocuments: vi.fn(),
+    find: jest.fn(),
+    findById: jest.fn(),
+    create: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    countDocuments: jest.fn(),
   },
 }));
 
-vi.mock('@/models/Application', () => ({
+jest.mock('@/models/Application', () => ({
   Application: {
-    findById: vi.fn(),
-    findByIdAndUpdate: vi.fn(),
+    findById: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
   },
 }));
 
@@ -60,7 +60,7 @@ describe('Requirements Management System - Integration Tests', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('Application Requirements API', () => {

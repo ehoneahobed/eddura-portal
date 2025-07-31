@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
 import Scholarship from '@/models/Scholarship';
 import mongoose from 'mongoose';
+import { auth, hasPermission, isAdmin } from '@/lib/auth';
 
 /**
  * Transform MongoDB document to include id field
@@ -28,68 +29,32 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const resolvedParams = await params;
-    console.log('Fetching template with ID:', resolvedParams.id);
-    console.log('ID type:', typeof resolvedParams.id);
-    console.log('ID length:', resolvedParams.id.length);
-    console.log('URL:', request.url);
-    
     await connectDB();
     
-    // Try to find the template by ID, regardless of format
     let template = null;
-    
-    // First, try as ObjectId
     if (mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
-      console.log('Trying to find by ObjectId:', resolvedParams.id);
       template = await ApplicationTemplate.findById(resolvedParams.id)
         .populate('scholarshipId', 'title provider')
         .lean();
     }
     
-    // If not found, try to find by any field that might match
     if (!template) {
-      console.log('ObjectId search failed, trying alternative search...');
-      
-      // Try to find by title (case-insensitive)
-      template = await ApplicationTemplate.findOne({
-        title: { $regex: new RegExp(resolvedParams.id, 'i') }
-      }).populate('scholarshipId', 'title provider').lean();
-      
-      if (!template) {
-        // Try to find by any field containing the ID
-        template = await ApplicationTemplate.findOne({
-          $or: [
-            { title: { $regex: new RegExp(resolvedParams.id, 'i') } },
-            { description: { $regex: new RegExp(resolvedParams.id, 'i') } },
-            { version: { $regex: new RegExp(resolvedParams.id, 'i') } }
-          ]
-        }).populate('scholarshipId', 'title provider').lean();
-      }
-    }
-    
-    console.log('Template found:', !!template);
-    
-    if (!template) {
-      console.log('Template not found in database');
-      
-      // Get all templates for debugging
-      const allTemplates = await ApplicationTemplate.find({}).select('_id title').limit(10).lean();
-      console.log('Available templates:', allTemplates.map((t: any) => ({ id: t._id.toString(), title: t.title })));
-      
       return NextResponse.json({ 
         error: 'Application template not found',
         details: `No template found with ID "${resolvedParams.id}"`,
-        availableTemplates: allTemplates.map((t: any) => ({ id: t._id.toString(), title: t.title }))
       }, { status: 404 });
     }
     
-    console.log('Returning template:', template.title);
     return NextResponse.json(transformTemplate(template));
   } catch (error) {
     console.error('Error fetching application template:', error);
     
-    // More detailed error response
     if (error instanceof Error) {
       return NextResponse.json(
         { 
@@ -117,6 +82,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user || !isAdmin(session.user) || !hasPermission(session.user, 'template:update')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const resolvedParams = await params;
     await connectDB();
     
@@ -126,7 +96,6 @@ export async function PUT(
     
     const body = await request.json();
     
-    // Validate required fields if they're being updated
     if (body.sections && body.sections.length === 0) {
       return NextResponse.json(
         { error: 'Template must have at least one section' },
@@ -134,7 +103,6 @@ export async function PUT(
       );
     }
     
-    // Validate sections structure if provided
     if (body.sections) {
       for (const section of body.sections) {
         if (!section.id || !section.title || !section.questions || section.questions.length === 0) {
@@ -144,7 +112,6 @@ export async function PUT(
           );
         }
         
-        // Validate questions structure
         for (const question of section.questions) {
           if (!question.id || !question.type || !question.title) {
             return NextResponse.json(
@@ -193,6 +160,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user || !isAdmin(session.user) || !hasPermission(session.user, 'template:delete')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const resolvedParams = await params;
     await connectDB();
     

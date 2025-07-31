@@ -120,7 +120,7 @@ export default function LibraryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
 
   // Initial fetch on mount
   useEffect(() => {
@@ -138,7 +138,7 @@ export default function LibraryPage() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, session?.user?.id]);
+  }, [searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, session?.user?.id, fetchDocuments, pagination.limit]);
 
   // Handle pagination changes separately
   useEffect(() => {

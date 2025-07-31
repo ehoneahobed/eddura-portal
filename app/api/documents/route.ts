@@ -4,20 +4,38 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { z } from 'zod';
-import { getPresignedUploadUrl } from '@/lib/s3';
-import { randomUUID } from 'crypto';
+
+// Upload-based document types
+const UPLOAD_BASED_TYPES = [
+  DocumentType.REFERENCE_LETTER,
+  DocumentType.RECOMMENDATION_LETTER,
+  DocumentType.SCHOOL_CERTIFICATE,
+  DocumentType.TRANSCRIPT,
+  DocumentType.DEGREE_CERTIFICATE,
+  DocumentType.LANGUAGE_CERTIFICATE,
+  DocumentType.TEST_SCORES,
+  DocumentType.FINANCIAL_DOCUMENTS,
+  DocumentType.MEDICAL_RECORDS,
+  DocumentType.LEGAL_DOCUMENTS,
+  DocumentType.AWARDS_HONORS,
+  DocumentType.OTHER_CERTIFICATE,
+];
 
 // Validation schema for creating/updating documents
 const DocumentSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
   type: z.nativeEnum(DocumentType),
-  content: z.string().min(1, 'Content is required'),
+  content: z.string().optional(), // Optional for upload-based documents, required for text-based
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
   tags: z.array(z.string().max(50)).optional(),
   targetProgram: z.string().max(200).optional(),
   targetScholarship: z.string().max(200).optional(),
   targetInstitution: z.string().max(200).optional(),
-  version: z.number().min(1).optional()
+  version: z.number().min(1).optional(),
+  // File upload fields for upload-based documents
+  fileUrl: z.string().optional(),
+  fileType: z.string().optional(),
+  fileSize: z.number().optional()
 });
 
 // GET /api/documents - Get all documents for the current user
@@ -74,7 +92,7 @@ export async function GET(request: NextRequest) {
       _id: doc._id,
       title: doc.title,
       description: doc.description,
-      content: doc.content, // Add the content field
+      content: doc.content || '', // Add the content field (empty string for upload-based docs)
       documentType: doc.type, // Map 'type' to 'documentType'
       type: doc.type,
       category: DOCUMENT_TYPE_CONFIG[doc.type]?.category || 'Other',
@@ -93,7 +111,11 @@ export async function GET(request: NextRequest) {
       targetProgram: doc.targetProgram || '',
       targetScholarship: doc.targetScholarship || '',
       targetInstitution: doc.targetInstitution || '',
-      version: doc.version || 1
+      version: doc.version || 1,
+      // File upload fields
+      fileUrl: doc.fileUrl || null,
+      fileType: doc.fileType || null,
+      fileSize: doc.fileSize || null
     }));
 
     console.log('Transformed documents:', transformedDocuments.length);
@@ -107,58 +129,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/documents/upload - Get S3 presigned URL for file upload (for upload-based document types)
+// POST /api/documents - Create a new document
 export async function POST(request: NextRequest) {
-  const url = new URL(request.url);
-  if (url.pathname.endsWith('/upload')) {
-    try {
-      const session = await auth();
-      if (!session?.user?.id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      const formData = await request.formData();
-      const file = formData.get('file') as File;
-      if (!file) {
-        return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-      }
-      // Accept only PDF, DOC, DOCX, TXT, etc.
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
-      }
-      // 10MB limit
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        return NextResponse.json({ error: 'File size exceeds 10MB limit' }, { status: 400 });
-      }
-      const fileExtension = file.name.split('.').pop();
-      const filename = `${randomUUID()}.${fileExtension}`;
-      const s3Key = `documents/${session.user.id}/${filename}`;
-      const s3Url = await getPresignedUploadUrl({
-        Bucket: process.env.AWS_S3_BUCKET!,
-        Key: s3Key,
-        ContentType: file.type,
-        expiresIn: 300,
-      });
-      const s3ObjectUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
-      return NextResponse.json({
-        presignedUrl: s3Url,
-        fileUrl: s3ObjectUrl,
-        fileType: file.type,
-        fileSize: file.size,
-        filename,
-      }, { status: 201 });
-    } catch (error) {
-      console.error('Document upload error:', error);
-      return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 });
-    }
-  }
-  // POST /api/documents - Create a new document
   try {
     const session = await auth();
     
@@ -172,22 +144,43 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = DocumentSchema.parse(body);
-    
-    // Check if document type is coming soon
+
+    // Additional validation for upload-based vs text-based documents
     const typeConfig = DOCUMENT_TYPE_CONFIG[validatedData.type];
-    if (typeConfig?.comingSoon) {
-      return NextResponse.json(
-        { error: 'This document type is coming soon' },
-        { status: 400 }
-      );
+    const isUploadBased = UPLOAD_BASED_TYPES.includes(validatedData.type);
+    
+    if (isUploadBased) {
+      if (!validatedData.fileUrl) {
+        return NextResponse.json(
+          { error: 'File upload is required for this document type' },
+          { status: 400 }
+        );
+      }
+      // For upload-based documents, content is optional
+      validatedData.content = undefined;
+    } else {
+      if (!validatedData.content || validatedData.content.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'Content is required for this document type' },
+          { status: 400 }
+        );
+      }
     }
 
-    // Create new document
-    const document = new Document({
+    // Create document data object
+    const documentData = {
       ...validatedData,
       userId: session.user.id,
       version: validatedData.version || 1
-    });
+    };
+
+    // Remove undefined content for upload-based documents
+    if (isUploadBased && documentData.content === undefined) {
+      delete documentData.content;
+    }
+
+    // Create new document
+    const document = new Document(documentData);
 
     await document.save();
 

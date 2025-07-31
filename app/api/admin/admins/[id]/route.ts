@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { auth, hasPermission, isAdmin, isSuperAdmin } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 
@@ -11,7 +11,7 @@ export async function GET(
     const resolvedParams = await params;
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
+    if (!session?.user || !isAdmin(session.user)) {
       return NextResponse.json(
         { message: "Unauthorized" },
         { status: 401 }
@@ -19,7 +19,7 @@ export async function GET(
     }
 
     // Check if user has permission to view admins
-    if (!session.user.permissions?.includes("admin:read")) {
+    if (!hasPermission(session.user, "admin:read")) {
       return NextResponse.json(
         { message: "Insufficient permissions" },
         { status: 403 }
@@ -57,7 +57,7 @@ export async function PATCH(
     const resolvedParams = await params;
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
+    if (!session?.user || !isAdmin(session.user)) {
       return NextResponse.json(
         { message: "Unauthorized" },
         { status: 401 }
@@ -65,7 +65,7 @@ export async function PATCH(
     }
 
     // Check if user has permission to update admins
-    if (!session.user.permissions?.includes("admin:update")) {
+    if (!hasPermission(session.user, "admin:update")) {
       return NextResponse.json(
         { message: "Insufficient permissions" },
         { status: 403 }
@@ -87,7 +87,7 @@ export async function PATCH(
     }
 
     // Prevent users from modifying super admins unless they are also super admins
-    if (admin.role === 'super_admin' && session.user.role !== 'super_admin') {
+    if (admin.role === 'super_admin' && !isSuperAdmin(session.user)) {
       return NextResponse.json(
         { message: "Only super admins can modify super admin accounts" },
         { status: 403 }
@@ -128,7 +128,7 @@ export async function DELETE(
     const resolvedParams = await params;
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
+    if (!session?.user || !isAdmin(session.user)) {
       return NextResponse.json(
         { message: "Unauthorized" },
         { status: 401 }
@@ -136,7 +136,7 @@ export async function DELETE(
     }
 
     // Check if user has permission to delete admins
-    if (!session.user.permissions?.includes("admin:delete")) {
+    if (!hasPermission(session.user, "admin:delete")) {
       return NextResponse.json(
         { message: "Insufficient permissions" },
         { status: 403 }
@@ -155,7 +155,7 @@ export async function DELETE(
     }
 
     // Prevent users from deleting super admins unless they are also super admins
-    if (admin.role === 'super_admin' && session.user.role !== 'super_admin') {
+    if (admin.role === 'super_admin' && !isSuperAdmin(session.user)) {
       return NextResponse.json(
         { message: "Only super admins can delete super admin accounts" },
         { status: 403 }

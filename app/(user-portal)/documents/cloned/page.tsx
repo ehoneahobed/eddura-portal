@@ -109,7 +109,7 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
 
   // Debounced search effect
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function MyClonedDocumentsPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, session?.user?.id, fetchClonedDocuments]);
+  }, [searchTerm, session?.user?.id, fetchClonedDocuments, pagination.limit]);
 
   // Initial fetch on mount
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function MyClonedDocumentsPage() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [categoryFilter, typeFilter, sortBy, session?.user?.id]);
+  }, [categoryFilter, typeFilter, sortBy, session?.user?.id, fetchClonedDocuments, pagination.limit]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));

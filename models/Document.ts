@@ -8,7 +8,7 @@ export interface IStudentDocument extends MongooseDocument {
   userId: mongoose.Types.ObjectId;
   title: string;
   type: DocumentType;
-  content: string;
+  content?: string;
   version: number;
   isActive: boolean;
   
@@ -59,7 +59,7 @@ const DocumentSchema: Schema = new Schema<IStudentDocument>({
   },
   content: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   version: {
@@ -150,8 +150,13 @@ DocumentSchema.virtual('category').get(function() {
 // Pre-save middleware to update word and character counts
 DocumentSchema.pre('save', function(this: IStudentDocument, next: any) {
   if ((this as any).isModified('content')) {
-    this.wordCount = this.content.trim().split(/\s+/).filter(word => word.length > 0).length;
-    this.characterCount = this.content.length;
+    if (this.content && this.content.trim().length > 0) {
+      this.wordCount = this.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      this.characterCount = this.content.length;
+    } else {
+      this.wordCount = 0;
+      this.characterCount = 0;
+    }
     this.lastEditedAt = new Date();
   }
   next();

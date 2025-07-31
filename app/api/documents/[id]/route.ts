@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import { DocumentType } from '@/types/documents';
 import { z } from 'zod';
-import { getPresignedDownloadUrl } from '@/lib/s3';
+import { getPresignedDownloadUrl, getPresignedPreviewUrl } from '@/lib/s3';
 
 // Validation schema for updating documents
 const UpdateDocumentSchema = z.object({
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     if (String(document.userId) !== String(session.user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    // If upload-based and has fileUrl, generate pre-signed download URL
+    // If upload-based and has fileUrl, generate pre-signed URL
     if (document.fileUrl) {
       // Extract S3 key from fileUrl (fileUrl is a string)
       const match = String(document.fileUrl).match(/\.amazonaws\.com\/(.+)$/);
@@ -44,11 +44,31 @@ export async function GET(request: NextRequest) {
       if (!s3Key) {
         return NextResponse.json({ error: 'Invalid file URL' }, { status: 500 });
       }
-      const presignedUrl = await getPresignedDownloadUrl({
-        Bucket: process.env.AWS_S3_BUCKET!,
-        Key: s3Key,
-        expiresIn: 300,
-      });
+      
+      // Check if this is a preview request (for PDFs and images)
+      const searchParams = new URL(request.url).searchParams;
+      const isPreview = searchParams.get('preview') === 'true';
+      
+      let presignedUrl;
+      if (isPreview) {
+        // Use preview URL for all files to allow inline viewing
+        presignedUrl = await getPresignedPreviewUrl({
+          Bucket: process.env.AWS_S3_BUCKET!,
+          Key: s3Key,
+          expiresIn: 300,
+        });
+        console.log('Generated preview URL for file type:', document.fileType);
+      } else {
+        // Use download URL for other files
+        presignedUrl = await getPresignedDownloadUrl({
+          Bucket: process.env.AWS_S3_BUCKET!,
+          Key: s3Key,
+          expiresIn: 300,
+        });
+        console.log('Generated download URL for file type:', document.fileType);
+      }
+      
+      console.log('Returning presigned URL:', presignedUrl);
       return NextResponse.json({ presignedUrl });
     }
     // Otherwise, return the document data (text-based)

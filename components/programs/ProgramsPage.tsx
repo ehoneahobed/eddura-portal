@@ -128,7 +128,7 @@ export default function ProgramsPage() {
     } finally {
       setIsLoadingSchools(false);
     }
-  }, [schoolSearch, schoolPagination.currentPage, schoolPagination.limit]);
+  }, [schoolSearch, schoolPagination]);
 
   const filterPrograms = useCallback(() => {
     let filtered = [...programs];
@@ -191,7 +191,7 @@ export default function ProgramsPage() {
   // Initial fetch on mount
   useEffect(() => {
     fetchSchools();
-  }, []); // Only run on mount
+  }, [fetchSchools]); // Only run on mount
 
   // Fetch programs when a school is selected
   useEffect(() => {

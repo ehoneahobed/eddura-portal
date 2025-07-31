@@ -26,15 +26,20 @@ export enum DocumentType {
   INTERNSHIP_EXPERIENCE = 'internship_experience',
   RESEARCH_EXPERIENCE = 'research_experience',
   
-  // Reference Documents
+  // Reference Documents (Upload-based)
   REFERENCE_LETTER = 'reference_letter',
   RECOMMENDATION_LETTER = 'recommendation_letter',
   
-  // Coming Soon (Upload-based)
+  // Upload-based Documents
   SCHOOL_CERTIFICATE = 'school_certificate',
   TRANSCRIPT = 'transcript',
   DEGREE_CERTIFICATE = 'degree_certificate',
   LANGUAGE_CERTIFICATE = 'language_certificate',
+  TEST_SCORES = 'test_scores',
+  FINANCIAL_DOCUMENTS = 'financial_documents',
+  MEDICAL_RECORDS = 'medical_records',
+  LEGAL_DOCUMENTS = 'legal_documents',
+  AWARDS_HONORS = 'awards_honors',
   OTHER_CERTIFICATE = 'other_certificate'
 }
 
@@ -185,59 +190,99 @@ export const DOCUMENT_TYPE_CONFIG: Record<DocumentType, DocumentTypeConfig> = {
   },
   [DocumentType.REFERENCE_LETTER]: {
     label: 'Reference Letter',
-    description: 'A reference letter from a professional contact',
-    maxWords: 600,
-    placeholder: 'Write your reference letter here. Include your relationship to the person, their qualifications, and specific examples...',
-    category: 'reference',
-    guidelines: 'Include your relationship to the person, their qualifications, and specific examples of their work or character.'
+    description: 'Upload reference letters from professional contacts',
+    maxWords: 0,
+    placeholder: 'Upload your reference letter file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload official reference letters from employers, supervisors, or other professional contacts who can speak to your abilities and character.'
   },
   [DocumentType.RECOMMENDATION_LETTER]: {
     label: 'Recommendation Letter',
-    description: 'A recommendation letter from an academic or professional contact',
-    maxWords: 600,
-    placeholder: 'Write your recommendation letter here. Include your relationship, the person\'s qualifications, and specific examples...',
-    category: 'reference',
-    guidelines: 'Include your relationship, the person\'s qualifications, and specific examples of their academic or professional abilities.'
+    description: 'Upload recommendation letters from academic or professional contacts',
+    maxWords: 0,
+    placeholder: 'Upload your recommendation letter file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload official recommendation letters from teachers, professors, employers, or other qualified individuals who can recommend you.'
   },
   [DocumentType.SCHOOL_CERTIFICATE]: {
     label: 'School Certificate',
-    description: 'Upload your school certificates (Coming Soon)',
+    description: 'Upload your school certificates and diplomas',
     maxWords: 0,
-    placeholder: 'Document upload feature coming soon...',
+    placeholder: 'Upload your school certificate file (PDF, DOC, DOCX, TXT)',
     category: 'upload',
-    comingSoon: true
+    guidelines: 'Upload official school certificates, diplomas, or other academic credentials from your educational institutions.'
   },
   [DocumentType.TRANSCRIPT]: {
     label: 'Transcript',
-    description: 'Upload your academic transcripts (Coming Soon)',
+    description: 'Upload your academic transcripts and grade reports',
     maxWords: 0,
-    placeholder: 'Document upload feature coming soon...',
+    placeholder: 'Upload your academic transcript file (PDF, DOC, DOCX, TXT)',
     category: 'upload',
-    comingSoon: true
+    guidelines: 'Upload official academic transcripts, grade reports, or academic records from your educational institutions.'
   },
   [DocumentType.DEGREE_CERTIFICATE]: {
     label: 'Degree Certificate',
-    description: 'Upload your degree certificates (Coming Soon)',
+    description: 'Upload your degree certificates and diplomas',
     maxWords: 0,
-    placeholder: 'Document upload feature coming soon...',
+    placeholder: 'Upload your degree certificate file (PDF, DOC, DOCX, TXT)',
     category: 'upload',
-    comingSoon: true
+    guidelines: 'Upload official degree certificates, diplomas, or graduation certificates from universities and colleges.'
   },
   [DocumentType.LANGUAGE_CERTIFICATE]: {
     label: 'Language Certificate',
-    description: 'Upload your language proficiency certificates (Coming Soon)',
+    description: 'Upload your language proficiency certificates and test scores',
     maxWords: 0,
-    placeholder: 'Document upload feature coming soon...',
+    placeholder: 'Upload your language certificate file (PDF, DOC, DOCX, TXT)',
     category: 'upload',
-    comingSoon: true
+    guidelines: 'Upload language proficiency certificates, test scores (IELTS, TOEFL, etc.), or other language qualification documents.'
   },
   [DocumentType.OTHER_CERTIFICATE]: {
     label: 'Other Certificate',
-    description: 'Upload other relevant certificates (Coming Soon)',
+    description: 'Upload other relevant certificates and qualifications',
     maxWords: 0,
-    placeholder: 'Document upload feature coming soon...',
+    placeholder: 'Upload your certificate file (PDF, DOC, DOCX, TXT)',
     category: 'upload',
-    comingSoon: true
+    guidelines: 'Upload other relevant certificates, qualifications, awards, or professional credentials that support your applications.'
+  },
+  [DocumentType.TEST_SCORES]: {
+    label: 'Test Scores',
+    description: 'Upload standardized test scores and exam results',
+    maxWords: 0,
+    placeholder: 'Upload your test scores file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload official test scores for SAT, ACT, GRE, GMAT, TOEFL, IELTS, or other standardized tests required for your applications.'
+  },
+  [DocumentType.FINANCIAL_DOCUMENTS]: {
+    label: 'Financial Documents',
+    description: 'Upload financial statements and aid documents',
+    maxWords: 0,
+    placeholder: 'Upload your financial documents file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload bank statements, financial aid forms, scholarship award letters, or other financial documents required for your applications.'
+  },
+  [DocumentType.MEDICAL_RECORDS]: {
+    label: 'Medical Records',
+    description: 'Upload health certificates and medical documents',
+    maxWords: 0,
+    placeholder: 'Upload your medical records file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload health certificates, vaccination records, medical clearance forms, or other health-related documents required for your applications.'
+  },
+  [DocumentType.LEGAL_DOCUMENTS]: {
+    label: 'Legal Documents',
+    description: 'Upload legal identification and official documents',
+    maxWords: 0,
+    placeholder: 'Upload your legal documents file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload passports, visas, birth certificates, citizenship documents, or other legal identification required for your applications.'
+  },
+  [DocumentType.AWARDS_HONORS]: {
+    label: 'Awards & Honors',
+    description: 'Upload certificates for awards, honors, and recognition',
+    maxWords: 0,
+    placeholder: 'Upload your awards and honors file (PDF, DOC, DOCX, TXT)',
+    category: 'upload',
+    guidelines: 'Upload certificates, medals, recognition documents, or other proof of awards, honors, and achievements that support your applications.'
   }
 };
 

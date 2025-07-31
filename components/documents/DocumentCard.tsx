@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import AIGenerationModal from './AIGenerationModal';
 import AIRefinementModal from './AIRefinementModal';
 import ShareDocumentDialog from './ShareDocumentDialog';
 import DocumentFeedbackViewer from './DocumentFeedbackViewer';
+import DocumentPreviewDialog from './DocumentPreviewDialog';
 import Image from 'next/image';
 
 // Tooltip component for version explanation
@@ -44,6 +45,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
   const [aiRefinementModalOpen, setAiRefinementModalOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editData, setEditData] = useState({
     title: document.title || '',
@@ -57,11 +59,7 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
   });
 
   const [tagInput, setTagInput] = useState('');
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewText, setPreviewText] = useState<string | null>(null);
-  const previewTextFetched = useRef<string | null>(null);
 
   const typeConfig = DOCUMENT_TYPE_CONFIG[document.type];
   const wordCount = document.wordCount || 0;
@@ -268,28 +266,39 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
     }
   }, [document]);
 
-  // File preview logic
+  // Document preview logic
   const handlePreview = async () => {
     if (onPreview) {
       onPreview(document);
       return;
     }
-    if (!document.fileUrl) return;
-    setPreviewLoading(true);
-    try {
-      const res = await fetch(`/api/documents/${document._id}`);
-      if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || 'Failed to get preview link');
-        return;
+    
+    if (isUploadBased) {
+      // For upload-based documents, open file in new browser tab
+      if (!document.fileUrl) return;
+      
+      setPreviewLoading(true);
+      try {
+        // Get presigned URL for preview (without download headers)
+        const res = await fetch(`/api/documents/${document._id}?preview=true`);
+        if (!res.ok) {
+          const err = await res.json();
+          toast.error(err.error || 'Failed to get preview link');
+          return;
+        }
+        const { presignedUrl } = await res.json();
+        console.log('Opening presigned URL:', presignedUrl);
+        // Open file directly in new browser tab
+        window.open(presignedUrl, '_blank');
+      } catch (err) {
+        console.error('Preview error:', err);
+        toast.error('Failed to load file preview');
+      } finally {
+        setPreviewLoading(false);
       }
-      const { presignedUrl } = await res.json();
-      setPreviewUrl(presignedUrl);
-      setPreviewOpen(true);
-    } catch (err) {
-      toast.error('Failed to load file preview');
-    } finally {
-      setPreviewLoading(false);
+    } else {
+      // For text-based documents, open preview dialog
+      setPreviewDialogOpen(true);
     }
   };
 
@@ -303,35 +312,27 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
     setEditData(prev => ({ ...prev, content }));
   };
 
-  useEffect(() => {
-    if (previewOpen && previewUrl && document.fileType?.startsWith('text/')) {
-      // Fetch text content for text file preview
-      if (previewTextFetched.current === previewUrl) return;
-      fetch(previewUrl)
-        .then(res => res.text())
-        .then(text => {
-          setPreviewText(text);
-          previewTextFetched.current = previewUrl;
-        })
-        .catch(() => setPreviewText('Failed to load text preview.'));
-    } else {
-      setPreviewText(null);
-    }
-  }, [previewOpen, previewUrl, document.fileType]);
+
 
   return (
     <>
-      <Card className="h-full flex flex-col cursor-pointer" onClick={isUploadBased ? handlePreview : undefined}>
+      <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold truncate">
-                {document.title}
-              </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
-                {typeConfig?.label}
-              </CardDescription>
-            </div>
+                      <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg font-semibold truncate flex items-center gap-2">
+                  {document.title}
+                  {isUploadBased && (
+                    <Badge variant="outline" className="text-xs">
+                      <FileDown className="h-3 w-3 mr-1" />
+                      File
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  {typeConfig?.label}
+                </CardDescription>
+              </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -343,30 +344,56 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share for Feedback
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFeedbackDialogOpen(true)}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  View Feedback
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={copyToClipboard}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Content
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadDocument('pdf')} disabled={loading}>
-                  <FileDown className="h-4 w-4 mr-2" />
-                  Download as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadDocument('docx')} disabled={loading}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download as Word
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleFileDownload} disabled={loading}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download File
-                </DropdownMenuItem>
+                
+                {/* Text-based document options */}
+                {!isUploadBased && (
+                  <>
+                    <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share for Feedback
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFeedbackDialogOpen(true)}>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      View Feedback
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={copyToClipboard}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Content
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadDocument('pdf')} disabled={loading}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      Download as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadDocument('docx')} disabled={loading}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download as Word
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {/* Upload-based document options */}
+                {isUploadBased && (
+                  <>
+                    <DropdownMenuItem onClick={handlePreview} disabled={previewLoading}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      {previewLoading ? 'Loading...' : 'Preview File'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleFileDownload} disabled={loading}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download File
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                {/* Text-based document options */}
+                {!isUploadBased && (
+                  <>
+                    <DropdownMenuItem onClick={handlePreview}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview Document
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
@@ -418,11 +445,25 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
 
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
-                <FileText className="h-3 w-3" />
-                <span className="font-medium">{wordCount.toLocaleString()}</span> words
-              </span>
-              <span><span className="font-medium">{characterCount.toLocaleString()}</span> chars</span>
+              {isUploadBased ? (
+                <>
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    <span className="font-medium">{document.fileType || 'Unknown'}</span>
+                  </span>
+                  {document.fileSize && (
+                    <span><span className="font-medium">{(document.fileSize / 1024 / 1024).toFixed(1)}</span> MB</span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    <span className="font-medium">{wordCount.toLocaleString()}</span> words
+                  </span>
+                  <span><span className="font-medium">{characterCount.toLocaleString()}</span> chars</span>
+                </>
+              )}
             </div>
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
@@ -447,18 +488,39 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
           {/* Download Actions */}
           <div className="flex gap-2 mt-4 pt-3 border-t">
             {isUploadBased ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleFileDownload}
-                disabled={loading}
-                className="flex-1"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download File
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreview}
+                  disabled={previewLoading}
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {previewLoading ? 'Loading...' : 'Preview'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleFileDownload}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </>
             ) : (
               <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreview}
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -523,54 +585,83 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="edit-content">Content</Label>
-                <div className="flex items-center gap-2">
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">{editData.content?.trim().split(/\s+/).filter(word => word.length > 0).length || 0}</span> words, 
-                    <span className="font-medium"> {editData.content?.length.toLocaleString() || 0}</span> characters
-                  </div>
-                  <div className="flex gap-2">
-                    {editData.content?.trim() && (
+            {/* Content editing section - only for text-based documents */}
+            {!isUploadBased && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="edit-content">Content</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium">{editData.content?.trim().split(/\s+/).filter(word => word.length > 0).length || 0}</span> words, 
+                      <span className="font-medium"> {editData.content?.length.toLocaleString() || 0}</span> characters
+                    </div>
+                    <div className="flex gap-2">
+                      {editData.content?.trim() && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAiRefinementModalOpen(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          Refine with AI
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setAiRefinementModalOpen(true)}
+                        onClick={() => setAiModalOpen(true)}
                         className="flex items-center gap-2"
                       >
-                        <Edit3 className="h-4 w-4" />
-                        Refine with AI
+                        <Sparkles className="h-4 w-4" />
+                        Generate with AI
                       </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAiModalOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Generate with AI
-                    </Button>
+                    </div>
                   </div>
                 </div>
+                <Textarea
+                  id="edit-content"
+                  value={editData.content || ''}
+                  onChange={(e) => setEditData(prev => ({ ...prev, content: e.target.value }))}
+                  rows={12}
+                  className="font-mono text-sm resize-y"
+                />
+                {editData.content !== document.content && editData.content !== undefined && (
+                  <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
+                    <Clock className="h-4 w-4 inline mr-1" />
+                    Changing the content will increment the version number from v{document.version} to v{document.version + 1}
+                  </div>
+                )}
               </div>
-              <Textarea
-                id="edit-content"
-                value={editData.content || ''}
-                onChange={(e) => setEditData(prev => ({ ...prev, content: e.target.value }))}
-                rows={12}
-                className="font-mono text-sm resize-y"
-              />
-              {editData.content !== document.content && editData.content !== undefined && (
-                <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
-                  <Clock className="h-4 w-4 inline mr-1" />
-                  Changing the content will increment the version number from v{document.version} to v{document.version + 1}
+            )}
+
+            {/* File information section - only for upload-based documents */}
+            {isUploadBased && (
+              <div className="space-y-2">
+                <Label>File Information</Label>
+                <div className="bg-gray-50 p-4 rounded-md space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">File Type:</span>
+                    <span className="text-sm">{document.fileType || 'Unknown'}</span>
+                  </div>
+                  {document.fileSize && (
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">File Size:</span>
+                      <span className="text-sm">{(document.fileSize / 1024 / 1024).toFixed(1)} MB</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Upload Date:</span>
+                    <span className="text-sm">{formatDate(document.createdAt)}</span>
+                  </div>
                 </div>
-              )}
-            </div>
+                <p className="text-xs text-muted-foreground">
+                  File content cannot be edited. You can only modify metadata like title, description, and tags.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Tags</Label>
@@ -706,32 +797,17 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
         document={document}
       />
 
-      {/* File Preview Modal */}
-      {isUploadBased && (
-        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Preview: {document.title}</DialogTitle>
-            </DialogHeader>
-            {previewLoading ? (
-              <div className="text-center py-8">Loading preview...</div>
-            ) : previewUrl ? (
-              document.fileType?.includes('pdf') ? (
-                <iframe src={previewUrl} className="w-full h-[70vh] border rounded" />
-              ) : document.fileType?.startsWith('image/') ? (
-                <Image src={previewUrl} alt={document.title} className="max-h-[70vh] mx-auto rounded border" width={800} height={600} style={{ objectFit: 'contain' }} />
-              ) : document.fileType?.startsWith('text/') ? (
-                <pre className="bg-gray-100 p-4 rounded max-h-[70vh] overflow-auto whitespace-pre-wrap text-xs">{previewText ?? 'Loading text...'}</pre>
-              ) : (
-                <div className="text-center py-8">
-                  <p>Preview not supported for this file type.</p>
-                  <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download File</a>
-                </div>
-              )
-            ) : null}
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Document Preview Dialog for Text-based Documents */}
+      <DocumentPreviewDialog
+        document={document}
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        onEdit={() => setEditDialogOpen(true)}
+        onDownload={downloadDocument}
+        onShare={() => setShareDialogOpen(true)}
+        onViewFeedback={() => setFeedbackDialogOpen(true)}
+      />
+
     </>
   );
 }

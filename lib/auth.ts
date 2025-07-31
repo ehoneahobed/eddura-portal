@@ -236,7 +236,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 // Helper function to check if user has permission
 export function hasPermission(user: any, permission: string): boolean {
   if (!user || user.type !== "admin") return false;
-  return user.permissions?.includes(permission) || false;
+
+  const permissions = user.permissions;
+  // Handle both array and comma-separated string for permissions
+  if (Array.isArray(permissions)) {
+    return permissions.includes(permission);
+  }
+  if (typeof permissions === 'string') {
+    // Exact match on comma-separated permissions
+    return permissions.split(',').includes(permission);
+  }
+
+  return false;
 }
 
 // Helper function to check if user is admin
