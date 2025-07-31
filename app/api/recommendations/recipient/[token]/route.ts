@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import RecommendationRequest from '@/models/RecommendationRequest';
 import RecommendationLetter from '@/models/RecommendationLetter';
 import User from '@/models/User';
@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: { token: string } }
 ) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     // Find request by token
     const recommendationRequest = await RecommendationRequest.findOne({
@@ -62,7 +62,7 @@ export async function POST(
   { params }: { params: { token: string } }
 ) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     // Find request by token
     const recommendationRequest = await RecommendationRequest.findOne({
@@ -100,8 +100,10 @@ export async function POST(
       fileUrl,
       fileType,
       fileSize,
-      submittedBy: recommendationRequest.recipientId.email,
       submittedAt: new Date(),
+      submittedBy: recommendationRequest.recipientId._id,
+      isVerified: false,
+      version: 1
     });
 
     await recommendationLetter.save();

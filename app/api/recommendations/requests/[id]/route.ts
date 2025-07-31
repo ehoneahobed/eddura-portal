@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import RecommendationRequest from '@/models/RecommendationRequest';
 import Recipient from '@/models/Recipient';
 import User from '@/models/User';
@@ -21,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
     
     // Get user
     const user = await User.findOne({ email: session.user.email });
@@ -67,7 +67,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
     
     // Get user
     const user = await User.findOne({ email: session.user.email });
@@ -158,7 +158,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
     
     // Get user
     const user = await User.findOne({ email: session.user.email });
