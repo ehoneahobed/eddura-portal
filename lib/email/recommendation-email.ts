@@ -12,8 +12,16 @@ export async function sendRecommendationRequest(
   requestTitle: string,
   deadline: Date,
   secureToken: string,
+  requestType: string,
+  submissionMethod: string,
+  communicationStyle: string,
+  relationshipContext: string,
+  institutionName?: string,
+  schoolEmail?: string,
+  schoolInstructions?: string,
   includeDraft: boolean = false,
-  draftContent?: string
+  draftContent?: string,
+  additionalContext?: string
 ) {
   const deadlineFormatted = deadline.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -25,30 +33,106 @@ export async function sendRecommendationRequest(
 
   const subject = `Recommendation Letter Request - ${studentName}`;
 
+  // Generate appropriate greeting based on communication style
+  const getGreeting = () => {
+    switch (communicationStyle) {
+      case 'formal':
+        return `Dear ${recipientName},`;
+      case 'friendly':
+        return `Hi ${recipientName},`;
+      default: // polite
+        return `Dear ${recipientName},`;
+    }
+  };
+
+  // Generate appropriate closing based on communication style
+  const getClosing = () => {
+    switch (communicationStyle) {
+      case 'formal':
+        return 'Thank you for your time and consideration.\n\nBest regards,\nThe Eddura Team';
+      case 'friendly':
+        return 'Thank you so much for your help!\n\nBest regards,\nThe Eddura Team';
+      default: // polite
+        return 'Thank you for your time and consideration.\n\nBest regards,\nThe Eddura Team';
+    }
+  };
+
+  // Generate context paragraph based on relationship
+  const getContextParagraph = () => {
+    const baseContext = `I hope this email finds you well. ${studentName} has requested a recommendation letter from you for the following purpose:`;
+    
+    if (relationshipContext) {
+      return `${baseContext}\n\n${studentName} mentioned that ${relationshipContext.toLowerCase()}.`;
+    }
+    
+    return baseContext;
+  };
+
+  // Generate submission instructions based on type
+  const getSubmissionInstructions = () => {
+    if (requestType === 'school_direct' && submissionMethod === 'school_only') {
+      return `
+        <p><strong>Important:</strong> The institution (${institutionName || 'the school'}) will be sending you a direct email with their own submission link. Please use their provided link to submit your recommendation letter.</p>
+        
+        <p>This platform is being used to provide you with the student's information and any supporting materials to help you write the recommendation letter.</p>
+      `;
+    } else if (requestType === 'hybrid' && submissionMethod === 'both') {
+      return `
+        <p><strong>Submission Options:</strong></p>
+        <ul>
+          <li>You can submit through this platform using the link below</li>
+          <li>OR submit directly to the institution (${institutionName || 'the school'}) when they send you their email</li>
+          <li>If possible, please provide a copy to ${studentName} as well</li>
+        </ul>
+      `;
+    } else {
+      return `
+        <p>To submit your recommendation letter, please click the button below:</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${portalUrl}" 
+             style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            Submit Recommendation Letter
+          </a>
+        </div>
+        
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #666;">${portalUrl}</p>
+      `;
+    }
+  };
+
+  // Generate school-specific information
+  const getSchoolInfo = () => {
+    if (institutionName || schoolEmail || schoolInstructions) {
+      return `
+        <div style="background-color: #e3f2fd; border: 1px solid #2196f3; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h4 style="margin-top: 0; color: #1976d2;">Institution Information</h4>
+          ${institutionName ? `<p><strong>Institution:</strong> ${institutionName}</p>` : ''}
+          ${schoolEmail ? `<p><strong>School Email:</strong> ${schoolEmail}</p>` : ''}
+          ${schoolInstructions ? `<p><strong>School Instructions:</strong> ${schoolInstructions}</p>` : ''}
+        </div>
+      `;
+    }
+    return '';
+  };
+
   let htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #333;">Recommendation Letter Request</h2>
       
-      <p>Dear ${recipientName},</p>
+      <p>${getGreeting()}</p>
       
-      <p>${studentName} has requested a recommendation letter from you for the following purpose:</p>
+      <p>${getContextParagraph()}</p>
       
       <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
         <h3 style="margin-top: 0;">${requestTitle}</h3>
         <p><strong>Deadline:</strong> ${deadlineFormatted}</p>
       </div>
       
-      <p>To submit your recommendation letter, please click the button below:</p>
+      ${getSchoolInfo()}
       
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${portalUrl}" 
-           style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Submit Recommendation Letter
-        </a>
-      </div>
-      
-      <p>Or copy and paste this link into your browser:</p>
-      <p style="word-break: break-all; color: #666;">${portalUrl}</p>
+      ${getSubmissionInstructions()}
       
       <p>This link will expire on ${deadlineFormatted}.</p>
       
@@ -62,9 +146,14 @@ export async function sendRecommendationRequest(
         </div>
       ` : ''}
       
-      <p>Thank you for your time and consideration.</p>
+      ${additionalContext ? `
+        <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h4 style="margin-top: 0;">Additional Context</h4>
+          <p>${additionalContext}</p>
+        </div>
+      ` : ''}
       
-      <p>Best regards,<br>The Eddura Team</p>
+      <p>${getClosing()}</p>
       
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
       <p style="font-size: 12px; color: #666;">
@@ -104,7 +193,10 @@ export async function sendRecommendationReminder(
   requestTitle: string,
   deadline: Date,
   secureToken: string,
-  daysUntilDeadline: number
+  daysUntilDeadline: number,
+  requestType: string,
+  submissionMethod: string,
+  institutionName?: string
 ) {
   const deadlineFormatted = deadline.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -115,6 +207,28 @@ export async function sendRecommendationReminder(
   const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/recommendation/${secureToken}`;
 
   const subject = `Reminder: Recommendation Letter for ${studentName} - Due in ${daysUntilDeadline} day${daysUntilDeadline > 1 ? 's' : ''}`;
+
+  const getSubmissionInstructions = () => {
+    if (requestType === 'school_direct' && submissionMethod === 'school_only') {
+      return `
+        <p><strong>Reminder:</strong> The institution (${institutionName || 'the school'}) should be sending you a direct email with their submission link. Please check your email for their request.</p>
+      `;
+    } else {
+      return `
+        <p>To submit your recommendation letter, please click the button below:</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${portalUrl}" 
+             style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            Submit Recommendation Letter
+          </a>
+        </div>
+        
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #666;">${portalUrl}</p>
+      `;
+    }
+  };
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -130,17 +244,7 @@ export async function sendRecommendationReminder(
         <p><strong>Time remaining:</strong> ${daysUntilDeadline} day${daysUntilDeadline > 1 ? 's' : ''}</p>
       </div>
       
-      <p>To submit your recommendation letter, please click the button below:</p>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${portalUrl}" 
-           style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Submit Recommendation Letter
-        </a>
-      </div>
-      
-      <p>Or copy and paste this link into your browser:</p>
-      <p style="word-break: break-all; color: #666;">${portalUrl}</p>
+      ${getSubmissionInstructions()}
       
       <p>Thank you for your time and consideration.</p>
       

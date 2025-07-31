@@ -77,13 +77,21 @@ export async function POST(request: NextRequest) {
       draftContent,
       applicationId,
       scholarshipId,
-      reminderIntervals 
+      reminderIntervals,
+      requestType,
+      submissionMethod,
+      communicationStyle,
+      relationshipContext,
+      additionalContext,
+      institutionName,
+      schoolEmail,
+      schoolInstructions
     } = body;
 
     // Validate required fields
-    if (!recipientId || !title || !description || !deadline) {
+    if (!recipientId || !title || !description || !deadline || !relationshipContext) {
       return NextResponse.json(
-        { error: 'Missing required fields: recipientId, title, description, deadline' },
+        { error: 'Missing required fields: recipientId, title, description, deadline, relationshipContext' },
         { status: 400 }
       );
     }
@@ -119,6 +127,14 @@ export async function POST(request: NextRequest) {
       description,
       deadline: deadlineDate,
       priority: priority || 'medium',
+      requestType: requestType || 'direct_platform',
+      submissionMethod: submissionMethod || 'platform_only',
+      communicationStyle: communicationStyle || 'polite',
+      relationshipContext,
+      additionalContext,
+      institutionName,
+      schoolEmail,
+      schoolInstructions,
       includeDraft: includeDraft || false,
       draftContent,
       applicationId,

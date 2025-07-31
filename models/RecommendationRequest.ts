@@ -16,9 +16,21 @@ export interface IRecommendationRequest extends Document {
   deadline: Date;
   priority: 'low' | 'medium' | 'high';
   
+  // Request Type and Submission Method
+  requestType: 'direct_platform' | 'school_direct' | 'hybrid';
+  submissionMethod: 'platform_only' | 'school_only' | 'both';
+  schoolEmail?: string; // Email that school will send to professor
+  schoolInstructions?: string; // Specific instructions from school
+  institutionName?: string; // Name of the institution/school
+  
   // Recipient Preferences
   includeDraft: boolean;
   draftContent?: string;
+  
+  // Communication Preferences
+  communicationStyle: 'formal' | 'polite' | 'friendly';
+  relationshipContext: string; // How student knows the professor
+  additionalContext?: string; // Any additional context for the professor
   
   // Status Tracking
   status: 'pending' | 'sent' | 'received' | 'overdue' | 'cancelled';
@@ -85,11 +97,47 @@ const recommendationRequestSchema = new Schema<IRecommendationRequest>({
     enum: ['low', 'medium', 'high'],
     default: 'medium',
   },
+  requestType: {
+    type: String,
+    enum: ['direct_platform', 'school_direct', 'hybrid'],
+    default: 'direct_platform',
+  },
+  submissionMethod: {
+    type: String,
+    enum: ['platform_only', 'school_only', 'both'],
+    default: 'platform_only',
+  },
+  schoolEmail: {
+    type: String,
+    trim: true,
+  },
+  schoolInstructions: {
+    type: String,
+    trim: true,
+  },
+  institutionName: {
+    type: String,
+    trim: true,
+  },
   includeDraft: {
     type: Boolean,
     default: false,
   },
   draftContent: {
+    type: String,
+    trim: true,
+  },
+  communicationStyle: {
+    type: String,
+    enum: ['formal', 'polite', 'friendly'],
+    default: 'polite',
+  },
+  relationshipContext: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  additionalContext: {
     type: String,
     trim: true,
   },

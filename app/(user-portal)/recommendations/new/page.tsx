@@ -12,7 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Wand2, Users, Plus, Loader2 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CalendarIcon, Wand2, Users, Plus, Loader2, Info, Mail, Building } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -54,6 +55,15 @@ export default function NewRecommendationPage() {
     relationship: '',
     customInstructions: '',
     reminderIntervals: [7, 3, 1],
+    // New fields for different scenarios
+    requestType: 'direct_platform',
+    submissionMethod: 'platform_only',
+    communicationStyle: 'polite',
+    relationshipContext: '',
+    additionalContext: '',
+    institutionName: '',
+    schoolEmail: '',
+    schoolInstructions: '',
   });
 
   useEffect(() => {
@@ -134,7 +144,7 @@ export default function NewRecommendationPage() {
       return;
     }
 
-    if (!formData.recipientId || !formData.title || !formData.description) {
+    if (!formData.recipientId || !formData.title || !formData.description || !formData.relationshipContext) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -244,6 +254,209 @@ export default function NewRecommendationPage() {
                   </Button>
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Request Type and Submission Method */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              Request Type & Submission Method
+            </CardTitle>
+            <CardDescription>
+              Choose how the recommendation letter will be submitted
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <Label className="text-base font-medium mb-3 block">Request Type *</Label>
+              <RadioGroup 
+                value={formData.requestType} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, requestType: value }))}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="direct_platform" id="direct_platform" />
+                  <Label htmlFor="direct_platform" className="flex-1">
+                    <div className="font-medium">Direct Platform Submission</div>
+                    <div className="text-sm text-gray-600">
+                      The professor will submit the letter through our platform
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="school_direct" id="school_direct" />
+                  <Label htmlFor="school_direct" className="flex-1">
+                    <div className="font-medium">School/Institution Direct</div>
+                    <div className="text-sm text-gray-600">
+                      The school will send the professor their own submission link
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="hybrid" id="hybrid" />
+                  <Label htmlFor="hybrid" className="flex-1">
+                    <div className="font-medium">Hybrid Approach</div>
+                    <div className="text-sm text-gray-600">
+                      Both platform and school submission options available
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div>
+              <Label className="text-base font-medium mb-3 block">Submission Method *</Label>
+              <RadioGroup 
+                value={formData.submissionMethod} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, submissionMethod: value }))}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="platform_only" id="platform_only" />
+                  <Label htmlFor="platform_only" className="flex-1">
+                    <div className="font-medium">Platform Only</div>
+                    <div className="text-sm text-gray-600">
+                      Submit through our platform only
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="school_only" id="school_only" />
+                  <Label htmlFor="school_only" className="flex-1">
+                    <div className="font-medium">School Only</div>
+                    <div className="text-sm text-gray-600">
+                      Submit through school's system only (we provide context)
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="both" id="both" />
+                  <Label htmlFor="both" className="flex-1">
+                    <div className="font-medium">Both Options</div>
+                    <div className="text-sm text-gray-600">
+                      Professor can choose platform or school submission
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* School/Institution Information */}
+            {(formData.requestType === 'school_direct' || formData.requestType === 'hybrid') && (
+              <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-blue-600" />
+                  <h4 className="font-medium text-blue-900">School/Institution Information</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="institutionName">Institution Name</Label>
+                    <Input
+                      id="institutionName"
+                      value={formData.institutionName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, institutionName: e.target.value }))}
+                      placeholder="e.g., Stanford University"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="schoolEmail">School Email (if known)</Label>
+                    <Input
+                      id="schoolEmail"
+                      value={formData.schoolEmail}
+                      onChange={(e) => setFormData(prev => ({ ...prev, schoolEmail: e.target.value }))}
+                      placeholder="e.g., recommendations@stanford.edu"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="schoolInstructions">School Instructions (if provided)</Label>
+                  <Textarea
+                    id="schoolInstructions"
+                    value={formData.schoolInstructions}
+                    onChange={(e) => setFormData(prev => ({ ...prev, schoolInstructions: e.target.value }))}
+                    placeholder="Any specific instructions from the school..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Communication Style */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Communication Style
+            </CardTitle>
+            <CardDescription>
+              Choose how formal or friendly the communication should be
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-base font-medium mb-3 block">Communication Tone *</Label>
+                <RadioGroup 
+                  value={formData.communicationStyle} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, communicationStyle: value }))}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="formal" id="formal" />
+                    <Label htmlFor="formal" className="flex-1">
+                      <div className="font-medium">Formal</div>
+                      <div className="text-sm text-gray-600">
+                        Very professional and formal language
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="polite" id="polite" />
+                    <Label htmlFor="polite" className="flex-1">
+                      <div className="font-medium">Polite</div>
+                      <div className="text-sm text-gray-600">
+                        Professional but warm and courteous
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="friendly" id="friendly" />
+                    <Label htmlFor="friendly" className="flex-1">
+                      <div className="font-medium">Friendly</div>
+                      <div className="text-sm text-gray-600">
+                        Warm and friendly, for close relationships
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label htmlFor="relationshipContext">How do you know this person? *</Label>
+                <Textarea
+                  id="relationshipContext"
+                  value={formData.relationshipContext}
+                  onChange={(e) => setFormData(prev => ({ ...prev, relationshipContext: e.target.value }))}
+                  placeholder="e.g., I was a student in their Advanced Mathematics course last semester, or I worked as a research assistant under their supervision for 6 months..."
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="additionalContext">Additional Context (Optional)</Label>
+                <Textarea
+                  id="additionalContext"
+                  value={formData.additionalContext}
+                  onChange={(e) => setFormData(prev => ({ ...prev, additionalContext: e.target.value }))}
+                  placeholder="Any additional information that might help the professor write a better recommendation..."
+                  rows={3}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
