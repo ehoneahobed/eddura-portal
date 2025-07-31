@@ -1,0 +1,464 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Wand2, Users, Plus, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+interface Recipient {
+  _id: string;
+  name: string;
+  email: string;
+  title: string;
+  institution: string;
+  department?: string;
+  prefersDrafts: boolean;
+}
+
+interface DraftTemplate {
+  id: string;
+  name: string;
+  description: string;
+  fields: string[];
+}
+
+export default function NewRecommendationPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [generatingDraft, setGeneratingDraft] = useState(false);
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [templates, setTemplates] = useState<DraftTemplate[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [includeDraft, setIncludeDraft] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('academic');
+
+  const [formData, setFormData] = useState({
+    recipientId: '',
+    title: '',
+    description: '',
+    priority: 'medium',
+    purpose: '',
+    highlights: '',
+    relationship: '',
+    customInstructions: '',
+    reminderIntervals: [7, 3, 1],
+  });
+
+  useEffect(() => {
+    fetchRecipients();
+    fetchTemplates();
+  }, []);
+
+  const fetchRecipients = async () => {
+    try {
+      const response = await fetch('/api/recommendations/recipients');
+      const data = await response.json();
+      if (response.ok) {
+        setRecipients(data.recipients);
+      }
+    } catch (error) {
+      console.error('Error fetching recipients:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetch('/api/recommendations/generate-draft');
+      const data = await response.json();
+      if (response.ok) {
+        setTemplates(data.templates);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const generateDraft = async () => {
+    if (!formData.recipientId || !formData.purpose) {
+      toast.error('Please select a recipient and provide a purpose for the draft generation');
+      return;
+    }
+
+    setGeneratingDraft(true);
+    try {
+      const response = await fetch('/api/recommendations/generate-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipientId: formData.recipientId,
+          purpose: formData.purpose,
+          highlights: formData.highlights,
+          relationship: formData.relationship,
+          templateType: selectedTemplate,
+          customInstructions: formData.customInstructions,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setFormData(prev => ({
+          ...prev,
+          description: data.draft,
+        }));
+        toast.success('Draft generated successfully!');
+      } else {
+        toast.error(data.error || 'Failed to generate draft');
+      }
+    } catch (error) {
+      console.error('Error generating draft:', error);
+      toast.error('Failed to generate draft');
+    } finally {
+      setGeneratingDraft(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedDate) {
+      toast.error('Please select a deadline');
+      return;
+    }
+
+    if (!formData.recipientId || !formData.title || !formData.description) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/recommendations/requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          deadline: selectedDate.toISOString(),
+          includeDraft,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success('Recommendation request created successfully!');
+        router.push('/recommendations');
+      } else {
+        toast.error(data.error || 'Failed to create request');
+      }
+    } catch (error) {
+      console.error('Error creating request:', error);
+      toast.error('Failed to create request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedRecipient = recipients.find(r => r._id === formData.recipientId);
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">New Recommendation Request</h1>
+        <p className="text-gray-600 mt-2">
+          Create a new recommendation letter request with AI-powered draft generation
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Recipient Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Select Recipient
+            </CardTitle>
+            <CardDescription>
+              Choose the professor, supervisor, or manager who will write your recommendation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="recipient">Recipient *</Label>
+                <Select value={formData.recipientId} onValueChange={(value) => setFormData(prev => ({ ...prev, recipientId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a recipient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recipients.map((recipient) => (
+                      <SelectItem key={recipient._id} value={recipient._id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{recipient.name}</span>
+                          <span className="text-sm text-gray-500">
+                            {recipient.title} • {recipient.institution}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedRecipient && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">{selectedRecipient.name}</h4>
+                      <p className="text-sm text-gray-600">
+                        {selectedRecipient.title} • {selectedRecipient.institution}
+                      </p>
+                      {selectedRecipient.department && (
+                        <p className="text-sm text-gray-600">{selectedRecipient.department}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={selectedRecipient.prefersDrafts ? 'default' : 'secondary'}>
+                        {selectedRecipient.prefersDrafts ? 'Prefers Drafts' : 'No Drafts'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {recipients.length === 0 && (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 mb-2">No recipients found</p>
+                  <Button type="button" variant="outline" onClick={() => router.push('/recommendations/recipients')}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Recipient
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Request Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Request Details</CardTitle>
+            <CardDescription>
+              Provide information about your recommendation request
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="title">Request Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="e.g., Recommendation for Master's Program Application"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="purpose">Purpose *</Label>
+              <Input
+                id="purpose"
+                value={formData.purpose}
+                onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
+                placeholder="e.g., Applying for Master's in Computer Science at Stanford"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Deadline *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      initialFocus
+                      disabled={(date) => date < new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Draft Generation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5" />
+              AI Draft Generation
+            </CardTitle>
+            <CardDescription>
+              Generate a professional draft using AI to help your recipient
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="include-draft"
+                checked={includeDraft}
+                onCheckedChange={setIncludeDraft}
+              />
+              <Label htmlFor="include-draft">Include AI-generated draft</Label>
+            </div>
+
+            {includeDraft && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="template">Template Type</Label>
+                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="relationship">Your Relationship</Label>
+                  <Input
+                    id="relationship"
+                    value={formData.relationship}
+                    onChange={(e) => setFormData(prev => ({ ...prev, relationship: e.target.value }))}
+                    placeholder="e.g., Student, Research Assistant, Intern"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="highlights">Key Achievements & Highlights</Label>
+                  <Textarea
+                    id="highlights"
+                    value={formData.highlights}
+                    onChange={(e) => setFormData(prev => ({ ...prev, highlights: e.target.value }))}
+                    placeholder="List your key achievements, skills, and experiences that should be highlighted"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="custom-instructions">Custom Instructions (Optional)</Label>
+                  <Textarea
+                    id="custom-instructions"
+                    value={formData.customInstructions}
+                    onChange={(e) => setFormData(prev => ({ ...prev, customInstructions: e.target.value }))}
+                    placeholder="Any specific instructions or preferences for the draft"
+                    rows={2}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={generateDraft}
+                  disabled={generatingDraft || !formData.recipientId || !formData.purpose}
+                  className="w-full"
+                >
+                  {generatingDraft ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Draft...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate Draft
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Description */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Description</CardTitle>
+            <CardDescription>
+              Provide additional context for your recommendation request
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Provide detailed information about your request, achievements, and any specific points you'd like the recommender to address..."
+                rows={6}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Submit */}
+        <div className="flex justify-end gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/recommendations')}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Request...
+              </>
+            ) : (
+              'Create Request'
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
