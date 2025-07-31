@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         results.errors++;
         results.details.push({
           requestId: request._id,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }

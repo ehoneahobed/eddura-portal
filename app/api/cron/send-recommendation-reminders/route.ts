@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         results.processed++;
 
         // Skip if no recipient or email
-        if (!request.recipientId || !request.recipientId.primaryEmail) {
+        if (!request.recipientId || !(request.recipientId as any).primaryEmail) {
           results.errors++;
           results.details.push({
             requestId: request._id,
@@ -67,9 +67,9 @@ export async function GET(request: NextRequest) {
 
         // Send reminder email
         await sendRecommendationReminder(
-          request.recipientId.primaryEmail,
-          request.recipientId.name,
-          request.studentId?.name || request.studentId?.email || 'Student',
+          (request.recipientId as any).primaryEmail,
+          (request.recipientId as any).name,
+          (request.studentId as any)?.name || (request.studentId as any)?.email || 'Student',
           request.title,
           request.deadline,
           request.secureToken,
@@ -96,14 +96,14 @@ export async function GET(request: NextRequest) {
           );
         } else {
           // No more reminders scheduled
-          request.nextReminderDate = null;
+          request.nextReminderDate = undefined;
         }
 
         await request.save();
         results.sent++;
         results.details.push({
           requestId: request._id,
-          recipientEmail: request.recipientId.primaryEmail,
+          recipientEmail: (request.recipientId as any).primaryEmail,
           daysUntilDeadline,
           urgencyLevel
         });

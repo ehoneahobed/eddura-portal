@@ -23,6 +23,8 @@ interface Recipient {
   officeAddress?: string;
   prefersDrafts: boolean;
   preferredCommunicationMethod: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface EditRecipientModalProps {

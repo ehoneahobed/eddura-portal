@@ -19,7 +19,12 @@ interface Recipient {
   title: string;
   institution: string;
   department?: string;
+  phoneNumber?: string;
+  officeAddress?: string;
   prefersDrafts: boolean;
+  preferredCommunicationMethod: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AddRecipientModalProps {

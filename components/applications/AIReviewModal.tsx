@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -103,14 +103,7 @@ export default function AIReviewModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch existing review on mount
-  useEffect(() => {
-    if (open && applicationId && requirementId) {
-      fetchReview();
-    }
-  }, [open, applicationId, requirementId]);
-
-  const fetchReview = async () => {
+  const fetchReview = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -128,7 +121,14 @@ export default function AIReviewModal({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [applicationId, requirementId]);
+
+  // Fetch existing review on mount
+  useEffect(() => {
+    if (open && applicationId && requirementId) {
+      fetchReview();
+    }
+  }, [open, applicationId, requirementId, fetchReview]);
 
   const generateReview = async () => {
     setIsGenerating(true);

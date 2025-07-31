@@ -22,7 +22,8 @@ import SearchableRecipientSelect from '@/components/recommendations/SearchableRe
 interface Recipient {
   _id: string;
   name: string;
-  email: string;
+  emails: string[];
+  primaryEmail: string;
   title: string;
   institution: string;
   department?: string;
@@ -323,7 +324,7 @@ export default function NewRecommendationPage() {
                   <Label htmlFor="school_only" className="flex-1">
                     <div className="font-medium">School Only</div>
                     <div className="text-sm text-gray-600">
-                      Submit through school's system only (we provide context)
+                      Submit through school&apos;s system only (we provide context)
                     </div>
                   </Label>
                 </div>

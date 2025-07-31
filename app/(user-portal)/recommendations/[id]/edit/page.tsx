@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,8 @@ import SearchableRecipientSelect from '@/components/recommendations/SearchableRe
 interface Recipient {
   _id: string;
   name: string;
-  email: string;
+  emails: string[];
+  primaryEmail: string;
   title: string;
   institution: string;
   department?: string;
@@ -85,14 +86,7 @@ export default function EditRecommendationPage() {
     schoolInstructions: '',
   });
 
-  useEffect(() => {
-    if (params.id) {
-      fetchRequest();
-      fetchRecipients();
-    }
-  }, [params.id]);
-
-  const fetchRequest = async () => {
+  const fetchRequest = useCallback(async () => {
     try {
       const response = await fetch(`/api/recommendations/requests/${params.id}`);
       const data = await response.json();
@@ -130,7 +124,14 @@ export default function EditRecommendationPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchRequest();
+      fetchRecipients();
+    }
+  }, [params.id, fetchRequest]);
 
   const fetchRecipients = async () => {
     try {
@@ -385,7 +386,7 @@ export default function EditRecommendationPage() {
                   <Label htmlFor="school_only" className="flex-1">
                     <div className="font-medium">School Only</div>
                     <div className="text-sm text-gray-600">
-                      Submit through school's system only (we provide context)
+                      Submit through school&apos;s system only (we provide context)
                     </div>
                   </Label>
                 </div>

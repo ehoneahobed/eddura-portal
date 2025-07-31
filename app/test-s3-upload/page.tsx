@@ -73,7 +73,7 @@ export default function TestS3UploadPage() {
         {
           name: 'No Headers',
           body: await selectedFile.arrayBuffer(),
-          headers: {}
+          headers: undefined
         }
       ];
 

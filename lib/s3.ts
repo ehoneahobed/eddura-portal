@@ -61,10 +61,12 @@ export async function getPresignedDownloadUrl({
   Bucket,
   Key,
   expiresIn = 300, // 5 minutes
+  forceDownload = true,
 }: {
   Bucket: string;
   Key: string;
   expiresIn?: number;
+  forceDownload?: boolean;
 }) {
   try {
     // Validate inputs
@@ -75,7 +77,7 @@ export async function getPresignedDownloadUrl({
     const command = new GetObjectCommand({
       Bucket,
       Key,
-      ResponseContentDisposition: 'attachment',
+      ...(forceDownload && { ResponseContentDisposition: 'attachment' }),
     });
     
     return await getSignedUrl(s3, command, { expiresIn });

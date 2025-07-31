@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import { 
   Dialog,
   DialogContent,
@@ -27,7 +28,9 @@ import {
   Edit,
   Trash2,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Download,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -70,21 +73,29 @@ interface RecommendationRequest {
   tokenExpiresAt: string | Date;
 }
 
+interface RecommendationLetter {
+  _id: string;
+  content?: string;
+  fileName?: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: number;
+  submittedAt: string;
+  version: number;
+}
+
 export default function RecommendationDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const [request, setRequest] = useState<RecommendationRequest | null>(null);
+  const [recommendationLetter, setRecommendationLetter] = useState<RecommendationLetter | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [showSubmissionLink, setShowSubmissionLink] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isViewing, setIsViewing] = useState(false);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchRequest();
-    }
-  }, [params.id]);
-
-  const fetchRequest = async () => {
+  const fetchRequest = useCallback(async () => {
     try {
       console.log('Fetching request with ID:', params.id);
       const response = await fetch(`/api/recommendations/requests/${params.id}`);
@@ -94,6 +105,7 @@ export default function RecommendationDetailsPage() {
       
       if (response.ok) {
         setRequest(data.request);
+        setRecommendationLetter(data.recommendationLetter || null);
       } else {
         console.error('API Error:', data);
         toast.error(data.error || 'Failed to fetch request details');
@@ -106,7 +118,13 @@ export default function RecommendationDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchRequest();
+    }
+  }, [params.id, fetchRequest]);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this recommendation request? This action cannot be undone.')) {
@@ -259,7 +277,7 @@ export default function RecommendationDetailsPage() {
                 <li>Send this link to your recipient via email</li>
                 <li>The link will expire on {formatDate(request?.tokenExpiresAt || '')}</li>
                 <li>Recipients can upload their recommendation letter directly</li>
-                <li>You'll be notified when the letter is submitted</li>
+                <li>You&apos;ll be notified when the letter is submitted</li>
               </ul>
             </div>
 
@@ -291,7 +309,7 @@ export default function RecommendationDetailsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Request Not Found</h1>
-          <p className="text-gray-600 mb-6">The recommendation request you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-6">The recommendation request you&apos;re looking for doesn&apos;t exist.</p>
           <Link href="/recommendations">
             <Button>
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -421,6 +439,114 @@ export default function RecommendationDetailsPage() {
                     <p className="text-gray-700 whitespace-pre-wrap">{request.schoolInstructions}</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Recommendation Letter */}
+          {request.status === 'received' && recommendationLetter && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Received Recommendation Letter
+                </CardTitle>
+                <CardDescription>
+                  Your recommendation letter has been submitted successfully.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">Submitted Document</Label>
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-5 w-5 text-gray-600" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {recommendationLetter?.fileName || 'Recommendation Letter'}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Submitted on {recommendationLetter?.submittedAt ? format(new Date(recommendationLetter.submittedAt), 'PPP') : 'Unknown date'}
+                      </p>
+                      {recommendationLetter?.fileSize && (
+                        <p className="text-xs text-gray-500">
+                          File size: {(recommendationLetter.fileSize / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
+                    </div>
+                    {recommendationLetter?.fileUrl && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-gray-500">
+                          Click &quot;View&quot; to open the document in your browser, or &quot;Download&quot; to save it to your device.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isDownloading}
+                            onClick={async () => {
+                              setIsDownloading(true);
+                              try {
+                                const response = await fetch(`/api/recommendations/requests/${request._id}/download`);
+                                if (response.ok) {
+                                  const data = await response.json();
+                                  window.open(data.downloadUrl, '_blank');
+                                } else {
+                                  const error = await response.json();
+                                  toast.error(error.error || 'Failed to generate download link');
+                                }
+                              } catch (error) {
+                                console.error('Error generating download URL:', error);
+                                toast.error('Failed to generate download link');
+                              } finally {
+                                setIsDownloading(false);
+                              }
+                            }}
+                          >
+                            {isDownloading ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4 mr-2" />
+                            )}
+                            {isDownloading ? 'Generating...' : 'Download'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isViewing}
+                            onClick={async () => {
+                              setIsViewing(true);
+                              try {
+                                const response = await fetch(`/api/recommendations/requests/${request._id}/view`);
+                                if (response.ok) {
+                                  const data = await response.json();
+                                  // Open in new tab for viewing (browser will handle PDF display)
+                                  window.open(data.viewUrl, '_blank');
+                                } else {
+                                  const error = await response.json();
+                                  toast.error(error.error || 'Failed to generate view link');
+                                }
+                              } catch (error) {
+                                console.error('Error generating view URL:', error);
+                                toast.error('Failed to generate view link');
+                              } finally {
+                                setIsViewing(false);
+                              }
+                            }}
+                          >
+                            {isViewing ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <FileText className="h-4 w-4 mr-2" />
+                            )}
+                            {isViewing ? 'Generating...' : 'View'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -556,46 +682,48 @@ export default function RecommendationDetailsPage() {
           </Card>
 
           {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {request.status === 'pending' && (
-                <Link href={`/recommendations/${request._id}/edit`} className="w-full">
-                  <Button className="w-full">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Request
-                  </Button>
-                </Link>
-              )}
-              
-              <Button variant="outline" className="w-full">
-                <Mail className="h-4 w-4 mr-2" />
-                Send Reminder
-              </Button>
+          {request.status !== 'received' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {request.status === 'pending' && (
+                  <Link href={`/recommendations/${request._id}/edit`} className="w-full">
+                    <Button className="w-full">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Request
+                    </Button>
+                  </Link>
+                )}
+                
+                <Button variant="outline" className="w-full">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Reminder
+                </Button>
 
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={handleViewSubmissionLink}
-                disabled={!request?.secureToken}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Submission Link
-              </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleViewSubmissionLink}
+                  disabled={!request?.secureToken}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Submission Link
+                </Button>
 
-              <Button 
-                variant="destructive" 
-                className="w-full"
-                onClick={handleDelete}
-                disabled={deleting}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? 'Deleting...' : 'Delete Request'}
-              </Button>
-            </CardContent>
-          </Card>
+                <Button 
+                  variant="destructive" 
+                  className="w-full"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deleting ? 'Deleting...' : 'Delete Request'}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -633,7 +761,7 @@ export default function RecommendationDetailsPage() {
                 <li>Send this link to your recipient via email</li>
                 <li>The link will expire on {formatDate(request?.tokenExpiresAt || '')}</li>
                 <li>Recipients can upload their recommendation letter directly</li>
-                <li>You'll be notified when the letter is submitted</li>
+                <li>You&apos;ll be notified when the letter is submitted</li>
               </ul>
             </div>
 

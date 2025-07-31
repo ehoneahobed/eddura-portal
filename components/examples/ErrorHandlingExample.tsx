@@ -137,10 +137,10 @@ export default function ErrorHandlingExample() {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h4 className="font-medium text-blue-800 mb-2">How it works:</h4>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• "Fetch Data" simulates different types of errors randomly</li>
+              <li>• &quot;Fetch Data&quot; simulates different types of errors randomly</li>
               <li>• Errors are caught and displayed with user-friendly messages</li>
-              <li>• "Simulate Error" triggers the error boundary directly</li>
-              <li>• "Retry" attempts to recover from the last error</li>
+              <li>• &quot;Simulate Error&quot; triggers the error boundary directly</li>
+              <li>• &quot;Retry&quot; attempts to recover from the last error</li>
             </ul>
           </div>
         </CardContent>

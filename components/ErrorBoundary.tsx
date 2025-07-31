@@ -147,7 +147,7 @@ class ErrorBoundary extends Component<Props, State> {
                 Oops! Something went wrong
               </CardTitle>
               <CardDescription className="text-gray-600">
-                We encountered an unexpected error. Don't worry, we're working to fix it.
+                We encountered an unexpected error. Don&apos;t worry, we&apos;re working to fix it.
               </CardDescription>
             </CardHeader>
             

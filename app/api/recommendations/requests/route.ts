@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     try {
       console.log('=== EMAIL SENDING DEBUG ===');
       console.log('Recipient ID:', recipientId);
-      console.log('User:', { name: user.name, email: user.email });
+      console.log('User:', { name: (user as any).name, email: user.email });
       console.log('Request title:', title);
       
       const recipient = await Recipient.findById(recipientId);
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         const emailResult = await sendRecommendationRequest(
           recipient.primaryEmail,
           recipient.name,
-          user.name || user.email,
+          (user as any).name || user.email,
           title,
           deadlineDate,
           secureToken,
@@ -204,8 +204,8 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('❌ Error sending recommendation request email:', emailError);
       console.error('Error details:', {
-        message: emailError.message,
-        stack: emailError.stack
+        message: emailError instanceof Error ? emailError.message : String(emailError),
+        stack: emailError instanceof Error ? emailError.stack : undefined
       });
       // Don't fail the request creation if email fails
     }

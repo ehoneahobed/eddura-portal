@@ -141,7 +141,7 @@ export default function RecipientsPage() {
     return matchesSearch && matchesInstitution && matchesPreference;
   });
 
-  const institutions = [...new Set(recipients.map(r => r.institution))].sort();
+  const institutions = Array.from(new Set(recipients.map(r => r.institution))).sort();
 
   if (loading) {
     return (
@@ -168,12 +168,15 @@ export default function RecipientsPage() {
             Manage your professors, supervisors, and managers who can write recommendation letters
           </p>
         </div>
-        <AddRecipientModal onRecipientAdded={handleRecipientAdded}>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Recipient
-          </Button>
-        </AddRecipientModal>
+        <AddRecipientModal 
+          onRecipientAdded={handleRecipientAdded}
+          trigger={
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Recipient
+            </Button>
+          }
+        />
       </div>
 
       {/* Filters */}
@@ -250,9 +253,10 @@ export default function RecipientsPage() {
               </p>
             </div>
             {recipients.length === 0 && (
-              <AddRecipientModal onRecipientAdded={handleRecipientAdded}>
-                <Button>Add First Recipient</Button>
-              </AddRecipientModal>
+              <AddRecipientModal 
+                onRecipientAdded={handleRecipientAdded}
+                trigger={<Button>Add First Recipient</Button>}
+              />
             )}
           </CardContent>
         </Card>

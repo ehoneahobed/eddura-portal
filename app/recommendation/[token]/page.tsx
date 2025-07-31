@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,8 @@ interface RecommendationLetter {
   content?: string;
   fileName?: string;
   fileUrl?: string;
+  fileType?: string;
+  fileSize?: number;
   submittedAt: string;
   version: number;
 }
@@ -63,12 +65,10 @@ export default function RecipientPortalPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isViewing, setIsViewing] = useState(false);
 
-  useEffect(() => {
-    fetchRequest();
-  }, [token]);
-
-  const fetchRequest = async () => {
+  const fetchRequest = useCallback(async () => {
     try {
       const response = await fetch(`/api/recommendations/recipient/${token}`);
       const data = await response.json();
@@ -85,7 +85,11 @@ export default function RecipientPortalPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchRequest();
+  }, [token, fetchRequest]);
 
   const validateAndSetFile = (file: File) => {
     // Validate file type
@@ -486,7 +490,7 @@ export default function RecipientPortalPage() {
 
                 {request.relationshipContext && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Student's Relationship with You</Label>
+                    <Label className="text-sm font-medium text-gray-700">Student&apos;s Relationship with You</Label>
                     <p className="text-gray-600">{request.relationshipContext}</p>
                   </div>
                 )}
@@ -675,24 +679,90 @@ export default function RecipientPortalPage() {
                     <Label className="text-sm font-medium text-gray-700 mb-2 block">Submitted Document</Label>
                     <div className="flex items-center space-x-3">
                       <FileText className="h-5 w-5 text-gray-600" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">
                           {existingLetter?.fileName || 'Recommendation Letter'}
                         </p>
                         <p className="text-xs text-gray-600">
                           Submitted on {existingLetter?.submittedAt ? format(new Date(existingLetter.submittedAt), 'PPP') : 'Unknown date'}
                         </p>
+                        {existingLetter?.fileSize && (
+                          <p className="text-xs text-gray-500">
+                            File size: {(existingLetter.fileSize / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        )}
                       </div>
                       {existingLetter?.fileUrl && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(existingLetter.fileUrl, '_blank')}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500">
+                            Click &quot;View&quot; to open the document in your browser, or &quot;Download&quot; to save it to your device.
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isDownloading}
+                              onClick={async () => {
+                                setIsDownloading(true);
+                                try {
+                                  const response = await fetch(`/api/recommendations/recipient/${token}/download`);
+                                  if (response.ok) {
+                                    const data = await response.json();
+                                    window.open(data.downloadUrl, '_blank');
+                                  } else {
+                                    const error = await response.json();
+                                    toast.error(error.error || 'Failed to generate download link');
+                                  }
+                                } catch (error) {
+                                  console.error('Error generating download URL:', error);
+                                  toast.error('Failed to generate download link');
+                                } finally {
+                                  setIsDownloading(false);
+                                }
+                              }}
+                            >
+                              {isDownloading ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4 mr-2" />
+                              )}
+                              {isDownloading ? 'Generating...' : 'Download'}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isViewing}
+                              onClick={async () => {
+                                setIsViewing(true);
+                                try {
+                                  const response = await fetch(`/api/recommendations/recipient/${token}/view`);
+                                  if (response.ok) {
+                                    const data = await response.json();
+                                    // Open in new tab for viewing (browser will handle PDF display)
+                                    window.open(data.viewUrl, '_blank');
+                                  } else {
+                                    const error = await response.json();
+                                    toast.error(error.error || 'Failed to generate view link');
+                                  }
+                                } catch (error) {
+                                  console.error('Error generating view URL:', error);
+                                  toast.error('Failed to generate view link');
+                                } finally {
+                                  setIsViewing(false);
+                                }
+                              }}
+                            >
+                              {isViewing ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <FileText className="h-4 w-4 mr-2" />
+                              )}
+                              {isViewing ? 'Generating...' : 'View'}
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>

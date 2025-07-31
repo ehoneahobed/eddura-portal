@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import RecommendationRequest from '@/models/RecommendationRequest';
+import RecommendationLetter from '@/models/RecommendationLetter';
 import Recipient from '@/models/Recipient';
 import User from '@/models/User';
 
@@ -36,7 +37,7 @@ export async function GET(
     console.log('Looking for request with ID:', resolvedParams.id);
     console.log('User ID:', user._id);
     console.log('User ID type:', typeof user._id);
-    console.log('User ID string:', user._id.toString());
+    console.log('User ID string:', (user._id as any).toString());
     
     // First, let's check if the request exists at all
     const allRequests = await RecommendationRequest.find({ _id: resolvedParams.id });
@@ -45,7 +46,7 @@ export async function GET(
       console.log('Request student ID:', allRequests[0].studentId);
       console.log('Request student ID type:', typeof allRequests[0].studentId);
       console.log('Request student ID string:', allRequests[0].studentId.toString());
-      console.log('User ID matches request student ID:', user._id.toString() === allRequests[0].studentId.toString());
+      console.log('User ID matches request student ID:', (user._id as any).toString() === allRequests[0].studentId.toString());
     }
     
     // For debugging, let's also try without the studentId filter
@@ -63,7 +64,18 @@ export async function GET(
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ request });
+    // If the request has been received, fetch the recommendation letter
+    let recommendationLetter = null;
+    if (request.status === 'received') {
+      recommendationLetter = await RecommendationLetter.findOne({
+        requestId: request._id
+      }).sort({ version: -1 });
+    }
+
+    return NextResponse.json({ 
+      request,
+      recommendationLetter 
+    });
   } catch (error) {
     console.error('Error fetching recommendation request:', error);
     return NextResponse.json(
@@ -111,7 +123,7 @@ export async function PUT(
     // Get request
     const recommendationRequest = await RecommendationRequest.findOne({
       _id: resolvedParams.id,
-      studentId: user._id
+      studentId: user._id as any
     });
 
     if (!recommendationRequest) {

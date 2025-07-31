@@ -78,24 +78,22 @@ export default function MyClonedDocumentsPage() {
     pages: 0
   });
 
-  const fetchClonedDocuments = useCallback(async (page = pagination.page, limit = pagination.limit) => {
-    if (!session?.user?.id) {
-      setIsLoading(false);
-      return;
-    }
-
+  const fetchClonedDocuments = useCallback(async (page = 1, limit = pagination.limit) => {
+    if (!session?.user?.id) return;
+    
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        ...(searchTerm && { search: searchTerm }),
-        ...(categoryFilter !== 'all' && { category: categoryFilter }),
-        ...(typeFilter !== 'all' && { type: typeFilter }),
-        sortBy
+        search: searchTerm,
+        category: categoryFilter,
+        type: typeFilter,
+        sortBy: sortBy,
       });
 
       const response = await fetch(`/api/user/cloned-documents?${params}`);
+      
       if (response.ok) {
         const data = await response.json();
         setDocuments(data.documents || []);
@@ -109,7 +107,7 @@ export default function MyClonedDocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
 
   // Debounced search effect
   useEffect(() => {
@@ -121,7 +119,7 @@ export default function MyClonedDocumentsPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, session?.user?.id, fetchClonedDocuments]);
+  }, [searchTerm, session?.user?.id, fetchClonedDocuments, pagination.limit]);
 
   // Initial fetch on mount
   useEffect(() => {
@@ -139,7 +137,7 @@ export default function MyClonedDocumentsPage() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [categoryFilter, typeFilter, sortBy, session?.user?.id]);
+  }, [categoryFilter, typeFilter, sortBy, session?.user?.id, fetchClonedDocuments, pagination.limit]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
