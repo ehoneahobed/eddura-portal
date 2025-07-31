@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import RecommendationRequest from '@/models/RecommendationRequest';
-import RecommendationLetter from '@/models/RecommendationLetter';
-import User from '@/models/User';
-import Recipient from '@/models/Recipient';
+import { RecommendationRequest, RecommendationLetter, User, Recipient } from '@/lib/models';
 
 /**
  * GET /api/recommendations/recipient/[token]
@@ -85,10 +82,10 @@ export async function POST(
     const body = await request.json();
     const { content, fileName, fileUrl, fileType, fileSize } = body;
 
-    // Validate required fields
-    if (!content) {
+    // Validate required fields - either content or file upload is required
+    if (!content && !fileUrl) {
       return NextResponse.json(
-        { error: 'Letter content is required' },
+        { error: 'Either letter content or file upload is required' },
         { status: 400 }
       );
     }

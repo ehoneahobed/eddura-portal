@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 Upload Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>S3 Upload Debug Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Generate Presigned URL</h3>
+        <button onclick="generatePresignedUrl()">Generate Test URL</button>
+        <div id="urlResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Upload Test File</h3>
+        <input type="file" id="testFile" accept=".txt,.pdf,.doc,.docx">
+        <button onclick="uploadTestFile()">Upload File</button>
+        <div id="uploadResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Network Connectivity</h3>
+        <button onclick="testNetworkConnectivity()">Test Network</button>
+        <div id="networkResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Debug Log</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toISOString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        async function generatePresignedUrl() {
+            try {
+                log('Generating presigned URL...');
+                
+                const response = await fetch('/api/recommendations/recipient/test-token/upload', {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Presigned URL generated: ${data.presignedUrl}`, 'success');
+                    document.getElementById('urlResult').innerHTML = `
+                        <div class="success">
+                            <strong>URL Generated Successfully</strong><br>
+                            <small>${data.presignedUrl}</small>
+                        </div>
+                    `;
+                } else {
+                    const error = await response.text();
+                    log(`❌ Failed to generate URL: ${error}`, 'error');
+                    document.getElementById('urlResult').innerHTML = `
+                        <div class="error">Failed to generate URL: ${error}</div>
+                    `;
+                }
+            } catch (error) {
+                log(`❌ Error generating URL: ${error.message}`, 'error');
+                document.getElementById('urlResult').innerHTML = `
+                    <div class="error">Error: ${error.message}</div>
+                `;
+            }
+        }
+
+        async function uploadTestFile() {
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log('❌ Please select a file first', 'error');
+                return;
+            }
+            
+            try {
+                log(`Starting upload test for file: ${file.name} (${file.size} bytes, ${file.type})`);
+                
+                // First, get presigned URL
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const uploadResponse = await fetch('/api/recommendations/recipient/test-token/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    const error = await uploadResponse.text();
+                    log(`❌ Failed to get presigned URL: ${error}`, 'error');
+                    return;
+                }
+                
+                const uploadData = await uploadResponse.json();
+                log(`✅ Presigned URL received: ${uploadData.presignedUrl}`, 'success');
+                
+                // Test different upload approaches
+                const approaches = [
+                    {
+                        name: 'Direct File',
+                        body: file,
+                        headers: { 'Content-Type': file.type }
+                    },
+                    {
+                        name: 'File as Blob',
+                        body: new Blob([file], { type: file.type }),
+                        headers: { 'Content-Type': file.type }
+                    },
+                    {
+                        name: 'ArrayBuffer',
+                        body: await file.arrayBuffer(),
+                        headers: { 'Content-Type': file.type }
+                    },
+                    {
+                        name: 'No Headers',
+                        body: await file.arrayBuffer(),
+                        headers: {}
+                    }
+                ];
+                
+                for (const approach of approaches) {
+                    try {
+                        log(`Testing approach: ${approach.name}`);
+                        
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 30000);
+                        
+                        const response = await fetch(uploadData.presignedUrl, {
+                            method: 'PUT',
+                            body: approach.body,
+                            headers: approach.headers,
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        
+                        if (response.ok) {
+                            log(`✅ ${approach.name} successful: ${response.status}`, 'success');
+                        } else {
+                            const errorText = await response.text();
+                            log(`❌ ${approach.name} failed: ${response.status} - ${errorText}`, 'error');
+                        }
+                    } catch (error) {
+                        log(`❌ ${approach.name} error: ${error.message}`, 'error');
+                    }
+                }
+                
+                document.getElementById('uploadResult').innerHTML = `
+                    <div class="success">Upload test completed. Check log for details.</div>
+                `;
+                
+            } catch (error) {
+                log(`❌ Upload test failed: ${error.message}`, 'error');
+                document.getElementById('uploadResult').innerHTML = `
+                    <div class="error">Upload test failed: ${error.message}</div>
+                `;
+            }
+        }
+
+        async function testNetworkConnectivity() {
+            try {
+                log('Testing network connectivity...');
+                
+                // Test basic connectivity
+                const testUrls = [
+                    'https://www.google.com',
+                    'https://eddura-documents.s3.eu-west-2.amazonaws.com',
+                    'https://s3.eu-west-2.amazonaws.com'
+                ];
+                
+                for (const url of testUrls) {
+                    try {
+                        const start = Date.now();
+                        const response = await fetch(url, { method: 'HEAD' });
+                        const duration = Date.now() - start;
+                        
+                        log(`✅ ${url}: ${response.status} (${duration}ms)`, 'success');
+                    } catch (error) {
+                        log(`❌ ${url}: ${error.message}`, 'error');
+                    }
+                }
+                
+                document.getElementById('networkResult').innerHTML = `
+                    <div class="success">Network test completed. Check log for details.</div>
+                `;
+                
+            } catch (error) {
+                log(`❌ Network test failed: ${error.message}`, 'error');
+                document.getElementById('networkResult').innerHTML = `
+                    <div class="error">Network test failed: ${error.message}</div>
+                `;
+            }
+        }
+
+        // Initialize
+        log('S3 Upload Debug Test initialized');
+    </script>
+</body>
+</html> 

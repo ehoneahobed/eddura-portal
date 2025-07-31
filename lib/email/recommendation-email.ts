@@ -196,7 +196,9 @@ export async function sendRecommendationReminder(
   daysUntilDeadline: number,
   requestType: string,
   submissionMethod: string,
-  institutionName?: string
+  institutionName?: string,
+  urgencyLevel?: 'low' | 'medium' | 'high' | 'critical',
+  urgencyMessage?: string
 ) {
   const deadlineFormatted = deadline.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -206,7 +208,12 @@ export async function sendRecommendationReminder(
 
   const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/recommendation/${secureToken}`;
 
-  const subject = `Reminder: Recommendation Letter for ${studentName} - Due in ${daysUntilDeadline} day${daysUntilDeadline > 1 ? 's' : ''}`;
+  // Generate subject with urgency indicator
+  const urgencyPrefix = urgencyLevel === 'critical' ? '🚨 URGENT: ' : 
+                       urgencyLevel === 'high' ? '⚠️ IMPORTANT: ' : 
+                       urgencyLevel === 'medium' ? '📅 REMINDER: ' : '📧 ';
+  
+  const subject = `${urgencyPrefix}Recommendation Letter for ${studentName} - Due in ${daysUntilDeadline} day${daysUntilDeadline > 1 ? 's' : ''}`;
 
   const getSubmissionInstructions = () => {
     if (requestType === 'school_direct' && submissionMethod === 'school_only') {
@@ -230,13 +237,55 @@ export async function sendRecommendationReminder(
     }
   };
 
+  // Generate urgency styling
+  const getUrgencyStyling = () => {
+    switch (urgencyLevel) {
+      case 'critical':
+        return {
+          backgroundColor: '#f8d7da',
+          borderColor: '#f5c6cb',
+          textColor: '#721c24',
+          icon: '🚨'
+        };
+      case 'high':
+        return {
+          backgroundColor: '#fff3cd',
+          borderColor: '#ffeaa7',
+          textColor: '#856404',
+          icon: '⚠️'
+        };
+      case 'medium':
+        return {
+          backgroundColor: '#d1ecf1',
+          borderColor: '#bee5eb',
+          textColor: '#0c5460',
+          icon: '📅'
+        };
+      default:
+        return {
+          backgroundColor: '#f8f9fa',
+          borderColor: '#dee2e6',
+          textColor: '#495057',
+          icon: '📧'
+        };
+    }
+  };
+
+  const urgencyStyle = getUrgencyStyling();
+
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333;">Recommendation Letter Reminder</h2>
+      <h2 style="color: #333;">${urgencyStyle.icon} Recommendation Letter Reminder</h2>
       
       <p>Dear ${recipientName},</p>
       
-      <p>This is a friendly reminder that you have a pending recommendation letter request from ${studentName}.</p>
+      ${urgencyMessage ? `
+        <div style="background-color: ${urgencyStyle.backgroundColor}; border: 1px solid ${urgencyStyle.borderColor}; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h4 style="margin-top: 0; color: ${urgencyStyle.textColor}; font-weight: bold;">${urgencyMessage}</h4>
+        </div>
+      ` : ''}
+      
+      <p>This is a reminder that you have a pending recommendation letter request from ${studentName}.</p>
       
       <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
         <h3 style="margin-top: 0;">${requestTitle}</h3>

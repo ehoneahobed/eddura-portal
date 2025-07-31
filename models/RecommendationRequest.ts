@@ -39,6 +39,7 @@ export interface IRecommendationRequest extends Document {
   
   // Reminder Settings
   reminderIntervals: number[]; // Days before deadline
+  reminderFrequency: 'minimal' | 'standard' | 'aggressive' | 'custom'; // Reminder frequency setting
   lastReminderSent?: Date;
   nextReminderDate?: Date;
   
@@ -156,6 +157,11 @@ const recommendationRequestSchema = new Schema<IRecommendationRequest>({
   reminderIntervals: {
     type: [Number],
     default: [7, 3, 1], // 7 days, 3 days, 1 day before deadline
+  },
+  reminderFrequency: {
+    type: String,
+    enum: ['minimal', 'standard', 'aggressive', 'custom'],
+    default: 'standard',
   },
   lastReminderSent: {
     type: Date,

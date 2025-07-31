@@ -1,6 +1,23 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+// Validate required environment variables
+const requiredEnvVars = {
+  AWS_REGION: process.env.AWS_REGION,
+  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+  AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
+};
+
+// Check for missing environment variables
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingVars.length > 0) {
+  console.error('Missing required AWS environment variables:', missingVars);
+}
+
 const s3 = new S3Client({
   region: process.env.AWS_REGION!,
   credentials: {
@@ -20,13 +37,24 @@ export async function getPresignedUploadUrl({
   ContentType: string;
   expiresIn?: number;
 }) {
-  const command = new PutObjectCommand({
-    Bucket,
-    Key,
-    ContentType,
-    ACL: 'private',
-  });
-  return getSignedUrl(s3, command, { expiresIn });
+  try {
+    // Validate inputs
+    if (!Bucket || !Key || !ContentType) {
+      throw new Error('Missing required parameters: Bucket, Key, and ContentType are required');
+    }
+
+    const command = new PutObjectCommand({
+      Bucket,
+      Key,
+      ContentType,
+      ACL: 'private',
+    });
+    
+    return await getSignedUrl(s3, command, { expiresIn });
+  } catch (error) {
+    console.error('Error generating presigned upload URL:', error);
+    throw new Error(`Failed to generate upload URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 export async function getPresignedDownloadUrl({
@@ -38,12 +66,23 @@ export async function getPresignedDownloadUrl({
   Key: string;
   expiresIn?: number;
 }) {
-  const command = new GetObjectCommand({
-    Bucket,
-    Key,
-    ResponseContentDisposition: 'attachment',
-  });
-  return getSignedUrl(s3, command, { expiresIn });
+  try {
+    // Validate inputs
+    if (!Bucket || !Key) {
+      throw new Error('Missing required parameters: Bucket and Key are required');
+    }
+
+    const command = new GetObjectCommand({
+      Bucket,
+      Key,
+      ResponseContentDisposition: 'attachment',
+    });
+    
+    return await getSignedUrl(s3, command, { expiresIn });
+  } catch (error) {
+    console.error('Error generating presigned download URL:', error);
+    throw new Error(`Failed to generate download URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 export default s3; 

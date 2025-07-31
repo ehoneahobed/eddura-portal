@@ -5,6 +5,7 @@ import RecommendationRequest from '@/models/RecommendationRequest';
 import Recipient from '@/models/Recipient';
 import User from '@/models/User';
 import { randomBytes } from 'crypto';
+import { sendRecommendationRequest } from '@/lib/email/recommendation-email';
 
 /**
  * GET /api/recommendations/requests
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
       applicationId,
       scholarshipId,
       reminderIntervals,
+      reminderFrequency,
       requestType,
       submissionMethod,
       communicationStyle,
@@ -139,6 +141,7 @@ export async function POST(request: NextRequest) {
       applicationId,
       scholarshipId,
       reminderIntervals: reminderDays,
+      reminderFrequency: reminderFrequency || 'standard',
       nextReminderDate,
       secureToken,
       tokenExpiresAt,
@@ -148,6 +151,64 @@ export async function POST(request: NextRequest) {
 
     // Populate recipient info for response
     await recommendationRequest.populate('recipientId', 'name emails primaryEmail title institution department prefersDrafts');
+
+    // Send initial email to recipient
+    try {
+      console.log('=== EMAIL SENDING DEBUG ===');
+      console.log('Recipient ID:', recipientId);
+      console.log('User:', { name: user.name, email: user.email });
+      console.log('Request title:', title);
+      
+      const recipient = await Recipient.findById(recipientId);
+      console.log('Recipient found:', recipient ? { 
+        name: recipient.name, 
+        email: recipient.primaryEmail,
+        id: recipient._id 
+      } : 'Not found');
+      
+      if (recipient && recipient.primaryEmail) {
+        console.log('✅ Recipient and email found, attempting to send email to:', recipient.primaryEmail);
+        
+        const emailResult = await sendRecommendationRequest(
+          recipient.primaryEmail,
+          recipient.name,
+          user.name || user.email,
+          title,
+          deadlineDate,
+          secureToken,
+          requestType || 'direct_platform',
+          submissionMethod || 'platform_only',
+          communicationStyle || 'polite',
+          relationshipContext,
+          institutionName,
+          schoolEmail,
+          schoolInstructions,
+          includeDraft || false,
+          draftContent,
+          additionalContext
+        );
+        
+        console.log('✅ Email sent successfully! Result:', emailResult);
+        
+        // Update request status to 'sent'
+        recommendationRequest.status = 'sent';
+        recommendationRequest.sentAt = new Date();
+        await recommendationRequest.save();
+        console.log('✅ Request status updated to sent');
+      } else {
+        console.log('❌ No recipient or email found, skipping email send');
+        console.log('Recipient exists:', !!recipient);
+        console.log('Recipient has email:', recipient ? !!recipient.primaryEmail : 'N/A');
+      }
+      console.log('=== END EMAIL DEBUG ===');
+    } catch (emailError) {
+      console.error('❌ Error sending recommendation request email:', emailError);
+      console.error('Error details:', {
+        message: emailError.message,
+        stack: emailError.stack
+      });
+      // Don't fail the request creation if email fails
+    }
 
     return NextResponse.json({ request: recommendationRequest }, { status: 201 });
   } catch (error) {

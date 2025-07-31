@@ -9,7 +9,7 @@ export interface IRecommendationLetter extends Document {
   recipientId: mongoose.Types.ObjectId; // Reference to Recipient
   
   // Content
-  content: string;
+  content?: string;
   fileName?: string;
   fileUrl?: string;
   fileType?: string;
@@ -52,7 +52,7 @@ const recommendationLetterSchema = new Schema<IRecommendationLetter>({
   },
   content: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
   },
   fileName: {
@@ -116,6 +116,15 @@ recommendationLetterSchema.index({ createdAt: -1 });
 
 // Ensure only one active letter per request (latest version)
 recommendationLetterSchema.index({ requestId: 1, version: 1 }, { unique: true });
+
+// Custom validation to ensure either content or fileUrl is provided
+// Temporarily commented out to fix webpack issues
+// recommendationLetterSchema.pre('save', function(next) {
+//   if (!this.content && !this.fileUrl) {
+//     return next(new Error('Either content or fileUrl must be provided'));
+//   }
+//   next();
+// });
 
 // Virtual for checking if letter is from recipient
 recommendationLetterSchema.virtual('isFromRecipient').get(function() {

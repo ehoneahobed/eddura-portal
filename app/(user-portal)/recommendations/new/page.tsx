@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CalendarIcon, Wand2, Users, Plus, Loader2, Info, Mail, Building } from 'lucide-react';
+import { CalendarIcon, Wand2, Users, Plus, Loader2, Info, Mail, Building, Bell } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -56,6 +56,7 @@ export default function NewRecommendationPage() {
     relationship: '',
     customInstructions: '',
     reminderIntervals: [7, 3, 1],
+    reminderFrequency: 'standard', // 'standard', 'aggressive', 'minimal', 'custom'
     // New fields for different scenarios
     requestType: 'direct_platform',
     submissionMethod: 'platform_only',
@@ -526,6 +527,64 @@ export default function NewRecommendationPage() {
                 </Popover>
               </div>
             </div>
+
+            <div>
+              <Label>Reminder Frequency</Label>
+              <RadioGroup 
+                value={formData.reminderFrequency} 
+                onValueChange={(value) => {
+                  let intervals: number[];
+                  switch (value) {
+                    case 'aggressive':
+                      intervals = [14, 10, 7, 5, 3, 1]; // 6 reminders
+                      break;
+                    case 'minimal':
+                      intervals = [7, 1]; // 2 reminders
+                      break;
+                    case 'custom':
+                      intervals = [7, 3, 1]; // Default for custom
+                      break;
+                    default: // standard
+                      intervals = [7, 3, 1]; // 3 reminders
+                      break;
+                  }
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    reminderFrequency: value,
+                    reminderIntervals: intervals
+                  }));
+                }}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="minimal" id="minimal" />
+                  <Label htmlFor="minimal" className="flex-1">
+                    <div className="font-medium">Minimal (2 reminders)</div>
+                    <div className="text-sm text-gray-600">
+                      7 days and 1 day before deadline
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="standard" id="standard" />
+                  <Label htmlFor="standard" className="flex-1">
+                    <div className="font-medium">Standard (3 reminders)</div>
+                    <div className="text-sm text-gray-600">
+                      7, 3, and 1 day before deadline
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="aggressive" id="aggressive" />
+                  <Label htmlFor="aggressive" className="flex-1">
+                    <div className="font-medium">Aggressive (6 reminders)</div>
+                    <div className="text-sm text-gray-600">
+                      14, 10, 7, 5, 3, and 1 day before deadline
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
           </CardContent>
         </Card>
 
@@ -620,6 +679,94 @@ export default function NewRecommendationPage() {
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Reminder Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Reminder Settings
+            </CardTitle>
+            <CardDescription>
+              Configure when and how often to send reminder emails to your recommender
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label>Reminder Frequency</Label>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="frequency-default"
+                      name="reminderFrequency"
+                      value="default"
+                      checked={JSON.stringify(formData.reminderIntervals) === JSON.stringify([7, 3, 1])}
+                      onChange={() => setFormData(prev => ({ ...prev, reminderIntervals: [7, 3, 1] }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="frequency-default" className="text-sm font-normal">
+                      Default (7, 3, and 1 day before deadline)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="frequency-weekly"
+                      name="reminderFrequency"
+                      value="weekly"
+                      checked={JSON.stringify(formData.reminderIntervals) === JSON.stringify([14, 7, 3, 1])}
+                      onChange={() => setFormData(prev => ({ ...prev, reminderIntervals: [14, 7, 3, 1] }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="frequency-weekly" className="text-sm font-normal">
+                      Weekly reminders (14, 7, 3, and 1 day before deadline)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="frequency-aggressive"
+                      name="reminderFrequency"
+                      value="aggressive"
+                      checked={JSON.stringify(formData.reminderIntervals) === JSON.stringify([10, 7, 5, 3, 2, 1])}
+                      onChange={() => setFormData(prev => ({ ...prev, reminderIntervals: [10, 7, 5, 3, 2, 1] }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="frequency-aggressive" className="text-sm font-normal">
+                      Frequent reminders (10, 7, 5, 3, 2, and 1 day before deadline)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="frequency-minimal"
+                      name="reminderFrequency"
+                      value="minimal"
+                      checked={JSON.stringify(formData.reminderIntervals) === JSON.stringify([3, 1])}
+                      onChange={() => setFormData(prev => ({ ...prev, reminderIntervals: [3, 1] }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="frequency-minimal" className="text-sm font-normal">
+                      Minimal reminders (3 and 1 day before deadline)
+                    </Label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                <p className="font-medium mb-1">How reminders work:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Initial email is sent immediately when request is created</li>
+                  <li>Reminder emails are sent automatically based on your selected frequency</li>
+                  <li>Emails become more urgent as the deadline approaches</li>
+                  <li>Reminders stop once the recommendation is submitted</li>
+                </ul>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

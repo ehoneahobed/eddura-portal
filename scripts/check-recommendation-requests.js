@@ -4,84 +4,68 @@ require('dotenv').config({ path: '.env.local' });
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI);
 
-// Define schemas
-const recommendationRequestSchema = new mongoose.Schema({
-  studentId: mongoose.Schema.Types.ObjectId,
-  recipientId: mongoose.Schema.Types.ObjectId,
-  title: String,
-  description: String,
-  deadline: Date,
-  status: String,
-  priority: String,
-  createdAt: Date,
-  updatedAt: Date,
-}, { strict: false });
-
-const RecommendationRequest = mongoose.model('RecommendationRequest', recommendationRequestSchema);
-
-const recipientSchema = new mongoose.Schema({
-  name: String,
-  emails: [String],
-  primaryEmail: String,
-  title: String,
-  institution: String,
-  createdBy: mongoose.Schema.Types.ObjectId,
-}, { strict: false });
-
-const Recipient = mongoose.model('Recipient', recipientSchema);
-
 async function checkRecommendationRequests() {
   try {
-    console.log('Checking recommendation requests...');
+    console.log('🔍 Checking recommendation requests in database...\n');
+
+    // Wait for connection to be ready
+    await mongoose.connection.asPromise();
+
+    // Get all recommendation requests without population first
+    const requests = await mongoose.connection.db.collection('recommendationrequests').find({}).toArray();
     
-    // Get all recommendation requests
-    const requests = await RecommendationRequest.find({});
-    console.log(`Found ${requests.length} recommendation requests`);
+    console.log(`Found ${requests.length} recommendation requests:\n`);
     
-    for (const request of requests) {
-      console.log(`\nRequest ID: ${request._id}`);
-      console.log(`Title: ${request.title}`);
-      console.log(`Recipient ID: ${request.recipientId}`);
-      
-      if (request.recipientId) {
-        // Check if recipient exists
-        const recipient = await Recipient.findById(request.recipientId);
-        if (recipient) {
-          console.log(`Recipient found: ${recipient.name} (${recipient.primaryEmail})`);
-        } else {
-          console.log(`❌ Recipient not found for ID: ${request.recipientId}`);
-        }
-      } else {
-        console.log(`❌ No recipient ID in request`);
-      }
-    }
-    
-    // Check for orphaned requests (requests without valid recipients)
-    const orphanedRequests = [];
-    for (const request of requests) {
-      if (request.recipientId) {
-        const recipient = await Recipient.findById(request.recipientId);
-        if (!recipient) {
-          orphanedRequests.push(request);
-        }
-      } else {
-        orphanedRequests.push(request);
-      }
-    }
-    
-    console.log(`\nFound ${orphanedRequests.length} orphaned requests`);
-    if (orphanedRequests.length > 0) {
-      console.log('Orphaned requests:');
-      orphanedRequests.forEach(req => {
-        console.log(`- ${req.title} (ID: ${req._id})`);
+    if (requests.length === 0) {
+      console.log('❌ No recommendation requests found in database');
+      console.log('\n💡 This explains why you\'re getting "Request Not Found" errors.');
+      console.log('   You need to create some recommendation requests first.');
+    } else {
+      requests.forEach((request, index) => {
+        console.log(`${index + 1}. ID: ${request._id}`);
+        console.log(`   Title: ${request.title}`);
+        console.log(`   Status: ${request.status}`);
+        console.log(`   Student ID: ${request.studentId}`);
+        console.log(`   Recipient ID: ${request.recipientId}`);
+        console.log(`   Created: ${request.createdAt}`);
+        console.log(`   Secure Token: ${request.secureToken ? 'Yes' : 'No'}`);
+        console.log(`   Token Expires: ${request.tokenExpiresAt}`);
+        console.log('');
       });
     }
+
+    // Also check if there are any users
+    const users = await mongoose.connection.db.collection('users').find({}).toArray();
+    console.log(`Found ${users.length} users in database`);
     
+    if (users.length > 0) {
+      console.log('Sample users:');
+      users.slice(0, 3).forEach(user => {
+        console.log(`- ${user.email} (${user.firstName || ''} ${user.lastName || ''})`);
+      });
+    }
+
+    // Check recipients
+    const recipients = await mongoose.connection.db.collection('recipients').find({}).toArray();
+    console.log(`\nFound ${recipients.length} recipients in database`);
+    
+    if (recipients.length > 0) {
+      console.log('Sample recipients:');
+      recipients.slice(0, 3).forEach(recipient => {
+        console.log(`- ${recipient.name} (${recipient.primaryEmail || recipient.emails?.[0] || 'No email'})`);
+      });
+    }
+
   } catch (error) {
-    console.error('Error checking requests:', error);
+    console.error('❌ Error checking recommendation requests:', error);
   } finally {
     await mongoose.disconnect();
   }
 }
 
-checkRecommendationRequests(); 
+// Run the check
+if (require.main === module) {
+  checkRecommendationRequests();
+}
+
+module.exports = { checkRecommendationRequests }; 

@@ -22,7 +22,12 @@
     "migrate:remove-bookmark": "node scripts/remove-bookmark-field.js",
     "seed:content": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-content.ts",
     "seed:templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-requirements-templates.ts",
-    "seed:program-templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-program-scholarship-templates.ts"
+    "seed:program-templates": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-program-scholarship-templates.ts",
+    "test:emails": "node scripts/test-recommendation-emails.js",
+    "test:email-functions": "node scripts/test-email-functions.js",
+    "test:create-recommendation": "node scripts/test-create-recommendation.js",
+    "test:api-endpoint": "node scripts/test-api-endpoint.js",
+    "test:recommendation-upload": "node scripts/test-recommendation-upload.js"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

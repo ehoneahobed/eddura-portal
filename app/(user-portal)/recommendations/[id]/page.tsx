@@ -7,6 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { 
   ArrowLeft, 
   Clock, 
   CheckCircle, 
@@ -40,13 +47,13 @@ interface RecommendationRequest {
   _id: string;
   title: string;
   description: string;
-  deadline: string;
+  deadline: string | Date;
   status: 'pending' | 'sent' | 'received' | 'overdue' | 'cancelled';
   priority: 'low' | 'medium' | 'high';
   recipientId: Recipient;
-  createdAt: string;
-  sentAt?: string;
-  receivedAt?: string;
+  createdAt: string | Date;
+  sentAt?: string | Date;
+  receivedAt?: string | Date;
   purpose: string;
   relationshipContext: string;
   additionalContext?: string;
@@ -59,6 +66,8 @@ interface RecommendationRequest {
   includeDraft: boolean;
   draftContent?: string;
   reminderIntervals: number[];
+  secureToken: string;
+  tokenExpiresAt: string | Date;
 }
 
 export default function RecommendationDetailsPage() {
@@ -67,6 +76,7 @@ export default function RecommendationDetailsPage() {
   const [request, setRequest] = useState<RecommendationRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [showSubmissionLink, setShowSubmissionLink] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -76,11 +86,16 @@ export default function RecommendationDetailsPage() {
 
   const fetchRequest = async () => {
     try {
+      console.log('Fetching request with ID:', params.id);
       const response = await fetch(`/api/recommendations/requests/${params.id}`);
       const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
+      
       if (response.ok) {
         setRequest(data.request);
       } else {
+        console.error('API Error:', data);
         toast.error(data.error || 'Failed to fetch request details');
         router.push('/recommendations');
       }
@@ -158,17 +173,44 @@ export default function RecommendationDetailsPage() {
     }
   };
 
-  const getDaysUntilDeadline = (deadline: string) => {
+  const getDaysUntilDeadline = (deadline: string | Date) => {
     const deadlineDate = new Date(deadline);
+    // Check if the date is valid
+    if (isNaN(deadlineDate.getTime())) {
+      return 0; // Return 0 for invalid dates
+    }
     const now = new Date();
     const diffTime = deadlineDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
 
+  const formatDate = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return format(date, 'MMM dd, yyyy');
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
+  };
+
+  const getSubmissionLink = () => {
+    if (!request?.secureToken) return '';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    return `${baseUrl}/recommendation/${request.secureToken}`;
+  };
+
+  const handleViewSubmissionLink = () => {
+    if (!request?.secureToken) {
+      toast.error('Submission link not available');
+      return;
+    }
+    setShowSubmissionLink(true);
   };
 
   if (loading) {
@@ -180,11 +222,69 @@ export default function RecommendationDetailsPage() {
             <div className="h-64 bg-gray-200 rounded"></div>
             <div className="h-48 bg-gray-200 rounded"></div>
             <div className="h-32 bg-gray-200 rounded"></div>
-          </div>
-        </div>
+                  </div>
       </div>
-    );
-  }
+
+      {/* Submission Link Dialog */}
+      <Dialog open={showSubmissionLink} onOpenChange={setShowSubmissionLink}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Submission Link</DialogTitle>
+            <DialogDescription>
+              Share this link with your recipient to submit their recommendation letter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Submission URL:</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={getSubmissionLink()}
+                  readOnly
+                  className="flex-1 text-sm bg-white border border-gray-300 rounded px-3 py-2"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => copyToClipboard(getSubmissionLink())}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              <p className="mb-2"><strong>Instructions:</strong></p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Send this link to your recipient via email</li>
+                <li>The link will expire on {formatDate(request?.tokenExpiresAt || '')}</li>
+                <li>Recipients can upload their recommendation letter directly</li>
+                <li>You'll be notified when the letter is submitted</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowSubmissionLink(false)}
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  copyToClipboard(getSubmissionLink());
+                  setShowSubmissionLink(false);
+                }}
+              >
+                Copy Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
   if (!request) {
     return (
@@ -217,7 +317,7 @@ export default function RecommendationDetailsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{request.title}</h1>
             <p className="text-gray-600 mt-1">
-              Created on {format(new Date(request.createdAt), 'MMM dd, yyyy')}
+              Created on {formatDate(request.createdAt)}
             </p>
           </div>
         </div>
@@ -404,7 +504,7 @@ export default function RecommendationDetailsPage() {
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Deadline</h4>
                 <p className="text-sm text-gray-700">
-                  {format(new Date(request.deadline), 'MMM dd, yyyy')}
+                  {formatDate(request.deadline)}
                 </p>
                 {request.status !== 'received' && request.status !== 'cancelled' && (
                   <p className={`text-sm mt-1 ${
@@ -425,7 +525,7 @@ export default function RecommendationDetailsPage() {
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Created</h4>
                 <p className="text-sm text-gray-700">
-                  {format(new Date(request.createdAt), 'MMM dd, yyyy')}
+                  {formatDate(request.createdAt)}
                 </p>
               </div>
 
@@ -435,7 +535,7 @@ export default function RecommendationDetailsPage() {
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Sent</h4>
                     <p className="text-sm text-gray-700">
-                      {format(new Date(request.sentAt), 'MMM dd, yyyy')}
+                      {formatDate(request.sentAt)}
                     </p>
                   </div>
                 </>
@@ -447,7 +547,7 @@ export default function RecommendationDetailsPage() {
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Received</h4>
                     <p className="text-sm text-gray-700">
-                      {format(new Date(request.receivedAt), 'MMM dd, yyyy')}
+                      {formatDate(request.receivedAt)}
                     </p>
                   </div>
                 </>
@@ -475,7 +575,12 @@ export default function RecommendationDetailsPage() {
                 Send Reminder
               </Button>
 
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleViewSubmissionLink}
+                disabled={!request?.secureToken}
+              >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View Submission Link
               </Button>
@@ -493,6 +598,64 @@ export default function RecommendationDetailsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Submission Link Dialog */}
+      <Dialog open={showSubmissionLink} onOpenChange={setShowSubmissionLink}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Submission Link</DialogTitle>
+            <DialogDescription>
+              Share this link with your recipient to submit their recommendation letter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Submission URL:</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={getSubmissionLink()}
+                  readOnly
+                  className="flex-1 text-sm bg-white border border-gray-300 rounded px-3 py-2"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => copyToClipboard(getSubmissionLink())}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              <p className="mb-2"><strong>Instructions:</strong></p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Send this link to your recipient via email</li>
+                <li>The link will expire on {formatDate(request?.tokenExpiresAt || '')}</li>
+                <li>Recipients can upload their recommendation letter directly</li>
+                <li>You'll be notified when the letter is submitted</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowSubmissionLink(false)}
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  copyToClipboard(getSubmissionLink());
+                  setShowSubmissionLink(false);
+                }}
+              >
+                Copy Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

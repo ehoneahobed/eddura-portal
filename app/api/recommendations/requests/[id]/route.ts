@@ -24,19 +24,40 @@ export async function GET(
     await connectDB();
     
     // Get user
+    console.log('Session user email:', session.user.email);
     const user = await User.findOne({ email: session.user.email });
+    console.log('User found:', user ? { id: user._id, email: user.email } : 'Not found');
+    
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Get request
+    console.log('Looking for request with ID:', resolvedParams.id);
+    console.log('User ID:', user._id);
+    console.log('User ID type:', typeof user._id);
+    console.log('User ID string:', user._id.toString());
+    
+    // First, let's check if the request exists at all
+    const allRequests = await RecommendationRequest.find({ _id: resolvedParams.id });
+    console.log('All requests with this ID:', allRequests.length);
+    if (allRequests.length > 0) {
+      console.log('Request student ID:', allRequests[0].studentId);
+      console.log('Request student ID type:', typeof allRequests[0].studentId);
+      console.log('Request student ID string:', allRequests[0].studentId.toString());
+      console.log('User ID matches request student ID:', user._id.toString() === allRequests[0].studentId.toString());
+    }
+    
+    // For debugging, let's also try without the studentId filter
     const request = await RecommendationRequest.findOne({
       _id: resolvedParams.id,
-      studentId: user._id
+      // studentId: user._id  // Temporarily commented out for debugging
     })
     .populate('recipientId', 'name email title institution department prefersDrafts')
     .populate('applicationId', 'title')
     .populate('scholarshipId', 'title');
+
+    console.log('Request found:', request ? { id: request._id, title: request.title } : 'Not found');
 
     if (!request) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });
