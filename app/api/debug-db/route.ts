@@ -32,7 +32,8 @@ export async function GET() {
     console.log('✅ Database connection successful');
     
     // Check collections
-    const collections = await connectDB().then(db => db.connection.db.listCollections().toArray());
+    const db = await connectDB();
+    const collections = await db.connection.db?.listCollections().toArray() || [];
     console.log('Collections:', collections.map(c => c.name));
     
     // Check documents
