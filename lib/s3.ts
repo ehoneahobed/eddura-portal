@@ -87,4 +87,21 @@ export async function getPresignedDownloadUrl({
   }
 }
 
+export async function getPresignedPreviewUrl({
+  Bucket,
+  Key,
+  expiresIn = 300, // 5 minutes
+}: {
+  Bucket: string;
+  Key: string;
+  expiresIn?: number;
+}) {
+  const command = new GetObjectCommand({
+    Bucket,
+    Key,
+    // No ResponseContentDisposition to allow inline viewing
+  });
+  return getSignedUrl(s3, command, { expiresIn });
+}
+
 export default s3; 

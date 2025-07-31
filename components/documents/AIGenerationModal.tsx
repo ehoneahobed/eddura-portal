@@ -161,7 +161,6 @@ export default function AIGenerationModal({
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(DOCUMENT_TYPE_CONFIG)
-                    .filter(([_, config]) => !config.comingSoon)
                     .map(([type, config]) => (
                       <SelectItem key={type} value={type}>
                         <div className="flex flex-col">

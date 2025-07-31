@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { parseAIResponse, craftReviewPrompt } from '@/app/api/ai/review-application/route';
+
+import { parseAIResponse, craftReviewPrompt } from '@/lib/ai-review-utils';
 
 // Mock data for testing
 const mockRequirement = {

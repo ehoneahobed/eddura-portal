@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+
 import { 
   isRetryableError, 
   createUserFriendlyErrorMessage, 
@@ -93,7 +93,7 @@ describe('AI Utils', () => {
       });
       
       // Check that feedback items have required fields
-      fallback.feedback.forEach(item => {
+      fallback.feedback.forEach((item: any) => {
         expect(item.type).toBeDefined();
         expect(item.category).toBeDefined();
         expect(item.title).toBeDefined();

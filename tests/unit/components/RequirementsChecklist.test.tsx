@@ -3,10 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { RequirementsChecklist } from '@/components/applications/RequirementsChecklist';
 
 // Mock fetch
-global.fetch = vi.fn();
+global.fetch = jest.fn();
 
 // Mock the child components
-vi.mock('@/components/applications/RequirementCard', () => ({
+jest.mock('@/components/applications/RequirementCard', () => ({
   RequirementCard: ({ requirement }: any) => (
     <div data-testid={`requirement-${requirement._id}`}>
       {requirement.name}
@@ -14,7 +14,7 @@ vi.mock('@/components/applications/RequirementCard', () => ({
   ),
 }));
 
-vi.mock('@/components/applications/AddRequirementModal', () => ({
+jest.mock('@/components/applications/AddRequirementModal', () => ({
   AddRequirementModal: ({ onClose }: any) => (
     <div data-testid="add-requirement-modal">
       <button onClick={onClose}>Close Modal</button>
@@ -47,7 +47,7 @@ describe('RequirementsChecklist', () => {
   ];
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders loading state initially', () => {
@@ -185,7 +185,7 @@ describe('RequirementsChecklist', () => {
   });
 
   it('calls onRequirementUpdate when requirements change', async () => {
-    const mockOnUpdate = vi.fn();
+    const mockOnUpdate = jest.fn();
     (fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ data: mockRequirements }),

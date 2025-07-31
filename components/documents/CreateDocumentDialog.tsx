@@ -129,10 +129,17 @@ const helpContent = {
 };
 
 const UPLOAD_BASED_TYPES = [
+  DocumentType.REFERENCE_LETTER,
+  DocumentType.RECOMMENDATION_LETTER,
   DocumentType.SCHOOL_CERTIFICATE,
   DocumentType.TRANSCRIPT,
   DocumentType.DEGREE_CERTIFICATE,
   DocumentType.LANGUAGE_CERTIFICATE,
+  DocumentType.TEST_SCORES,
+  DocumentType.FINANCIAL_DOCUMENTS,
+  DocumentType.MEDICAL_RECORDS,
+  DocumentType.LEGAL_DOCUMENTS,
+  DocumentType.AWARDS_HONORS,
   DocumentType.OTHER_CERTIFICATE,
 ];
 
@@ -268,7 +275,7 @@ export default function CreateDocumentDialog({
     if (!file) return;
     setFileUploading(true);
     try {
-      // Step 1: Get presigned URL from backend
+      // Upload file to S3 via backend
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       const res = await fetch('/api/documents/upload', {
@@ -277,21 +284,12 @@ export default function CreateDocumentDialog({
       });
       if (!res.ok) {
         const err = await res.json();
-        setFileError(err.error || 'Failed to get upload URL');
+        setFileError(err.error || 'Failed to upload file');
         return;
       }
-      const { presignedUrl, fileUrl, fileType, fileSize } = await res.json();
-      // Step 2: Upload file to S3
-      const s3Res = await fetch(presignedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
-      if (!s3Res.ok) {
-        setFileError('Failed to upload file to S3');
-        return;
-      }
-      // Step 3: Store file metadata in formData
+      const { fileUrl, fileType, fileSize } = await res.json();
+      console.log('📤 File uploaded successfully:', { fileUrl, fileType, fileSize });
+      // Store file metadata in formData
       setFormData(prev => ({
         ...prev,
         fileUrl,
@@ -361,21 +359,11 @@ export default function CreateDocumentDialog({
                         <div className="flex flex-col">
                           <span className="font-medium">{config.label}</span>
                           <span className="text-xs text-muted-foreground">{config.description}</span>
-                          {config.comingSoon && (
-                            <Badge variant="secondary" className="text-xs mt-1 w-fit">
-                              Coming Soon
-                            </Badge>
-                          )}
                         </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedTypeConfig?.comingSoon && (
-                  <p className="text-sm text-muted-foreground">
-                    This document type will be available soon. You&apos;ll be able to upload files for this type.
-                  </p>
-                )}
               </div>
 
               {/* Title */}

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { auth, hasPermission } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Admin from '@/models/Admin';
+import { isAdmin } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
+    if (!session?.user || !isAdmin(session.user)) {
       return NextResponse.json(
         { message: "Unauthorized" },
         { status: 401 }
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has permission to view admins
-    if (!session.user.permissions?.includes("admin:read")) {
+    if (!hasPermission(session.user, "admin:read")) {
       return NextResponse.json(
         { message: "Insufficient permissions" },
         { status: 403 }
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin" && session.user.role !== "super_admin") {
+    if (!session?.user || !isAdmin(session.user)) {
       return NextResponse.json(
         { message: "Unauthorized" },
         { status: 401 }
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has permission to create admins
-    if (!session.user.permissions?.includes("admin:create")) {
+    if (!hasPermission(session.user, "admin:create")) {
       return NextResponse.json(
         { message: "Insufficient permissions" },
         { status: 403 }
