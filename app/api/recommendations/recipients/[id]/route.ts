@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Recipient from '@/models/Recipient';
 import User from '@/models/User';
@@ -11,15 +10,16 @@ import User from '@/models/User';
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     await connectDB();
     
     // Get user
@@ -40,7 +40,7 @@ export async function PUT(
     }
 
     // Check if recipient exists
-    const recipient = await Recipient.findById(params.id);
+    const recipient = await Recipient.findById(resolvedParams.id);
     if (!recipient) {
       return NextResponse.json({ error: 'Recipient not found' }, { status: 404 });
     }
@@ -49,7 +49,7 @@ export async function PUT(
     if (email.toLowerCase() !== recipient.email) {
       const existingRecipient = await Recipient.findOne({ 
         email: email.toLowerCase(),
-        _id: { $ne: params.id }
+        _id: { $ne: resolvedParams.id }
       });
       if (existingRecipient) {
         return NextResponse.json(
@@ -88,15 +88,16 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     await connectDB();
     
     // Get user
@@ -106,7 +107,7 @@ export async function DELETE(
     }
 
     // Check if recipient exists
-    const recipient = await Recipient.findById(params.id);
+    const recipient = await Recipient.findById(resolvedParams.id);
     if (!recipient) {
       return NextResponse.json({ error: 'Recipient not found' }, { status: 404 });
     }
@@ -114,7 +115,7 @@ export async function DELETE(
     // TODO: Check if recipient has any active recommendation requests
     // For now, we'll allow deletion
 
-    await Recipient.findByIdAndDelete(params.id);
+    await Recipient.findByIdAndDelete(resolvedParams.id);
 
     return NextResponse.json({ message: 'Recipient deleted successfully' });
   } catch (error) {

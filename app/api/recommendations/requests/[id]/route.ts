@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import RecommendationRequest from '@/models/RecommendationRequest';
 import Recipient from '@/models/Recipient';
@@ -12,15 +11,16 @@ import User from '@/models/User';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     await connectDB();
     
     // Get user
@@ -31,7 +31,7 @@ export async function GET(
 
     // Get request
     const request = await RecommendationRequest.findOne({
-      _id: params.id,
+      _id: resolvedParams.id,
       studentId: user._id
     })
     .populate('recipientId', 'name email title institution')
@@ -58,15 +58,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     await connectDB();
     
     // Get user
@@ -88,7 +89,7 @@ export async function PUT(
 
     // Get request
     const recommendationRequest = await RecommendationRequest.findOne({
-      _id: params.id,
+      _id: resolvedParams.id,
       studentId: user._id
     });
 
@@ -149,15 +150,16 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     await connectDB();
     
     // Get user
@@ -168,7 +170,7 @@ export async function DELETE(
 
     // Get request
     const recommendationRequest = await RecommendationRequest.findOne({
-      _id: params.id,
+      _id: resolvedParams.id,
       studentId: user._id
     });
 

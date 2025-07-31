@@ -11,14 +11,15 @@ import Recipient from '@/models/Recipient';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
     
     // Find request by token
     const recommendationRequest = await RecommendationRequest.findOne({
-      secureToken: params.token,
+      secureToken: resolvedParams.token,
       tokenExpiresAt: { $gt: new Date() }
     })
     .populate('studentId', 'firstName lastName email')
@@ -59,14 +60,15 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     await connectDB();
     
     // Find request by token
     const recommendationRequest = await RecommendationRequest.findOne({
-      secureToken: params.token,
+      secureToken: resolvedParams.token,
       tokenExpiresAt: { $gt: new Date() }
     })
     .populate('recipientId', 'name email');
