@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CalendarIcon, Wand2, Users, Plus, Loader2, Info, Mail, Building } from 'lucide-react';
+import { CalendarIcon, Wand2, Users, Loader2, Info, Mail, Building, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import Link from 'next/link';
 import SearchableRecipientSelect from '@/components/recommendations/SearchableRecipientSelect';
 
 interface Recipient {
@@ -29,22 +30,40 @@ interface Recipient {
   prefersDrafts: boolean;
 }
 
-interface DraftTemplate {
-  id: string;
-  name: string;
+interface RecommendationRequest {
+  _id: string;
+  title: string;
   description: string;
-  fields: string[];
+  deadline: string;
+  status: 'pending' | 'sent' | 'received' | 'overdue' | 'cancelled';
+  priority: 'low' | 'medium' | 'high';
+  recipientId: Recipient;
+  createdAt: string;
+  sentAt?: string;
+  receivedAt?: string;
+  purpose: string;
+  relationshipContext: string;
+  additionalContext?: string;
+  requestType: string;
+  submissionMethod: string;
+  communicationStyle: string;
+  institutionName?: string;
+  schoolEmail?: string;
+  schoolInstructions?: string;
+  includeDraft: boolean;
+  draftContent?: string;
+  reminderIntervals: number[];
 }
 
-export default function NewRecommendationPage() {
+export default function EditRecommendationPage() {
+  const params = useParams();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [generatingDraft, setGeneratingDraft] = useState(false);
   const [recipients, setRecipients] = useState<Recipient[]>([]);
-  const [templates, setTemplates] = useState<DraftTemplate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [includeDraft, setIncludeDraft] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('academic');
 
   const [formData, setFormData] = useState({
     recipientId: '',
@@ -56,7 +75,6 @@ export default function NewRecommendationPage() {
     relationship: '',
     customInstructions: '',
     reminderIntervals: [7, 3, 1],
-    // New fields for different scenarios
     requestType: 'direct_platform',
     submissionMethod: 'platform_only',
     communicationStyle: 'polite',
@@ -68,9 +86,51 @@ export default function NewRecommendationPage() {
   });
 
   useEffect(() => {
-    fetchRecipients();
-    fetchTemplates();
-  }, []);
+    if (params.id) {
+      fetchRequest();
+      fetchRecipients();
+    }
+  }, [params.id]);
+
+  const fetchRequest = async () => {
+    try {
+      const response = await fetch(`/api/recommendations/requests/${params.id}`);
+      const data = await response.json();
+      if (response.ok) {
+        const request = data.request;
+        setFormData({
+          recipientId: request.recipientId._id,
+          title: request.title,
+          description: request.description,
+          priority: request.priority,
+          purpose: request.purpose,
+          highlights: '',
+          relationship: '',
+          customInstructions: '',
+          reminderIntervals: request.reminderIntervals || [7, 3, 1],
+          requestType: request.requestType || 'direct_platform',
+          submissionMethod: request.submissionMethod || 'platform_only',
+          communicationStyle: request.communicationStyle || 'polite',
+          relationshipContext: request.relationshipContext || '',
+          additionalContext: request.additionalContext || '',
+          institutionName: request.institutionName || '',
+          schoolEmail: request.schoolEmail || '',
+          schoolInstructions: request.schoolInstructions || '',
+        });
+        setSelectedDate(new Date(request.deadline));
+        setIncludeDraft(request.includeDraft || false);
+      } else {
+        toast.error(data.error || 'Failed to fetch request details');
+        router.push('/recommendations');
+      }
+    } catch (error) {
+      console.error('Error fetching request:', error);
+      toast.error('Failed to fetch request details');
+      router.push('/recommendations');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchRecipients = async () => {
     try {
@@ -86,18 +146,6 @@ export default function NewRecommendationPage() {
 
   const handleRecipientAdded = (newRecipient: Recipient) => {
     setRecipients(prev => [newRecipient, ...prev]);
-  };
-
-  const fetchTemplates = async () => {
-    try {
-      const response = await fetch('/api/recommendations/generate-draft');
-      const data = await response.json();
-      if (response.ok) {
-        setTemplates(data.templates);
-      }
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-    }
   };
 
   const generateDraft = async () => {
@@ -118,7 +166,6 @@ export default function NewRecommendationPage() {
           purpose: formData.purpose,
           highlights: formData.highlights,
           relationship: formData.relationship,
-          templateType: selectedTemplate,
           customInstructions: formData.customInstructions,
         }),
       });
@@ -154,10 +201,10 @@ export default function NewRecommendationPage() {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     try {
-      const response = await fetch('/api/recommendations/requests', {
-        method: 'POST',
+      const response = await fetch(`/api/recommendations/requests/${params.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -170,28 +217,53 @@ export default function NewRecommendationPage() {
 
       const data = await response.json();
       if (response.ok) {
-        toast.success('Recommendation request created successfully!');
-        router.push('/recommendations');
+        toast.success('Recommendation request updated successfully!');
+        router.push(`/recommendations/${params.id}`);
       } else {
-        toast.error(data.error || 'Failed to create request');
+        toast.error(data.error || 'Failed to update request');
       }
     } catch (error) {
-      console.error('Error creating request:', error);
-      toast.error('Failed to create request');
+      console.error('Error updating request:', error);
+      toast.error('Failed to update request');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const selectedRecipient = recipients.find(r => r._id === formData.recipientId);
 
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-48 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">New Recommendation Request</h1>
-        <p className="text-gray-600 mt-2">
-          Create a new recommendation letter request with AI-powered draft generation
-        </p>
+        <div className="flex items-center gap-4 mb-4">
+          <Link href={`/recommendations/${params.id}`}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Recommendation Request</h1>
+            <p className="text-gray-600 mt-2">
+              Update your recommendation letter request
+            </p>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -237,15 +309,6 @@ export default function NewRecommendationPage() {
                       </Badge>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {recipients.length === 0 && (
-                <div className="text-center py-4">
-                  <p className="text-gray-500 mb-2">No recipients found</p>
-                  <p className="text-sm text-gray-400 mb-3">
-                    Add your first recipient to get started
-                  </p>
                 </div>
               )}
             </div>
@@ -553,22 +616,6 @@ export default function NewRecommendationPage() {
             {includeDraft && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="template">Template Type</Label>
-                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templates.map((template) => (
-                        <SelectItem key={template.id} value={template.id}>
-                          {template.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
                   <Label htmlFor="relationship">Your Relationship</Label>
                   <Input
                     id="relationship"
@@ -647,25 +694,23 @@ export default function NewRecommendationPage() {
 
         {/* Submit */}
         <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/recommendations')}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? (
+          <Link href={`/recommendations/${params.id}`}>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </Link>
+          <Button type="submit" disabled={saving}>
+            {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Request...
+                Updating Request...
               </>
             ) : (
-              'Create Request'
+              'Update Request'
             )}
           </Button>
         </div>
       </form>
     </div>
   );
-}
+} 

@@ -34,7 +34,7 @@ export async function GET(
       _id: resolvedParams.id,
       studentId: user._id
     })
-    .populate('recipientId', 'name email title institution')
+    .populate('recipientId', 'name email title institution department prefersDrafts')
     .populate('applicationId', 'title')
     .populate('scholarshipId', 'title');
 

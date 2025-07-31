@@ -16,7 +16,7 @@ export const sendEmail = async (emailData: EmailData): Promise<boolean> => {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { data, error } = await resend.emails.send({
-      from: process.env.FROM_EMAIL || 'noreply@yourdomain.com',
+      from: process.env.SENDER_EMAIL || 'noreply@appeval.co',
       to: [emailData.to],
       subject: emailData.subject,
       html: emailData.html,

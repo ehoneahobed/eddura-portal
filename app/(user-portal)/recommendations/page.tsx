@@ -17,9 +17,12 @@ interface RecommendationRequest {
   priority: 'low' | 'medium' | 'high';
   recipientId: {
     name: string;
-    email: string;
+    emails: string[];
+    primaryEmail: string;
     title: string;
     institution: string;
+    department?: string;
+    prefersDrafts: boolean;
   };
   createdAt: string;
   sentAt?: string;
@@ -151,7 +154,7 @@ export default function RecommendationsPage() {
                   <div className="flex-1">
                     <CardTitle className="text-lg">{request.title}</CardTitle>
                     <CardDescription className="mt-1">
-                      {request.recipientId.name} • {request.recipientId.institution}
+                      {request.recipientId?.name || 'Unknown Recipient'} • {request.recipientId?.institution || 'Unknown Institution'}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">

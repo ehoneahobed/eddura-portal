@@ -19,7 +19,9 @@ import {
   School,
   Bookmark,
   Library,
-  Copy
+  Copy,
+  MessageSquare,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -66,6 +68,18 @@ const navigation = [
     href: '/applications/manage', 
     icon: Target,
     description: 'Manage application packages'
+  },
+  { 
+    name: 'Recommendations', 
+    href: '/recommendations', 
+    icon: MessageSquare,
+    description: 'Manage recommendation letters'
+  },
+  { 
+    name: 'Recipients', 
+    href: '/recommendations/recipients', 
+    icon: Users,
+    description: 'Manage your recipients'
   },
   { 
     name: 'Documents', 

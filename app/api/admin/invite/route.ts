@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        from: "noreply@yourdomain.com",
+        from: process.env.SENDER_EMAIL || "noreply@appeval.co",
         to: email,
         subject: "You've been invited to join the admin team",
         html: `

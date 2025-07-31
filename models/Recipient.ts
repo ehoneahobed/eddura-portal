@@ -5,7 +5,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  */
 export interface IRecipient extends Document {
   // Basic Information
-  email: string;
+  emails: string[]; // Array of email addresses
+  primaryEmail: string; // Primary email for display and default sending
   name: string;
   title: string; // Professor, Supervisor, Manager, etc.
   institution: string;
@@ -17,7 +18,10 @@ export interface IRecipient extends Document {
   
   // Preferences
   prefersDrafts: boolean;
-  preferredCommunicationMethod: 'email' | 'portal' | 'both';
+  preferredCommunicationMethod: 'email' | 'phone' | 'both';
+  
+  // User association
+  createdBy: mongoose.Types.ObjectId;
   
   // Metadata
   createdAt: Date;
@@ -28,7 +32,17 @@ export interface IRecipient extends Document {
  * Recipient schema for MongoDB
  */
 const recipientSchema = new Schema<IRecipient>({
-  email: {
+  emails: {
+    type: [String],
+    required: true,
+    validate: {
+      validator: function(emails: string[]) {
+        return emails.length > 0;
+      },
+      message: 'At least one email is required'
+    }
+  },
+  primaryEmail: {
     type: String,
     required: true,
     trim: true,
@@ -68,21 +82,34 @@ const recipientSchema = new Schema<IRecipient>({
   },
   preferredCommunicationMethod: {
     type: String,
-    enum: ['email', 'portal', 'both'],
-    default: 'both',
+    enum: ['email', 'phone', 'both'],
+    default: 'email',
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
   },
 }, {
   timestamps: true,
 });
 
 // Indexes for efficient querying
-recipientSchema.index({ email: 1 });
+recipientSchema.index({ primaryEmail: 1 });
+recipientSchema.index({ emails: 1 });
 recipientSchema.index({ institution: 1 });
 recipientSchema.index({ createdAt: -1 });
+recipientSchema.index({ createdBy: 1 });
 
-// Ensure email uniqueness per user (will be handled at application level)
-recipientSchema.index({ email: 1 }, { unique: false });
+// Compound index for email uniqueness per user
+recipientSchema.index({ primaryEmail: 1, createdBy: 1 }, { unique: true });
 
-export const Recipient: Model<IRecipient> = mongoose.models.Recipient || mongoose.model<IRecipient>('Recipient', recipientSchema);
+// Clear existing model if it exists to force recompilation
+if (mongoose.models.Recipient) {
+  delete mongoose.models.Recipient;
+}
+
+export const Recipient: Model<IRecipient> = mongoose.model<IRecipient>('Recipient', recipientSchema);
 
 export default Recipient;

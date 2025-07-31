@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const requests = await RecommendationRequest.find({ 
       studentId: user._id 
     })
-    .populate('recipientId', 'name email title institution')
+    .populate('recipientId', 'name emails primaryEmail title institution department prefersDrafts')
     .populate('applicationId', 'title')
     .populate('scholarshipId', 'title')
     .sort({ createdAt: -1 });
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     await recommendationRequest.save();
 
     // Populate recipient info for response
-    await recommendationRequest.populate('recipientId', 'name email title institution');
+    await recommendationRequest.populate('recipientId', 'name emails primaryEmail title institution department prefersDrafts');
 
     return NextResponse.json({ request: recommendationRequest }, { status: 201 });
   } catch (error) {
