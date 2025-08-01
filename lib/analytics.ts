@@ -278,7 +278,7 @@ class AnalyticsTracker {
     }
   }
 
-  private getPageType(): string {
+  public getPageType(): string {
     const path = window.location.pathname;
     
     if (path === '/') return 'home';

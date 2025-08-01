@@ -21,7 +21,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         // Get user information
         const userId = session?.user?.id;
         const userType = session?.user?.type || 'anonymous';
-        const userRole = session?.user?.role || null;
+        const userRole = session?.user?.role ? String(session.user.role) : undefined;
 
         // Create session on server
         const response = await fetch('/api/analytics/session', {
@@ -106,12 +106,12 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
           eventName: 'user_logged_in',
           eventData: {
             userType: session.user.type,
-            userRole: session.user.role
+            userRole: session.user.role ? String(session.user.role) : undefined
           },
           pageUrl: window.location.href,
           pageTitle: document.title,
           userType: session.user.type,
-          userRole: session.user.role
+          userRole: session.user.role ? String(session.user.role) : undefined
         }),
       }).catch(error => {
         console.warn('Failed to track login event:', error);
