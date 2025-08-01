@@ -46,7 +46,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
           // Initialize client-side analytics
           initializeAnalytics({
             sessionId: serverSessionId,
-            userId,
+            userId: userId || undefined,
             userType: userType as 'anonymous' | 'registered' | 'admin',
             userRole
           });
