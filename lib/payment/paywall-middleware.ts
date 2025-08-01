@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
+import { getServerSession } from 'next-auth/next';
+import { authConfig } from '@/lib/auth';
+import connectDB from '@/lib/mongodb';
 import { Subscription, SubscriptionPlan } from '@/models/Subscription';
-import { User } from '@/models/User';
+import User from '@/models/User';
 import { isPaywallEnabled } from './payment-config';
 
 export interface PaywallConfig {
@@ -48,7 +48,7 @@ export async function checkFeatureAccess(
   feature: string
 ): Promise<PaywallResult> {
   try {
-    await connectToDatabase();
+    await connectDB();
 
     // Get user's active subscription
     const subscription = await Subscription.findOne({
@@ -113,7 +113,7 @@ export async function checkUsageLimit(
   currentUsage?: number
 ): Promise<PaywallResult> {
   try {
-    await connectToDatabase();
+    await connectDB();
 
     // Get user's active subscription
     const subscription = await Subscription.findOne({
@@ -220,7 +220,7 @@ export async function enforcePaywall(
     }
 
     // Get user session
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
     if (!session?.user?.id) {
       return {
         allowed: false,
@@ -338,7 +338,7 @@ export function createPaywallResponse(result: PaywallResult, config: PaywallConf
  */
 export async function isUserInTrial(userId: string): Promise<boolean> {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     const user = await User.findById(userId);
     if (!user) return false;
@@ -356,7 +356,7 @@ export async function isUserInTrial(userId: string): Promise<boolean> {
  */
 export async function getTrialDaysRemaining(userId: string): Promise<number> {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     const user = await User.findById(userId);
     if (!user) return 0;

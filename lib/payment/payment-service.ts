@@ -1,5 +1,5 @@
-import { connectToDatabase } from '@/lib/mongodb';
-import { User } from '@/models/User';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 import { Subscription, SubscriptionPlan, PaymentTransaction } from '@/models/Subscription';
 import { PaymentGatewayFactory } from './gateway-factory';
 import {
@@ -78,7 +78,7 @@ export class PaymentService implements PaymentServiceInterface {
 
   async createSubscription(userId: string, planId: string, paymentMethod?: PaymentMethodInfo): Promise<CreateSubscriptionResponse> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       // Get user information
       const user = await User.findById(userId);
@@ -189,7 +189,7 @@ export class PaymentService implements PaymentServiceInterface {
 
   async cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = true): Promise<CancelSubscriptionResponse> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const subscription = await Subscription.findById(subscriptionId);
       if (!subscription) {
@@ -237,7 +237,7 @@ export class PaymentService implements PaymentServiceInterface {
 
   async updateSubscription(subscriptionId: string, updates: Partial<UpdateSubscriptionRequest>): Promise<UpdateSubscriptionResponse> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const subscription = await Subscription.findById(subscriptionId);
       if (!subscription) {
@@ -286,7 +286,7 @@ export class PaymentService implements PaymentServiceInterface {
 
   async processPayment(userId: string, amount: number, description: string, paymentMethod?: PaymentMethodInfo): Promise<ProcessPaymentResponse> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const user = await User.findById(userId);
       if (!user) {
@@ -377,7 +377,7 @@ export class PaymentService implements PaymentServiceInterface {
 
   private async processWebhookEvent(event: WebhookEvent): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       switch (event.type) {
         case 'invoice.payment_succeeded':
@@ -458,7 +458,7 @@ export class PaymentService implements PaymentServiceInterface {
   }
 
   async getActiveSubscription(userId: string): Promise<any> {
-    await connectToDatabase();
+    await connectDB();
     return Subscription.findOne({
       userId,
       isActive: true,
@@ -467,14 +467,14 @@ export class PaymentService implements PaymentServiceInterface {
   }
 
   async getPaymentHistory(userId: string): Promise<any[]> {
-    await connectToDatabase();
+    await connectDB();
     return PaymentTransaction.find({ userId })
       .sort({ createdAt: -1 })
       .limit(50);
   }
 
   async getAvailablePlans(): Promise<any[]> {
-    await connectToDatabase();
+    await connectDB();
     return SubscriptionPlan.find({ isActive: true })
       .sort({ monthlyPrice: 1 });
   }

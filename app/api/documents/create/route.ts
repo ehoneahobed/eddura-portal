@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withPaywallPOST, PaywallConfigs } from '@/lib/payment/with-paywall';
-import { connectToDatabase } from '@/lib/mongodb';
-import { Document } from '@/models/Document';
-import { Subscription } from '@/models/Subscription';
+import connectDB from '@/lib/mongodb';
+import mongoose from 'mongoose';
+import { IStudentDocument } from '@/models/Document';
+import { Subscription, SubscriptionPlan } from '@/models/Subscription';
 
 async function handleDocumentCreation(request: NextRequest): Promise<NextResponse> {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     const body = await request.json();
     const { title, content, type, metadata } = body;
@@ -25,7 +26,7 @@ async function handleDocumentCreation(request: NextRequest): Promise<NextRespons
     const userId = session.user.id;
 
     // Get current document count for the user
-    const documentCount = await Document.countDocuments({ userId });
+    const documentCount = await mongoose.model('Document').countDocuments({ userId });
     
     // Get user's subscription to check limits
     const subscription = await Subscription.findOne({
