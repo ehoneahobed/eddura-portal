@@ -100,7 +100,7 @@ export default function LibraryPage() {
     const data = await response.json();
     setPagination(data.pagination || pagination);
     return data;
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination.page, pagination.limit]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
 
   const { data, loading: isLoading, error, refetch } = useDataFetching({
     fetchFunction: fetchDocuments,
@@ -115,6 +115,13 @@ export default function LibraryPage() {
     }
   }, [error]);
 
+  // Handle pagination changes separately
+  useEffect(() => {
+    if (session?.user?.id && pagination.page > 1) {
+      refetch();
+    }
+  }, [pagination.page, pagination.limit, session?.user?.id]);
+
   const documents = data?.documents || [];
   const userStats = data?.userStats || {
     totalCloned: 0,
@@ -125,7 +132,7 @@ export default function LibraryPage() {
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    refetch({ page: 1, limit: pagination.limit });
+    refetch();
   };
 
   const handleCloneDocument = async (documentId: string) => {

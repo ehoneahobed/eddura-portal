@@ -75,6 +75,6 @@ export function useDataFetching<T>({
     loading,
     error,
     fetchData,
-    refetch: () => fetchData()
+    refetch: (params?: any) => fetchData(params)
   };
 }

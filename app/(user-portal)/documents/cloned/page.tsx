@@ -101,7 +101,7 @@ export default function MyClonedDocumentsPage() {
     const data = await response.json();
     setPagination(data.pagination || pagination);
     return data;
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination.page, pagination.limit]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
 
   const { data, loading: isLoading, error, refetch } = useDataFetching({
     fetchFunction: fetchClonedDocuments,
@@ -116,11 +116,18 @@ export default function MyClonedDocumentsPage() {
     }
   }, [error]);
 
+  // Handle pagination changes separately
+  useEffect(() => {
+    if (session?.user?.id && pagination.page > 1) {
+      refetch();
+    }
+  }, [pagination.page, pagination.limit, session?.user?.id]);
+
   const documents = data?.documents || [];
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    refetch({ page: 1, limit: pagination.limit });
+    refetch();
   };
 
   const handleFilterChange = (filterType: 'category' | 'type' | 'sort', value: string) => {
@@ -166,12 +173,12 @@ export default function MyClonedDocumentsPage() {
 
 
   const getCategories = () => {
-    const categories = new Set(documents.map(doc => doc.originalDocument.category));
+    const categories = new Set(documents.map((doc: ClonedDocument) => doc.originalDocument.category));
     return Array.from(categories).sort();
   };
 
   const getTypes = () => {
-    const types = new Set(documents.map(doc => doc.originalDocument.type));
+    const types = new Set(documents.map((doc: ClonedDocument) => doc.originalDocument.type));
     return Array.from(types).sort();
   };
 
@@ -223,7 +230,7 @@ export default function MyClonedDocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documents.reduce((sum, doc) => sum + doc.accessCount, 0)}
+              {documents.reduce((sum: number, doc: ClonedDocument) => sum + doc.accessCount, 0)}
             </div>
           </CardContent>
         </Card>
