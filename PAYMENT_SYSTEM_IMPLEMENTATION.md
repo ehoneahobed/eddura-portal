@@ -255,6 +255,175 @@ export default function AccountPage() {
 }
 ```
 
+## Paywall System
+
+### Overview
+The paywall system provides comprehensive access control for features and usage limits across the platform. It supports:
+
+- **Feature-based access control**: Restrict specific features to certain subscription plans
+- **Usage limit enforcement**: Track and limit usage of resources like documents, applications, etc.
+- **Free trial support**: Allow users to try premium features during trial periods
+- **Graceful degradation**: Show appropriate upgrade prompts when limits are reached
+
+### Key Components
+
+#### 1. Paywall Middleware (`lib/payment/paywall-middleware.ts`)
+- `enforcePaywall()`: Main middleware function for API routes
+- `checkFeatureAccess()`: Check if user has access to specific features
+- `checkUsageLimit()`: Check if user is within usage limits
+- `isUserInTrial()`: Check if user is in trial period
+- `getTrialDaysRemaining()`: Get remaining trial days
+
+#### 2. Higher-Order Functions (`lib/payment/with-paywall.ts`)
+- `withPaywall()`: Wrap API handlers with paywall checks
+- `withPaywallGET/POST/PUT/DELETE`: HTTP method-specific wrappers
+- `PaywallConfigs`: Predefined configurations for common use cases
+
+#### 3. Client-Side Hook (`hooks/usePaywall.ts`)
+- `usePaywall()`: React hook for client-side paywall checking
+- Feature access checking
+- Usage limit tracking
+- Trial status management
+- Upgrade prompts
+
+### Usage Examples
+
+#### API Route Protection
+```typescript
+import { withPaywallPOST, PaywallConfigs } from '@/lib/payment/with-paywall';
+
+async function handleAIRequest(request: NextRequest) {
+  // Your API logic here
+}
+
+// Apply paywall with AI feature configuration
+export const POST = withPaywallPOST(handleAIRequest, PaywallConfigs.AI_CONTENT_REFINEMENT);
+```
+
+#### Client-Side Feature Checking
+```typescript
+import { usePaywall } from '@/hooks/usePaywall';
+
+function MyComponent() {
+  const { isFeatureEnabled, showUpgradePrompt } = usePaywall();
+  
+  const handlePremiumFeature = () => {
+    if (isFeatureEnabled('aiContentRefinement')) {
+      // Execute feature
+    } else {
+      showUpgradePrompt('AI Content Refinement');
+    }
+  };
+}
+```
+
+### Trial System
+
+#### Free Trial Configuration
+- **Duration**: 7 days for new users
+- **Features**: Access to all premium features during trial
+- **Automatic**: Trial starts when user registers
+- **Graceful**: Seamless transition to paid plans
+
+#### Trial Status Tracking
+```typescript
+const { isInTrial, getTrialDaysRemaining } = usePaywall();
+
+if (isInTrial()) {
+  console.log(`${getTrialDaysRemaining()} days remaining in trial`);
+}
+```
+
+### Usage Limits
+
+#### Supported Limit Types
+- **Applications**: Number of applications user can create
+- **Documents**: Number of documents user can store
+- **Recommendations**: Number of recommendation letters
+- **Scholarships**: Number of scholarships user can save
+- **Programs**: Number of programs user can track
+- **Schools**: Number of schools user can follow
+
+#### Limit Enforcement
+```typescript
+// Check usage before creating resource
+const result = await checkUsageLimit(userId, 'documents');
+if (!result.allowed) {
+  return createPaywallResponse(result, config);
+}
+```
+
+### Feature Access Control
+
+#### Plan Hierarchy
+- **Free**: Basic features only
+- **Basic**: Core features + AI content refinement
+- **Premium**: All Basic features + AI review, Telegram bot, analytics
+- **Enterprise**: All features + API access, custom branding
+
+#### Feature Checking
+```typescript
+// Server-side
+const result = await checkFeatureAccess(userId, 'aiReview');
+if (!result.allowed) {
+  // Handle restricted access
+}
+
+// Client-side
+if (isFeatureEnabled('aiReview')) {
+  // Enable feature
+}
+```
+
+### Error Handling
+
+#### Paywall Error Responses
+```json
+{
+  "error": "AI content refinement requires a paid plan",
+  "code": "PAYWALL_RESTRICTED",
+  "subscription": { /* subscription details */ },
+  "usage": {
+    "current": 5,
+    "limit": 10,
+    "percentage": 50
+  },
+  "trial": {
+    "isActive": true,
+    "daysRemaining": 3,
+    "endDate": "2024-01-15T00:00:00.000Z"
+  }
+}
+```
+
+### Configuration
+
+#### Paywall Configurations
+```typescript
+export const PaywallConfigs = {
+  AI_CONTENT_REFINEMENT: {
+    requiredFeature: 'aiContentRefinement',
+    allowTrial: true,
+    trialDays: 7,
+    errorMessage: 'AI content refinement requires a paid plan'
+  },
+  
+  DOCUMENTS_LIMIT: {
+    usageType: 'documents',
+    allowTrial: true,
+    trialDays: 7,
+    errorMessage: 'Document limit reached. Upgrade your plan for more documents.'
+  },
+  
+  PREMIUM_PLAN: {
+    requiredPlan: 'premium',
+    allowTrial: true,
+    trialDays: 7,
+    errorMessage: 'This feature requires Premium plan or higher'
+  }
+};
+```
+
 ## Security Considerations
 
 1. **Webhook Verification**: All webhooks are verified using signatures
@@ -262,6 +431,8 @@ export default function AccountPage() {
 3. **Input Validation**: All inputs are validated before processing
 4. **Error Handling**: Comprehensive error handling and logging
 5. **Rate Limiting**: Consider implementing rate limiting for payment endpoints
+6. **Paywall Security**: Server-side validation of all access controls
+7. **Trial Abuse Prevention**: Track and prevent trial abuse
 
 ## Testing
 
