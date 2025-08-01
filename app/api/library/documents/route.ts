@@ -8,12 +8,27 @@ import DocumentView from '@/models/DocumentView';
 
 // GET /api/library/documents - Browse published library documents
 export async function GET(request: NextRequest) {
+  console.log('🔍 Library API - Request started');
+  console.log('🔍 Library API - Request URL:', request.url);
+  console.log('🔍 Library API - Request headers:', Object.fromEntries(request.headers.entries()));
+  
   try {
+    console.log('🔍 Library API - Attempting to get session...');
     const session = await auth();
+    console.log('🔍 Library API - Session result:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
+      userType: session?.user?.type
+    });
     
     if (!session?.user?.id) {
+      console.log('❌ Library API - Authentication failed: No session or user ID');
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+    
+    console.log('✅ Library API - Authentication successful');
 
     console.log('🔍 Library API - Connecting to database...');
     try {
@@ -91,6 +106,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    console.log('🔍 Library API - Parsing search parameters...');
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const subcategory = searchParams.get('subcategory');
@@ -103,12 +119,28 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search');
+    
+    console.log('🔍 Library API - Parsed search parameters:', {
+      category,
+      subcategory,
+      type,
+      targetAudience,
+      fieldOfStudy,
+      tags,
+      minRating,
+      sortBy,
+      page,
+      limit,
+      search
+    });
 
     // Build query - only published documents
+    console.log('🔍 Library API - Building initial query...');
     const query: any = { 
       status: 'published',
       reviewStatus: 'approved'
     };
+    console.log('🔍 Library API - Initial query:', JSON.stringify(query, null, 2));
     
     // Debug: Let's also try without the status filter to see if documents exist
     const allDocsQuery = {};
@@ -147,26 +179,54 @@ export async function GET(request: NextRequest) {
       sortBy
     });
     
-    if (category && category !== 'all') query.category = category;
-    if (subcategory && subcategory !== 'all') query.subcategory = subcategory;
-    if (type && type !== 'all') query.type = type;
-    if (targetAudience && targetAudience !== 'all') query.targetAudience = targetAudience;
-    if (fieldOfStudy && fieldOfStudy !== 'all') query.fieldOfStudy = fieldOfStudy;
-    if (tags) query.tags = { $in: tags.split(',') };
-    if (minRating) query.averageRating = { $gte: parseFloat(minRating) };
+    console.log('🔍 Library API - Applying filters to query...');
+    if (category && category !== 'all') {
+      query.category = category;
+      console.log('🔍 Library API - Added category filter:', category);
+    }
+    if (subcategory && subcategory !== 'all') {
+      query.subcategory = subcategory;
+      console.log('🔍 Library API - Added subcategory filter:', subcategory);
+    }
+    if (type && type !== 'all') {
+      query.type = type;
+      console.log('🔍 Library API - Added type filter:', type);
+    }
+    if (targetAudience && targetAudience !== 'all') {
+      query.targetAudience = targetAudience;
+      console.log('🔍 Library API - Added targetAudience filter:', targetAudience);
+    }
+    if (fieldOfStudy && fieldOfStudy !== 'all') {
+      query.fieldOfStudy = fieldOfStudy;
+      console.log('🔍 Library API - Added fieldOfStudy filter:', fieldOfStudy);
+    }
+    if (tags) {
+      query.tags = { $in: tags.split(',') };
+      console.log('🔍 Library API - Added tags filter:', tags.split(','));
+    }
+    if (minRating) {
+      query.averageRating = { $gte: parseFloat(minRating) };
+      console.log('🔍 Library API - Added minRating filter:', minRating);
+    }
+    
+    console.log('🔍 Library API - Final query after filters:', JSON.stringify(query, null, 2));
     
     // Text search
     if (search) {
+      console.log('🔍 Library API - Adding text search filter:', search);
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
       ];
+      console.log('🔍 Library API - Query after text search:', JSON.stringify(query, null, 2));
     }
 
     const skip = (page - 1) * limit;
+    console.log('🔍 Library API - Pagination settings:', { page, limit, skip });
 
     // Build sort
+    console.log('🔍 Library API - Building sort configuration...');
     let sort: any = {};
     switch (sortBy) {
       case 'rating':
@@ -184,6 +244,7 @@ export async function GET(request: NextRequest) {
       default:
         sort = { averageRating: -1, viewCount: -1 };
     }
+    console.log('🔍 Library API - Sort configuration:', JSON.stringify(sort, null, 2));
 
     console.log('🔍 Library API - About to execute main query with:', {
       query: JSON.stringify(query),
@@ -192,6 +253,7 @@ export async function GET(request: NextRequest) {
       limit
     });
     
+    console.log('🔍 Library API - Executing database queries...');
     const [documents, total] = await Promise.all([
       LibraryDocument.find(query)
         .sort(sort)
@@ -201,6 +263,7 @@ export async function GET(request: NextRequest) {
         .lean(),
       LibraryDocument.countDocuments(query)
     ]);
+    console.log('🔍 Library API - Database queries completed');
     
     console.log('🔍 Library API - Main query executed. Documents found:', documents.length);
     
@@ -238,15 +301,18 @@ export async function GET(request: NextRequest) {
       console.log('🔍 Library API - Sample document reviewStatus value:', JSON.stringify(allDocuments[0].reviewStatus));
     }
 
+    console.log('🔍 Library API - Fetching user cloned documents...');
     // Get user's cloned documents to check clone status
     const userClonedDocuments = await DocumentClone.find(
       { userId: session.user.id },
       { originalDocumentId: 1, createdAt: 1 }
     ).lean();
+    console.log('🔍 Library API - User cloned documents found:', userClonedDocuments.length);
 
     const clonedDocumentIds = new Set(
       userClonedDocuments.map(doc => doc.originalDocumentId.toString())
     );
+    console.log('🔍 Library API - Cloned document IDs:', Array.from(clonedDocumentIds));
 
     // Calculate user statistics
     const totalCloned = userClonedDocuments.length;
@@ -276,11 +342,17 @@ export async function GET(request: NextRequest) {
     // Get user's rated documents count
     const totalRated = await DocumentRating.countDocuments({ userId: session.user.id });
 
+    console.log('🔍 Library API - Adding clone status to documents...');
     // Add clone status to each document
     const documentsWithCloneStatus = documents.map(doc => ({
       ...doc,
       isCloned: clonedDocumentIds.has(doc._id.toString())
     }));
+    console.log('🔍 Library API - Documents with clone status:', documentsWithCloneStatus.map(doc => ({
+      id: doc._id,
+      title: doc.title,
+      isCloned: doc.isCloned
+    })));
 
     // Track views and increment view count for each document (async, don't wait)
     documents.forEach(doc => {
@@ -297,7 +369,7 @@ export async function GET(request: NextRequest) {
       ]).catch(console.error);
     });
 
-    return NextResponse.json({
+    const response = {
       documents: documentsWithCloneStatus,
       pagination: {
         page,
@@ -311,9 +383,19 @@ export async function GET(request: NextRequest) {
         favoriteCategory,
         totalRated
       }
+    };
+    
+    console.log('🔍 Library API - Final response structure:', {
+      documentsCount: response.documents.length,
+      pagination: response.pagination,
+      userStats: response.userStats
     });
+    
+    console.log('✅ Library API - Request completed successfully');
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching library documents:', error);
+    console.error('❌ Library API - Error occurred:', error);
+    console.error('❌ Library API - Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
