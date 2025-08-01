@@ -104,15 +104,45 @@ This document outlines the comprehensive subscription and payment service implem
 
 ## Environment Variables
 
+### Payment System Control
+
+#### Enable/Disable Payments
+```env
+# Enable or disable the entire payment system
+NEXT_PUBLIC_PAYMENTS_ENABLED=true
+
+# Enable/disable specific features
+ENABLE_TRIALS=true
+ENABLE_PAYWALL=true
+NEXT_PUBLIC_ENABLE_TRIALS=true
+NEXT_PUBLIC_ENABLE_PAYWALL=true
+
+# Trial configuration
+TRIAL_DURATION_DAYS=7
+NEXT_PUBLIC_TRIAL_DURATION_DAYS=7
+```
+
+### Required Variables (when payments enabled)
+
 Add the following environment variables to your `.env.local` file:
 
 ```env
+# Payment System Control
+NEXT_PUBLIC_PAYMENTS_ENABLED=true
+ENABLE_TRIALS=true
+ENABLE_PAYWALL=true
+TRIAL_DURATION_DAYS=7
+
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Paystack Configuration
 PAYSTACK_SECRET_KEY=sk_test_...
+PAYSTACK_PUBLISHABLE_KEY=pk_test_...
+NEXT_PUBLIC_PAYSTACK_PUBLISHABLE_KEY=pk_test_...
 PAYSTACK_WEBHOOK_SECRET=...
 
 # App Configuration
@@ -252,6 +282,35 @@ import SubscriptionManagement from '@/components/payment/SubscriptionManagement'
 
 export default function AccountPage() {
   return <SubscriptionManagement />;
+}
+```
+
+### Subscription Card Component
+
+```tsx
+import SubscriptionCard from '@/components/payment/SubscriptionCard';
+
+export default function ProfilePage() {
+  return <SubscriptionCard />;
+}
+```
+
+### Profile Navigation with Subscription
+
+```tsx
+import ProfileNavigation from '@/components/navigation/ProfileNavigation';
+
+export default function ProfileLayout() {
+  return (
+    <div className="flex">
+      <aside className="w-64 p-4">
+        <ProfileNavigation />
+      </aside>
+      <main className="flex-1">
+        {/* Your profile content */}
+      </main>
+    </div>
+  );
 }
 ```
 
@@ -422,6 +481,69 @@ export const PaywallConfigs = {
     errorMessage: 'This feature requires Premium plan or higher'
   }
 };
+```
+
+## Environment Variable Control
+
+### Payment System Toggle
+
+The payment system can be completely enabled or disabled using environment variables:
+
+#### Enable Payments
+```env
+NEXT_PUBLIC_PAYMENTS_ENABLED=true
+ENABLE_TRIALS=true
+ENABLE_PAYWALL=true
+```
+
+#### Disable Payments
+```env
+NEXT_PUBLIC_PAYMENTS_ENABLED=false
+```
+
+When payments are disabled:
+- All features are available to all users
+- No subscription checks are performed
+- No upgrade prompts are shown
+- Users see a "Payments Disabled" message in subscription management
+- Paywall middleware allows all requests
+
+### Feature-Specific Control
+
+```env
+# Enable/disable specific features
+ENABLE_TRIALS=true          # Enable free trials
+ENABLE_PAYWALL=true         # Enable paywall system
+NEXT_PUBLIC_ENABLE_TRIALS=true
+NEXT_PUBLIC_ENABLE_PAYWALL=true
+
+# Trial configuration
+TRIAL_DURATION_DAYS=7       # Trial duration in days
+NEXT_PUBLIC_TRIAL_DURATION_DAYS=7
+```
+
+### Usage Examples
+
+#### Development Environment
+```env
+# Disable payments for development
+NEXT_PUBLIC_PAYMENTS_ENABLED=false
+```
+
+#### Production Environment
+```env
+# Enable payments for production
+NEXT_PUBLIC_PAYMENTS_ENABLED=true
+ENABLE_TRIALS=true
+ENABLE_PAYWALL=true
+```
+
+#### Testing Environment
+```env
+# Enable payments but disable paywall for testing
+NEXT_PUBLIC_PAYMENTS_ENABLED=true
+ENABLE_TRIALS=true
+ENABLE_PAYWALL=false
 ```
 
 ## Security Considerations

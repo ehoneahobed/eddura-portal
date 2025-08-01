@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Subscription, SubscriptionPlan } from '@/models/Subscription';
 import { User } from '@/models/User';
+import { isPaywallEnabled } from './payment-config';
 
 export interface PaywallConfig {
   // Feature requirements
@@ -210,6 +211,14 @@ export async function enforcePaywall(
   config: PaywallConfig
 ): Promise<PaywallResult> {
   try {
+    // Check if paywall is enabled
+    if (!isPaywallEnabled()) {
+      return {
+        allowed: true,
+        reason: 'Paywall disabled'
+      };
+    }
+
     // Get user session
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { getClientPaymentConfig } from '@/lib/payment/payment-config';
 
 interface Subscription {
   _id: string;
@@ -52,14 +53,22 @@ export function usePaywall() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [trial, setTrial] = useState<Trial | null>(null);
+  
+  const paymentConfig = getClientPaymentConfig();
 
   useEffect(() => {
+    // If payments are disabled, don't fetch subscription
+    if (!paymentConfig.enabled) {
+      setLoading(false);
+      return;
+    }
+    
     if (session?.user?.id) {
       fetchSubscription();
     } else {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, paymentConfig.enabled]);
 
   const fetchSubscription = async () => {
     try {
@@ -131,6 +140,9 @@ export function usePaywall() {
   };
 
   const isFeatureEnabled = (feature: string): boolean => {
+    // If payments are disabled, all features are enabled
+    if (!paymentConfig.enabled) return true;
+    
     if (!subscription) return false;
     
     // For now, we'll use a simple check based on plan type
@@ -199,6 +211,9 @@ export function usePaywall() {
   };
 
   const getUsageLimit = (usageType: string): number => {
+    // If payments are disabled, return unlimited
+    if (!paymentConfig.enabled) return -1;
+    
     if (!subscription) return 0;
     
     const limits: Record<string, Record<string, number>> = {
@@ -241,6 +256,9 @@ export function usePaywall() {
   };
 
   const showUpgradePrompt = (feature?: string, usageType?: string) => {
+    // If payments are disabled, don't show upgrade prompts
+    if (!paymentConfig.enabled) return;
+    
     let message = 'This feature requires a paid plan.';
     
     if (feature) {
@@ -258,23 +276,33 @@ export function usePaywall() {
   };
 
   const isInTrial = (): boolean => {
+    // If payments are disabled, no trial
+    if (!paymentConfig.enabled) return false;
     return trial?.isActive || false;
   };
 
   const getTrialDaysRemaining = (): number => {
+    // If payments are disabled, no trial
+    if (!paymentConfig.enabled) return 0;
     return trial?.daysRemaining || 0;
   };
 
   const hasActiveSubscription = (): boolean => {
+    // If payments are disabled, consider as having active subscription
+    if (!paymentConfig.enabled) return true;
     return subscription?.isActive && 
            ['active', 'trialing'].includes(subscription.status);
   };
 
   const getPlanType = (): string => {
+    // If payments are disabled, return enterprise plan
+    if (!paymentConfig.enabled) return 'enterprise';
     return subscription?.planType || 'free';
   };
 
   const getPlanName = (): string => {
+    // If payments are disabled, return enterprise plan
+    if (!paymentConfig.enabled) return 'Enterprise Plan';
     return subscription?.planName || 'Free Plan';
   };
 
