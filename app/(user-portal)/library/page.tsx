@@ -76,10 +76,18 @@ export default function LibraryPage() {
   });
 
   const fetchDocuments = useCallback(async (params?: { page?: number; limit?: number }) => {
-    if (!session?.user?.id) return null;
+    console.log('🔍 Library Page - fetchDocuments called with params:', params);
+    console.log('🔍 Library Page - session?.user?.id:', session?.user?.id);
+    
+    if (!session?.user?.id) {
+      console.log('❌ Library Page - No session user ID, returning null');
+      return null;
+    }
     
     const page = params?.page || pagination.page;
     const limit = params?.limit || pagination.limit;
+    
+    console.log('🔍 Library Page - Making API request with page:', page, 'limit:', limit);
     
     const searchParams = new URLSearchParams({
       page: page.toString(),
@@ -93,15 +101,20 @@ export default function LibraryPage() {
 
     const response = await fetch(`/api/library/documents?${searchParams}`);
     
+    console.log('🔍 Library Page - Response status:', response.status);
+    
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('❌ Library Page - API request failed:', errorText);
       throw new Error(`Failed to fetch documents: ${response.status} ${errorText}`);
     }
     
     const data = await response.json();
+    console.log('🔍 Library Page - API response data:', data);
+    
     setPagination(data.pagination || pagination);
     return data;
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination.page, pagination.limit]);
 
   const { data, loading: isLoading, error, refetch } = useDataFetching({
     fetchFunction: fetchDocuments,
