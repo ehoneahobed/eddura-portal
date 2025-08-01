@@ -11,6 +11,9 @@ export interface IScholarship extends Document {
   currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   numberOfAwardsPerYear?: number;
+  // New fields for location and disciplines
+  locations?: string[]; // Countries where the scholarship is available
+  disciplines?: string[]; // Academic fields/disciplines
   eligibility: {
     nationalities?: string[];
     genders?: string[];
@@ -87,6 +90,9 @@ const ScholarshipSchema: Schema = new Schema<IScholarship>(
       required: true,
     },
     numberOfAwardsPerYear: { type: Number, min: 1 },
+    // New fields for location and disciplines
+    locations: [{ type: String, trim: true }], // Countries where the scholarship is available
+    disciplines: [{ type: String, trim: true }], // Academic fields/disciplines
     eligibility: {
       nationalities: [{ type: String, trim: true }],
       genders: [{ type: String, trim: true }],
@@ -156,6 +162,9 @@ ScholarshipSchema.index({ value: -1 });
 ScholarshipSchema.index({ 'eligibility.degreeLevels': 1 });
 ScholarshipSchema.index({ title: 1 }); // For alphabetical sorting
 ScholarshipSchema.index({ createdAt: -1 }); // For newest/oldest sorting
+// New indexes for location and discipline filtering
+ScholarshipSchema.index({ locations: 1 });
+ScholarshipSchema.index({ disciplines: 1 });
 
 const Scholarship: Model<IScholarship> = mongoose.models.Scholarship || mongoose.model<IScholarship>('Scholarship', ScholarshipSchema);
 

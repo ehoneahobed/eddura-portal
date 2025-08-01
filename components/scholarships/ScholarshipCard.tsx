@@ -34,6 +34,8 @@ interface Scholarship {
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   deadline: string;
   openingDate?: string;
+  locations?: string[];
+  disciplines?: string[];
   eligibility: {
     degreeLevels?: string[];
     fieldsOfStudy?: string[];
@@ -154,6 +156,27 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
                 <Star className="h-3 w-3 text-gray-400" />
                 <span className="text-xs text-gray-600">
                   Min GPA: {scholarship.eligibility.minGPA}
+                </span>
+              </div>
+            )}
+
+            {/* New Location and Discipline fields */}
+            {scholarship.locations && scholarship.locations.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-3 w-3 text-gray-400" />
+                <span className="text-xs text-gray-600">
+                  {scholarship.locations.slice(0, 2).join(', ')}
+                  {scholarship.locations.length > 2 && '...'}
+                </span>
+              </div>
+            )}
+
+            {scholarship.disciplines && scholarship.disciplines.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <BookOpen className="h-3 w-3 text-gray-400" />
+                <span className="text-xs text-gray-600">
+                  {scholarship.disciplines.slice(0, 2).join(', ')}
+                  {scholarship.disciplines.length > 2 && '...'}
                 </span>
               </div>
             )}

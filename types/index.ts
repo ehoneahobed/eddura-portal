@@ -123,6 +123,9 @@ export interface Scholarship {
   currency?: string;
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   numberOfAwardsPerYear?: number;
+  // New fields for location and disciplines
+  locations?: string[]; // Countries where the scholarship is available
+  disciplines?: string[]; // Academic fields/disciplines
   eligibility: {
     nationalities?: string[];
     genders?: string[];
