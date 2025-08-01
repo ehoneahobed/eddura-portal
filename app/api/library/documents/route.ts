@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
+    console.log('🔍 Library API - Connecting to database...');
     await connectDB();
+    console.log('🔍 Library API - Database connected successfully');
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
@@ -35,6 +37,43 @@ export async function GET(request: NextRequest) {
       status: 'published',
       reviewStatus: 'approved'
     };
+    
+    // Debug: Let's also try without the status filter to see if documents exist
+    const allDocsQuery = {};
+    const allDocs = await LibraryDocument.find(allDocsQuery).limit(3);
+    console.log('🔍 Library API - All documents (first 3):', allDocs.map(doc => ({
+      id: doc._id,
+      title: doc.title,
+      type: doc.type,
+      documentType: (doc as any).documentType, // Check if this field exists
+      status: doc.status,
+      reviewStatus: doc.reviewStatus,
+      category: doc.category
+    })));
+    
+    // Test the exact same query that will be used in the main query
+    const testQuery = { status: 'published', reviewStatus: 'approved' };
+    const testDocs = await LibraryDocument.find(testQuery).limit(3);
+    console.log('🔍 Library API - Test query result:', testDocs.length, 'documents');
+    if (testDocs.length > 0) {
+      console.log('🔍 Library API - First test document:', {
+        id: testDocs[0]._id,
+        title: testDocs[0].title,
+        status: testDocs[0].status,
+        reviewStatus: testDocs[0].reviewStatus
+      });
+    }
+    
+    console.log('🔍 Library API - Query:', JSON.stringify(query, null, 2));
+    console.log('🔍 Library API - Search params:', {
+      page,
+      limit,
+      search,
+      category,
+      type,
+      targetAudience,
+      sortBy
+    });
     
     if (category) query.category = category;
     if (subcategory) query.subcategory = subcategory;
@@ -74,6 +113,13 @@ export async function GET(request: NextRequest) {
         sort = { averageRating: -1, viewCount: -1 };
     }
 
+    console.log('🔍 Library API - About to execute main query with:', {
+      query: JSON.stringify(query),
+      sort: JSON.stringify(sort),
+      skip,
+      limit
+    });
+    
     const [documents, total] = await Promise.all([
       LibraryDocument.find(query)
         .sort(sort)
@@ -83,6 +129,42 @@ export async function GET(request: NextRequest) {
         .lean(),
       LibraryDocument.countDocuments(query)
     ]);
+    
+    console.log('🔍 Library API - Main query executed. Documents found:', documents.length);
+    
+    console.log('🔍 Library API - Found documents:', documents.length);
+    console.log('🔍 Library API - Total count:', total);
+    console.log('🔍 Library API - First document (if any):', documents[0] || 'No documents found');
+    
+    // Test: Find ALL documents without any filters
+    const allDocuments = await LibraryDocument.find({}).limit(5);
+    console.log('🔍 Library API - All documents in collection (first 5):', allDocuments.length);
+    if (allDocuments.length > 0) {
+      console.log('🔍 Library API - Sample document:', {
+        id: allDocuments[0]._id,
+        title: allDocuments[0].title,
+        status: allDocuments[0].status,
+        reviewStatus: allDocuments[0].reviewStatus
+      });
+      
+      // Test individual queries
+      const publishedDocs = await LibraryDocument.find({ status: 'published' });
+      const approvedDocs = await LibraryDocument.find({ reviewStatus: 'approved' });
+      const bothDocs = await LibraryDocument.find({ 
+        status: 'published', 
+        reviewStatus: 'approved' 
+      });
+      
+      console.log('🔍 Library API - Documents with status "published":', publishedDocs.length);
+      console.log('🔍 Library API - Documents with reviewStatus "approved":', approvedDocs.length);
+      console.log('🔍 Library API - Documents with both conditions:', bothDocs.length);
+      
+      // Check exact values
+      console.log('🔍 Library API - Sample document status type:', typeof allDocuments[0].status);
+      console.log('🔍 Library API - Sample document status value:', JSON.stringify(allDocuments[0].status));
+      console.log('🔍 Library API - Sample document reviewStatus type:', typeof allDocuments[0].reviewStatus);
+      console.log('🔍 Library API - Sample document reviewStatus value:', JSON.stringify(allDocuments[0].reviewStatus));
+    }
 
     // Get user's cloned documents to check clone status
     const userClonedDocuments = await DocumentClone.find(

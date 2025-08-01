@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
-import '@/lib/models'; // Import models to ensure they are registered
+// Import models to ensure they are registered
+try {
+  require('./models');
+} catch (error) {
+  // Ignore if models can't be loaded (e.g., during build)
+}
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

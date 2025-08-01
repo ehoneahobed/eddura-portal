@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useDataFetching } from '@/hooks/useDataFetching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,8 +60,6 @@ interface LibraryDocument {
 
 export default function LibraryPage() {
   const { data: session } = useSession();
-  const [documents, setDocuments] = useState<LibraryDocument[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -75,79 +74,100 @@ export default function LibraryPage() {
     total: 0,
     pages: 0
   });
-  const [userStats, setUserStats] = useState({
+
+  const fetchDocuments = useCallback(async (params?: { page?: number; limit?: number }) => {
+    console.log('🔍 Library Page - fetchDocuments called with params:', params);
+    console.log('🔍 Library Page - session?.user?.id:', session?.user?.id);
+    
+    if (!session?.user?.id) {
+      console.log('❌ Library Page - No session user ID, returning null');
+      return null;
+    }
+    
+    const page = params?.page || pagination.page;
+    const limit = params?.limit || pagination.limit;
+    
+    console.log('🔍 Library Page - Making API request with page:', page, 'limit:', limit);
+    
+    const searchParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search: searchTerm,
+      category: categoryFilter,
+      type: typeFilter,
+      targetAudience: targetAudienceFilter,
+      sortBy: sortBy,
+    });
+
+    const response = await fetch(`/api/library/documents?${searchParams}`);
+    
+    console.log('🔍 Library Page - Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Library Page - API request failed:', errorText);
+      throw new Error(`Failed to fetch documents: ${response.status} ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('🔍 Library Page - API response data:', data);
+    
+    setPagination(data.pagination || pagination);
+    return data;
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination.page, pagination.limit]);
+
+  const { data, loading: isLoading, error, refetch } = useDataFetching({
+    fetchFunction: fetchDocuments,
+    dependencies: [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy],
+    debounceMs: 300
+  });
+
+  // Handle errors from the custom hook
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  // Handle pagination changes separately
+  useEffect(() => {
+    if (session?.user?.id && pagination.page > 1) {
+      refetch();
+    }
+  }, [pagination.page, pagination.limit, session?.user?.id]);
+
+  console.log('🔍 Library Page - Data structure:', {
+    hasData: !!data,
+    dataKeys: data ? Object.keys(data) : [],
+    documentsLength: data?.documents?.length || 0,
+    rawData: data
+  });
+
+  const documents = data?.documents || [];
+  
+  // Debug: Log the first document to see its structure
+  if (documents.length > 0) {
+    console.log('🔍 Library Page - First document structure:', {
+      id: documents[0]._id,
+      title: documents[0].title,
+      type: documents[0].type,
+      documentType: documents[0].documentType,
+      category: documents[0].category,
+      description: documents[0].description,
+      allKeys: Object.keys(documents[0])
+    });
+  }
+  
+  const userStats = data?.userStats || {
     totalCloned: 0,
     recentlyCloned: 0,
     favoriteCategory: '',
     totalRated: 0
-  });
-
-  const fetchDocuments = useCallback(async (page = 1, limit = pagination.limit) => {
-    if (!session?.user?.id) return;
-    
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        search: searchTerm,
-        category: categoryFilter,
-        type: typeFilter,
-        targetAudience: targetAudienceFilter,
-        sortBy: sortBy,
-      });
-
-      const response = await fetch(`/api/library/documents?${params}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data.documents || []);
-        setPagination(data.pagination || pagination);
-        setUserStats(data.userStats || {
-          totalCloned: 0,
-          recentlyCloned: 0,
-          favoriteCategory: '',
-          totalRated: 0
-        });
-      } else {
-        toast.error('Failed to fetch documents');
-      }
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-      toast.error('Failed to fetch documents');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
-
-  // Initial fetch on mount
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchDocuments();
-    }
-  }, [session?.user?.id, fetchDocuments]);
-
-  // Debounced effect for filter changes
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    
-    const timeoutId = setTimeout(() => {
-      fetchDocuments(1, pagination.limit);
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, session?.user?.id, fetchDocuments, pagination.limit]);
-
-  // Handle pagination changes separately
-  useEffect(() => {
-    if (session?.user?.id && pagination.page > 1) { // Don't fetch on initial load
-      fetchDocuments(pagination.page, pagination.limit);
-    }
-  }, [pagination.page, pagination.limit, session?.user?.id, fetchDocuments]);
+  };
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchDocuments(1, pagination.limit);
+    refetch();
   };
 
   const handleCloneDocument = async (documentId: string) => {
@@ -161,14 +181,8 @@ export default function LibraryPage() {
         const data = await response.json();
         toast.success('Document cloned successfully! You can find it in your Documents section.');
         
-        // Update the clone count and mark as cloned in the UI
-        setDocuments(docs => 
-          docs.map(doc => 
-            doc._id === documentId 
-              ? { ...doc, cloneCount: doc.cloneCount + 1, isCloned: true }
-              : doc
-          )
-        );
+        // Refresh the data to get updated clone counts
+        refetch();
         
         // Also update the selected document if it's the same one
         if (selectedDocument && selectedDocument._id === documentId) {
@@ -199,18 +213,8 @@ export default function LibraryPage() {
       if (response.ok) {
         const data = await response.json();
         toast.success('Rating submitted successfully!');
-        // Update the rating in the UI
-        setDocuments(docs => 
-          docs.map(doc => 
-            doc._id === documentId 
-              ? { 
-                  ...doc, 
-                  averageRating: data.averageRating,
-                  ratingCount: data.ratingCount
-                }
-              : doc
-          )
-        );
+        // Refresh the data to get updated ratings
+        refetch();
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to submit rating');
@@ -346,6 +350,8 @@ export default function LibraryPage() {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
+
+
 
   return (
     <div className="space-y-6">
@@ -497,7 +503,7 @@ export default function LibraryPage() {
           </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {documents.map((document) => (
+            {documents.map((document: LibraryDocument) => (
               <Card key={document._id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
