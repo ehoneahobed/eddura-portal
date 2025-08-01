@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useDataFetching } from '@/hooks/useDataFetching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,8 +66,6 @@ interface ClonedDocument {
 
 export default function MyClonedDocumentsPage() {
   const { data: session } = useSession();
-  const [documents, setDocuments] = useState<ClonedDocument[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -78,70 +77,50 @@ export default function MyClonedDocumentsPage() {
     pages: 0
   });
 
-  const fetchClonedDocuments = useCallback(async (page = 1, limit = pagination.limit) => {
-    if (!session?.user?.id) return;
+  const fetchClonedDocuments = useCallback(async (params?: { page?: number; limit?: number }) => {
+    if (!session?.user?.id) return null;
     
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        search: searchTerm,
-        category: categoryFilter,
-        type: typeFilter,
-        sortBy: sortBy,
-      });
+    const page = params?.page || pagination.page;
+    const limit = params?.limit || pagination.limit;
+    
+    const searchParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search: searchTerm,
+      category: categoryFilter,
+      type: typeFilter,
+      sortBy: sortBy,
+    });
 
-      const response = await fetch(`/api/user/cloned-documents?${params}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data.documents || []);
-        setPagination(data.pagination || pagination);
-      } else {
-        toast.error('Failed to fetch cloned documents');
-      }
-    } catch (error) {
-      console.error('Error fetching cloned documents:', error);
-      toast.error('Failed to fetch cloned documents');
-    } finally {
-      setIsLoading(false);
+    const response = await fetch(`/api/user/cloned-documents?${searchParams}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch cloned documents');
     }
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
-
-  // Debounced search effect
-  useEffect(() => {
-    if (!session?.user?.id) return;
     
-    const timer = setTimeout(() => {
-      setPagination(prev => ({ ...prev, page: 1 }));
-      fetchClonedDocuments(1, pagination.limit);
-    }, 500);
+    const data = await response.json();
+    setPagination(data.pagination || pagination);
+    return data;
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination.page, pagination.limit]);
 
-    return () => clearTimeout(timer);
-  }, [searchTerm, session?.user?.id, fetchClonedDocuments, pagination.limit]);
+  const { data, loading: isLoading, error, refetch } = useDataFetching({
+    fetchFunction: fetchClonedDocuments,
+    dependencies: [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy],
+    debounceMs: 300
+  });
 
-  // Initial fetch on mount
+  // Handle errors from the custom hook
   useEffect(() => {
-    if (session?.user?.id) {
-      fetchClonedDocuments();
+    if (error) {
+      toast.error(error);
     }
-  }, [session?.user?.id, fetchClonedDocuments]);
+  }, [error]);
 
-  // Handle filter changes
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    
-    const timeoutId = setTimeout(() => {
-      fetchClonedDocuments(1, pagination.limit);
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [categoryFilter, typeFilter, sortBy, session?.user?.id, fetchClonedDocuments, pagination.limit]);
+  const documents = data?.documents || [];
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchClonedDocuments(1, pagination.limit);
+    refetch({ page: 1, limit: pagination.limit });
   };
 
   const handleFilterChange = (filterType: 'category' | 'type' | 'sort', value: string) => {
@@ -173,7 +152,7 @@ export default function MyClonedDocumentsPage() {
       if (response.ok) {
         const data = await response.json();
         toast.success(data.message || 'Document deleted successfully');
-        setDocuments(documents.filter(doc => doc._id !== documentId));
+        refetch(); // Refresh the data after deletion
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to delete document');
