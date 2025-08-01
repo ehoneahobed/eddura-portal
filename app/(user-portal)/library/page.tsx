@@ -476,6 +476,8 @@ export default function LibraryPage() {
       <AdvancedSearchFilters
         onFiltersChange={(filters) => {
           setSearchTerm(filters.searchTerm);
+          // For now, we'll use documentType for both category and type filters
+          // In the future, we should separate these properly
           setCategoryFilter(filters.documentType.length > 0 ? filters.documentType[0] : 'all');
           setTypeFilter(filters.documentType.length > 0 ? filters.documentType[0] : 'all');
           setTargetAudienceFilter(filters.targetAudience.length > 0 ? filters.targetAudience[0] : 'all');
