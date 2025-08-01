@@ -111,6 +111,24 @@ export async function GET(request: NextRequest) {
         status: allDocuments[0].status,
         reviewStatus: allDocuments[0].reviewStatus
       });
+      
+      // Test individual queries
+      const publishedDocs = await LibraryDocument.find({ status: 'published' });
+      const approvedDocs = await LibraryDocument.find({ reviewStatus: 'approved' });
+      const bothDocs = await LibraryDocument.find({ 
+        status: 'published', 
+        reviewStatus: 'approved' 
+      });
+      
+      console.log('🔍 Library API - Documents with status "published":', publishedDocs.length);
+      console.log('🔍 Library API - Documents with reviewStatus "approved":', approvedDocs.length);
+      console.log('🔍 Library API - Documents with both conditions:', bothDocs.length);
+      
+      // Check exact values
+      console.log('🔍 Library API - Sample document status type:', typeof allDocuments[0].status);
+      console.log('🔍 Library API - Sample document status value:', JSON.stringify(allDocuments[0].status));
+      console.log('🔍 Library API - Sample document reviewStatus type:', typeof allDocuments[0].reviewStatus);
+      console.log('🔍 Library API - Sample document reviewStatus value:', JSON.stringify(allDocuments[0].reviewStatus));
     }
 
     // Get user's cloned documents to check clone status
