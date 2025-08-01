@@ -74,8 +74,6 @@ export async function GET(request: NextRequest) {
         sort = { averageRating: -1, viewCount: -1 };
     }
 
-    console.log('Library API - Query:', JSON.stringify(query, null, 2));
-    
     const [documents, total] = await Promise.all([
       LibraryDocument.find(query)
         .sort(sort)
@@ -85,9 +83,6 @@ export async function GET(request: NextRequest) {
         .lean(),
       LibraryDocument.countDocuments(query)
     ]);
-    
-    console.log('Library API - Found documents:', documents.length);
-    console.log('Library API - Total count:', total);
 
     // Get user's cloned documents to check clone status
     const userClonedDocuments = await DocumentClone.find(

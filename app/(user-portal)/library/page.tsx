@@ -76,25 +76,10 @@ export default function LibraryPage() {
   });
 
   const fetchDocuments = useCallback(async (params?: { page?: number; limit?: number }) => {
-    console.log('🔍 Library Page - fetchDocuments called');
-    console.log('🔍 Library Page - session?.user?.id:', session?.user?.id);
-    
-    if (!session?.user?.id) {
-      console.log('❌ Library Page - No session user ID, returning null');
-      return null;
-    }
+    if (!session?.user?.id) return null;
     
     const page = params?.page || pagination.page;
     const limit = params?.limit || pagination.limit;
-    
-    console.log('🔍 Library Page - pagination:', { page, limit });
-    console.log('🔍 Library Page - filters:', { 
-      searchTerm, 
-      categoryFilter, 
-      typeFilter, 
-      targetAudienceFilter, 
-      sortBy 
-    });
     
     const searchParams = new URLSearchParams({
       page: page.toString(),
@@ -106,35 +91,17 @@ export default function LibraryPage() {
       sortBy: sortBy,
     });
 
-    const apiUrl = `/api/library/documents?${searchParams}`;
-    console.log('🔍 Library Page - API URL:', apiUrl);
-
-    console.log('🔍 Library Page - Making API request...');
-    const response = await fetch(apiUrl);
-    
-    console.log('🔍 Library Page - Response status:', response.status);
-    console.log('🔍 Library Page - Response ok:', response.ok);
+    const response = await fetch(`/api/library/documents?${searchParams}`);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Library Page - API request failed:', errorText);
       throw new Error(`Failed to fetch documents: ${response.status} ${errorText}`);
     }
     
     const data = await response.json();
-    console.log('🔍 Library Page - API response data:', data);
     setPagination(data.pagination || pagination);
     return data;
   }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy]);
-
-  console.log('🔍 Library Page - useDataFetching dependencies:', {
-    sessionUserId: session?.user?.id,
-    searchTerm,
-    categoryFilter,
-    typeFilter,
-    targetAudienceFilter,
-    sortBy
-  });
 
   const { data, loading: isLoading, error, refetch } = useDataFetching({
     fetchFunction: fetchDocuments,
@@ -142,32 +109,16 @@ export default function LibraryPage() {
     debounceMs: 300
   });
 
-  console.log('🔍 Library Page - useDataFetching result:', {
-    hasData: !!data,
-    isLoading,
-    error,
-    documentsCount: data?.documents?.length || 0
-  });
-
   // Handle errors from the custom hook
   useEffect(() => {
-    console.log('🔍 Library Page - Error useEffect triggered:', { error });
     if (error) {
-      console.error('❌ Library Page - Showing error toast:', error);
       toast.error(error);
     }
   }, [error]);
 
   // Handle pagination changes separately
   useEffect(() => {
-    console.log('🔍 Library Page - Pagination useEffect triggered:', {
-      sessionUserId: session?.user?.id,
-      paginationPage: pagination.page,
-      paginationLimit: pagination.limit
-    });
-    
     if (session?.user?.id && pagination.page > 1) {
-      console.log('🔍 Library Page - Calling refetch due to pagination change');
       refetch();
     }
   }, [pagination.page, pagination.limit, session?.user?.id]);
@@ -366,13 +317,7 @@ export default function LibraryPage() {
     return text.substring(0, maxLength) + '...';
   };
 
-  console.log('🔍 Library Page - Rendering with:', {
-    isLoading,
-    hasData: !!data,
-    documentsCount: documents.length,
-    paginationTotal: pagination.total,
-    userStats
-  });
+
 
   return (
     <div className="space-y-6">
@@ -508,36 +453,21 @@ export default function LibraryPage() {
 
       {/* Documents Grid */}
       <div className="space-y-4">
-        {(() => {
-          console.log('🔍 Library Page - Documents rendering section:', {
-            isLoading,
-            documentsLength: documents.length,
-            hasData: !!data
-          });
-          
-          if (isLoading) {
-            console.log('🔍 Library Page - Showing loading state');
-            return (
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin" />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : documents.length === 0 ? (
+          <Card>
+            <CardContent className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+                <p className="text-gray-500">Try adjusting your filters or search terms.</p>
               </div>
-            );
-          } else if (documents.length === 0) {
-            console.log('🔍 Library Page - Showing no documents state');
-            return (
-              <Card>
-                <CardContent className="flex items-center justify-center h-64">
-                  <div className="text-center">
-                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-                    <p className="text-gray-500">Try adjusting your filters or search terms.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          } else {
-            console.log('🔍 Library Page - Rendering documents grid with', documents.length, 'documents');
-            return (
+            </CardContent>
+          </Card>
+        ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {documents.map((document: LibraryDocument) => (
               <Card key={document._id} className="hover:shadow-lg transition-shadow">
@@ -660,9 +590,7 @@ export default function LibraryPage() {
               </Card>
             ))}
           </div>
-            );
-          }
-        })()}
+        )}
       </div>
 
       {/* Preview Dialog */}
