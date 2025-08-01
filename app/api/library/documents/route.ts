@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search');
 
-    // Build query - temporarily show all documents to debug the issue
+    // Build query - only published documents
     const query: any = { 
-      // status: 'published',
-      // reviewStatus: 'approved'
+      status: 'published',
+      reviewStatus: 'approved'
     };
     
     if (category) query.category = category;
@@ -75,6 +75,8 @@ export async function GET(request: NextRequest) {
         sort = { averageRating: -1, viewCount: -1 };
     }
 
+    console.log('Library API - Query:', JSON.stringify(query, null, 2));
+    
     const [documents, total] = await Promise.all([
       LibraryDocument.find(query)
         .sort(sort)
@@ -84,6 +86,9 @@ export async function GET(request: NextRequest) {
         .lean(),
       LibraryDocument.countDocuments(query)
     ]);
+    
+    console.log('Library API - Found documents:', documents.length);
+    console.log('Library API - Total count:', total);
 
     // Get user's cloned documents to check clone status
     const userClonedDocuments = await DocumentClone.find(
