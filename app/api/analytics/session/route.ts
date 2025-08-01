@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
     const userAgent = headersList.get('user-agent') || '';
     const ipAddress = headersList.get('x-forwarded-for') || 
                      headersList.get('x-real-ip') || 
-                     request.ip || 
                      'unknown';
     
     const body = await request.json();

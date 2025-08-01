@@ -20,9 +20,7 @@ import {
   Firefox,
   Safari,
   Edge,
-  Windows,
   Apple,
-  Linux,
   Loader2,
   Download,
   Filter
@@ -442,24 +440,24 @@ export function UserAnalyticsDashboard() {
                 <CardDescription>Traffic by OS</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {data.operatingSystems.map((os, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        {os.os === 'Windows' && <Windows className="h-4 w-4" />}
-                        {os.os === 'macOS' && <Apple className="h-4 w-4" />}
-                        {os.os === 'Linux' && <Linux className="h-4 w-4" />}
-                        {os.os === 'iOS' && <Apple className="h-4 w-4" />}
-                        {os.os === 'Android' && <Monitor className="h-4 w-4" />}
-                        <span className="text-sm">{os.os}</span>
+                                  <div className="space-y-3">
+                    {data.operatingSystems.map((os, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {os.os === 'Windows' && <Monitor className="h-4 w-4" />}
+                          {os.os === 'macOS' && <Apple className="h-4 w-4" />}
+                          {os.os === 'Linux' && <Monitor className="h-4 w-4" />}
+                          {os.os === 'iOS' && <Apple className="h-4 w-4" />}
+                          {os.os === 'Android' && <Smartphone className="h-4 w-4" />}
+                          <span className="text-sm">{os.os}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium">{os.sessions}</span>
+                          <Badge variant="secondary">{os.percentage}%</Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">{os.sessions}</span>
-                        <Badge variant="secondary">{os.percentage}%</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
               </CardContent>
             </Card>
           </div>
