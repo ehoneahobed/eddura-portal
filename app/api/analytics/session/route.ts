@@ -23,7 +23,29 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, adminId, referrer, entryPage } = body;
 
-    // Generate session ID
+    // Check for existing active session for this user
+    const existingSession = await UserSession.findOne({
+      $or: [
+        { userId: userId || null },
+        { adminId: adminId || null }
+      ],
+      isActive: true,
+      updatedAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) } // Last 30 minutes
+    });
+
+    if (existingSession) {
+      // Update existing session instead of creating new one
+      existingSession.updatedAt = new Date();
+      await existingSession.save();
+      
+      return NextResponse.json({
+        sessionId: existingSession.sessionId,
+        success: true,
+        reused: true
+      });
+    }
+
+    // Generate session ID for new session
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Parse user agent for browser/OS info

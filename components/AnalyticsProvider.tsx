@@ -15,8 +15,41 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   useEffect(() => {
     const initializeTracking = async () => {
       try {
-        // Generate session ID
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Check if we already have a valid session
+        const existingSessionData = sessionStorage.getItem('analytics_session');
+        let sessionId: string;
+        let serverSessionId: string;
+
+        if (existingSessionData) {
+          try {
+            const parsed = JSON.parse(existingSessionData);
+            // Check if the session is still valid (not too old)
+            const sessionAge = Date.now() - (parsed.timestamp || 0);
+            const maxSessionAge = 30 * 60 * 1000; // 30 minutes
+            
+            if (sessionAge < maxSessionAge && parsed.sessionId) {
+              // Reuse existing session
+              sessionId = parsed.sessionId;
+              serverSessionId = parsed.sessionId;
+              
+              // Initialize client-side analytics with existing session
+              initializeAnalytics({
+                sessionId: serverSessionId,
+                userId: parsed.userId || undefined,
+                userType: parsed.userType as 'anonymous' | 'registered' | 'admin',
+                userRole: parsed.userRole
+              });
+
+              setIsInitialized(true);
+              return;
+            }
+          } catch (error) {
+            console.warn('Failed to parse existing session data:', error);
+          }
+        }
+
+        // Create new session if no valid existing session
+        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
         // Get user information
         const userId = session?.user?.type === 'admin' ? null : session?.user?.id;
@@ -41,7 +74,8 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         });
 
         if (response.ok) {
-          const { sessionId: serverSessionId } = await response.json();
+          const { sessionId: newServerSessionId } = await response.json();
+          serverSessionId = newServerSessionId;
           
           // Initialize client-side analytics
           initializeAnalytics({
@@ -57,7 +91,8 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
             userId,
             adminId,
             userType,
-            userRole
+            userRole,
+            timestamp: Date.now()
           }));
 
           setIsInitialized(true);

@@ -38,20 +38,41 @@ export async function GET(request: NextRequest) {
       adminId: { $exists: true, $ne: null } // Admin sessions
     }).populate('adminId', 'firstName lastName email role isEmailVerified lastLoginAt loginCount');
 
-    // Process user sessions
-    const activeUsers = activeSessions.map(session => {
+    // Also end sessions that are too old (cleanup)
+    const oldCutoffTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes
+    const oldSessions = await UserSession.find({
+      isActive: true,
+      updatedAt: { $lt: oldCutoffTime }
+    });
+
+    // End old sessions in background
+    if (oldSessions.length > 0) {
+      oldSessions.forEach(async (session) => {
+        try {
+          await session.endSession();
+        } catch (error) {
+          console.error('Failed to end old session:', error);
+        }
+      });
+    }
+
+    // Process user sessions and deduplicate by user
+    const userSessionMap = new Map();
+    activeSessions.forEach(session => {
       const user = session.userId as any;
+      const userId = user._id.toString();
       const sessionDuration = session.startTime ? 
         Math.floor((new Date().getTime() - session.startTime.getTime()) / 1000) : 0;
       
-      return {
+      const userSession = {
         id: user._id,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
-        type: 'user',
+        type: 'user' as const,
+        role: undefined,
         sessionId: session.sessionId,
         sessionStartTime: session.startTime,
-        sessionDuration: sessionDuration, // in seconds
+        sessionDuration: sessionDuration,
         sessionDurationFormatted: formatDuration(sessionDuration),
         lastLoginAt: user.lastLoginAt,
         loginCount: user.loginCount,
@@ -65,23 +86,31 @@ export async function GET(request: NextRequest) {
         totalPages: session.totalPages,
         totalTimeOnSite: session.totalTimeOnSite
       };
+
+      // Keep the most recent session for each user
+      if (!userSessionMap.has(userId) || 
+          session.startTime > userSessionMap.get(userId).sessionStartTime) {
+        userSessionMap.set(userId, userSession);
+      }
     });
 
-    // Process admin sessions
-    const activeAdmins = activeAdminSessions.map(session => {
+    // Process admin sessions and deduplicate by admin
+    const adminSessionMap = new Map();
+    activeAdminSessions.forEach(session => {
       const admin = session.adminId as any;
+      const adminId = admin._id.toString();
       const sessionDuration = session.startTime ? 
         Math.floor((new Date().getTime() - session.startTime.getTime()) / 1000) : 0;
       
-      return {
+      const adminSession = {
         id: admin._id,
         name: `${admin.firstName} ${admin.lastName}`,
         email: admin.email,
-        type: 'admin',
+        type: 'admin' as const,
         role: admin.role,
         sessionId: session.sessionId,
         sessionStartTime: session.startTime,
-        sessionDuration: sessionDuration, // in seconds
+        sessionDuration: sessionDuration,
         sessionDurationFormatted: formatDuration(sessionDuration),
         lastLoginAt: admin.lastLoginAt,
         loginCount: admin.loginCount,
@@ -95,15 +124,22 @@ export async function GET(request: NextRequest) {
         totalPages: session.totalPages,
         totalTimeOnSite: session.totalTimeOnSite
       };
+
+      // Keep the most recent session for each admin
+      if (!adminSessionMap.has(adminId) || 
+          session.startTime > adminSessionMap.get(adminId).sessionStartTime) {
+        adminSessionMap.set(adminId, adminSession);
+      }
     });
 
-    // Combine and sort by session duration (longest first)
-    const allActiveUsers = [...activeUsers, ...activeAdmins].sort((a, b) => b.sessionDuration - a.sessionDuration);
+    // Combine unique sessions and sort by session duration (longest first)
+    const allActiveUsers = [...Array.from(userSessionMap.values()), ...Array.from(adminSessionMap.values())]
+      .sort((a, b) => b.sessionDuration - a.sessionDuration);
 
     // Calculate summary statistics
     const totalActiveUsers = allActiveUsers.length;
-    const totalUsers = activeUsers.length;
-    const totalAdmins = activeAdmins.length;
+    const totalUsers = userSessionMap.size;
+    const totalAdmins = adminSessionMap.size;
     const averageSessionDuration = totalActiveUsers > 0 ? 
       allActiveUsers.reduce((sum, user) => sum + user.sessionDuration, 0) / totalActiveUsers : 0;
 
