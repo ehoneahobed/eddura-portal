@@ -123,7 +123,28 @@ export default function LibraryPage() {
     }
   }, [pagination.page, pagination.limit, session?.user?.id]);
 
+  console.log('🔍 Library Page - Data structure:', {
+    hasData: !!data,
+    dataKeys: data ? Object.keys(data) : [],
+    documentsLength: data?.documents?.length || 0,
+    rawData: data
+  });
+
   const documents = data?.documents || [];
+  
+  // Debug: Log the first document to see its structure
+  if (documents.length > 0) {
+    console.log('🔍 Library Page - First document structure:', {
+      id: documents[0]._id,
+      title: documents[0].title,
+      type: documents[0].type,
+      documentType: documents[0].documentType,
+      category: documents[0].category,
+      description: documents[0].description,
+      allKeys: Object.keys(documents[0])
+    });
+  }
+  
   const userStats = data?.userStats || {
     totalCloned: 0,
     recentlyCloned: 0,
