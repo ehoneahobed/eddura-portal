@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserAnalyticsDashboard } from "@/components/analytics/UserAnalyticsDashboard";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -349,8 +350,9 @@ export default function AdminAnalyticsPage() {
 
           {/* Analytics Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="users">User Analytics</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
               <TabsTrigger value="geographic">Geographic</TabsTrigger>
               <TabsTrigger value="financial">Financial</TabsTrigger>
@@ -417,6 +419,10 @@ export default function AdminAnalyticsPage() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="users" className="space-y-6">
+              <UserAnalyticsDashboard />
             </TabsContent>
 
             <TabsContent value="trends" className="space-y-6">

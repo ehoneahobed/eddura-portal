@@ -33,6 +33,11 @@ import './Recipient';
 import './RecommendationRequest';
 import './RecommendationLetter';
 
+// 3. Analytics and tracking models
+import './UserSession';
+import './PageView';
+import './UserEvent';
+
 // 2. Models that reference other models (import after dependencies)
 import './Program';
 import './Application';
@@ -65,4 +70,7 @@ export { default as ApplicationRequirement } from './ApplicationRequirement';
 export { default as RequirementsTemplate } from './RequirementsTemplate';
 export { default as Recipient } from './Recipient';
 export { default as RecommendationRequest } from './RecommendationRequest';
-export { default as RecommendationLetter } from './RecommendationLetter'; 
+export { default as RecommendationLetter } from './RecommendationLetter';
+export { default as UserSession } from './UserSession';
+export { default as PageView } from './PageView';
+export { default as UserEvent } from './UserEvent'; 

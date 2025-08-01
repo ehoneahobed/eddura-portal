@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { SWRProvider } from '@/components/providers/SWRProvider';
 import SessionProvider from '@/components/providers/SessionProvider';
 import ErrorBoundaryProvider from '@/components/providers/ErrorBoundaryProvider';
+import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -99,8 +100,10 @@ export default function RootLayout({
         <ErrorBoundaryProvider>
           <SessionProvider>
             <SWRProvider>
-              {children}
-              <Toaster />
+              <AnalyticsProvider>
+                {children}
+                <Toaster />
+              </AnalyticsProvider>
             </SWRProvider>
           </SessionProvider>
         </ErrorBoundaryProvider>

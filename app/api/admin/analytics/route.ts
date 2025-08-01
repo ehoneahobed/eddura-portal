@@ -7,6 +7,10 @@ import School from '@/models/School';
 import Program from '@/models/Program';
 import Scholarship from '@/models/Scholarship';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
+import UserSession from '@/models/UserSession';
+import PageView from '@/models/PageView';
+import UserEvent from '@/models/UserEvent';
+import User from '@/models/User';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,8 +39,13 @@ export async function GET(request: NextRequest) {
     // Calculate date range
     const now = new Date();
     let startDate = new Date();
+    let isRealTime = false;
     
     switch (range) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        isRealTime = true;
+        break;
       case '7d':
         startDate.setDate(now.getDate() - 7);
         break;
@@ -61,20 +70,28 @@ export async function GET(request: NextRequest) {
       ApplicationTemplate.countDocuments()
     ]);
 
-    // Get growth data (last 6 months)
-    const trends = await getTrendsData();
+    // Get user analytics data
+    const userAnalytics = await getUserAnalytics(startDate, now, isRealTime);
+
+    // Get growth data based on time range
+    const trends = await getTrendsData(startDate, now, range);
 
     // Get geographic distribution
     const geographic = await getGeographicData();
 
-    // Get top content (mock data for now - would need view tracking)
-    const topContent = await getTopContentData();
+    // Get top content based on real page views
+    const topContent = await getTopContentData(startDate, now);
 
     // Get recent activity
-    const recentActivity = await getRecentActivityData();
+    const recentActivity = await getRecentActivityData(startDate, now);
 
     // Get financial data
     const financial = await getFinancialData();
+
+    // Get device and browser data
+    const deviceData = await getDeviceData(startDate, now);
+    const browserData = await getBrowserData(startDate, now);
+    const osData = await getOSData(startDate, now);
 
     // Calculate growth rate
     const growthRate = calculateGrowthRate(trends);
@@ -86,14 +103,22 @@ export async function GET(request: NextRequest) {
         totalScholarships: scholarshipsCount,
         totalTemplates: templatesCount,
         growthRate,
-        activeUsers: 1234, // Mock data - would need user tracking
-        totalValue: financial.totalScholarshipValue
+        activeUsers: userAnalytics.activeUsers,
+        totalValue: financial.totalScholarshipValue,
+        totalSessions: userAnalytics.totalSessions,
+        totalPageViews: userAnalytics.totalPageViews,
+        averageSessionDuration: userAnalytics.averageSessionDuration,
+        bounceRate: userAnalytics.bounceRate
       },
       trends,
       geographic,
       topContent,
       recentActivity,
-      financial
+      financial,
+      userAnalytics,
+      deviceData,
+      browserData,
+      osData
     };
 
     return NextResponse.json(analyticsData);
@@ -106,29 +131,60 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getTrendsData() {
-  // Get data for the last 6 months
+async function getTrendsData(startDate: Date, endDate: Date, range: string) {
   const trends = [];
-  const now = new Date();
   
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const nextDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-    
-    const [schools, programs, scholarships, templates] = await Promise.all([
-      School.countDocuments({ createdAt: { $lt: nextDate } }),
-      Program.countDocuments({ createdAt: { $lt: nextDate } }),
-      Scholarship.countDocuments({ createdAt: { $lt: nextDate } }),
-      ApplicationTemplate.countDocuments({ createdAt: { $lt: nextDate } })
-    ]);
+  if (range === 'today') {
+    // For today, show hourly data
+    for (let i = 0; i < 24; i++) {
+      const hourStart = new Date(startDate);
+      hourStart.setUTCHours(i, 0, 0, 0);
+      const hourEnd = new Date(hourStart);
+      hourEnd.setUTCHours(i + 1, 0, 0, 0);
 
-    trends.push({
-      date: date.toISOString().slice(0, 7), // YYYY-MM format
-      schools,
-      programs,
-      scholarships,
-      templates
-    });
+      const [sessions, pageViews] = await Promise.all([
+        UserSession.countDocuments({
+          startTime: { $gte: hourStart, $lt: hourEnd }
+        }),
+        PageView.countDocuments({
+          visitTime: { $gte: hourStart, $lt: hourEnd }
+        })
+      ]);
+
+      trends.push({
+        date: `${i.toString().padStart(2, '0')}:00`,
+        sessions,
+        pageViews,
+        users: sessions // Approximate
+      });
+    }
+  } else {
+    // For other ranges, show daily data
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const maxDays = Math.min(daysDiff, 30); // Limit to 30 days for performance
+    
+    for (let i = maxDays - 1; i >= 0; i--) {
+      const date = new Date(endDate);
+      date.setDate(date.getDate() - i);
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+
+      const [sessions, pageViews] = await Promise.all([
+        UserSession.countDocuments({
+          startTime: { $gte: date, $lt: nextDate }
+        }),
+        PageView.countDocuments({
+          visitTime: { $gte: date, $lt: nextDate }
+        })
+      ]);
+
+      trends.push({
+        date: date.toISOString().slice(0, 10), // YYYY-MM-DD format
+        sessions,
+        pageViews,
+        users: sessions // Approximate
+      });
+    }
   }
 
   return trends;
@@ -172,99 +228,141 @@ async function getGeographicData() {
   return geographic;
 }
 
-async function getTopContentData() {
-  // Mock data - in a real implementation, you'd track views/clicks
-  const topSchools = await School.find()
-    .sort({ createdAt: -1 })
-    .limit(2)
-    .select('name')
-    .lean();
+async function getTopContentData(startDate: Date, endDate: Date) {
+  // Get top pages by views
+  const topPages = await PageView.aggregate([
+    {
+      $match: {
+        visitTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$pageUrl',
+        views: { $sum: 1 },
+        pageTitle: { $first: '$pageTitle' },
+        pageType: { $first: '$pageType' }
+      }
+    },
+    {
+      $sort: { views: -1 }
+    },
+    {
+      $limit: 10
+    }
+  ]);
 
-  const topPrograms = await Program.find()
-    .sort({ createdAt: -1 })
-    .limit(2)
-    .select('name')
-    .populate('schoolId', 'name')
-    .lean();
+  // Calculate growth (compare with previous period)
+  const previousStartDate = new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()));
+  const previousEndDate = new Date(startDate);
 
-  const topScholarships = await Scholarship.find()
-    .sort({ createdAt: -1 })
-    .limit(1)
-    .select('title')
-    .lean();
+  const previousViews = await PageView.aggregate([
+    {
+      $match: {
+        visitTime: { $gte: previousStartDate, $lte: previousEndDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$pageUrl',
+        views: { $sum: 1 }
+      }
+    }
+  ]);
 
-  return [
-    ...topPrograms.map((program, index) => ({
-      name: `${program.name} at ${(program.schoolId as any)?.name || 'Unknown School'}`,
-      type: 'program' as const,
-      views: 1200 - (index * 100),
-      growth: 15.2 - (index * 2)
-    })),
-    ...topSchools.map((school, index) => ({
-      name: school.name,
-      type: 'school' as const,
-      views: 1000 - (index * 100),
-      growth: 8.7 - (index * 1)
-    })),
-    ...topScholarships.map((scholarship) => ({
-      name: scholarship.title,
-      type: 'scholarship' as const,
-      views: 956,
-      growth: 22.1
-    }))
-  ].sort((a, b) => b.views - a.views).slice(0, 5);
+  const previousViewsMap = new Map(previousViews.map(p => [p._id, p.views]));
+
+  return topPages.map(page => {
+    const previousViewCount = previousViewsMap.get(page._id) || 0;
+    const growth = previousViewCount > 0 
+      ? ((page.views - previousViewCount) / previousViewCount) * 100
+      : 0;
+
+    return {
+      name: page.pageTitle || page._id,
+      type: page.pageType as 'school' | 'program' | 'scholarship',
+      views: page.views,
+      growth: Math.round(growth * 10) / 10
+    };
+  });
 }
 
-async function getRecentActivityData() {
-  const recentSchools = await School.find()
+async function getRecentActivityData(startDate: Date, endDate: Date) {
+  // Get recent user events
+  const recentEvents = await UserEvent.find({
+    eventTime: { $gte: startDate, $lte: endDate },
+    eventCategory: { $in: ['engagement', 'content', 'authentication'] }
+  })
+    .sort({ eventTime: -1 })
+    .limit(10)
+    .populate('userId', 'firstName lastName email')
+    .lean();
+
+  // Get recent content creation
+  const recentSchools = await School.find({
+    createdAt: { $gte: startDate, $lte: endDate }
+  })
     .sort({ createdAt: -1 })
     .limit(2)
     .select('name createdAt')
     .lean();
 
-  const recentPrograms = await Program.find()
+  const recentPrograms = await Program.find({
+    createdAt: { $gte: startDate, $lte: endDate }
+  })
     .sort({ createdAt: -1 })
-    .limit(1)
+    .limit(2)
     .select('name schoolId createdAt')
     .populate('schoolId', 'name')
     .lean();
 
-  const recentScholarships = await Scholarship.find()
+  const recentScholarships = await Scholarship.find({
+    createdAt: { $gte: startDate, $lte: endDate }
+  })
     .sort({ createdAt: -1 })
-    .limit(1)
+    .limit(2)
     .select('title createdAt')
     .lean();
 
+  // Combine events and content creation
   const activities = [
+    ...recentEvents.map((event, index) => ({
+      id: `event-${event._id}`,
+      type: event.eventType,
+      action: event.eventName,
+      title: event.pageTitle || event.eventName,
+      timestamp: event.eventTime,
+      user: event.userId ? `${(event.userId as any).firstName} ${(event.userId as any).lastName}` : 'Anonymous'
+    })),
     ...recentSchools.map((school, index) => ({
-      id: `school-${index}`,
+      id: `school-${school._id}`,
       type: 'school',
       action: 'created',
       title: school.name,
       timestamp: school.createdAt,
-      user: 'admin@example.com'
+      user: 'Admin'
     })),
     ...recentPrograms.map((program, index) => ({
-      id: `program-${index}`,
+      id: `program-${program._id}`,
       type: 'program',
       action: 'created',
       title: program.name,
       timestamp: program.createdAt,
-      user: 'moderator@example.com'
+      user: 'Admin'
     })),
     ...recentScholarships.map((scholarship, index) => ({
-      id: `scholarship-${index}`,
+      id: `scholarship-${scholarship._id}`,
       type: 'scholarship',
       action: 'created',
       title: scholarship.title,
       timestamp: scholarship.createdAt,
-      user: 'admin@example.com'
+      user: 'Admin'
     }))
   ];
 
   return activities
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 4);
+    .slice(0, 8);
 }
 
 async function getFinancialData() {
@@ -318,14 +416,189 @@ async function getFinancialData() {
   };
 }
 
+async function getUserAnalytics(startDate: Date, endDate: Date, isRealTime: boolean = false) {
+  // Get active users based on time range
+  let activeUsersQuery: any = {
+    startTime: { $gte: startDate }
+  };
+
+  if (isRealTime) {
+    // For real-time, only count sessions that started today and are still active
+    // or sessions that have been active in the last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    activeUsersQuery = {
+      $or: [
+        {
+          startTime: { $gte: startDate },
+          isActive: true
+        },
+        {
+          updatedAt: { $gte: fiveMinutesAgo },
+          isActive: true
+        }
+      ]
+    };
+  } else {
+    activeUsersQuery = {
+      startTime: { $gte: startDate },
+      isActive: true
+    };
+  }
+
+  const activeUsers = await UserSession.countDocuments(activeUsersQuery);
+
+  // Get total sessions
+  const totalSessions = await UserSession.countDocuments({
+    startTime: { $gte: startDate }
+  });
+
+  // Get total page views
+  const totalPageViews = await PageView.countDocuments({
+    visitTime: { $gte: startDate }
+  });
+
+  // Get average session duration
+  const sessionsWithDuration = await UserSession.find({
+    startTime: { $gte: startDate },
+    duration: { $exists: true, $ne: null }
+  });
+
+  const averageSessionDuration = sessionsWithDuration.length > 0
+    ? sessionsWithDuration.reduce((sum, session) => sum + (session.duration || 0), 0) / sessionsWithDuration.length
+    : 0;
+
+  // Get bounce rate
+  const bounceSessions = await UserSession.countDocuments({
+    startTime: { $gte: startDate },
+    bounceRate: true
+  });
+
+  const bounceRate = totalSessions > 0 ? (bounceSessions / totalSessions) * 100 : 0;
+
+  // Get user engagement metrics
+  const userEngagement = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        avgTimeOnSite: { $avg: '$totalTimeOnSite' },
+        avgPagesPerSession: { $avg: '$totalPages' },
+        totalUniqueUsers: { $addToSet: '$userId' }
+      }
+    }
+  ]);
+
+  const engagement = userEngagement[0] || {
+    avgTimeOnSite: 0,
+    avgPagesPerSession: 0,
+    totalUniqueUsers: []
+  };
+
+  return {
+    activeUsers,
+    totalSessions,
+    totalPageViews,
+    averageSessionDuration: Math.round(averageSessionDuration),
+    bounceRate: Math.round(bounceRate * 100) / 100,
+    avgTimeOnSite: Math.round(engagement.avgTimeOnSite || 0),
+    avgPagesPerSession: Math.round(engagement.avgPagesPerSession || 0),
+    uniqueUsers: engagement.totalUniqueUsers.length
+  };
+}
+
+async function getDeviceData(startDate: Date, endDate: Date) {
+  const deviceStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$device',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = deviceStats.reduce((sum, device) => sum + device.sessions, 0);
+  
+  return deviceStats.map(device => ({
+    device: device._id || 'Unknown',
+    sessions: device.sessions,
+    percentage: totalSessions > 0 ? Math.round((device.sessions / totalSessions) * 100) : 0
+  }));
+}
+
+async function getBrowserData(startDate: Date, endDate: Date) {
+  const browserStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$browser',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = browserStats.reduce((sum, browser) => sum + browser.sessions, 0);
+  
+  return browserStats.map(browser => ({
+    browser: browser._id || 'Unknown',
+    sessions: browser.sessions,
+    percentage: totalSessions > 0 ? Math.round((browser.sessions / totalSessions) * 100) : 0
+  }));
+}
+
+async function getOSData(startDate: Date, endDate: Date) {
+  const osStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$os',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = osStats.reduce((sum, os) => sum + os.sessions, 0);
+  
+  return osStats.map(os => ({
+    os: os._id || 'Unknown',
+    sessions: os.sessions,
+    percentage: totalSessions > 0 ? Math.round((os.sessions / totalSessions) * 100) : 0
+  }));
+}
+
 function calculateGrowthRate(trends: any[]) {
   if (trends.length < 2) return 0;
   
   const current = trends[trends.length - 1];
   const previous = trends[trends.length - 2];
   
-  const currentTotal = current.schools + current.programs + current.scholarships + current.templates;
-  const previousTotal = previous.schools + previous.programs + previous.scholarships + previous.templates;
+  const currentTotal = current.sessions || 0;
+  const previousTotal = previous.sessions || 0;
   
   if (previousTotal === 0) return 0;
   
