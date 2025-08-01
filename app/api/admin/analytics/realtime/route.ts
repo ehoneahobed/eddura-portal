@@ -4,6 +4,88 @@ import connectDB from '@/lib/mongodb';
 import UserSession from '@/models/UserSession';
 import PageView from '@/models/PageView';
 
+// Helper functions for device, browser, and OS data
+async function getDeviceData(startDate: Date, endDate: Date) {
+  const deviceStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$device',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = deviceStats.reduce((sum, device) => sum + device.sessions, 0);
+  
+  return deviceStats.map(device => ({
+    device: device._id || 'Unknown',
+    sessions: device.sessions,
+    percentage: totalSessions > 0 ? Math.round((device.sessions / totalSessions) * 100) : 0
+  }));
+}
+
+async function getBrowserData(startDate: Date, endDate: Date) {
+  const browserStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$browser',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = browserStats.reduce((sum, browser) => sum + browser.sessions, 0);
+  
+  return browserStats.map(browser => ({
+    browser: browser._id || 'Unknown',
+    sessions: browser.sessions,
+    percentage: totalSessions > 0 ? Math.round((browser.sessions / totalSessions) * 100) : 0
+  }));
+}
+
+async function getOSData(startDate: Date, endDate: Date) {
+  const osStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$os',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = osStats.reduce((sum, os) => sum + os.sessions, 0);
+  
+  return osStats.map(os => ({
+    os: os._id || 'Unknown',
+    sessions: os.sessions,
+    percentage: totalSessions > 0 ? Math.round((os.sessions / totalSessions) * 100) : 0
+  }));
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -109,6 +191,11 @@ export async function GET(request: NextRequest) {
     .populate('userId', 'firstName lastName email')
     .lean();
 
+    // Get device and browser data for today
+    const deviceData = await getDeviceData(today, now);
+    const browserData = await getBrowserData(today, now);
+    const osData = await getOSData(today, now);
+
     return NextResponse.json({
       realTimeActiveUsers,
       todayActiveUsers,
@@ -125,6 +212,9 @@ export async function GET(request: NextRequest) {
         browser: session.browser,
         device: session.device
       })),
+      deviceData,
+      browserData,
+      osData,
       lastUpdated: now.toISOString()
     });
   } catch (error) {
