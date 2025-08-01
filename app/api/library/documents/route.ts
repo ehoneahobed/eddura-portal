@@ -11,10 +11,9 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     
-    // Temporarily allow access without authentication for debugging
-    // if (!session?.user?.id) {
-    //   return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    // }
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
 
     await connectDB();
 
