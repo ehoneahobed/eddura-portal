@@ -16,7 +16,7 @@ async function testAIDraftGeneration() {
   console.log('✅ API Key found');
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Test data
     const studentInfo = {

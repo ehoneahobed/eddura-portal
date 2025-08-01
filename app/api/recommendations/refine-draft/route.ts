@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { aiConfig, getActiveProvider } from '@/lib/ai-config';
 
 // Initialize Google AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
@@ -48,6 +49,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ draft: refinedDraft });
   } catch (error) {
     console.error('Error refining draft:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('AI service not configured')) {
+        return NextResponse.json(
+          { error: 'AI service not configured. Please set up an AI provider API key.' },
+          { status: 500 }
+        );
+      }
+      if (error.message.includes('Failed to refine draft')) {
+        return NextResponse.json(
+          { error: 'Failed to refine draft. Please check your AI API key and try again.' },
+          { status: 500 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -66,7 +84,13 @@ async function refineRecommendationDraft(
   studentInfo?: any,
   templateType?: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  // Check if AI service is configured
+  const activeProvider = getActiveProvider();
+  if (!activeProvider) {
+    throw new Error('AI service not configured. Please set up an AI provider API key.');
+  }
+
+  const model = genAI.getGenerativeModel({ model: activeProvider.model });
 
   // Create refinement prompt
   const prompt = createRefinementPrompt(

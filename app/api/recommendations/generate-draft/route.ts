@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Recipient from '@/models/Recipient';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { aiConfig, getActiveProvider } from '@/lib/ai-config';
 
 // Initialize Google AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
@@ -67,6 +68,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ draft });
   } catch (error) {
     console.error('Error generating draft:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('AI service not configured')) {
+        return NextResponse.json(
+          { error: 'AI service not configured. Please set up an AI provider API key.' },
+          { status: 500 }
+        );
+      }
+      if (error.message.includes('Failed to generate draft')) {
+        return NextResponse.json(
+          { error: 'Failed to generate draft. Please check your AI API key and try again.' },
+          { status: 500 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -83,7 +101,13 @@ async function generateRecommendationDraft(
   templateType: string,
   customInstructions?: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  // Check if AI service is configured
+  const activeProvider = getActiveProvider();
+  if (!activeProvider) {
+    throw new Error('AI service not configured. Please set up an AI provider API key.');
+  }
+
+  const model = genAI.getGenerativeModel({ model: activeProvider.model });
 
   // Create prompt based on template type
   let prompt = createPrompt(studentInfo, recipient, templateType, customInstructions);

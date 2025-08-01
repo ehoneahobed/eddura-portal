@@ -33,7 +33,7 @@ The system supports five different template types:
 
 ### 3. AI Integration
 
-The system uses Google's Gemini AI model (`gemini-pro`) for generating and refining drafts. Each template has specific prompts that focus on relevant aspects:
+The system uses Google's Gemini AI model (`gemini-1.5-flash`) for generating and refining drafts. Each template has specific prompts that focus on relevant aspects:
 
 - **Academic Template**: Focuses on academic performance, research experience, and intellectual capabilities
 - **Professional Template**: Emphasizes work ethic, leadership, and professional skills
@@ -176,7 +176,7 @@ GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 
 The system uses the AI configuration from `lib/ai-config.ts`:
 - Default provider: Google Gemini
-- Model: `gemini-pro`
+- Model: `gemini-1.5-flash`
 - Fallback providers: OpenAI GPT, Anthropic Claude
 
 ## Best Practices
