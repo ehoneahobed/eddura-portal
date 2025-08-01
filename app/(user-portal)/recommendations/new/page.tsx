@@ -41,11 +41,14 @@ export default function NewRecommendationPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [generatingDraft, setGeneratingDraft] = useState(false);
+  const [refiningDraft, setRefiningDraft] = useState(false);
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [templates, setTemplates] = useState<DraftTemplate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [includeDraft, setIncludeDraft] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('academic');
+  const [draftFeedback, setDraftFeedback] = useState('');
+  const [showDraftEditor, setShowDraftEditor] = useState(false);
 
   const [formData, setFormData] = useState({
     recipientId: '',
@@ -131,7 +134,8 @@ export default function NewRecommendationPage() {
           ...prev,
           description: data.draft,
         }));
-        toast.success('Draft generated successfully!');
+        setShowDraftEditor(true);
+        toast.success('Draft generated successfully! You can now review and refine it.');
       } else {
         toast.error(data.error || 'Failed to generate draft');
       }
@@ -140,6 +144,56 @@ export default function NewRecommendationPage() {
       toast.error('Failed to generate draft');
     } finally {
       setGeneratingDraft(false);
+    }
+  };
+
+  const refineDraft = async () => {
+    if (!draftFeedback.trim()) {
+      toast.error('Please provide feedback for refinement');
+      return;
+    }
+
+    setRefiningDraft(true);
+    try {
+      const selectedRecipient = recipients.find(r => r._id === formData.recipientId);
+      
+      const response = await fetch('/api/recommendations/refine-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentDraft: formData.description,
+          feedback: draftFeedback,
+          additionalContext: formData.additionalContext,
+          recipientInfo: selectedRecipient,
+          studentInfo: {
+            name: `${selectedRecipient?.name || 'Student'}`,
+            email: 'student@example.com',
+            relationship: formData.relationship,
+            purpose: formData.purpose,
+            achievements: formData.highlights,
+          },
+          templateType: selectedTemplate,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setFormData(prev => ({
+          ...prev,
+          description: data.draft,
+        }));
+        setDraftFeedback('');
+        toast.success('Draft refined successfully!');
+      } else {
+        toast.error(data.error || 'Failed to refine draft');
+      }
+    } catch (error) {
+      console.error('Error refining draft:', error);
+      toast.error('Failed to refine draft');
+    } finally {
+      setRefiningDraft(false);
     }
   };
 
@@ -597,7 +651,7 @@ export default function NewRecommendationPage() {
               AI Draft Generation
             </CardTitle>
             <CardDescription>
-              Generate a professional draft using AI to help your recipient
+              Generate a professional draft using AI to help your recipient. You can review and refine the draft before sending the request.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -678,6 +732,78 @@ export default function NewRecommendationPage() {
                     </>
                   )}
                 </Button>
+
+                {/* Draft Editor */}
+                {showDraftEditor && formData.description && (
+                  <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-medium">Review and Refine Draft</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowDraftEditor(false)}
+                      >
+                        Hide Editor
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="draft-content">Current Draft</Label>
+                        <Textarea
+                          id="draft-content"
+                          value={formData.description}
+                          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                          rows={8}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="draft-feedback">Feedback for Refinement</Label>
+                        <Textarea
+                          id="draft-feedback"
+                          value={draftFeedback}
+                          onChange={(e) => setDraftFeedback(e.target.value)}
+                          placeholder="Provide specific feedback on what to improve, add, or change in the draft..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={refineDraft}
+                          disabled={refiningDraft || !draftFeedback.trim()}
+                          className="flex-1"
+                        >
+                          {refiningDraft ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Refining...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="mr-2 h-4 w-4" />
+                              Refine Draft
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setDraftFeedback('');
+                            setShowDraftEditor(false);
+                          }}
+                        >
+                          Done
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -776,7 +902,7 @@ export default function NewRecommendationPage() {
           <CardHeader>
             <CardTitle>Description</CardTitle>
             <CardDescription>
-              Provide additional context for your recommendation request
+              Provide additional context for your recommendation request. If you generated an AI draft above, it will appear here and you can edit it.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -786,9 +912,14 @@ export default function NewRecommendationPage() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Provide detailed information about your request, achievements, and any specific points you'd like the recommender to address..."
+                placeholder="Provide detailed information about your request, achievements, and any specific points you'd like the recommender to address. If you generated an AI draft, it will appear here and you can edit it."
                 rows={6}
               />
+              {includeDraft && !formData.description && (
+                <p className="text-sm text-gray-600 mt-2">
+                  💡 Tip: Generate an AI draft above to get started with a professional template, then customize it to your needs.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
