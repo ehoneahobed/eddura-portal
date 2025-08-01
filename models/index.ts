@@ -33,6 +33,9 @@ import './Recipient';
 import './RecommendationRequest';
 import './RecommendationLetter';
 
+// Payment and subscription models
+import './Subscription';
+
 // 2. Models that reference other models (import after dependencies)
 import './Program';
 import './Application';
@@ -65,4 +68,5 @@ export { default as ApplicationRequirement } from './ApplicationRequirement';
 export { default as RequirementsTemplate } from './RequirementsTemplate';
 export { default as Recipient } from './Recipient';
 export { default as RecommendationRequest } from './RecommendationRequest';
-export { default as RecommendationLetter } from './RecommendationLetter'; 
+export { default as RecommendationLetter } from './RecommendationLetter';
+export { Subscription, SubscriptionPlan, PaymentTransaction } from './Subscription'; 
