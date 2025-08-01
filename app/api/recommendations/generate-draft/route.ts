@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const studentInfo = {
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
-      achievements: highlights || [],
+      achievements: highlights || '',
       relationship: relationship || 'student',
       purpose: purpose,
     };
@@ -107,6 +107,46 @@ function createPrompt(
   templateType: string,
   customInstructions?: string
 ): string {
+  // Template-specific prompts
+  const templatePrompts = {
+    academic: `Write an academic recommendation letter for a student applying to an academic program. Focus on:
+- Academic performance and intellectual capabilities
+- Research experience and analytical skills
+- Class participation and engagement
+- Potential for success in advanced studies
+- Specific examples of academic achievements`,
+    
+    professional: `Write a professional recommendation letter for a job or internship application. Focus on:
+- Work ethic and professional skills
+- Leadership and teamwork abilities
+- Problem-solving and critical thinking
+- Adaptability and growth potential
+- Specific examples of professional achievements`,
+    
+    scholarship: `Write a scholarship recommendation letter. Focus on:
+- Academic excellence and merit
+- Financial need and circumstances
+- Character and personal qualities
+- Community involvement and leadership
+- Potential for future success`,
+    
+    research: `Write a research recommendation letter. Focus on:
+- Research experience and methodology
+- Analytical and technical skills
+- Innovation and creativity
+- Publication and presentation experience
+- Potential for research contributions`,
+    
+    leadership: `Write a leadership recommendation letter. Focus on:
+- Leadership experience and style
+- Team management and collaboration
+- Initiative and decision-making
+- Communication and interpersonal skills
+- Impact and results achieved`
+  };
+
+  const templatePrompt = templatePrompts[templateType as keyof typeof templatePrompts] || templatePrompts.academic;
+
   const basePrompt = `You are a professional writing a recommendation letter. Write a formal, professional recommendation letter with the following details:
 
 Student Information:
@@ -114,7 +154,7 @@ Student Information:
 - Email: ${studentInfo.email}
 - Relationship: ${studentInfo.relationship}
 - Purpose: ${studentInfo.purpose}
-${studentInfo.achievements.length > 0 ? `- Key Achievements: ${studentInfo.achievements.join(', ')}` : ''}
+${studentInfo.achievements ? `- Key Achievements: ${studentInfo.achievements}` : ''}
 
 Recipient Information:
 - Name: ${recipient.name}
@@ -124,6 +164,8 @@ ${recipient.department ? `- Department: ${recipient.department}` : ''}
 
 Template Type: ${templateType}
 
+${templatePrompt}
+
 Requirements:
 1. Use formal, professional language
 2. Keep the letter concise but comprehensive (300-500 words)
@@ -132,6 +174,7 @@ Requirements:
 5. End with a strong recommendation
 6. Use the recipient's name and title appropriately
 7. Format as a proper business letter
+8. Include specific examples and anecdotes when possible
 
 ${customInstructions ? `Additional Instructions: ${customInstructions}` : ''}
 

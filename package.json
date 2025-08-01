@@ -30,7 +30,8 @@
     "test:email-functions": "node scripts/test-email-functions.js",
     "test:create-recommendation": "node scripts/test-create-recommendation.js",
     "test:api-endpoint": "node scripts/test-api-endpoint.js",
-    "test:recommendation-upload": "node scripts/test-recommendation-upload.js"
+    "test:recommendation-upload": "node scripts/test-recommendation-upload.js",
+    "test:ai-draft": "node scripts/test-ai-draft-generation.js"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
