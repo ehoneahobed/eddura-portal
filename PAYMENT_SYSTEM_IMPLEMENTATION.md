@@ -56,23 +56,51 @@ This document outlines the comprehensive subscription and payment service implem
 
 ### Free Plan
 - **Price**: $0/month
-- **Features**: 3 applications, 5 documents, 2 recommendations
-- **Limits**: 1GB storage, 100 API calls/month
+- **Features**: 
+  - Core: 3 applications, 5 documents, 2 recommendations, 10 scholarships
+  - Document Management: Basic library access
+  - AI: Basic AI features
+  - Communication: Email notifications
+  - Assessment: Career quiz
+- **Limits**: 1GB storage, 100 API calls/month, 10MB document size
 
 ### Basic Plan
 - **Price**: $9.99/month (USD) / ₦5,000/month (NGN) / ₵120/month (GHS)
-- **Features**: 10 applications, 20 documents, 5 recommendations, AI features
-- **Limits**: 5GB storage, 500 API calls/month
+- **Features**:
+  - Core: 10 applications, 20 documents, 5 recommendations, 50 scholarships
+  - Document Management: Full library, templates, sharing, feedback, rating, cloning
+  - AI: Content refinement, AI recommendations
+  - Communication: Messaging, email notifications
+  - Content: Application templates, requirements templates
+  - Task Management: Progress tracking
+  - Assessment: Career quiz, AI analysis, personalized insights
+- **Limits**: 5GB storage, 500 API calls/month, 25MB document size
 
 ### Premium Plan
 - **Price**: $19.99/month (USD) / ₦10,000/month (NGN) / ₵240/month (GHS)
-- **Features**: 50 applications, 100 documents, 15 recommendations, AI features, priority support, analytics
-- **Limits**: 20GB storage, 2000 API calls/month, 3 team members
+- **Features**:
+  - Core: 50 applications, 100 documents, 15 recommendations, 200 scholarships
+  - Document Management: Full library with all features
+  - AI: All AI features including AI review
+  - Communication: Messaging, email, Telegram bot
+  - Content: Full content management
+  - Task Management: Complete task management
+  - Assessment: Full assessment suite
+  - Support: Priority support, advanced analytics
+- **Limits**: 20GB storage, 2000 API calls/month, 3 team members, 50MB document size
 
 ### Enterprise Plan
 - **Price**: $49.99/month (USD)
-- **Features**: Unlimited applications, documents, recommendations, AI features, priority support, analytics, API access, custom branding
-- **Limits**: 100GB storage, 10000 API calls/month, 10 team members
+- **Features**:
+  - Core: Unlimited applications, documents, recommendations, scholarships
+  - Document Management: Unlimited with all features
+  - AI: All AI features unlimited
+  - Communication: All communication channels
+  - Content: Full content management
+  - Task Management: Complete task management
+  - Assessment: Full assessment suite
+  - Support: Priority support, advanced analytics, API access, custom branding
+- **Limits**: 100GB storage, 10000 API calls/month, 10 team members, 100MB document size
 
 ## Environment Variables
 

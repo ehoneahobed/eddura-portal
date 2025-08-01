@@ -181,6 +181,33 @@ export default function SubscriptionPlans() {
     );
   };
 
+  const groupFeatures = (features: Record<string, any>) => {
+    const groups = {
+      core: ['maxApplications', 'maxDocuments', 'maxRecommendations', 'maxScholarships', 'maxPrograms', 'maxSchools'],
+      document: ['documentLibrary', 'documentTemplates', 'documentSharing', 'documentFeedback', 'documentRating', 'documentCloning'],
+      ai: ['aiFeatures', 'aiContentRefinement', 'aiReview', 'aiRecommendations'],
+      advanced: ['prioritySupport', 'customBranding', 'advancedAnalytics', 'apiAccess', 'bulkOperations', 'exportFeatures'],
+      communication: ['messaging', 'emailNotifications', 'telegramBot'],
+      content: ['contentManagement', 'applicationTemplates', 'requirementsTemplates'],
+      task: ['taskManagement', 'progressTracking'],
+      assessment: ['careerQuiz', 'aiAnalysis', 'personalizedInsights'],
+    };
+
+    const grouped: Record<string, Record<string, any>> = {};
+    
+    Object.entries(features).forEach(([key, value]) => {
+      for (const [groupName, groupKeys] of Object.entries(groups)) {
+        if (groupKeys.includes(key)) {
+          if (!grouped[groupName]) grouped[groupName] = {};
+          grouped[groupName][key] = value;
+          break;
+        }
+      }
+    });
+
+    return grouped;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -276,10 +303,26 @@ export default function SubscriptionPlans() {
                   )}
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  {Object.entries(plan.features).map(([key, value]) => 
-                    renderFeature(key, value)
-                  )}
+                <div className="space-y-4 mb-6">
+                  {Object.entries(groupFeatures(plan.features)).map(([groupName, groupFeatures]) => (
+                    <div key={groupName} className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-700 capitalize">
+                        {groupName === 'core' ? 'Core Features' :
+                         groupName === 'document' ? 'Document Management' :
+                         groupName === 'ai' ? 'AI Features' :
+                         groupName === 'advanced' ? 'Advanced Features' :
+                         groupName === 'communication' ? 'Communication' :
+                         groupName === 'content' ? 'Content Management' :
+                         groupName === 'task' ? 'Task Management' :
+                         groupName === 'assessment' ? 'Assessment & Quiz' : groupName}
+                      </h4>
+                      <div className="space-y-2">
+                        {Object.entries(groupFeatures).map(([key, value]) => 
+                          renderFeature(key, value)
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <Button

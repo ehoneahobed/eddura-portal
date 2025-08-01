@@ -38,16 +38,16 @@ export class PaymentGatewayFactory implements IPaymentGatewayFactory {
   getBestGateway(currency: string, paymentMethod: string): PaymentGateway {
     // Priority order for different regions
     const currencyToGateway: Record<string, PaymentGateway> = {
-      'NGN': 'paystack', // Nigeria - Paystack is preferred
-      'GHS': 'paystack', // Ghana - Paystack is preferred
-      'ZAR': 'paystack', // South Africa - Paystack is preferred
-      'KES': 'paystack', // Kenya - Paystack is preferred
-      'USD': 'stripe',   // US and international - Stripe is preferred
-      'EUR': 'stripe',   // Europe - Stripe is preferred
-      'GBP': 'stripe',   // UK - Stripe is preferred
-      'CAD': 'stripe',   // Canada - Stripe is preferred
-      'AUD': 'stripe',   // Australia - Stripe is preferred
-      'INR': 'stripe',   // India - Stripe is preferred
+      'NGN': 'paystack', // Nigerian Naira - Paystack is preferred
+      'GHS': 'paystack', // Ghanaian Cedi - Paystack is preferred
+      'ZAR': 'paystack', // South African Rand - Paystack is preferred
+      'KES': 'paystack', // Kenyan Shilling - Paystack is preferred
+      'USD': 'stripe',   // US Dollar - Stripe is preferred
+      'EUR': 'stripe',   // Euro - Stripe is preferred
+      'GBP': 'stripe',   // British Pound - Stripe is preferred
+      'CAD': 'stripe',   // Canadian Dollar - Stripe is preferred
+      'AUD': 'stripe',   // Australian Dollar - Stripe is preferred
+      'INR': 'stripe',   // Indian Rupee - Stripe is preferred
     };
 
     return currencyToGateway[currency] || 'stripe';
