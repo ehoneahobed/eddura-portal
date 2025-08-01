@@ -19,6 +19,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Skip if Resend API key is not configured
+    if (!process.env.RESEND_API_KEY) {
+      console.log('Skipping recommendation reminders - RESEND_API_KEY not configured');
+      return NextResponse.json({ 
+        message: 'Skipped - RESEND_API_KEY not configured',
+        processed: 0,
+        sent: 0,
+        errors: 0
+      });
+    }
+
     await connectDB();
 
     const now = new Date();

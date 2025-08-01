@@ -40,45 +40,56 @@ interface ContentPageProps {
 }
 
 export default async function ContentPage({ searchParams }: ContentPageProps) {
-  await connectDB();
+  let content: any[] = [];
+  let total = 0;
+  let blogCount = 0;
+  let opportunityCount = 0;
+  let eventCount = 0;
+  const limit = 12;
   
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page || '1');
-  const limit = 12;
   const skip = (page - 1) * limit;
   
-  // Build query for published content only
-  const query: any = { status: 'published' };
-  
-  if (resolvedSearchParams.type) query.type = resolvedSearchParams.type;
-  if (resolvedSearchParams.category) query.categories = { $in: [resolvedSearchParams.category] };
-  if (resolvedSearchParams.tag) query.tags = { $in: [resolvedSearchParams.tag] };
-  
-  if (resolvedSearchParams.search) {
-    query.$or = [
-      { title: { $regex: resolvedSearchParams.search, $options: 'i' } },
-      { content: { $regex: resolvedSearchParams.search, $options: 'i' } },
-      { excerpt: { $regex: resolvedSearchParams.search, $options: 'i' } },
-      { tags: { $in: [new RegExp(resolvedSearchParams.search, 'i')] } }
-    ];
+  try {
+    await connectDB();
+    
+    // Build query for published content only
+    const query: any = { status: 'published' };
+    
+    if (resolvedSearchParams.type) query.type = resolvedSearchParams.type;
+    if (resolvedSearchParams.category) query.categories = { $in: [resolvedSearchParams.category] };
+    if (resolvedSearchParams.tag) query.tags = { $in: [resolvedSearchParams.tag] };
+    
+    if (resolvedSearchParams.search) {
+      query.$or = [
+        { title: { $regex: resolvedSearchParams.search, $options: 'i' } },
+        { content: { $regex: resolvedSearchParams.search, $options: 'i' } },
+        { excerpt: { $regex: resolvedSearchParams.search, $options: 'i' } },
+        { tags: { $in: [new RegExp(resolvedSearchParams.search, 'i')] } }
+      ];
+    }
+    
+    // Get content with pagination
+    [content, total] = await Promise.all([
+      Content.find(query)
+        .sort({ publishDate: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Content.countDocuments(query)
+    ]);
+    
+    // Get content statistics
+    [blogCount, opportunityCount, eventCount] = await Promise.all([
+      Content.countDocuments({ type: 'blog', status: 'published' }),
+      Content.countDocuments({ type: 'opportunity', status: 'published' }),
+      Content.countDocuments({ type: 'event', status: 'published' })
+    ]);
+  } catch (error) {
+    console.error('Error loading content page:', error);
+    // Continue with empty data for build time
   }
-  
-  // Get content with pagination
-  const [content, total] = await Promise.all([
-    Content.find(query)
-      .sort({ publishDate: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-    Content.countDocuments(query)
-  ]);
-  
-  // Get content statistics
-  const [blogCount, opportunityCount, eventCount] = await Promise.all([
-    Content.countDocuments({ type: 'blog', status: 'published' }),
-    Content.countDocuments({ type: 'opportunity', status: 'published' }),
-    Content.countDocuments({ type: 'event', status: 'published' })
-  ]);
   
   const totalPages = Math.ceil(total / limit);
   

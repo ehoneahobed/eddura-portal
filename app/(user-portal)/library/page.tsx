@@ -164,7 +164,7 @@ export default function LibraryPage() {
   const documents = data?.documents || [];
   console.log('🔍 Library Page - Documents array:', {
     length: documents.length,
-    documents: documents.map(doc => ({
+    documents: documents.map((doc: LibraryDocument) => ({
       id: doc._id,
       title: doc.title,
       type: doc.type,
