@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
-    const { sessionId, userId, timestamp } = body;
+    const { sessionId, userId, adminId, timestamp } = body;
 
     // Update session with heartbeat
     await UserSession.findOneAndUpdate(

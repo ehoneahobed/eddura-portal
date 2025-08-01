@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import '@/models/index';
 import UserSession from '@/models/UserSession';
 import User from '@/models/User';
+import Admin from '@/models/Admin';
 import { headers } from 'next/headers';
 
 export async function POST(request: NextRequest) {
@@ -20,9 +21,31 @@ export async function POST(request: NextRequest) {
                      'unknown';
     
     const body = await request.json();
-    const { userId, referrer, entryPage } = body;
+    const { userId, adminId, referrer, entryPage } = body;
 
-    // Generate session ID
+    // Check for existing active session for this user
+    const existingSession = await UserSession.findOne({
+      $or: [
+        { userId: userId || null },
+        { adminId: adminId || null }
+      ],
+      isActive: true,
+      updatedAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) } // Last 30 minutes
+    });
+
+    if (existingSession) {
+      // Update existing session instead of creating new one
+      existingSession.updatedAt = new Date();
+      await existingSession.save();
+      
+      return NextResponse.json({
+        sessionId: existingSession.sessionId,
+        success: true,
+        reused: true
+      });
+    }
+
+    // Generate session ID for new session
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Parse user agent for browser/OS info
@@ -31,7 +54,8 @@ export async function POST(request: NextRequest) {
     // Create session data
     const sessionData = {
       sessionId,
-      userId: userId ? userId : null,
+      userId: userId || null,
+      adminId: adminId || null,
       startTime: new Date(),
       isActive: true,
       userAgent,
@@ -59,6 +83,14 @@ export async function POST(request: NextRequest) {
     // Update user's last login if authenticated
     if (userId) {
       await User.findByIdAndUpdate(userId, {
+        lastLoginAt: new Date(),
+        $inc: { loginCount: 1 }
+      });
+    }
+
+    // Update admin's last login if authenticated
+    if (adminId) {
+      await Admin.findByIdAndUpdate(adminId, {
         lastLoginAt: new Date(),
         $inc: { loginCount: 1 }
       });

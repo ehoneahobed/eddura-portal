@@ -4,7 +4,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  * UserSession interface representing a user's session on the platform
  */
 export interface IUserSession extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
+  adminId?: mongoose.Types.ObjectId;
   sessionId: string;
   startTime: Date;
   endTime?: Date;
@@ -48,7 +49,13 @@ const UserSessionSchema = new Schema<IUserSession>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
+    index: true
+  },
+  adminId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Admin',
+    required: false,
     index: true
   },
   sessionId: {
@@ -156,6 +163,7 @@ const UserSessionSchema = new Schema<IUserSession>({
 
 // Indexes for efficient querying
 UserSessionSchema.index({ userId: 1, startTime: -1 });
+UserSessionSchema.index({ adminId: 1, startTime: -1 });
 UserSessionSchema.index({ sessionId: 1 });
 UserSessionSchema.index({ isActive: 1 });
 UserSessionSchema.index({ startTime: -1 });

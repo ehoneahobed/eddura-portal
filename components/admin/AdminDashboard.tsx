@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useDashboardStats } from "@/hooks/use-dashboard";
+import ActiveUsersCard from "./ActiveUsersCard";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
@@ -163,6 +164,9 @@ export default function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Active Users */}
+      <ActiveUsersCard minutes={5} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
