@@ -19,7 +19,8 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
         // Get user information
-        const userId = session?.user?.id;
+        const userId = session?.user?.type === 'admin' ? null : session?.user?.id;
+        const adminId = session?.user?.type === 'admin' ? session?.user?.id : null;
         const userType = session?.user?.type || 'anonymous';
         const userRole = session?.user?.role ? String(session.user.role) : undefined;
 
@@ -31,6 +32,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
           },
           body: JSON.stringify({
             userId,
+            adminId,
             referrer: document.referrer,
             entryPage: window.location.pathname,
             screenResolution: `${screen.width}x${screen.height}`,
@@ -53,6 +55,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
           sessionStorage.setItem('analytics_session', JSON.stringify({
             sessionId: serverSessionId,
             userId,
+            adminId,
             userType,
             userRole
           }));

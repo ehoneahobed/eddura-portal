@@ -23,6 +23,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileEdit,
+  Users,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -142,6 +143,12 @@ const navigationItems: NavigationItemType[] = [
     name: "Analytics",
     href: "/admin/analytics",
     icon: BarChart3,
+    permission: "analytics:read",
+  },
+  {
+    name: "Active Users",
+    href: "/admin/active-users",
+    icon: Users,
     permission: "analytics:read",
   },
   {
