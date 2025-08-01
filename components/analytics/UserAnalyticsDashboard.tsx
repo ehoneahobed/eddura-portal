@@ -97,6 +97,7 @@ export function UserAnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState('30d');
   const [activeTab, setActiveTab] = useState('overview');
   const [isRealTime, setIsRealTime] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchUserAnalytics();
@@ -104,20 +105,26 @@ export function UserAnalyticsDashboard() {
 
   // Set up real-time updates for "today" range
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
     if (timeRange === 'today') {
       setIsRealTime(true);
-      const interval = setInterval(() => {
-        fetchUserAnalytics();
+      interval = setInterval(() => {
+        // Silent update - don't show loading state
+        fetchUserAnalyticsSilently();
       }, 30000); // Update every 30 seconds for real-time data
-
-      return () => clearInterval(interval);
     } else {
       setIsRealTime(false);
     }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [timeRange]);
 
-  const fetchUserAnalytics = async () => {
-    setLoading(true);
+  const fetchUserAnalyticsSilently = async () => {
     try {
       let response;
       if (timeRange === 'today') {
@@ -144,12 +151,18 @@ export function UserAnalyticsDashboard() {
             avgPagesPerSession: 0, // Not available in real-time
             uniqueUsers: analyticsData.todayActiveUsers
           },
-          sessions: analyticsData.hourlyData.map((hour: any) => ({
-            date: `${hour.hour}:00`,
-            sessions: hour.sessions,
-            users: hour.sessions, // Approximate
-            pageViews: hour.pageViews
-                    })),
+          sessions: analyticsData.hourlyData.map((hour: any) => {
+            // Convert UTC hour to local timezone
+            const utcHour = hour.hour;
+            const timezoneOffset = new Date().getTimezoneOffset() / 60;
+            const localHour = (utcHour - timezoneOffset + 24) % 24;
+            return {
+              date: `${localHour.toString().padStart(2, '0')}:00`,
+              sessions: hour.sessions,
+              users: hour.sessions, // Approximate
+              pageViews: hour.pageViews
+            };
+          }),
           devices: [
             { device: 'Desktop', sessions: 65, percentage: 65 },
             { device: 'Mobile', sessions: 30, percentage: 30 },
@@ -255,6 +268,158 @@ export function UserAnalyticsDashboard() {
       }
       
       setData(userData);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Failed to fetch user analytics silently:', error);
+    }
+  };
+
+  const fetchUserAnalytics = async () => {
+    setLoading(true);
+    try {
+      let response;
+      if (timeRange === 'today') {
+        // Use real-time endpoint for today's data
+        response = await fetch('/api/admin/analytics/realtime');
+      } else {
+        response = await fetch(`/api/admin/analytics?range=${timeRange}`);
+      }
+      const analyticsData = await response.json();
+      
+      // Transform data for user analytics dashboard
+      let userData: UserAnalyticsData;
+      
+      if (timeRange === 'today') {
+        // Handle real-time data format
+        userData = {
+          overview: {
+            activeUsers: analyticsData.realTimeActiveUsers,
+            totalSessions: analyticsData.todaySessions,
+            totalPageViews: analyticsData.todayPageViews,
+            averageSessionDuration: 0, // Not available in real-time
+            bounceRate: 0, // Not available in real-time
+            avgTimeOnSite: 0, // Not available in real-time
+            avgPagesPerSession: 0, // Not available in real-time
+            uniqueUsers: analyticsData.todayActiveUsers
+          },
+          sessions: analyticsData.hourlyData.map((hour: any) => {
+            // Convert UTC hour to local timezone
+            const utcHour = hour.hour;
+            const timezoneOffset = new Date().getTimezoneOffset() / 60;
+            const localHour = (utcHour - timezoneOffset + 24) % 24;
+            return {
+              date: `${localHour.toString().padStart(2, '0')}:00`,
+              sessions: hour.sessions,
+              users: hour.sessions, // Approximate
+              pageViews: hour.pageViews
+            };
+          }),
+          devices: [
+            { device: 'Desktop', sessions: 65, percentage: 65 },
+            { device: 'Mobile', sessions: 30, percentage: 30 },
+            { device: 'Tablet', sessions: 5, percentage: 5 }
+          ],
+          browsers: [
+            { browser: 'Chrome', sessions: 45, percentage: 45 },
+            { browser: 'Safari', sessions: 25, percentage: 25 },
+            { browser: 'Firefox', sessions: 15, percentage: 15 },
+            { browser: 'Edge', sessions: 10, percentage: 10 },
+            { browser: 'Other', sessions: 5, percentage: 5 }
+          ],
+          operatingSystems: [
+            { os: 'Windows', sessions: 40, percentage: 40 },
+            { os: 'macOS', sessions: 25, percentage: 25 },
+            { os: 'iOS', sessions: 20, percentage: 20 },
+            { os: 'Android', sessions: 10, percentage: 10 },
+            { os: 'Linux', sessions: 5, percentage: 5 }
+          ],
+          topPages: [], // Not available in real-time
+          recentSessions: analyticsData.recentSessions,
+          userEngagement: [
+            {
+              metric: 'Current Hour Sessions',
+              value: analyticsData.currentHourSessions,
+              change: 0
+            },
+            {
+              metric: 'Current Hour Page Views',
+              value: analyticsData.currentHourPageViews,
+              change: 0
+            },
+            {
+              metric: 'Today Sessions',
+              value: analyticsData.todaySessions,
+              change: 0
+            },
+            {
+              metric: 'Today Page Views',
+              value: analyticsData.todayPageViews,
+              change: 0
+            }
+          ]
+        };
+      } else {
+        // Handle regular analytics data format
+        userData = {
+          overview: analyticsData.userAnalytics,
+          sessions: analyticsData.trends.map((trend: any) => ({
+            date: trend.date,
+            sessions: trend.sessions || 0,
+            users: trend.users || 0,
+            pageViews: trend.pageViews || 0
+          })),
+          devices: [
+            { device: 'Desktop', sessions: 65, percentage: 65 },
+            { device: 'Mobile', sessions: 30, percentage: 30 },
+            { device: 'Tablet', sessions: 5, percentage: 5 }
+          ],
+          browsers: [
+            { browser: 'Chrome', sessions: 45, percentage: 45 },
+            { browser: 'Safari', sessions: 25, percentage: 25 },
+            { browser: 'Firefox', sessions: 15, percentage: 15 },
+            { browser: 'Edge', sessions: 10, percentage: 10 },
+            { browser: 'Other', sessions: 5, percentage: 5 }
+          ],
+          operatingSystems: [
+            { os: 'Windows', sessions: 40, percentage: 40 },
+            { os: 'macOS', sessions: 25, percentage: 25 },
+            { os: 'iOS', sessions: 20, percentage: 20 },
+            { os: 'Android', sessions: 10, percentage: 10 },
+            { os: 'Linux', sessions: 5, percentage: 5 }
+          ],
+          topPages: analyticsData.topContent.map((content: any) => ({
+            page: content.name,
+            views: content.views,
+            uniqueViews: Math.round(content.views * 0.8),
+            avgTimeOnPage: Math.round(Math.random() * 300 + 60)
+          })),
+          userEngagement: [
+            {
+              metric: 'Session Duration',
+              value: analyticsData.userAnalytics.averageSessionDuration,
+              change: 12.5
+            },
+            {
+              metric: 'Pages per Session',
+              value: analyticsData.userAnalytics.avgPagesPerSession,
+              change: 8.3
+            },
+            {
+              metric: 'Bounce Rate',
+              value: analyticsData.userAnalytics.bounceRate,
+              change: -5.2
+            },
+            {
+              metric: 'Time on Site',
+              value: analyticsData.userAnalytics.avgTimeOnSite,
+              change: 15.7
+            }
+          ]
+        };
+      }
+      
+      setData(userData);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to fetch user analytics:', error);
     } finally {
@@ -328,6 +493,11 @@ export function UserAnalyticsDashboard() {
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span>Live</span>
             </Badge>
+          )}
+          {lastUpdated && (
+            <span className="text-xs text-muted-foreground">
+              Updated {lastUpdated.toLocaleTimeString()}
+            </span>
           )}
         </div>
       </div>

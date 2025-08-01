@@ -60,13 +60,13 @@ export async function GET(request: NextRequest) {
       visitTime: { $gte: today }
     });
 
-    // Get hourly breakdown for today
+    // Get hourly breakdown for today (using UTC for consistency)
     const hourlyData = [];
     for (let i = 0; i < 24; i++) {
       const hourStart = new Date(today);
-      hourStart.setHours(i, 0, 0, 0);
+      hourStart.setUTCHours(i, 0, 0, 0);
       const hourEnd = new Date(hourStart);
-      hourEnd.setHours(i + 1, 0, 0, 0);
+      hourEnd.setUTCHours(i + 1, 0, 0, 0);
 
       const [sessions, pageViews] = await Promise.all([
         UserSession.countDocuments({
@@ -84,12 +84,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get current hour activity
-    const currentHour = now.getHours();
+    // Get current hour activity (using UTC for consistency)
+    const currentHour = now.getUTCHours();
     const currentHourStart = new Date(today);
-    currentHourStart.setHours(currentHour, 0, 0, 0);
+    currentHourStart.setUTCHours(currentHour, 0, 0, 0);
     const currentHourEnd = new Date(currentHourStart);
-    currentHourEnd.setHours(currentHour + 1, 0, 0, 0);
+    currentHourEnd.setUTCHours(currentHour + 1, 0, 0, 0);
 
     const currentHourSessions = await UserSession.countDocuments({
       startTime: { $gte: currentHourStart, $lt: currentHourEnd }
