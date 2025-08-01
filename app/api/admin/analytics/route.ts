@@ -39,8 +39,13 @@ export async function GET(request: NextRequest) {
     // Calculate date range
     const now = new Date();
     let startDate = new Date();
+    let isRealTime = false;
     
     switch (range) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        isRealTime = true;
+        break;
       case '7d':
         startDate.setDate(now.getDate() - 7);
         break;
@@ -66,10 +71,10 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Get user analytics data
-    const userAnalytics = await getUserAnalytics(startDate, now);
+    const userAnalytics = await getUserAnalytics(startDate, now, isRealTime);
 
-    // Get growth data (last 6 months)
-    const trends = await getTrendsData();
+    // Get growth data based on time range
+    const trends = await getTrendsData(startDate, now, range);
 
     // Get geographic distribution
     const geographic = await getGeographicData();
@@ -82,6 +87,11 @@ export async function GET(request: NextRequest) {
 
     // Get financial data
     const financial = await getFinancialData();
+
+    // Get device and browser data
+    const deviceData = await getDeviceData(startDate, now);
+    const browserData = await getBrowserData(startDate, now);
+    const osData = await getOSData(startDate, now);
 
     // Calculate growth rate
     const growthRate = calculateGrowthRate(trends);
@@ -105,7 +115,10 @@ export async function GET(request: NextRequest) {
       topContent,
       recentActivity,
       financial,
-      userAnalytics
+      userAnalytics,
+      deviceData,
+      browserData,
+      osData
     };
 
     return NextResponse.json(analyticsData);
@@ -118,29 +131,60 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getTrendsData() {
-  // Get data for the last 6 months
+async function getTrendsData(startDate: Date, endDate: Date, range: string) {
   const trends = [];
-  const now = new Date();
   
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const nextDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-    
-    const [schools, programs, scholarships, templates] = await Promise.all([
-      School.countDocuments({ createdAt: { $lt: nextDate } }),
-      Program.countDocuments({ createdAt: { $lt: nextDate } }),
-      Scholarship.countDocuments({ createdAt: { $lt: nextDate } }),
-      ApplicationTemplate.countDocuments({ createdAt: { $lt: nextDate } })
-    ]);
+  if (range === 'today') {
+    // For today, show hourly data
+    for (let i = 0; i < 24; i++) {
+      const hourStart = new Date(startDate);
+      hourStart.setUTCHours(i, 0, 0, 0);
+      const hourEnd = new Date(hourStart);
+      hourEnd.setUTCHours(i + 1, 0, 0, 0);
 
-    trends.push({
-      date: date.toISOString().slice(0, 7), // YYYY-MM format
-      schools,
-      programs,
-      scholarships,
-      templates
-    });
+      const [sessions, pageViews] = await Promise.all([
+        UserSession.countDocuments({
+          startTime: { $gte: hourStart, $lt: hourEnd }
+        }),
+        PageView.countDocuments({
+          visitTime: { $gte: hourStart, $lt: hourEnd }
+        })
+      ]);
+
+      trends.push({
+        date: `${i.toString().padStart(2, '0')}:00`,
+        sessions,
+        pageViews,
+        users: sessions // Approximate
+      });
+    }
+  } else {
+    // For other ranges, show daily data
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const maxDays = Math.min(daysDiff, 30); // Limit to 30 days for performance
+    
+    for (let i = maxDays - 1; i >= 0; i--) {
+      const date = new Date(endDate);
+      date.setDate(date.getDate() - i);
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+
+      const [sessions, pageViews] = await Promise.all([
+        UserSession.countDocuments({
+          startTime: { $gte: date, $lt: nextDate }
+        }),
+        PageView.countDocuments({
+          visitTime: { $gte: date, $lt: nextDate }
+        })
+      ]);
+
+      trends.push({
+        date: date.toISOString().slice(0, 10), // YYYY-MM-DD format
+        sessions,
+        pageViews,
+        users: sessions // Approximate
+      });
+    }
   }
 
   return trends;
@@ -372,12 +416,36 @@ async function getFinancialData() {
   };
 }
 
-async function getUserAnalytics(startDate: Date, endDate: Date) {
-  // Get active users (sessions in the last 30 days)
-  const activeUsers = await UserSession.countDocuments({
-    startTime: { $gte: startDate },
-    isActive: true
-  });
+async function getUserAnalytics(startDate: Date, endDate: Date, isRealTime: boolean = false) {
+  // Get active users based on time range
+  let activeUsersQuery: any = {
+    startTime: { $gte: startDate }
+  };
+
+  if (isRealTime) {
+    // For real-time, only count sessions that started today and are still active
+    // or sessions that have been active in the last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    activeUsersQuery = {
+      $or: [
+        {
+          startTime: { $gte: startDate },
+          isActive: true
+        },
+        {
+          updatedAt: { $gte: fiveMinutesAgo },
+          isActive: true
+        }
+      ]
+    };
+  } else {
+    activeUsersQuery = {
+      startTime: { $gte: startDate },
+      isActive: true
+    };
+  }
+
+  const activeUsers = await UserSession.countDocuments(activeUsersQuery);
 
   // Get total sessions
   const totalSessions = await UserSession.countDocuments({
@@ -442,14 +510,95 @@ async function getUserAnalytics(startDate: Date, endDate: Date) {
   };
 }
 
+async function getDeviceData(startDate: Date, endDate: Date) {
+  const deviceStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$device',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = deviceStats.reduce((sum, device) => sum + device.sessions, 0);
+  
+  return deviceStats.map(device => ({
+    device: device._id || 'Unknown',
+    sessions: device.sessions,
+    percentage: totalSessions > 0 ? Math.round((device.sessions / totalSessions) * 100) : 0
+  }));
+}
+
+async function getBrowserData(startDate: Date, endDate: Date) {
+  const browserStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$browser',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = browserStats.reduce((sum, browser) => sum + browser.sessions, 0);
+  
+  return browserStats.map(browser => ({
+    browser: browser._id || 'Unknown',
+    sessions: browser.sessions,
+    percentage: totalSessions > 0 ? Math.round((browser.sessions / totalSessions) * 100) : 0
+  }));
+}
+
+async function getOSData(startDate: Date, endDate: Date) {
+  const osStats = await UserSession.aggregate([
+    {
+      $match: {
+        startTime: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$os',
+        sessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { sessions: -1 }
+    }
+  ]);
+
+  const totalSessions = osStats.reduce((sum, os) => sum + os.sessions, 0);
+  
+  return osStats.map(os => ({
+    os: os._id || 'Unknown',
+    sessions: os.sessions,
+    percentage: totalSessions > 0 ? Math.round((os.sessions / totalSessions) * 100) : 0
+  }));
+}
+
 function calculateGrowthRate(trends: any[]) {
   if (trends.length < 2) return 0;
   
   const current = trends[trends.length - 1];
   const previous = trends[trends.length - 2];
   
-  const currentTotal = current.schools + current.programs + current.scholarships + current.templates;
-  const previousTotal = previous.schools + previous.programs + previous.scholarships + previous.templates;
+  const currentTotal = current.sessions || 0;
+  const previousTotal = previous.sessions || 0;
   
   if (previousTotal === 0) return 0;
   
