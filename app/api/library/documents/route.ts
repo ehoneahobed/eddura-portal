@@ -36,6 +36,17 @@ export async function GET(request: NextRequest) {
       reviewStatus: 'approved'
     };
     
+    console.log('🔍 Library API - Query:', JSON.stringify(query, null, 2));
+    console.log('🔍 Library API - Search params:', {
+      page,
+      limit,
+      search,
+      category,
+      type,
+      targetAudience,
+      sortBy
+    });
+    
     if (category) query.category = category;
     if (subcategory) query.subcategory = subcategory;
     if (type) query.type = type;
@@ -83,6 +94,10 @@ export async function GET(request: NextRequest) {
         .lean(),
       LibraryDocument.countDocuments(query)
     ]);
+    
+    console.log('🔍 Library API - Found documents:', documents.length);
+    console.log('🔍 Library API - Total count:', total);
+    console.log('🔍 Library API - First document (if any):', documents[0] || 'No documents found');
 
     // Get user's cloned documents to check clone status
     const userClonedDocuments = await DocumentClone.find(
