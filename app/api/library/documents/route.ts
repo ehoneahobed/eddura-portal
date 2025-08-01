@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
+    console.log('🔍 Library API - Connecting to database...');
     await connectDB();
+    console.log('🔍 Library API - Database connected successfully');
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
@@ -98,6 +100,18 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Library API - Found documents:', documents.length);
     console.log('🔍 Library API - Total count:', total);
     console.log('🔍 Library API - First document (if any):', documents[0] || 'No documents found');
+    
+    // Test: Find ALL documents without any filters
+    const allDocuments = await LibraryDocument.find({}).limit(5);
+    console.log('🔍 Library API - All documents in collection (first 5):', allDocuments.length);
+    if (allDocuments.length > 0) {
+      console.log('🔍 Library API - Sample document:', {
+        id: allDocuments[0]._id,
+        title: allDocuments[0].title,
+        status: allDocuments[0].status,
+        reviewStatus: allDocuments[0].reviewStatus
+      });
+    }
 
     // Get user's cloned documents to check clone status
     const userClonedDocuments = await DocumentClone.find(
