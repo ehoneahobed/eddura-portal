@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Plus, Info, Copy } from 'lucide-react';
 import { getNames as getCountryNames } from 'country-list';
 import CustomMultiSelect from '@/components/CustomMultiSelect';
+import { countries } from '@/utils/countries';
+import { academicFields } from '@/utils/fields';
 
 interface ScholarshipFormProps {
   scholarship?: Scholarship;
@@ -80,6 +82,8 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
   const watchedCountryResidency = watch('eligibility.countryResidency') || [];
   const watchedDocuments = watch('applicationRequirements.documentsToSubmit') || [];
   const watchedSelectionCriteria = watch('selectionCriteria') || [];
+  const watchedLocations = watch('locations') || [];
+  const watchedDisciplines = watch('disciplines') || [];
 
   const addToArray = (field: string, value: string, setter: (value: string) => void, currentArray: string[]) => {
     if (value.trim() && !currentArray.includes(value.trim())) {
@@ -418,6 +422,110 @@ export default function ScholarshipForm({ scholarship, onSubmit, onCancel, isLoa
             {watchedCoverage.length === 0 && (
               <p className="text-sm text-red-600">At least one coverage item is required</p>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Location and Disciplines */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Location & Academic Disciplines</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Locations */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Available Locations (Countries)</Label>
+            <p className="text-xs text-gray-500">
+              Select the countries where this scholarship is available. For scholarships like Erasmus Mundus that span multiple countries, select all relevant countries.
+            </p>
+            
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Add Individual Countries</Label>
+              <Select
+                value=""
+                onValueChange={val => {
+                  if (val && !watchedLocations.includes(val)) {
+                    addToArray('locations', val, () => {}, watchedLocations);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select countries" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country: string) => (
+                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Display Selected Locations */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Selected Locations ({watchedLocations.length})</Label>
+              <div className="flex flex-wrap gap-2">
+                {watchedLocations.map((item, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                    {item}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-red-500"
+                      onClick={() => removeFromArray('locations', item, watchedLocations)}
+                    />
+                  </Badge>
+                ))}
+                {watchedLocations.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">No locations selected</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Disciplines */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Academic Disciplines</Label>
+            <p className="text-xs text-gray-500">
+              Select the academic fields or disciplines that this scholarship supports.
+            </p>
+            
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Add Individual Disciplines</Label>
+              <Select
+                value=""
+                onValueChange={val => {
+                  if (val && !watchedDisciplines.includes(val)) {
+                    addToArray('disciplines', val, () => {}, watchedDisciplines);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select disciplines" />
+                </SelectTrigger>
+                <SelectContent>
+                  {academicFields.map((field: string) => (
+                    <SelectItem key={field} value={field}>{field}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Display Selected Disciplines */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600">Selected Disciplines ({watchedDisciplines.length})</Label>
+              <div className="flex flex-wrap gap-2">
+                {watchedDisciplines.map((item, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1">
+                    {item}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-red-500"
+                      onClick={() => removeFromArray('disciplines', item, watchedDisciplines)}
+                    />
+                  </Badge>
+                ))}
+                {watchedDisciplines.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">No disciplines selected</p>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

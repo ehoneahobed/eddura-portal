@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
     const hasEssay = searchParams.get('hasEssay') === 'true';
     const hasCV = searchParams.get('hasCV') === 'true';
     const hasRecommendations = searchParams.get('hasRecommendations') === 'true';
+    const locations = searchParams.get('locations') || '';
+    const disciplines = searchParams.get('disciplines') || '';
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     const includeExpired = searchParams.get('includeExpired') === 'true';
@@ -49,7 +51,9 @@ export async function GET(request: NextRequest) {
           { linkedSchool: { $regex: search, $options: 'i' } },
           { linkedProgram: { $regex: search, $options: 'i' } },
           { coverage: { $regex: search, $options: 'i' } },
-          { tags: { $regex: search, $options: 'i' } }
+          { tags: { $regex: search, $options: 'i' } },
+          { locations: { $regex: search, $options: 'i' } },
+          { disciplines: { $regex: search, $options: 'i' } }
         ]
       });
     }
@@ -119,6 +123,32 @@ export async function GET(request: NextRequest) {
 
     if (hasRecommendations) {
       filter['applicationRequirements.recommendationLetters'] = { $gt: 0 };
+    }
+
+    // Location filter
+    if (locations) {
+      const locationArray = locations.split(',').map(loc => loc.trim()).filter(loc => loc);
+      if (locationArray.length > 0) {
+        conditions.push({
+          $or: [
+            { locations: { $in: locationArray } },
+            { locations: { $size: 0 } } // Empty array means all locations accepted
+          ]
+        });
+      }
+    }
+
+    // Discipline filter
+    if (disciplines) {
+      const disciplineArray = disciplines.split(',').map(discipline => discipline.trim()).filter(discipline => discipline);
+      if (disciplineArray.length > 0) {
+        conditions.push({
+          $or: [
+            { disciplines: { $in: disciplineArray } },
+            { disciplines: { $size: 0 } } // Empty array means all disciplines accepted
+          ]
+        });
+      }
     }
     
     // Status-based deadline filtering

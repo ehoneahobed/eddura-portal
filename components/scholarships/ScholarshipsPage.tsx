@@ -40,6 +40,8 @@ interface Filters {
   hasEssay: boolean;
   hasCV: boolean;
   hasRecommendations: boolean;
+  locations: string[];
+  disciplines: string[];
 }
 
 interface Scholarship {
@@ -52,6 +54,8 @@ interface Scholarship {
   frequency: 'One-time' | 'Annual' | 'Full Duration';
   deadline: string;
   openingDate?: string;
+  locations?: string[];
+  disciplines?: string[];
   eligibility: {
     degreeLevels?: string[];
     fieldsOfStudy?: string[];
@@ -103,7 +107,9 @@ export default function ScholarshipsPage() {
     minGPA: '',
     hasEssay: false,
     hasCV: false,
-    hasRecommendations: false
+    hasRecommendations: false,
+    locations: [],
+    disciplines: []
   });
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -186,6 +192,14 @@ export default function ScholarshipsPage() {
         params.append('hasRecommendations', 'true');
       }
 
+      // Add location and discipline filters
+      if (selectedFilters.locations.length > 0) {
+        params.append('locations', selectedFilters.locations.join(','));
+      }
+      if (selectedFilters.disciplines.length > 0) {
+        params.append('disciplines', selectedFilters.disciplines.join(','));
+      }
+
       // Add status filter for server-side filtering
       if (selectedStatus !== 'all') {
         params.append('status', selectedStatus);
@@ -261,7 +275,9 @@ export default function ScholarshipsPage() {
       minGPA: '',
       hasEssay: false,
       hasCV: false,
-      hasRecommendations: false
+      hasRecommendations: false,
+      locations: [],
+      disciplines: []
     });
     setSelectedStatus('all');
     setSearchTerm('');
