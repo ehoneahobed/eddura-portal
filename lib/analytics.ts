@@ -260,6 +260,7 @@ class AnalyticsTracker {
     this.sendToServer('/api/analytics/heartbeat', {
       sessionId: this.sessionId,
       userId: this.userId,
+      adminId: this.userType === 'admin' ? this.userId : undefined,
       timestamp: new Date().toISOString()
     });
   }

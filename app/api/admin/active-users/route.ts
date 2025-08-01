@@ -22,21 +22,34 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const minutes = parseInt(searchParams.get('minutes') || '5');
 
-    // Get active sessions in the last X minutes
+    // Get active sessions - use a more lenient filter
     const cutoffTime = new Date(Date.now() - minutes * 60 * 1000);
     
-    const activeSessions = await UserSession.find({
+    // First try with updatedAt filter
+    let activeSessions = await UserSession.find({
       updatedAt: { $gte: cutoffTime },
       isActive: true,
       userId: { $exists: true, $ne: null } // Only logged-in users
     }).populate('userId', 'firstName lastName email isEmailVerified lastLoginAt loginCount');
 
-    // Get active admin sessions
-    const activeAdminSessions = await UserSession.find({
+    let activeAdminSessions = await UserSession.find({
       updatedAt: { $gte: cutoffTime },
       isActive: true,
       adminId: { $exists: true, $ne: null } // Admin sessions
     }).populate('adminId', 'firstName lastName email role isEmailVerified lastLoginAt loginCount');
+
+    // If no sessions found, try without the updatedAt filter
+    if (activeSessions.length === 0 && activeAdminSessions.length === 0) {
+      activeSessions = await UserSession.find({
+        isActive: true,
+        userId: { $exists: true, $ne: null }
+      }).populate('userId', 'firstName lastName email isEmailVerified lastLoginAt loginCount');
+
+      activeAdminSessions = await UserSession.find({
+        isActive: true,
+        adminId: { $exists: true, $ne: null }
+      }).populate('adminId', 'firstName lastName email role isEmailVerified lastLoginAt loginCount');
+    }
 
     // Also end sessions that are too old (cleanup)
     const oldCutoffTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes
