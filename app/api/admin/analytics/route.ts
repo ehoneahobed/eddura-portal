@@ -39,8 +39,13 @@ export async function GET(request: NextRequest) {
     // Calculate date range
     const now = new Date();
     let startDate = new Date();
+    let isRealTime = false;
     
     switch (range) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        isRealTime = true;
+        break;
       case '7d':
         startDate.setDate(now.getDate() - 7);
         break;
@@ -66,7 +71,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Get user analytics data
-    const userAnalytics = await getUserAnalytics(startDate, now);
+    const userAnalytics = await getUserAnalytics(startDate, now, isRealTime);
 
     // Get growth data (last 6 months)
     const trends = await getTrendsData();
@@ -372,12 +377,36 @@ async function getFinancialData() {
   };
 }
 
-async function getUserAnalytics(startDate: Date, endDate: Date) {
-  // Get active users (sessions in the last 30 days)
-  const activeUsers = await UserSession.countDocuments({
-    startTime: { $gte: startDate },
-    isActive: true
-  });
+async function getUserAnalytics(startDate: Date, endDate: Date, isRealTime: boolean = false) {
+  // Get active users based on time range
+  let activeUsersQuery: any = {
+    startTime: { $gte: startDate }
+  };
+
+  if (isRealTime) {
+    // For real-time, only count sessions that started today and are still active
+    // or sessions that have been active in the last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    activeUsersQuery = {
+      $or: [
+        {
+          startTime: { $gte: startDate },
+          isActive: true
+        },
+        {
+          updatedAt: { $gte: fiveMinutesAgo },
+          isActive: true
+        }
+      ]
+    };
+  } else {
+    activeUsersQuery = {
+      startTime: { $gte: startDate },
+      isActive: true
+    };
+  }
+
+  const activeUsers = await UserSession.countDocuments(activeUsersQuery);
 
   // Get total sessions
   const totalSessions = await UserSession.countDocuments({

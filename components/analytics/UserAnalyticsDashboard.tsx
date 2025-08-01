@@ -81,6 +81,14 @@ interface UserAnalyticsData {
     value: number;
     change: number;
   }>;
+  recentSessions?: Array<{
+    id: string;
+    user: string;
+    email?: string;
+    startTime: string;
+    browser?: string;
+    device?: string;
+  }>;
 }
 
 export function UserAnalyticsDashboard() {
@@ -88,74 +96,163 @@ export function UserAnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('30d');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isRealTime, setIsRealTime] = useState(false);
 
   useEffect(() => {
     fetchUserAnalytics();
   }, [timeRange]);
 
+  // Set up real-time updates for "today" range
+  useEffect(() => {
+    if (timeRange === 'today') {
+      setIsRealTime(true);
+      const interval = setInterval(() => {
+        fetchUserAnalytics();
+      }, 30000); // Update every 30 seconds for real-time data
+
+      return () => clearInterval(interval);
+    } else {
+      setIsRealTime(false);
+    }
+  }, [timeRange]);
+
   const fetchUserAnalytics = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/analytics?range=${timeRange}`);
+      let response;
+      if (timeRange === 'today') {
+        // Use real-time endpoint for today's data
+        response = await fetch('/api/admin/analytics/realtime');
+      } else {
+        response = await fetch(`/api/admin/analytics?range=${timeRange}`);
+      }
       const analyticsData = await response.json();
       
       // Transform data for user analytics dashboard
-      const userData: UserAnalyticsData = {
-        overview: analyticsData.userAnalytics,
-        sessions: analyticsData.trends.map((trend: any) => ({
-          date: trend.date,
-          sessions: trend.sessions || 0,
-          users: trend.users || 0,
-          pageViews: trend.pageViews || 0
-        })),
-        devices: [
-          { device: 'Desktop', sessions: 65, percentage: 65 },
-          { device: 'Mobile', sessions: 30, percentage: 30 },
-          { device: 'Tablet', sessions: 5, percentage: 5 }
-        ],
-        browsers: [
-          { browser: 'Chrome', sessions: 45, percentage: 45 },
-          { browser: 'Safari', sessions: 25, percentage: 25 },
-          { browser: 'Firefox', sessions: 15, percentage: 15 },
-          { browser: 'Edge', sessions: 10, percentage: 10 },
-          { browser: 'Other', sessions: 5, percentage: 5 }
-        ],
-        operatingSystems: [
-          { os: 'Windows', sessions: 40, percentage: 40 },
-          { os: 'macOS', sessions: 25, percentage: 25 },
-          { os: 'iOS', sessions: 20, percentage: 20 },
-          { os: 'Android', sessions: 10, percentage: 10 },
-          { os: 'Linux', sessions: 5, percentage: 5 }
-        ],
-        topPages: analyticsData.topContent.map((content: any) => ({
-          page: content.name,
-          views: content.views,
-          uniqueViews: Math.round(content.views * 0.8),
-          avgTimeOnPage: Math.round(Math.random() * 300 + 60)
-        })),
-        userEngagement: [
-          {
-            metric: 'Session Duration',
-            value: analyticsData.userAnalytics.averageSessionDuration,
-            change: 12.5
+      let userData: UserAnalyticsData;
+      
+      if (timeRange === 'today') {
+        // Handle real-time data format
+        userData = {
+          overview: {
+            activeUsers: analyticsData.realTimeActiveUsers,
+            totalSessions: analyticsData.todaySessions,
+            totalPageViews: analyticsData.todayPageViews,
+            averageSessionDuration: 0, // Not available in real-time
+            bounceRate: 0, // Not available in real-time
+            avgTimeOnSite: 0, // Not available in real-time
+            avgPagesPerSession: 0, // Not available in real-time
+            uniqueUsers: analyticsData.todayActiveUsers
           },
-          {
-            metric: 'Pages per Session',
-            value: analyticsData.userAnalytics.avgPagesPerSession,
-            change: 8.3
-          },
-          {
-            metric: 'Bounce Rate',
-            value: analyticsData.userAnalytics.bounceRate,
-            change: -5.2
-          },
-          {
-            metric: 'Time on Site',
-            value: analyticsData.userAnalytics.avgTimeOnSite,
-            change: 15.7
-          }
-        ]
-      };
+          sessions: analyticsData.hourlyData.map((hour: any) => ({
+            date: `${hour.hour}:00`,
+            sessions: hour.sessions,
+            users: hour.sessions, // Approximate
+            pageViews: hour.pageViews
+                    })),
+          devices: [
+            { device: 'Desktop', sessions: 65, percentage: 65 },
+            { device: 'Mobile', sessions: 30, percentage: 30 },
+            { device: 'Tablet', sessions: 5, percentage: 5 }
+          ],
+          browsers: [
+            { browser: 'Chrome', sessions: 45, percentage: 45 },
+            { browser: 'Safari', sessions: 25, percentage: 25 },
+            { browser: 'Firefox', sessions: 15, percentage: 15 },
+            { browser: 'Edge', sessions: 10, percentage: 10 },
+            { browser: 'Other', sessions: 5, percentage: 5 }
+          ],
+          operatingSystems: [
+            { os: 'Windows', sessions: 40, percentage: 40 },
+            { os: 'macOS', sessions: 25, percentage: 25 },
+            { os: 'iOS', sessions: 20, percentage: 20 },
+            { os: 'Android', sessions: 10, percentage: 10 },
+            { os: 'Linux', sessions: 5, percentage: 5 }
+          ],
+          topPages: [], // Not available in real-time
+          recentSessions: analyticsData.recentSessions,
+          userEngagement: [
+            {
+              metric: 'Current Hour Sessions',
+              value: analyticsData.currentHourSessions,
+              change: 0
+            },
+            {
+              metric: 'Current Hour Page Views',
+              value: analyticsData.currentHourPageViews,
+              change: 0
+            },
+            {
+              metric: 'Today Sessions',
+              value: analyticsData.todaySessions,
+              change: 0
+            },
+            {
+              metric: 'Today Page Views',
+              value: analyticsData.todayPageViews,
+              change: 0
+            }
+          ]
+        };
+      } else {
+        // Handle regular analytics data format
+        userData = {
+          overview: analyticsData.userAnalytics,
+          sessions: analyticsData.trends.map((trend: any) => ({
+            date: trend.date,
+            sessions: trend.sessions || 0,
+            users: trend.users || 0,
+            pageViews: trend.pageViews || 0
+          })),
+          devices: [
+            { device: 'Desktop', sessions: 65, percentage: 65 },
+            { device: 'Mobile', sessions: 30, percentage: 30 },
+            { device: 'Tablet', sessions: 5, percentage: 5 }
+          ],
+          browsers: [
+            { browser: 'Chrome', sessions: 45, percentage: 45 },
+            { browser: 'Safari', sessions: 25, percentage: 25 },
+            { browser: 'Firefox', sessions: 15, percentage: 15 },
+            { browser: 'Edge', sessions: 10, percentage: 10 },
+            { browser: 'Other', sessions: 5, percentage: 5 }
+          ],
+          operatingSystems: [
+            { os: 'Windows', sessions: 40, percentage: 40 },
+            { os: 'macOS', sessions: 25, percentage: 25 },
+            { os: 'iOS', sessions: 20, percentage: 20 },
+            { os: 'Android', sessions: 10, percentage: 10 },
+            { os: 'Linux', sessions: 5, percentage: 5 }
+          ],
+          topPages: analyticsData.topContent.map((content: any) => ({
+            page: content.name,
+            views: content.views,
+            uniqueViews: Math.round(content.views * 0.8),
+            avgTimeOnPage: Math.round(Math.random() * 300 + 60)
+          })),
+          userEngagement: [
+            {
+              metric: 'Session Duration',
+              value: analyticsData.userAnalytics.averageSessionDuration,
+              change: 12.5
+            },
+            {
+              metric: 'Pages per Session',
+              value: analyticsData.userAnalytics.avgPagesPerSession,
+              change: 8.3
+            },
+            {
+              metric: 'Bounce Rate',
+              value: analyticsData.userAnalytics.bounceRate,
+              change: -5.2
+            },
+            {
+              metric: 'Time on Site',
+              value: analyticsData.userAnalytics.avgTimeOnSite,
+              change: 15.7
+            }
+          ]
+        };
+      }
       
       setData(userData);
     } catch (error) {
@@ -219,12 +316,19 @@ export function UserAnalyticsDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="today">Today (Real-time)</SelectItem>
               <SelectItem value="7d">Last 7 days</SelectItem>
               <SelectItem value="30d">Last 30 days</SelectItem>
               <SelectItem value="90d">Last 90 days</SelectItem>
               <SelectItem value="1y">Last year</SelectItem>
             </SelectContent>
           </Select>
+          {isRealTime && (
+            <Badge variant="secondary" className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Live</span>
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -238,7 +342,7 @@ export function UserAnalyticsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(data.overview.activeUsers)}</div>
             <p className="text-xs text-muted-foreground">
-              Currently online
+              {timeRange === 'today' ? 'Currently online' : 'In selected period'}
             </p>
           </CardContent>
         </Card>
@@ -290,6 +394,9 @@ export function UserAnalyticsDashboard() {
           <TabsTrigger value="engagement">Engagement</TabsTrigger>
           <TabsTrigger value="devices">Devices & Browsers</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
+          {timeRange === 'today' && (
+            <TabsTrigger value="recent">Recent Sessions</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -486,6 +593,49 @@ export function UserAnalyticsDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {timeRange === 'today' && (
+          <TabsContent value="recent" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Sessions</CardTitle>
+                <CardDescription>Live user sessions from the last hour</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {data.recentSessions && data.recentSessions.length > 0 ? (
+                    data.recentSessions.map((session, index) => (
+                      <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <h4 className="font-medium">{session.user}</h4>
+                            {session.email && (
+                              <span className="text-sm text-muted-foreground">({session.email})</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(session.startTime).toLocaleTimeString()} • {session.browser || 'Unknown browser'} • {session.device || 'Unknown device'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">
+                            {new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <p className="text-xs text-muted-foreground">started</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No recent sessions found</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
