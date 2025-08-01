@@ -38,6 +38,19 @@ export async function GET(request: NextRequest) {
       reviewStatus: 'approved'
     };
     
+    // Debug: Let's also try without the status filter to see if documents exist
+    const allDocsQuery = {};
+    const allDocs = await LibraryDocument.find(allDocsQuery).limit(3);
+    console.log('🔍 Library API - All documents (first 3):', allDocs.map(doc => ({
+      id: doc._id,
+      title: doc.title,
+      type: doc.type,
+      documentType: (doc as any).documentType, // Check if this field exists
+      status: doc.status,
+      reviewStatus: doc.reviewStatus,
+      category: doc.category
+    })));
+    
     console.log('🔍 Library API - Query:', JSON.stringify(query, null, 2));
     console.log('🔍 Library API - Search params:', {
       page,
