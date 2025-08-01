@@ -174,12 +174,12 @@ export default function MyClonedDocumentsPage() {
 
   const getCategories = (): string[] => {
     const categories = new Set(documents.map((doc: ClonedDocument) => String(doc.originalDocument.category)));
-    return Array.from(categories).sort();
+    return Array.from(categories).sort() as string[];
   };
 
   const getTypes = (): string[] => {
     const types = new Set(documents.map((doc: ClonedDocument) => String(doc.originalDocument.type)));
-    return Array.from(types).sort();
+    return Array.from(types).sort() as string[];
   };
 
   return (
@@ -353,7 +353,7 @@ export default function MyClonedDocumentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.map((document) => (
+                {documents.map((document: ClonedDocument) => (
                   <TableRow key={document._id}>
                     <TableCell>
                       <div>
