@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authConfig } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import { Subscription, SubscriptionPlan } from '@/models/Subscription';
 import User from '@/models/User';
@@ -220,7 +219,7 @@ export async function enforcePaywall(
     }
 
     // Get user session
-    const session = await getServerSession(authConfig);
+    const session = await auth();
     if (!session?.user?.id) {
       return {
         allowed: false,

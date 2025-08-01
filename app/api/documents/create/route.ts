@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withPaywallPOST, PaywallConfigs } from '@/lib/payment/with-paywall';
+import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import mongoose from 'mongoose';
 import { IStudentDocument } from '@/models/Document';
@@ -18,7 +19,7 @@ async function handleDocumentCreation(request: NextRequest): Promise<NextRespons
 
     // Get user session (this would be handled by the paywall middleware)
     // For this example, we'll assume the user ID is available
-    const session = await getServerSession();
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
