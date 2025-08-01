@@ -51,6 +51,19 @@ export async function GET(request: NextRequest) {
       category: doc.category
     })));
     
+    // Test the exact same query that will be used in the main query
+    const testQuery = { status: 'published', reviewStatus: 'approved' };
+    const testDocs = await LibraryDocument.find(testQuery).limit(3);
+    console.log('🔍 Library API - Test query result:', testDocs.length, 'documents');
+    if (testDocs.length > 0) {
+      console.log('🔍 Library API - First test document:', {
+        id: testDocs[0]._id,
+        title: testDocs[0].title,
+        status: testDocs[0].status,
+        reviewStatus: testDocs[0].reviewStatus
+      });
+    }
+    
     console.log('🔍 Library API - Query:', JSON.stringify(query, null, 2));
     console.log('🔍 Library API - Search params:', {
       page,
@@ -100,6 +113,13 @@ export async function GET(request: NextRequest) {
         sort = { averageRating: -1, viewCount: -1 };
     }
 
+    console.log('🔍 Library API - About to execute main query with:', {
+      query: JSON.stringify(query),
+      sort: JSON.stringify(sort),
+      skip,
+      limit
+    });
+    
     const [documents, total] = await Promise.all([
       LibraryDocument.find(query)
         .sort(sort)
@@ -109,6 +129,8 @@ export async function GET(request: NextRequest) {
         .lean(),
       LibraryDocument.countDocuments(query)
     ]);
+    
+    console.log('🔍 Library API - Main query executed. Documents found:', documents.length);
     
     console.log('🔍 Library API - Found documents:', documents.length);
     console.log('🔍 Library API - Total count:', total);
