@@ -30,7 +30,8 @@
     "test:email-functions": "node scripts/test-email-functions.js",
     "test:create-recommendation": "node scripts/test-create-recommendation.js",
     "test:api-endpoint": "node scripts/test-api-endpoint.js",
-    "test:recommendation-upload": "node scripts/test-recommendation-upload.js"
+    "test:recommendation-upload": "node scripts/test-recommendation-upload.js",
+    "seed:subscription-plans": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-subscription-plans.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -113,6 +114,7 @@
     "resend": "^4.6.0",
     "scheduler": "^0.26.0",
     "sonner": "^1.5.0",
+    "stripe": "^16.7.0",
     "swr": "^2.3.3",
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "3.3.3",
