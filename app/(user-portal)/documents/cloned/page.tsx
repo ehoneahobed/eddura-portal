@@ -172,13 +172,13 @@ export default function MyClonedDocumentsPage() {
 
 
 
-  const getCategories = () => {
-    const categories = new Set(documents.map((doc: ClonedDocument) => doc.originalDocument.category));
+  const getCategories = (): string[] => {
+    const categories = new Set(documents.map((doc: ClonedDocument) => String(doc.originalDocument.category)));
     return Array.from(categories).sort();
   };
 
-  const getTypes = () => {
-    const types = new Set(documents.map((doc: ClonedDocument) => doc.originalDocument.type));
+  const getTypes = (): string[] => {
+    const types = new Set(documents.map((doc: ClonedDocument) => String(doc.originalDocument.type)));
     return Array.from(types).sort();
   };
 
@@ -268,7 +268,7 @@ export default function MyClonedDocumentsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {getCategories().map((category) => (
-                    <SelectItem key={category} value={category}>
+                    <SelectItem key={String(category)} value={String(category)}>
                       {category}
                     </SelectItem>
                   ))}
@@ -284,7 +284,7 @@ export default function MyClonedDocumentsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   {getTypes().map((type) => (
-                    <SelectItem key={type} value={type}>
+                    <SelectItem key={String(type)} value={String(type)}>
                       {type}
                     </SelectItem>
                   ))}
