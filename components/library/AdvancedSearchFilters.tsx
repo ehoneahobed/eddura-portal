@@ -127,6 +127,7 @@ export default function AdvancedSearchFilters({ onFiltersChange, onSearch, isLoa
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
+    console.log('🔍 AdvancedSearchFilters - Filters changed:', filters);
     onFiltersChange(filters);
   }, [filters, onFiltersChange]);
 

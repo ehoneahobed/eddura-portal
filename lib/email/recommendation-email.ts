@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only if API key is available
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
  * Send recommendation request email to recipient
@@ -23,6 +24,10 @@ export async function sendRecommendationRequest(
   draftContent?: string,
   additionalContext?: string
 ) {
+  if (!resend) {
+    console.log('Resend not configured, skipping email send');
+    return;
+  }
   const deadlineFormatted = deadline.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -200,6 +205,10 @@ export async function sendRecommendationReminder(
   urgencyLevel?: 'low' | 'medium' | 'high' | 'critical',
   urgencyMessage?: string
 ) {
+  if (!resend) {
+    console.log('Resend not configured, skipping reminder email send');
+    return;
+  }
   const deadlineFormatted = deadline.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -336,6 +345,10 @@ export async function sendRecommendationReceived(
   recipientName: string,
   requestTitle: string
 ) {
+  if (!resend) {
+    console.log('Resend not configured, skipping received email send');
+    return;
+  }
   const subject = `Recommendation Letter Received - ${requestTitle}`;
 
   const htmlContent = `

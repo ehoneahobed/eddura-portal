@@ -78,6 +78,13 @@ export default function LibraryPage() {
   const fetchDocuments = useCallback(async (params?: { page?: number; limit?: number }) => {
     console.log('🔍 Library Page - fetchDocuments called with params:', params);
     console.log('🔍 Library Page - session?.user?.id:', session?.user?.id);
+    console.log('🔍 Library Page - Current filter state:', {
+      searchTerm,
+      categoryFilter,
+      typeFilter,
+      targetAudienceFilter,
+      sortBy
+    });
     
     if (!session?.user?.id) {
       console.log('❌ Library Page - No session user ID, returning null');
@@ -99,6 +106,9 @@ export default function LibraryPage() {
       sortBy: sortBy,
     });
 
+    console.log('🔍 Library Page - API request URL:', `/api/library/documents?${searchParams}`);
+    console.log('🔍 Library Page - Search parameters being sent:', Object.fromEntries(searchParams.entries()));
+
     const response = await fetch(`/api/library/documents?${searchParams}`);
     
     console.log('🔍 Library Page - Response status:', response.status);
@@ -111,6 +121,14 @@ export default function LibraryPage() {
     
     const data = await response.json();
     console.log('🔍 Library Page - API response data:', data);
+    console.log('🔍 Library Page - Response structure:', {
+      hasDocuments: !!data.documents,
+      documentsLength: data.documents?.length || 0,
+      hasPagination: !!data.pagination,
+      hasUserStats: !!data.userStats,
+      pagination: data.pagination,
+      userStats: data.userStats
+    });
     
     setPagination(data.pagination || pagination);
     return data;
@@ -144,6 +162,16 @@ export default function LibraryPage() {
   });
 
   const documents = data?.documents || [];
+  console.log('🔍 Library Page - Documents array:', {
+    length: documents.length,
+    documents: documents.map((doc: LibraryDocument) => ({
+      id: doc._id,
+      title: doc.title,
+      type: doc.type,
+      category: doc.category,
+      isCloned: doc.isCloned
+    }))
+  });
   
   // Debug: Log the first document to see its structure
   if (documents.length > 0) {
@@ -475,10 +503,25 @@ export default function LibraryPage() {
       {/* Advanced Search Filters */}
       <AdvancedSearchFilters
         onFiltersChange={(filters) => {
+          console.log('🔍 Library Page - AdvancedSearchFilters onFiltersChange called with:', filters);
           setSearchTerm(filters.searchTerm);
-          setCategoryFilter(filters.documentType.length > 0 ? filters.documentType[0] : 'all');
-          setTypeFilter(filters.documentType.length > 0 ? filters.documentType[0] : 'all');
-          setTargetAudienceFilter(filters.targetAudience.length > 0 ? filters.targetAudience[0] : 'all');
+          // For now, we'll use documentType for both category and type filters
+          // In the future, we should separate these properly
+          const newCategoryFilter = filters.documentType.length > 0 ? filters.documentType[0] : 'all';
+          const newTypeFilter = filters.documentType.length > 0 ? filters.documentType[0] : 'all';
+          const newTargetAudienceFilter = filters.targetAudience.length > 0 ? filters.targetAudience[0] : 'all';
+          
+          console.log('🔍 Library Page - Setting filters:', {
+            searchTerm: filters.searchTerm,
+            categoryFilter: newCategoryFilter,
+            typeFilter: newTypeFilter,
+            targetAudienceFilter: newTargetAudienceFilter,
+            sortBy: filters.sortBy
+          });
+          
+          setCategoryFilter(newCategoryFilter);
+          setTypeFilter(newTypeFilter);
+          setTargetAudienceFilter(newTargetAudienceFilter);
           setSortBy(filters.sortBy);
         }}
         onSearch={handleSearch}

@@ -81,7 +81,9 @@ export function useDataFetching<T>({
   }, []);
 
   useEffect(() => {
+    console.log('🔍 useDataFetching - Dependencies changed:', dependencies);
     if (immediate) {
+      console.log('🔍 useDataFetching - Immediate fetch triggered');
       fetchData();
     }
   }, dependencies);
