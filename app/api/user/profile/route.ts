@@ -1,36 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import connectDB from '@/lib/mongodb';
 import UserActivity from '@/models/UserActivity';
 import Application from '@/models/Application';
 import Document from '@/models/Document';
 import RecommendationRequest from '@/models/RecommendationRequest';
 import SavedScholarship from '@/models/SavedScholarship';
 
-
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
 
-    const user = await User.findById(session.user.id)
-      .select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires')
-      .lean();
+    const user = await User.findOne({ email: session.user.email })
+      .select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires');
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Calculate user stats
@@ -42,22 +34,22 @@ export async function GET(request: NextRequest) {
       scholarshipsSaved
     ] = await Promise.all([
       // Count application packages created by user
-      Application.countDocuments({ userId: user._id }),
+      Application.countDocuments({ userId: user._id as any }),
       
       // Count documents created by user
-      Document.countDocuments({ userId: user._id, isActive: true }),
+      Document.countDocuments({ userId: user._id as any, isActive: true }),
       
       // Count recommendation letters requested
-      RecommendationRequest.countDocuments({ studentId: user._id }),
+      RecommendationRequest.countDocuments({ studentId: user._id as any }),
       
       // Count recommendation letters received (status = 'received')
       RecommendationRequest.countDocuments({ 
-        studentId: user._id, 
+        studentId: user._id as any, 
         status: 'received' 
       }),
       
       // Count scholarships saved by user
-      SavedScholarship.countDocuments({ userId: user._id })
+      SavedScholarship.countDocuments({ userId: user._id as any })
     ]);
 
     const stats = {
@@ -69,7 +61,7 @@ export async function GET(request: NextRequest) {
     };
 
     const userProfile = {
-      id: user._id.toString(),
+      id: (user._id as any).toString(),
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -114,7 +106,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch user profile' },
       { status: 500 }
     );
   }
@@ -123,55 +115,86 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth();
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
 
     const body = await request.json();
-    const { firstName, lastName, dateOfBirth, phoneNumber, country, city } = body;
+    const {
+      firstName,
+      lastName,
+      dateOfBirth,
+      phoneNumber,
+      country,
+      city,
+      profilePicture,
+      educationLevel,
+      currentInstitution,
+      fieldOfStudy,
+      graduationYear,
+      gpa,
+      languages,
+      certifications,
+      skills,
+      sharingPreferences,
+      autoShareProgress,
+      autoShareAchievements
+    } = body;
 
-    const user = await User.findById(session.user.id);
+    const user = await User.findOne({ email: session.user.email });
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Update profile fields
+    // Update basic profile fields
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (dateOfBirth) user.dateOfBirth = new Date(dateOfBirth);
     if (phoneNumber) user.phoneNumber = phoneNumber;
     if (country) user.country = country;
     if (city) user.city = city;
+    if (profilePicture) user.profilePicture = profilePicture;
+
+    // Update academic background
+    if (educationLevel) user.educationLevel = educationLevel;
+    if (currentInstitution) user.currentInstitution = currentInstitution;
+    if (fieldOfStudy) user.fieldOfStudy = fieldOfStudy;
+    if (graduationYear) user.graduationYear = graduationYear;
+    if (gpa) user.gpa = gpa;
+
+    // Update languages and skills
+    if (languages) user.languages = languages;
+    if (certifications) user.certifications = certifications;
+    if (skills) user.skills = skills;
+
+    // Update sharing preferences
+    if (sharingPreferences) {
+      user.sharingPreferences = {
+        ...user.sharingPreferences,
+        ...sharingPreferences
+      };
+    }
+
+    // Update auto-share settings
+    if (autoShareProgress !== undefined) user.autoShareProgress = autoShareProgress;
+    if (autoShareAchievements !== undefined) user.autoShareAchievements = autoShareAchievements;
 
     await user.save();
 
-          return NextResponse.json({
-        message: 'Profile updated successfully',
-        user: {
-          id: user._id?.toString() || '',
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          dateOfBirth: user.dateOfBirth,
-          phoneNumber: user.phoneNumber,
-          country: user.country,
-          city: user.city,
-          profilePicture: user.profilePicture
-        }
-      });
+    // Return updated user without sensitive fields
+    const updatedUser = await User.findById(user._id)
+      .select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires');
+
+    return NextResponse.json({ 
+      user: updatedUser,
+      message: 'Profile updated successfully'
+    });
   } catch (error) {
     console.error('Error updating user profile:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to update user profile' },
       { status: 500 }
     );
   }

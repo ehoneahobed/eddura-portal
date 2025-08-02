@@ -370,3 +370,4 @@ ApplicationSchema.methods.getPreviousSection = function(this: IApplication) {
 const Application: Model<IApplication> = mongoose.models.Application || mongoose.model<IApplication>('Application', ApplicationSchema);
 
 export default Application;
+export { Application };

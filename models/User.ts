@@ -23,6 +23,41 @@ export interface IUser extends Document {
   city?: string;
   profilePicture?: string;
   
+  // Academic Background (Reliable Data)
+  educationLevel?: 'high_school' | 'bachelors' | 'masters' | 'phd' | 'postdoc';
+  currentInstitution?: string;
+  fieldOfStudy?: string;
+  graduationYear?: number;
+  gpa?: number;
+  
+  // Languages & Skills (Trackable)
+  languages?: string[];
+  certifications?: string[];
+  skills?: string[];
+  
+  // Platform Activity (Automatically Tracked)
+  platformStats?: {
+    documentsCreated: number;
+    applicationsStarted: number;
+    peerReviewsProvided: number;
+    daysActive: number;
+    lastActive: Date;
+  };
+  
+  // Social Preferences
+  sharingPreferences?: {
+    progress: 'public' | 'squads_only' | 'private';
+    achievements: 'public' | 'squads_only' | 'private';
+    documents: 'squads_only' | 'private';
+  };
+  
+  // Eddura Squad Settings
+  primarySquadId?: string;
+  secondarySquadIds?: string[];
+  primarySquadRole?: 'creator' | 'admin' | 'member';
+  autoShareProgress?: boolean;
+  autoShareAchievements?: boolean;
+  
   // Quiz & Career Data
   quizResponses?: QuizResponses;
   quizCompleted: boolean;
@@ -297,6 +332,34 @@ const CareerPreferencesSchema = new Schema<CareerPreferences>({
   recommendedFields: [{ type: String, trim: true }]
 }, { _id: false });
 
+// Platform Stats Schema
+const PlatformStatsSchema = new Schema({
+  documentsCreated: { type: Number, default: 0 },
+  applicationsStarted: { type: Number, default: 0 },
+  peerReviewsProvided: { type: Number, default: 0 },
+  daysActive: { type: Number, default: 0 },
+  lastActive: { type: Date, default: Date.now }
+}, { _id: false });
+
+// Sharing Preferences Schema
+const SharingPreferencesSchema = new Schema({
+  progress: { 
+    type: String, 
+    enum: ['public', 'squads_only', 'private'], 
+    default: 'squads_only' 
+  },
+  achievements: { 
+    type: String, 
+    enum: ['public', 'squads_only', 'private'], 
+    default: 'squads_only' 
+  },
+  documents: { 
+    type: String, 
+    enum: ['squads_only', 'private'], 
+    default: 'squads_only' 
+  }
+}, { _id: false });
+
 const AIAnalysisSchema = new Schema<AIAnalysis>({
   careerInsights: {
     primaryCareerPaths: [{
@@ -449,6 +512,73 @@ const UserSchema: Schema = new Schema<IUser>({
     trim: true 
   },
   
+  // Academic Background (Reliable Data)
+  educationLevel: { 
+    type: String, 
+    enum: ['high_school', 'bachelors', 'masters', 'phd', 'postdoc'],
+    trim: true 
+  },
+  currentInstitution: { 
+    type: String, 
+    trim: true 
+  },
+  fieldOfStudy: { 
+    type: String, 
+    trim: true 
+  },
+  graduationYear: { 
+    type: Number, 
+    min: 1900, 
+    max: new Date().getFullYear() + 10 
+  },
+  gpa: { 
+    type: Number, 
+    min: 0, 
+    max: 4.0 
+  },
+  
+  // Languages & Skills (Trackable)
+  languages: [{ 
+    type: String, 
+    trim: true 
+  }],
+  certifications: [{ 
+    type: String, 
+    trim: true 
+  }],
+  skills: [{ 
+    type: String, 
+    trim: true 
+  }],
+  
+  // Platform Activity (Automatically Tracked)
+  platformStats: PlatformStatsSchema,
+  
+  // Social Preferences
+  sharingPreferences: SharingPreferencesSchema,
+  
+  // Eddura Squad Settings
+  primarySquadId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Squad' 
+  },
+  secondarySquadIds: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'Squad' 
+  }],
+  primarySquadRole: { 
+    type: String, 
+    enum: ['creator', 'admin', 'member'] 
+  },
+  autoShareProgress: { 
+    type: Boolean, 
+    default: true 
+  },
+  autoShareAchievements: { 
+    type: Boolean, 
+    default: true 
+  },
+  
   // Quiz & Career Data
   quizResponses: QuizResponsesSchema,
   quizCompleted: { 
@@ -488,6 +618,24 @@ UserSchema.virtual('fullName').get(function() {
 UserSchema.virtual('quizProgress').get(function() {
   if (!this.quizResponses) return 0;
   return (this.quizResponses as QuizResponses).progress || 0;
+});
+
+// Virtual for profile completion percentage
+UserSchema.virtual('profileCompletion').get(function() {
+  const requiredFields = [
+    'firstName', 'lastName', 'email', 'educationLevel', 
+    'currentInstitution', 'fieldOfStudy', 'languages', 'skills'
+  ];
+  
+  let completedFields = 0;
+  requiredFields.forEach(field => {
+    if (this[field] && 
+        (Array.isArray(this[field]) ? this[field].length > 0 : true)) {
+      completedFields++;
+    }
+  });
+  
+  return Math.round((completedFields / requiredFields.length) * 100);
 });
 
 // Pre-save middleware to hash password

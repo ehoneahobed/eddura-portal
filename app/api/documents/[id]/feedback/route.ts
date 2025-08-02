@@ -6,6 +6,7 @@ import DocumentFeedback from '@/models/DocumentFeedback';
 import DocumentShare from '@/models/DocumentShare';
 import { sendFeedbackReceivedEmail } from '@/lib/email';
 import { z } from 'zod';
+import { ActivityTracker } from '@/lib/services/activityTracker';
 
 // Validation schema for creating feedback
 const CreateFeedbackSchema = z.object({
@@ -100,6 +101,25 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     });
 
     await feedback.save();
+
+    // Track peer review activity if the reviewer is a registered user
+    try {
+      const User = (await import('@/models/User')).default;
+      const reviewerUser = await User.findOne({
+        email: validatedData.reviewerEmail
+      });
+      
+      if (reviewerUser) {
+        await ActivityTracker.trackPeerReviewActivity(
+          (reviewerUser as any)._id.toString(),
+          (feedback as any)._id.toString(),
+          documentId
+        );
+      }
+    } catch (error) {
+      console.error('Error tracking peer review activity:', error);
+      // Don't fail the request if tracking fails
+    }
 
     // Send email notification to document owner
     try {

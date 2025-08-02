@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { z } from 'zod';
+import { ActivityTracker } from '@/lib/services/activityTracker';
 
 // Upload-based document types
 const UPLOAD_BASED_TYPES = [
@@ -183,6 +184,27 @@ export async function POST(request: NextRequest) {
     const document = new Document(documentData);
 
     await document.save();
+
+    // Track document creation activity
+    await ActivityTracker.trackDocumentActivity(
+      session.user.id,
+      'created',
+      (document as any)._id.toString()
+    );
+
+    // Update squad progress if user is in squads
+    try {
+      const { ProgressTracker } = await import('@/lib/services/progressTracker');
+      await ProgressTracker.trackActivity({
+        userId: session.user.id,
+        activityType: 'document_created',
+        timestamp: new Date(),
+        metadata: { documentId: (document as any)._id.toString() }
+      });
+    } catch (error) {
+      console.error('Error updating squad progress:', error);
+      // Don't fail the request if squad tracking fails
+    }
 
     return NextResponse.json({ document }, { status: 201 });
   } catch (error) {

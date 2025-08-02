@@ -8,6 +8,7 @@ import Scholarship from '@/models/Scholarship';
 import School from '@/models/School';
 import Program from '@/models/Program';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
+import { ActivityTracker } from '@/lib/services/activityTracker';
 
 export async function GET(request: NextRequest) {
   try {
@@ -605,6 +606,27 @@ export async function POST(request: NextRequest) {
 
     const application = new Application(applicationData);
     await application.save();
+
+    // Track application creation activity
+    await ActivityTracker.trackApplicationActivity(
+      session.user.id,
+      'started',
+      (application as any)._id.toString()
+    );
+
+    // Update squad progress if user is in squads
+    try {
+      const { ProgressTracker } = await import('@/lib/services/progressTracker');
+      await ProgressTracker.trackActivity({
+        userId: session.user.id,
+        activityType: 'application_started',
+        timestamp: new Date(),
+        metadata: { applicationId: (application as any)._id.toString() }
+      });
+    } catch (error) {
+      console.error('Error updating squad progress:', error);
+      // Don't fail the request if squad tracking fails
+    }
 
     return NextResponse.json({ 
       message: 'Application package created successfully',

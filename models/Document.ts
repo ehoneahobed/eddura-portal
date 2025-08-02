@@ -171,3 +171,4 @@ DocumentSchema.index({ type: 1, isActive: 1 });
 const Document: Model<IStudentDocument> = mongoose.models.Document || mongoose.model<IStudentDocument>('Document', DocumentSchema);
 
 export default Document;
+export { Document };
