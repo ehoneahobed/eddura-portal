@@ -16,7 +16,12 @@ interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'app
       questionId: string;
       value: any;
       files?: string[];
+      timestamp: Date;
+      isComplete: boolean;
     }>;
+    isComplete: boolean;
+    startedAt: Date;
+    completedAt?: Date;
   }>;
 }
 
