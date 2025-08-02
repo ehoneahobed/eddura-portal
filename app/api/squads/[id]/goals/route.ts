@@ -153,7 +153,21 @@ export async function PUT(
       existingProgress.progress = progress;
       existingProgress.percentage = Math.round((progress / goal.target) * 100);
       existingProgress.lastActivity = new Date();
-      existingProgress.isOnTrack = existingProgress.percentage >= (goal.daysRemaining / goal.timeframe) * 100;
+      
+      // Calculate expected progress based on timeframe
+      const getTimeframeDays = (timeframe: string) => {
+        switch (timeframe) {
+          case 'weekly': return 7;
+          case 'monthly': return 30;
+          case 'quarterly': return 90;
+          case 'ongoing': return goal.daysRemaining;
+          default: return 30;
+        }
+      };
+      
+      const timeframeDays = getTimeframeDays(goal.timeframe);
+      const expectedProgress = Math.round((goal.daysRemaining / timeframeDays) * 100);
+      existingProgress.isOnTrack = existingProgress.percentage >= expectedProgress;
     } else {
       goal.memberProgress.push({
         userId: currentUser._id as any,
