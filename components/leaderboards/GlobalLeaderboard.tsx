@@ -50,7 +50,7 @@ interface GlobalLeaderboardProps {
 
 export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderboardProps) {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState(category);
+  const [activeTab, setActiveTab] = useState<string>(category);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userRank, setUserRank] = useState<number | null>(null);
