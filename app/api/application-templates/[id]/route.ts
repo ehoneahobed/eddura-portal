@@ -82,7 +82,12 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log('=== API PUT /api/application-templates/[id] ===');
   console.log('PUT /api/application-templates/[id] called');
+  console.log('Request method:', request.method);
+  console.log('Request URL:', request.url);
+  console.log('Request headers:', Object.fromEntries(request.headers.entries()));
+  
   try {
     // Temporarily disable authentication for testing
     // const session = await auth();
@@ -93,15 +98,19 @@ export async function PUT(
     // }
 
     const resolvedParams = await params;
-    console.log('Template ID:', resolvedParams.id);
+    console.log('📋 Template ID:', resolvedParams.id);
+    console.log('🔌 Connecting to database...');
     await connectDB();
+    console.log('✅ Database connected successfully');
     
     if (!mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+      console.log('❌ Invalid template ID format:', resolvedParams.id);
       return NextResponse.json({ error: 'Invalid template ID' }, { status: 400 });
     }
     
+    console.log('📦 Reading request body...');
     const body = await request.json();
-    console.log('Request body:', JSON.stringify(body, null, 2));
+    console.log('📦 Request body:', JSON.stringify(body, null, 2));
     
     if (body.sections && body.sections.length === 0) {
       console.log('Validation error: Template must have at least one section');
@@ -131,7 +140,9 @@ export async function PUT(
       }
     }
     
-    console.log('Updating template in database...');
+    console.log('🔄 Updating template in database...');
+    console.log('📋 Update data:', { ...body, updatedAt: new Date() });
+    
     const updatedTemplate = await ApplicationTemplate.findByIdAndUpdate(
       resolvedParams.id,
       { ...body, updatedAt: new Date() },
@@ -139,12 +150,14 @@ export async function PUT(
     ).populate('scholarshipId', 'title provider').lean();
     
     if (!updatedTemplate) {
-      console.log('Template not found in database');
+      console.log('❌ Template not found in database');
       return NextResponse.json({ error: 'Application template not found' }, { status: 404 });
     }
     
-    console.log('Template updated successfully');
-    return NextResponse.json(transformTemplate(updatedTemplate));
+    console.log('✅ Template updated successfully');
+    const transformedTemplate = transformTemplate(updatedTemplate);
+    console.log('📤 Returning transformed template:', transformedTemplate);
+    return NextResponse.json(transformedTemplate);
   } catch (error) {
     console.error('Error updating application template:', error);
     
@@ -177,17 +190,9 @@ export async function DELETE(
     }
 
     const resolvedParams = await params;
-    let useMockData = false;
+    await connectDB();
     
-    try {
-      await connectDB();
-    } catch (error) {
-      console.log('Database connection failed, using mock data:', error);
-      useMockData = true;
-    }
-    
-    // For mock data, we don't need to validate ObjectId format
-    if (!useMockData && !mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+    if (!mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
       return NextResponse.json({ error: 'Invalid template ID' }, { status: 400 });
     }
     

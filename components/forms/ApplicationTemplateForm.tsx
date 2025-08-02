@@ -179,11 +179,19 @@ export default function ApplicationTemplateForm({
 
   // Initialize form with saved data or default values
   const getInitialValues = useCallback(() => {
+    console.log('=== GET INITIAL VALUES ===');
+    console.log('Template prop:', template);
+    console.log('Scholarship ID:', scholarshipId);
+    
     const savedData = loadFormData();
+    console.log('Saved data from localStorage:', savedData);
+    
     if (savedData) {
+      console.log('✅ Using saved data from localStorage');
       return savedData;
     }
     
+    console.log('📝 Creating initial values...');
     const initialValues = template || {
       applicationType: 'scholarship',
       scholarshipId,
@@ -202,14 +210,18 @@ export default function ApplicationTemplateForm({
       submissionDeadline: undefined
     };
 
+    console.log('📋 Initial values:', initialValues);
+
     // Convert submissionDeadline to datetime-local format if it exists
     if (initialValues.submissionDeadline) {
       const date = new Date(initialValues.submissionDeadline);
       if (!isNaN(date.getTime())) {
         (initialValues as any).submissionDeadline = date.toISOString().slice(0, 16);
+        console.log('📅 Converted submissionDeadline:', (initialValues as any).submissionDeadline);
       }
     }
 
+    console.log('✅ Returning initial values:', initialValues);
     return initialValues;
   }, [loadFormData, template, scholarshipId]);
 
@@ -220,10 +232,18 @@ export default function ApplicationTemplateForm({
 
   // Reset form when template changes
   useEffect(() => {
+    console.log('=== FORM RESET EFFECT ===');
+    console.log('Template changed:', template);
+    console.log('Template ID:', template?.id);
+    
     if (template) {
+      console.log('📝 Template found, getting initial values...');
       const initialValues = getInitialValues();
-      console.log('Resetting form with initial values:', initialValues);
+      console.log('🔄 Resetting form with initial values:', initialValues);
       reset(initialValues);
+      console.log('✅ Form reset completed');
+    } else {
+      console.log('⚠️ No template provided');
     }
   }, [template, reset, getInitialValues]);
 
@@ -309,63 +329,95 @@ export default function ApplicationTemplateForm({
 
 
   const handleFormSubmit = async (data: ApplicationTemplate) => {
+    console.log('=== FORM SUBMISSION START ===');
     console.log('Form submission started with data:', data);
     console.log('Form errors:', errors);
+    console.log('Form state - isLoading:', isLoading);
+    console.log('Form state - hasUnsavedChanges:', hasUnsavedChanges);
     
     // Validate that we have at least one section with questions
     if (!data.sections || data.sections.length === 0) {
+      console.log('❌ Validation failed: No sections found');
       toast.error('Please add at least one section to the form');
       return;
     }
+    
+    console.log('✅ Sections validation passed. Found', data.sections.length, 'sections');
 
+    console.log('🔍 Validating sections and questions...');
     for (const section of data.sections) {
+      console.log('  Checking section:', section.title);
+      
       if (!section.title || section.title.trim() === '') {
+        console.log('❌ Validation failed: Section missing title');
         toast.error('All sections must have a title');
         return;
       }
+      
       if (!section.questions || section.questions.length === 0) {
+        console.log('❌ Validation failed: Section', section.title, 'has no questions');
         toast.error(`Section "${section.title}" must have at least one question`);
         return;
       }
+      
+      console.log('  Section', section.title, 'has', section.questions.length, 'questions');
+      
       for (const question of section.questions) {
+        console.log('    Checking question:', question.title, 'type:', question.type);
+        
         if (!question.title || question.title.trim() === '') {
+          console.log('❌ Validation failed: Question missing title');
           toast.error(`All questions in section "${section.title}" must have a title`);
           return;
         }
+        
         if (!question.type) {
+          console.log('❌ Validation failed: Question missing type');
           toast.error(`All questions in section "${section.title}" must have a type`);
           return;
         }
+        
         if (!question.id) {
+          console.log('❌ Validation failed: Question missing id');
           toast.error(`All questions in section "${section.title}" must have an id`);
           return;
         }
       }
     }
+    
+    console.log('✅ All sections and questions validation passed');
 
     // Validate scholarship selection if scholarship change is allowed
     if (allowScholarshipChange && !data.scholarshipId) {
+      console.log('❌ Validation failed: No scholarship selected');
       toast.error('Please select a scholarship for this template');
       return;
     }
+    
+    console.log('✅ Scholarship validation passed');
 
     // Prepare the data for submission
     const submissionData = { ...data };
+    console.log('📦 Preparing submission data:', submissionData);
     
     // Convert submissionDeadline to proper Date object if it exists
     if (submissionData.submissionDeadline) {
       submissionData.submissionDeadline = new Date(submissionData.submissionDeadline);
+      console.log('📅 Converted submissionDeadline:', submissionData.submissionDeadline);
     }
 
     // Clear saved data before submitting
+    console.log('🗑️ Clearing saved form data...');
     clearSavedData();
+    
     try {
-      console.log('Calling onSubmit with data:', submissionData);
+      console.log('🚀 Calling onSubmit with data:', submissionData);
+      console.log('📞 onSubmit function type:', typeof onSubmit);
       // Use the onSubmit prop instead of SWR mutation to avoid double submission
       await onSubmit(submissionData);
-      console.log('Form submission completed successfully');
+      console.log('✅ Form submission completed successfully');
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error('❌ Form submission error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create application template';
       toast.error(errorMessage);
     }
@@ -639,7 +691,15 @@ export default function ApplicationTemplateForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+      <form 
+        onSubmit={(e) => {
+          console.log('=== FORM ONSUBMIT TRIGGERED ===');
+          console.log('Form submit event:', e);
+          console.log('Form target:', e.target);
+          return handleSubmit(handleFormSubmit)(e);
+        }} 
+        className="space-y-8"
+      >
         {/* Basic Information */}
         <Card>
           <CardHeader>
@@ -897,6 +957,12 @@ export default function ApplicationTemplateForm({
             type="submit"
             disabled={isLoading}
             className="flex items-center gap-2"
+            onClick={() => {
+              console.log('=== SAVE BUTTON CLICKED ===');
+              console.log('Button disabled:', isLoading);
+              console.log('Form errors:', errors);
+              console.log('Current form values:', getValues());
+            }}
           >
             <Save className="w-4 h-4" />
             {isLoading ? 'Saving...' : 'Save Template'}
