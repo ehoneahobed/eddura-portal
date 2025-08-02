@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useScholarship } from '@/hooks/use-scholarships';
 import { toast } from 'sonner';
 import { getScholarshipStatus, formatDeadline } from '@/lib/scholarship-status';
+import { ApplicationPackageBuilder } from '@/components/applications/ApplicationPackageBuilder';
 
 function ScholarshipDetailContent() {
   const router = useRouter();
@@ -54,6 +55,10 @@ function ScholarshipDetailContent() {
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [requestReason, setRequestReason] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
+
+  // Application package creation state
+  const [isApplicationPackageModalOpen, setIsApplicationPackageModalOpen] = useState(false);
+  const [isCreatingApplication, setIsCreatingApplication] = useState(false);
 
   // Format currency
   const formatCurrency = (value: number | string, currency: string = 'USD') => {
@@ -212,28 +217,11 @@ function ScholarshipDetailContent() {
         }
       }
 
-      // Create new application
-      const response = await fetch('/api/applications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scholarshipId: scholarshipId,
-          applicationType: 'scholarship',
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success('Application preparation started successfully!');
-        router.push(`/applications/${data.applicationId}`);
-      } else {
-        toast.error('Failed to prepare application');
-      }
+      // Open the application package builder modal
+      setIsApplicationPackageModalOpen(true);
     } catch (error) {
-      console.error('Error preparing application:', error);
-      toast.error('Failed to prepare application');
+      console.error('Error checking existing application:', error);
+      toast.error('Failed to check existing application');
     }
   };
 
@@ -301,6 +289,50 @@ function ScholarshipDetailContent() {
     } finally {
       setIsRequesting(false);
     }
+  };
+
+  const handleApplicationPackageComplete = async (applicationData: any) => {
+    if (!scholarship) return;
+
+    setIsCreatingApplication(true);
+    try {
+      // Create the application with the package data
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scholarshipId: scholarshipId,
+          applicationType: 'scholarship',
+          applicationPackageData: applicationData,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success('Application package created successfully!');
+        setIsApplicationPackageModalOpen(false);
+        
+        // Refresh the scholarship data to update the UI
+        await mutate();
+        
+        // Navigate to the new application
+        router.push(`/applications/${data.applicationId}`);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to create application package');
+      }
+    } catch (error) {
+      console.error('Error creating application package:', error);
+      toast.error('Failed to create application package');
+    } finally {
+      setIsCreatingApplication(false);
+    }
+  };
+
+  const handleApplicationPackageCancel = () => {
+    setIsApplicationPackageModalOpen(false);
   };
 
   if (status === 'loading') {
@@ -672,11 +704,18 @@ function ScholarshipDetailContent() {
                 {hasApplicationForm ? (
                   <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
-                    aria-label={scholarshipStatus?.applyButtonText || "Apply Now"}
+                    aria-label={scholarshipStatus?.applyButtonText || "Prepare Application"}
                     onClick={handleApply}
-                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible}
+                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible || isCreatingApplication}
                   >
-                    {scholarshipStatus?.applyButtonText || "Apply Now"}
+                    {isCreatingApplication ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Preparing Application...
+                      </>
+                    ) : (
+                      scholarshipStatus?.applyButtonText || "Prepare Application"
+                    )}
                   </Button>
                 ) : hasRequestedForm ? (
                   <Button 
@@ -923,6 +962,39 @@ function ScholarshipDetailContent() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Application Package Builder Modal */}
+      <Dialog 
+        open={isApplicationPackageModalOpen} 
+        onOpenChange={setIsApplicationPackageModalOpen}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Prepare Application Package
+            </DialogTitle>
+            <DialogDescription>
+              Create a comprehensive application package for {scholarship?.title}. 
+              This will help you organize your documents and track your application progress.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            <ApplicationPackageBuilder
+              onComplete={handleApplicationPackageComplete}
+              onCancel={handleApplicationPackageCancel}
+              prefillData={{
+                applicationType: 'scholarship',
+                targetId: scholarshipId,
+                targetName: scholarship?.title || '',
+                applicationDeadline: scholarship?.deadline || '',
+                requirements: scholarship?.applicationRequirements ? [scholarship.applicationRequirements] : [],
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

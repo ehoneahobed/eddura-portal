@@ -41,6 +41,13 @@ import { RequirementsChecklist } from './RequirementsChecklist';
 interface ApplicationPackageBuilderProps {
   onComplete: (applicationData: any) => void;
   onCancel: () => void;
+  prefillData?: {
+    applicationType?: 'scholarship' | 'school' | 'program' | 'external';
+    targetId?: string;
+    targetName?: string;
+    applicationDeadline?: string;
+    requirements?: any[];
+  };
 }
 
 type Step = 'basic-info' | 'target-selection' | 'deadline-setup' | 'template-selection' | 'requirements-review' | 'finalize';
@@ -76,24 +83,25 @@ interface Scholarship {
 
 export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps> = ({
   onComplete,
-  onCancel
+  onCancel,
+  prefillData
 }) => {
   const [currentStep, setCurrentStep] = useState<Step>('basic-info');
   const [applicationData, setApplicationData] = useState({
     name: '',
     description: '',
-    applicationType: 'school' as 'scholarship' | 'school' | 'program' | 'external',
-    targetId: '',
-    targetName: '',
+    applicationType: prefillData?.applicationType || 'school' as 'scholarship' | 'school' | 'program' | 'external',
+    targetId: prefillData?.targetId || '',
+    targetName: prefillData?.targetName || '',
     externalSchoolName: '',
     externalProgramName: '',
     externalScholarshipName: '',
     externalApplicationUrl: '',
     externalType: '' as 'program' | 'scholarship' | 'school' | '',
-    applicationDeadline: '',
+    applicationDeadline: prefillData?.applicationDeadline || '',
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     notes: '',
-    requirements: [] as any[],
+    requirements: prefillData?.requirements || [] as any[],
     isExternal: false,
     selectedTemplateId: '' as string // Add this field
   });
@@ -113,6 +121,14 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
   const [isLoadingSavedScholarships, setIsLoadingSavedScholarships] = useState(false);
   const [isLoadingStartedApplications, setIsLoadingStartedApplications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Handle prefill data and skip to appropriate step
+  useEffect(() => {
+    if (prefillData?.targetId && prefillData?.targetName) {
+      // If we have target data, skip to deadline setup
+      setCurrentStep('deadline-setup');
+    }
+  }, [prefillData]);
 
   const getCurrentSteps = () => {
     const baseSteps = [
