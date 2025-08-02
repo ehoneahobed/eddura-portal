@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,10 +38,19 @@ import {
 } from 'lucide-react';
 import { RequirementsTemplateSelector } from './RequirementsTemplateSelector';
 import { RequirementsChecklist } from './RequirementsChecklist';
+import { toast } from 'sonner';
 
 interface ApplicationPackageBuilderProps {
-  onComplete: (applicationData: any) => void;
+  onComplete?: (applicationData: any) => void;
   onCancel: () => void;
+  prefillData?: {
+    applicationType?: 'scholarship' | 'school' | 'program' | 'external';
+    targetId?: string;
+    targetName?: string;
+    applicationDeadline?: string;
+    requirements?: any[];
+  };
+  autoNavigate?: boolean;
 }
 
 type Step = 'basic-info' | 'target-selection' | 'deadline-setup' | 'template-selection' | 'requirements-review' | 'finalize';
@@ -76,24 +86,27 @@ interface Scholarship {
 
 export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps> = ({
   onComplete,
-  onCancel
+  onCancel,
+  prefillData,
+  autoNavigate = true
 }) => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>('basic-info');
   const [applicationData, setApplicationData] = useState({
     name: '',
     description: '',
-    applicationType: 'school' as 'scholarship' | 'school' | 'program' | 'external',
-    targetId: '',
-    targetName: '',
+    applicationType: prefillData?.applicationType || 'school' as 'scholarship' | 'school' | 'program' | 'external',
+    targetId: prefillData?.targetId || '',
+    targetName: prefillData?.targetName || '',
     externalSchoolName: '',
     externalProgramName: '',
     externalScholarshipName: '',
     externalApplicationUrl: '',
     externalType: '' as 'program' | 'scholarship' | 'school' | '',
-    applicationDeadline: '',
+    applicationDeadline: prefillData?.applicationDeadline || '',
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     notes: '',
-    requirements: [] as any[],
+    requirements: prefillData?.requirements || [] as any[],
     isExternal: false,
     selectedTemplateId: '' as string // Add this field
   });
@@ -114,12 +127,28 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
   const [isLoadingStartedApplications, setIsLoadingStartedApplications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Handle prefill data and skip to appropriate step
+  useEffect(() => {
+    if (prefillData?.targetId && prefillData?.targetName) {
+      // If we have target data, skip to deadline setup
+      setCurrentStep('deadline-setup');
+    } else {
+      // Start at basic info if no prefill data
+      setCurrentStep('basic-info');
+    }
+  }, [prefillData]);
+
   const getCurrentSteps = () => {
     const baseSteps = [
       { id: 'basic-info', title: 'Basic Information', icon: <FileText className="h-4 w-4" /> },
-      { id: 'target-selection', title: 'Target Selection', icon: <School className="h-4 w-4" /> },
-      { id: 'deadline-setup', title: 'Deadline Setup', icon: <Calendar className="h-4 w-4" /> },
     ];
+    
+    // Skip target selection if we have prefill data
+    if (!prefillData?.targetId) {
+      baseSteps.push({ id: 'target-selection', title: 'Target Selection', icon: <School className="h-4 w-4" /> });
+    }
+    
+    baseSteps.push({ id: 'deadline-setup', title: 'Deadline Setup', icon: <Calendar className="h-4 w-4" /> });
     
     // Conditionally include template selection and requirements review
     const optionalSteps = applicationData.selectedTemplateId ? [] : [
@@ -434,32 +463,17 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
   };
 
   const handleSubmit = async () => {
-    console.log('=== SUBMIT CALLED ===', new Date().toISOString());
-    console.log('isSubmitting before:', isSubmitting);
-    
     if (isSubmitting) {
-      console.log('Already submitting, preventing duplicate submission');
-      return;
+      return; // Prevent duplicate submissions
     }
     
     setIsSubmitting(true);
-    console.log('isSubmitting after:', true);
     
     try {
-      // Debug: Log the data being sent
-      console.log('=== FRONTEND SUBMIT DEBUG ===');
-      console.log('Full applicationData:', applicationData);
-      console.log('name:', applicationData.name);
-      console.log('name type:', typeof applicationData.name);
-      console.log('name length:', applicationData.name?.length);
-      console.log('name trimmed:', applicationData.name?.trim());
-      console.log('name === "undefined":', applicationData.name === 'undefined');
-      console.log('name === undefined:', applicationData.name === undefined);
-      console.log('name === null:', applicationData.name === null);
-      console.log('name === "":', applicationData.name === '');
-      console.log('applicationType:', applicationData.applicationType);
-      console.log('targetId:', applicationData.targetId);
-      console.log('targetName:', applicationData.targetName);
+      // Show loading toast
+      toast.loading('Creating application package...', {
+        id: 'create-application'
+      });
 
       // Create the application first
       const response = await fetch('/api/applications', {
@@ -474,66 +488,30 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
         // Handle 409 conflict (duplicate name)
         if (response.status === 409) {
           if (errorData.suggestedName) {
-            // Ask user if they want to use the suggested name
-            const useSuggestedName = window.confirm(
-              `An application package with the name "${applicationData.name}" already exists. Would you like to use the suggested name "${errorData.suggestedName}" instead?`
-            );
-            
-            if (useSuggestedName) {
-              // Update the name and try again with the new name directly
-              console.log('User accepted suggested name, retrying with:', errorData.suggestedName);
-              
-              // Create a new request with the suggested name
-              const updatedData = { ...applicationData, name: errorData.suggestedName };
-              console.log('Retrying with updated data:', updatedData);
-              
-              const retryResponse = await fetch('/api/applications', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-              });
-
-              if (!retryResponse.ok) {
-                const retryErrorData = await retryResponse.json();
-                throw new Error(retryErrorData.error || 'Failed to create application package with suggested name');
-              }
-
-              const retryResult = await retryResponse.json();
-              const applicationId = retryResult.applicationId;
-
-              // Apply template if one was selected
-              if (applicationData.selectedTemplateId) {
-                try {
-                  const templateResponse = await fetch(`/api/requirements-templates/${applicationData.selectedTemplateId}/apply`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ applicationId })
-                  });
-
-                  if (templateResponse.ok) {
-                    console.log('Template applied successfully');
-                  } else {
-                    console.warn('Failed to apply template, but application was created');
-                  }
-                } catch (templateError) {
-                  console.warn('Error applying template:', templateError);
+            // Show toast with suggested name option
+            toast.dismiss('create-application');
+            toast.error(`Application package "${applicationData.name}" already exists. Use "${errorData.suggestedName}" instead?`, {
+              action: {
+                label: 'Use Suggested Name',
+                onClick: async () => {
+                  await handleSubmitWithName(errorData.suggestedName);
                 }
-              }
-
-              // Call the onComplete callback with the created application
-              onComplete(retryResult.application);
-              return; // Exit early since we handled the retry
-            } else {
-              // User chose not to use suggested name, show error
-              throw new Error(`Application package with this name already exists. Please choose a different name.`);
-            }
+              },
+              duration: 10000
+            });
+            return;
           } else {
             // No suggested name, show generic error
-            throw new Error(`Application package with the name "${applicationData.name}" already exists. Please choose a different name.`);
+            toast.dismiss('create-application');
+            toast.error(`Application package "${applicationData.name}" already exists. Please choose a different name.`);
+            return;
           }
         }
         
-        throw new Error(errorData.error || 'Failed to create application package');
+        // Handle other errors
+        toast.dismiss('create-application');
+        toast.error(errorData.error || 'Failed to create application package');
+        return;
       }
 
       const result = await response.json();
@@ -558,12 +536,95 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
         }
       }
 
-      // Call the onComplete callback with the created application
-      onComplete(result.application);
+      // Show success toast
+      toast.dismiss('create-application');
+      toast.success('Application package created successfully!', {
+        description: 'Redirecting to your new application...'
+      });
+
+      // Call the onComplete callback if provided
+      if (onComplete) {
+        onComplete(result.application);
+      }
+
+      // Navigate to the new application if autoNavigate is enabled
+      if (autoNavigate && result.applicationId) {
+        router.push(`/applications/${result.applicationId}`);
+      }
     } catch (error) {
       console.error('Error creating application package:', error);
-      // Show error to user (you might want to add a toast notification here)
-      alert(error instanceof Error ? error.message : 'Failed to create application package');
+      toast.dismiss('create-application');
+      toast.error(error instanceof Error ? error.message : 'Failed to create application package');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Helper function to handle submission with a specific name
+  const handleSubmitWithName = async (name: string) => {
+    setIsSubmitting(true);
+    
+    try {
+      toast.loading('Creating application package...', {
+        id: 'create-application-retry'
+      });
+
+      const updatedData = { ...applicationData, name };
+      
+      const retryResponse = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (!retryResponse.ok) {
+        const retryErrorData = await retryResponse.json();
+        toast.dismiss('create-application-retry');
+        toast.error(retryErrorData.error || 'Failed to create application package');
+        return;
+      }
+
+      const retryResult = await retryResponse.json();
+      const applicationId = retryResult.applicationId;
+
+      // Apply template if one was selected
+      if (applicationData.selectedTemplateId) {
+        try {
+          const templateResponse = await fetch(`/api/requirements-templates/${applicationData.selectedTemplateId}/apply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ applicationId })
+          });
+
+          if (templateResponse.ok) {
+            console.log('Template applied successfully');
+          } else {
+            console.warn('Failed to apply template, but application was created');
+          }
+        } catch (templateError) {
+          console.warn('Error applying template:', templateError);
+        }
+      }
+
+      // Show success toast
+      toast.dismiss('create-application-retry');
+      toast.success('Application package created successfully!', {
+        description: 'Redirecting to your new application...'
+      });
+
+      // Call the onComplete callback if provided
+      if (onComplete) {
+        onComplete(retryResult.application);
+      }
+
+      // Navigate to the new application if autoNavigate is enabled
+      if (autoNavigate && retryResult.applicationId) {
+        router.push(`/applications/${retryResult.applicationId}`);
+      }
+    } catch (error) {
+      console.error('Error creating application package with suggested name:', error);
+      toast.dismiss('create-application-retry');
+      toast.error(error instanceof Error ? error.message : 'Failed to create application package');
     } finally {
       setIsSubmitting(false);
     }
@@ -785,90 +846,87 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
 
                 {applicationData.applicationType === 'scholarship' && (
                   <div className="space-y-4">
-                    {/* Debug Info - Remove this later */}
-                    <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                      <div className="font-medium text-yellow-800 mb-1">Debug Info:</div>
-                      <div>Saved Scholarships: {savedScholarships.length}</div>
-                      <div>Started Applications: {startedApplications.length}</div>
-                      <div>Loading Saved: {isLoadingSavedScholarships ? 'Yes' : 'No'}</div>
-                      <div>Loading Started: {isLoadingStartedApplications ? 'Yes' : 'No'}</div>
-                    </div>
-
                     {/* Saved Scholarships */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-700">Your Saved Scholarships</Label>
-                      <div className="max-h-32 overflow-y-auto border rounded-lg">
-                        {isLoadingSavedScholarships ? (
-                          <div className="flex items-center justify-center p-4">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="ml-2 text-sm">Loading saved scholarships...</span>
-                          </div>
-                        ) : savedScholarships.length > 0 ? (
-                          <div className="divide-y">
-                            {savedScholarships.map((scholarship) => (
-                              <button
-                                key={scholarship._id}
-                                onClick={() => handleTargetSelection(scholarship._id, scholarship.title)}
-                                className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${
-                                  applicationData.targetId === scholarship._id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                                }`}
-                              >
-                                <div className="font-medium text-sm">{scholarship.title}</div>
-                                <div className="text-xs text-gray-600">
-                                  {scholarship.provider} • {scholarship.value} {scholarship.currency}
-                                </div>
-                                <div className="text-xs text-green-600 mt-1">
-                                  Saved • {scholarship.status}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="p-4 text-center text-sm text-gray-500">
-                            <div className="mb-2">No saved scholarships</div>
-                            <div className="text-xs">Save scholarships from the Scholarships page to see them here</div>
-                          </div>
-                        )}
+                    {savedScholarships.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">Your Saved Scholarships</Label>
+                        <div className="max-h-32 overflow-y-auto border rounded-lg">
+                          {isLoadingSavedScholarships ? (
+                            <div className="flex items-center justify-center p-4">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="ml-2 text-sm">Loading saved scholarships...</span>
+                            </div>
+                          ) : (
+                            <div className="divide-y">
+                              {savedScholarships.map((scholarship) => (
+                                <button
+                                  key={scholarship._id}
+                                  onClick={() => handleTargetSelection(scholarship._id, scholarship.title)}
+                                  className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${
+                                    applicationData.targetId === scholarship._id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                                  }`}
+                                >
+                                  <div className="font-medium text-sm">{scholarship.title}</div>
+                                  <div className="text-xs text-gray-600">
+                                    {scholarship.provider} • {scholarship.value} {scholarship.currency}
+                                  </div>
+                                  <div className="text-xs text-green-600 mt-1">
+                                    Saved • {scholarship.status}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Started Applications */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-700">Started Applications</Label>
-                      <div className="max-h-32 overflow-y-auto border rounded-lg">
-                        {isLoadingStartedApplications ? (
-                          <div className="flex items-center justify-center p-4">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="ml-2 text-sm">Loading started applications...</span>
-                          </div>
-                        ) : startedApplications.length > 0 ? (
-                          <div className="divide-y">
-                            {startedApplications.map((application) => (
-                              <button
-                                key={application._id}
-                                onClick={() => handleTargetSelection(application.scholarshipId, application.scholarshipName)}
-                                className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${
-                                  applicationData.targetId === application.scholarshipId ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                                }`}
-                              >
-                                <div className="font-medium text-sm">{application.scholarshipName}</div>
-                                <div className="text-xs text-gray-600">
-                                  Application in progress • {application.progress}% complete
-                                </div>
-                                <div className="text-xs text-blue-600 mt-1">
-                                  Status: {application.status}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="p-4 text-center text-sm text-gray-500">
-                            <div className="mb-2">No started applications</div>
-                            <div className="text-xs">Start applying to scholarships to see them here</div>
-                          </div>
-                        )}
+                    {startedApplications.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">Started Applications</Label>
+                        <div className="max-h-32 overflow-y-auto border rounded-lg">
+                          {isLoadingStartedApplications ? (
+                            <div className="flex items-center justify-center p-4">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="ml-2 text-sm">Loading started applications...</span>
+                            </div>
+                          ) : (
+                            <div className="divide-y">
+                              {startedApplications.map((application) => (
+                                <button
+                                  key={application._id}
+                                  onClick={() => handleTargetSelection(application.scholarshipId, application.scholarshipName)}
+                                  className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${
+                                    applicationData.targetId === application.scholarshipId ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                                  }`}
+                                >
+                                  <div className="font-medium text-sm">{application.scholarshipName}</div>
+                                  <div className="text-xs text-gray-600">
+                                    Application in progress • {application.progress}% complete
+                                  </div>
+                                  <div className="text-xs text-blue-600 mt-1">
+                                    Status: {application.status}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Show message when no saved or started items */}
+                    {savedScholarships.length === 0 && startedApplications.length === 0 && !isLoadingSavedScholarships && !isLoadingStartedApplications && (
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="text-sm text-blue-800 mb-2">
+                          <strong>No saved scholarships or started applications found.</strong>
+                        </div>
+                        <div className="text-xs text-blue-600">
+                          Use the search below to find scholarships to apply for, or save scholarships from the Scholarships page to see them here.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

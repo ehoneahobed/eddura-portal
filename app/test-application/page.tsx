@@ -201,6 +201,19 @@ export default function TestApplicationPage() {
     
     const requiredQuestions = currentSection.questions.filter((q: any) => q.required);
     return requiredQuestions.every((question: any) => {
+      // Handle GPA and test_score questions that have separate value and scale/type fields
+      if (question.type === 'gpa') {
+        const gpaValue = responses[`${question.id}_value`];
+        const gpaScale = responses[`${question.id}_scale`];
+        return gpaValue && gpaScale;
+      }
+      
+      if (question.type === 'test_score') {
+        const testValue = responses[`${question.id}_value`];
+        const testType = responses[`${question.id}_type`];
+        return testValue && testType;
+      }
+      
       const response = responses[question.id];
       if (!response) return false;
       
@@ -616,8 +629,8 @@ export default function TestApplicationPage() {
               <Input
                 id="gpa"
                 type="number"
-                value={(responses[question.id] as number) || ''}
-                onChange={(e) => handleResponseChange(question.id, parseFloat(e.target.value))}
+                value={(responses[`${question.id}_value`] as number) || ''}
+                onChange={(e) => handleResponseChange(`${question.id}_value`, parseFloat(e.target.value))}
                 placeholder="Enter GPA/CWA (e.g., 3.5 or 85.5)"
                 step="0.01"
                 min="0"
@@ -627,8 +640,8 @@ export default function TestApplicationPage() {
             <div className="space-y-2">
               <Label htmlFor="gpaScale">Scale</Label>
               <Select
-                value={(responses[question.id] as string) || ''}
-                onValueChange={(value) => handleResponseChange(question.id, value)}
+                value={(responses[`${question.id}_scale`] as string) || ''}
+                onValueChange={(value) => handleResponseChange(`${question.id}_scale`, value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select scale" />
@@ -653,8 +666,8 @@ export default function TestApplicationPage() {
               <Input
                 id="testScore"
                 type="number"
-                value={(responses[question.id] as number) || ''}
-                onChange={(e) => handleResponseChange(question.id, parseFloat(e.target.value))}
+                value={(responses[`${question.id}_value`] as number) || ''}
+                onChange={(e) => handleResponseChange(`${question.id}_value`, parseFloat(e.target.value))}
                 placeholder="Enter test score (e.g., 1500)"
                 step="1"
               />
@@ -662,8 +675,8 @@ export default function TestApplicationPage() {
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
               <Select
-                value={(responses[question.id] as string) || ''}
-                onValueChange={(value) => handleResponseChange(question.id, value)}
+                value={(responses[`${question.id}_type`] as string) || ''}
+                onValueChange={(value) => handleResponseChange(`${question.id}_type`, value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select test type" />
