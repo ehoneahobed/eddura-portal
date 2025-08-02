@@ -57,6 +57,7 @@ interface UserProfile {
   createdAt: string;
   tokens: number;
   totalTokensEarned: number;
+  totalTokensSpent: number;
   referralCode?: string;
   stats: DashboardStats;
   careerPreferences?: any;

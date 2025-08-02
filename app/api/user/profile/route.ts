@@ -74,6 +74,10 @@ export async function GET(request: NextRequest) {
       quizCompletedAt: user.quizCompletedAt,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
+      tokens: user.tokens || 0,
+      totalTokensEarned: user.totalTokensEarned || 0,
+      totalTokensSpent: user.totalTokensSpent || 0,
+      referralCode: user.referralCode,
       stats,
       careerPreferences: user.careerPreferences
     };
