@@ -55,10 +55,11 @@ interface UserProfile {
 }
 
 interface DashboardStats {
-  quizScore: number;
-  recommendationsCount: number;
-  programsViewed: number;
-  applicationsStarted: number;
+  applicationPackagesCreated: number;
+  documentsCreated: number;
+  recommendationLettersRequested: number;
+  recommendationLettersReceived: number;
+  scholarshipsSaved: number;
 }
 
 export default function DashboardContent() {
@@ -220,11 +221,11 @@ export default function DashboardContent() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <Brain className="w-6 h-6 text-blue-600" />
+                  <Target className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Quiz Score</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.quizScore || 0}%</p>
+                  <p className="text-sm font-medium text-gray-600">Application Packages</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.applicationPackagesCreated || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -234,11 +235,11 @@ export default function DashboardContent() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                  <Target className="w-6 h-6 text-green-600" />
+                  <BookOpen className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Recommendations</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.recommendationsCount || 0}</p>
+                  <p className="text-sm font-medium text-gray-600">Documents Created</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.documentsCreated || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -248,11 +249,14 @@ export default function DashboardContent() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <BookOpen className="w-6 h-6 text-purple-600" />
+                  <Award className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Programs Viewed</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.programsViewed || 0}</p>
+                  <p className="text-sm font-medium text-gray-600">Recommendation Letters</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {userProfile?.stats?.recommendationLettersRequested || 0} / {userProfile?.stats?.recommendationLettersReceived || 0}
+                  </p>
+                  <p className="text-xs text-gray-500">Requested / Received</p>
                 </div>
               </div>
             </CardContent>
@@ -262,11 +266,11 @@ export default function DashboardContent() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
-                  <Award className="w-6 h-6 text-orange-600" />
+                  <TrendingUp className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.applicationsStarted || 0}</p>
+                  <p className="text-sm font-medium text-gray-600">Scholarships Saved</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.scholarshipsSaved || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -480,12 +484,12 @@ export default function DashboardContent() {
                       
                       <div className="grid grid-cols-2 gap-4 text-center">
                         <div>
-                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.quizScore || 0}%</p>
-                          <p className="text-xs text-gray-500">Match Score</p>
+                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.applicationPackagesCreated || 0}</p>
+                          <p className="text-xs text-gray-500">Applications</p>
                         </div>
                         <div>
-                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.recommendationsCount || 0}</p>
-                          <p className="text-xs text-gray-500">Programs</p>
+                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.documentsCreated || 0}</p>
+                          <p className="text-xs text-gray-500">Documents</p>
                         </div>
                       </div>
                     </div>
