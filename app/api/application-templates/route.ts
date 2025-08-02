@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for existing template to prevent duplicates
+    // Check for existing active template to prevent duplicates
     const duplicateQuery: any = {
       applicationType: body.applicationType,
       isActive: true
@@ -196,15 +196,8 @@ export async function POST(request: NextRequest) {
 
     const existingTemplate = await ApplicationTemplate.findOne(duplicateQuery);
     if (existingTemplate) {
-      return NextResponse.json(
-        { 
-          error: `An active application template already exists for this ${body.applicationType}`,
-          existingTemplateId: existingTemplate._id,
-          existingTemplateTitle: existingTemplate.title,
-          message: `A template titled "${existingTemplate.title}" is already active for this ${body.applicationType}. You can either edit the existing template or create a new one with a different title.`
-        },
-        { status: 409 }
-      );
+      // Automatically deactivate the existing template and create the new one
+      await ApplicationTemplate.findByIdAndUpdate(existingTemplate._id, { isActive: false });
     }
     
     const template = new ApplicationTemplate({
