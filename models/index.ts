@@ -37,6 +37,8 @@ import './RecommendationLetter';
 import './UserSession';
 import './PageView';
 import './UserEvent';
+import './Notification';
+import './Squad';
 
 // 2. Models that reference other models (import after dependencies)
 import './Program';
@@ -73,4 +75,6 @@ export { default as RecommendationRequest } from './RecommendationRequest';
 export { default as RecommendationLetter } from './RecommendationLetter';
 export { default as UserSession } from './UserSession';
 export { default as PageView } from './PageView';
-export { default as UserEvent } from './UserEvent'; 
+export { default as UserEvent } from './UserEvent';
+export { default as Notification } from './Notification';
+export { default as Squad } from './Squad'; 

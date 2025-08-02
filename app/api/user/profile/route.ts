@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
+import UserActivity from '@/models/UserActivity';
+import Application from '@/models/Application';
+import Document from '@/models/Document';
+import RecommendationRequest from '@/models/RecommendationRequest';
+import SavedScholarship from '@/models/SavedScholarship';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
+    
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -19,7 +25,84 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ user });
+    // Calculate user stats
+    const [
+      applicationPackagesCreated,
+      documentsCreated,
+      recommendationLettersRequested,
+      recommendationLettersReceived,
+      scholarshipsSaved
+    ] = await Promise.all([
+      // Count application packages created by user
+      Application.countDocuments({ userId: user._id as any }),
+      
+      // Count documents created by user
+      Document.countDocuments({ userId: user._id as any, isActive: true }),
+      
+      // Count recommendation letters requested
+      RecommendationRequest.countDocuments({ studentId: user._id as any }),
+      
+      // Count recommendation letters received (status = 'received')
+      RecommendationRequest.countDocuments({ 
+        studentId: user._id as any, 
+        status: 'received' 
+      }),
+      
+      // Count scholarships saved by user
+      SavedScholarship.countDocuments({ userId: user._id as any })
+    ]);
+
+    const stats = {
+      applicationPackagesCreated,
+      documentsCreated,
+      recommendationLettersRequested,
+      recommendationLettersReceived,
+      scholarshipsSaved
+    };
+
+    const userProfile = {
+      id: (user._id as any).toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      dateOfBirth: user.dateOfBirth,
+      phoneNumber: user.phoneNumber,
+      country: user.country,
+      city: user.city,
+      profilePicture: user.profilePicture,
+      quizCompleted: user.quizCompleted,
+      quizCompletedAt: user.quizCompletedAt,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      stats,
+      careerPreferences: user.careerPreferences
+    };
+
+    // Log login activity if this is a fresh login
+    if (user.lastLoginAt) {
+      const lastLogin = new Date(user.lastLoginAt);
+      const now = new Date();
+      const hoursSinceLastLogin = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+      
+      // Log activity if more than 1 hour has passed since last login
+      if (hoursSinceLastLogin > 1) {
+        try {
+          const activity = new UserActivity({
+            userId: user._id as any,
+            type: 'login',
+            title: 'User Login',
+            description: 'User logged into the platform',
+            metadata: {},
+            timestamp: new Date()
+          });
+          await activity.save();
+        } catch (error) {
+          console.error('Error logging login activity:', error);
+        }
+      }
+    }
+
+    return NextResponse.json(userProfile);
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(

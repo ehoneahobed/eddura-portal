@@ -168,7 +168,7 @@ export default function SquadsDashboard() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {secondarySquads.map((squad: any) => (
-                      <SquadCard key={squad._id} squad={squad} />
+                      <SquadCard key={squad._id as any} squad={squad} />
                     ))}
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function SquadsDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {publicSquads.map((squad: any) => (
-                <SquadCard key={squad._id} squad={squad} showJoinButton />
+                <SquadCard key={squad._id as any} squad={squad} showJoinButton />
               ))}
             </div>
           )}

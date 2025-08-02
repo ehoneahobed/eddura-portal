@@ -49,9 +49,7 @@ function transformTemplates(templates: any[]) {
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('Connecting to database...');
     await connectDB();
-    console.log('Database connected successfully');
     
     const { searchParams } = new URL(request.url);
     const scholarshipId = searchParams.get('scholarshipId');
@@ -62,7 +60,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     
-    // Build query
+    // Build query for MongoDB
     let query: any = {};
     
     if (scholarshipId) {
@@ -88,9 +86,7 @@ export async function GET(request: NextRequest) {
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
     
     // Get total count for pagination
-    console.log('Executing count query with:', query);
     const totalCount = await ApplicationTemplate.countDocuments(query);
-    console.log('Total count result:', totalCount);
     
     // Calculate pagination values
     const skip = (page - 1) * limit;
@@ -99,28 +95,14 @@ export async function GET(request: NextRequest) {
     const hasPrevPage = page > 1;
     
     // Get templates with pagination
-    console.log('Executing find query with:', { query, sort, skip, limit });
     const templates = await ApplicationTemplate.find(query)
       .populate('scholarshipId', 'title provider')
       .sort(sort)
       .skip(skip)
       .limit(limit);
-    console.log('Find query result count:', templates.length);
     
     // Transform templates
     const transformedTemplates = transformTemplates(templates);
-    
-    // Debug logging
-    console.log('API Debug:', {
-      query,
-      totalCount,
-      totalPages,
-      currentPage: page,
-      templatesCount: transformedTemplates.length,
-      hasNextPage,
-      hasPrevPage,
-      searchParams: Object.fromEntries(searchParams.entries())
-    });
 
     // Return with pagination info
     return NextResponse.json({

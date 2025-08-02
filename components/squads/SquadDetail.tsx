@@ -23,6 +23,9 @@ import {
   UserPlus
 } from 'lucide-react';
 import SquadLeaderboard from './SquadLeaderboard';
+import InviteMemberModal from './InviteMemberModal';
+import ManageSquadModal from './ManageSquadModal';
+import SquadGoalsModal from './SquadGoalsModal';
 import { toast } from 'sonner';
 
 interface SquadDetailProps {
@@ -34,6 +37,9 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
   const { squad, isLoading, error } = useSquad(squadId);
   const { squad: squadWithProgress, progressSummary } = useSquadProgress(squadId);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [showGoalsModal, setShowGoalsModal] = useState(false);
 
   if (isLoading) {
     return (
@@ -57,8 +63,8 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
     );
   }
 
-  const isMember = squad.memberIds.some((member: any) => member._id === session?.user?.id);
-  const isCreator = squad.creatorId._id === session?.user?.id;
+  const isMember = squad.memberIds.some((member: any) => (member._id as any) === session?.user?.id);
+  const isCreator = (squad.creatorId._id as any) === session?.user?.id;
 
   const getActivityColor = (level: string) => {
     switch (level) {
@@ -94,11 +100,15 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
         </div>
         <div className="flex items-center gap-2">
           {isCreator && (
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setShowManageModal(true)}>
               <Settings className="w-4 h-4 mr-2" />
               Manage Squad
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={() => setShowGoalsModal(true)}>
+            <Target className="w-4 h-4 mr-2" />
+            Manage Goals
+          </Button>
           {!isMember && squad.visibility !== 'private' && (
             <Button size="sm">
               <UserPlus className="w-4 h-4 mr-2" />
@@ -284,7 +294,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
                     <h4 className="text-sm font-medium">Member Progress</h4>
                     <div className="space-y-1">
                       {goal.memberProgress.map((memberProgress: any) => {
-                        const member = squad.memberIds.find((m: any) => m._id === memberProgress.userId);
+                        const member = squad.memberIds.find((m: any) => (m._id as any) === memberProgress.userId);
                         if (!member) return null;
 
                         return (
@@ -326,7 +336,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
               <CardTitle className="flex items-center justify-between">
                 <span>Squad Members</span>
                 {isCreator && (
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => setShowInviteModal(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Invite Member
                   </Button>
@@ -336,7 +346,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
             <CardContent>
               <div className="space-y-4">
                 {squad.memberIds.map((member: any) => (
-                  <div key={member._id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div key={member._id as any} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={member.profilePicture} />
@@ -349,7 +359,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
                           {member.firstName} {member.lastName}
                         </p>
                         <p className="text-sm text-muted-foreground">{member.email}</p>
-                        {member._id === squad.creatorId._id && (
+                        {(member._id as any) === (squad.creatorId._id as any) && (
                           <Badge variant="secondary" className="text-xs mt-1">
                             Creator
                           </Badge>
@@ -378,6 +388,32 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
           <SquadLeaderboard squad={squad} />
         </TabsContent>
       </Tabs>
+
+      {/* Modals */}
+      <InviteMemberModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        squadId={squadId}
+        squadName={squad?.name || ''}
+      />
+      
+      <ManageSquadModal
+        isOpen={showManageModal}
+        onClose={() => setShowManageModal(false)}
+        squad={squad}
+        onUpdate={() => {
+          // Refresh the squad data
+          window.location.reload();
+        }}
+      />
+      
+      <SquadGoalsModal
+        isOpen={showGoalsModal}
+        onClose={() => setShowGoalsModal(false)}
+        squadId={squadId}
+        squadName={squad?.name || ''}
+        isCreator={isCreator}
+      />
     </div>
   );
 }

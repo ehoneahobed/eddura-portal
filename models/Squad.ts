@@ -209,6 +209,6 @@ EdduraSquadSchema.index({ creatorId: 1 });
 EdduraSquadSchema.index({ memberIds: 1 });
 EdduraSquadSchema.index({ createdAt: -1 });
 
-const EdduraSquad: Model<IEdduraSquad> = mongoose.models.EddurSquad || mongoose.model<IEdduraSquad>('EdduraSquad', EdduraSquadSchema);
+const EdduraSquad: Model<IEdduraSquad> = mongoose.models.EddurSquad || mongoose.model<IEdduraSquad>('EddurSquad', EdduraSquadSchema);
 
 export default EdduraSquad;
