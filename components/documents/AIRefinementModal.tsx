@@ -18,7 +18,8 @@ import {
   Target,
   FileText,
   MessageSquare,
-  Zap
+  Zap,
+  Copy
 } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { toast } from 'sonner';
@@ -26,9 +27,11 @@ import { toast } from 'sonner';
 interface AIRefinementModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onContentRefined: (content: string) => void;
+  onContentRefined: (content: string, createNewVersion?: boolean) => void;
   existingContent: string;
   documentType?: DocumentType;
+  documentId?: string;
+  documentTitle?: string;
 }
 
 type RefinementType = 
@@ -46,15 +49,19 @@ export default function AIRefinementModal({
   onOpenChange,
   onContentRefined,
   existingContent,
-  documentType
+  documentType,
+  documentId,
+  documentTitle
 }: AIRefinementModalProps) {
   const [loading, setLoading] = useState(false);
+  const [createNewVersion, setCreateNewVersion] = useState(false);
+  const [newVersionTitle, setNewVersionTitle] = useState('');
   const [formData, setFormData] = useState({
     refinementType: '' as RefinementType,
     customInstruction: '',
     targetLength: '',
     specificFocus: '',
-    tone: '',
+    tone: undefined as string | undefined,
     additionalContext: ''
   });
 
@@ -118,30 +125,108 @@ export default function AIRefinementModal({
 
     setLoading(true);
     try {
+      const requestBody = {
+        existingContent,
+        documentType,
+        refinementType: formData.refinementType,
+        ...(formData.customInstruction && { customInstruction: formData.customInstruction }),
+        ...(formData.targetLength && { targetLength: formData.targetLength }),
+        ...(formData.specificFocus && { specificFocus: formData.specificFocus }),
+        ...(formData.tone && { tone: formData.tone }),
+        ...(formData.additionalContext && { additionalContext: formData.additionalContext })
+      };
+      
+      console.log('=== AI REFINE FRONTEND REQUEST ===');
+      console.log('Original form data:', formData);
+      console.log('Filtered request body:', requestBody);
+      console.log('Request body details:', {
+        hasExistingContent: !!existingContent,
+        existingContentLength: existingContent?.length,
+        documentType,
+        refinementType: formData.refinementType,
+        hasCustomInstruction: !!formData.customInstruction,
+        customInstructionLength: formData.customInstruction?.length,
+        targetLength: formData.targetLength,
+        specificFocus: formData.specificFocus,
+        tone: formData.tone,
+        additionalContext: formData.additionalContext
+      });
+      
       const response = await fetch('/api/ai/refine', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          existingContent,
-          documentType,
-          ...formData
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('=== AI REFINE FRONTEND RESPONSE ===');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (response.ok) {
         const data = await response.json();
-        onContentRefined(data.content);
-        onOpenChange(false);
-        toast.success('Content refined successfully!');
-        resetForm();
+        console.log('Response data:', {
+          hasContent: !!data.content,
+          contentLength: data.content?.length,
+          wordCount: data.wordCount,
+          characterCount: data.characterCount,
+          originalWordCount: data.originalWordCount,
+          originalCharacterCount: data.originalCharacterCount
+        });
+        
+        if (createNewVersion && documentId) {
+          console.log('Creating new version...');
+          // Create new version
+          const versionTitle = newVersionTitle.trim() || 
+            (documentTitle ? `${documentTitle} (Refined Version)` : `Document (Refined Version)`);
+          
+          console.log('Version title:', versionTitle);
+          
+          const versionResponse = await fetch('/api/documents/version', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              originalDocumentId: documentId,
+              title: versionTitle,
+              content: data.content,
+            }),
+          });
+
+          console.log('Version response status:', versionResponse.status);
+          
+          if (versionResponse.ok) {
+            const versionData = await versionResponse.json();
+            console.log('Version created successfully:', versionData);
+            onContentRefined(data.content, true);
+            onOpenChange(false);
+            toast.success('New document version created successfully!');
+            resetForm();
+          } else {
+            const versionError = await versionResponse.json();
+            console.error('Version creation failed:', versionError);
+            toast.error(versionError.error || 'Failed to create new version');
+          }
+        } else {
+          console.log('Updating existing document...');
+          // Update existing document
+          onContentRefined(data.content, false);
+          onOpenChange(false);
+          toast.success('Content refined successfully!');
+          resetForm();
+        }
       } else {
         const error = await response.json();
+        console.error('AI refine failed:', error);
         toast.error(error.error || 'Failed to refine content');
       }
     } catch (error) {
-      console.error('Error refining content:', error);
+      console.error('=== AI REFINE FRONTEND ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Error stack:', error instanceof Error ? error.stack : undefined);
       toast.error('Failed to refine content');
     } finally {
       setLoading(false);
@@ -154,9 +239,11 @@ export default function AIRefinementModal({
       customInstruction: '',
       targetLength: '',
       specificFocus: '',
-      tone: '',
+      tone: undefined,
       additionalContext: ''
     });
+    setCreateNewVersion(false);
+    setNewVersionTitle('');
   };
 
   const getRefinementPrompt = () => {
@@ -230,6 +317,116 @@ export default function AIRefinementModal({
               ))}
             </div>
           </div>
+
+          {/* Versioning Option - Only show if documentId is provided */}
+          {documentId && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                How would you like to apply the refinement? *
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    !createNewVersion
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setCreateNewVersion(false)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-primary mt-0.5">
+                      <Edit3 className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">Update Current Document</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Replace the content in the current document
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    createNewVersion
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setCreateNewVersion(true)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-primary mt-0.5">
+                      <Copy className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">Create New Version</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Keep the original and create a new document version
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Additional Options for New Version */}
+          {documentId && createNewVersion && (
+            <div className="space-y-2">
+              <Label htmlFor="newVersionTitle" className="flex items-center gap-2">
+                New Version Title
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </Label>
+              <Input
+                id="newVersionTitle"
+                value={newVersionTitle}
+                onChange={(e) => setNewVersionTitle(e.target.value)}
+                placeholder={`${documentTitle || 'Document'} (Refined Version)`}
+                maxLength={200}
+              />
+              <div className="text-xs text-muted-foreground">
+                Leave empty to use auto-generated title
+              </div>
+            </div>
+          )}
+
+          {/* Action Summary */}
+          {documentId ? (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm">
+                    <div className="font-medium text-blue-900">
+                      {createNewVersion ? 'Creating New Version' : 'Updating Current Document'}
+                    </div>
+                    <div className="text-blue-700 mt-1">
+                      {createNewVersion 
+                        ? `A new document version will be created, keeping the original "${documentTitle}" intact.`
+                        : `The content in "${documentTitle}" will be replaced with the refined version.`
+                      }
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-yellow-600 mt-0.5" />
+                  <div className="text-sm">
+                    <div className="font-medium text-yellow-900">
+                      New Document Creation
+                    </div>
+                    <div className="text-yellow-700 mt-1">
+                      The refined content will be used for creating a new document. You can save it when ready.
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Custom Instruction */}
           {formData.refinementType === 'custom' && (

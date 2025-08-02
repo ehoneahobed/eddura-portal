@@ -20,6 +20,11 @@ const RefineRequestSchema = z.object({
 // Initialize AI providers
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
+// Type guard for error handling
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+
 // Function to craft refinement prompts based on refinement type
 function craftRefinementPrompt(
   existingContent: string,
@@ -153,29 +158,65 @@ IMPORTANT:
 }
 
 export async function POST(request: NextRequest) {
+  console.log('=== AI REFINE API CALL START ===');
+  
   try {
+    console.log('1. Starting authentication check...');
     const session = await auth();
+    console.log('2. Session result:', { 
+      hasSession: !!session, 
+      userId: session?.user?.id,
+      userEmail: session?.user?.email 
+    });
     
     if (!session?.user?.id) {
+      console.log('3. Authentication failed - no user ID');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('4. Authentication successful, checking AI provider...');
     // Check if AI service is configured
     const activeProvider = getActiveProvider();
+    console.log('5. Active provider check:', { 
+      hasProvider: !!activeProvider,
+      providerName: activeProvider?.name,
+      providerModel: activeProvider?.model,
+      defaultProvider: aiConfig.defaultProvider
+    });
+    
     if (!activeProvider) {
+      console.log('6. No active AI provider found');
       return NextResponse.json(
-        { error: 'AI service not configured. Please set up an AI provider API key.' },
-        { status: 500 }
+        { error: 'AI service not configured. Please set up an AI provider API key in your environment variables.' },
+        { status: 400 }
       );
     }
 
+    console.log('7. Parsing request body...');
     const body = await request.json();
+    console.log('8. Request body received:', {
+      hasExistingContent: !!body.existingContent,
+      existingContentLength: body.existingContent?.length,
+      refinementType: body.refinementType,
+      documentType: body.documentType,
+      hasCustomInstruction: !!body.customInstruction,
+      customInstructionLength: body.customInstruction?.length,
+      targetLength: body.targetLength,
+      specificFocus: body.specificFocus,
+      tone: body.tone,
+      additionalContext: body.additionalContext
+    });
     
+    console.log('9. Validating input with schema...');
     // Validate input
     const validatedData = RefineRequestSchema.parse(body);
-    
+    console.log('10. Validation successful:', {
+      refinementType: validatedData.refinementType,
+      documentType: validatedData.documentType,
+      contentLength: validatedData.existingContent.length
+    });
 
-
+    console.log('11. Crafting refinement prompt...');
     // Craft the refinement prompt
     const prompt = craftRefinementPrompt(
       validatedData.existingContent,
@@ -187,16 +228,40 @@ export async function POST(request: NextRequest) {
       validatedData.tone,
       validatedData.additionalContext
     );
+    console.log('12. Prompt crafted, length:', prompt.length);
 
+    console.log('13. Generating refined content...');
     // Generate refined content using the active AI provider
     let refinedContent = '';
     
     if (aiConfig.defaultProvider === 'google') {
-      const model = genAI.getGenerativeModel({ model: activeProvider.model });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      refinedContent = response.text();
+      console.log('14. Using Google AI provider...');
+      try {
+        console.log('15. Creating generative model...');
+        const model = genAI.getGenerativeModel({ model: activeProvider.model });
+        console.log('16. Generating content...');
+        const result = await model.generateContent(prompt);
+        console.log('17. Getting response...');
+        const response = await result.response;
+        refinedContent = response.text();
+        console.log('18. Content generated successfully, length:', refinedContent.length);
+              } catch (aiError) {
+          console.error('19. AI API error:', aiError);
+          console.error('20. AI Error details:', {
+            name: isError(aiError) ? aiError.name : 'Unknown',
+            message: isError(aiError) ? aiError.message : String(aiError),
+            stack: isError(aiError) ? aiError.stack : undefined
+          });
+          return NextResponse.json(
+            { 
+              error: 'AI service error. Please check your API key and try again.', 
+              details: isError(aiError) ? aiError.message : String(aiError)
+            },
+            { status: 500 }
+          );
+        }
     } else {
+      console.log('14. Unsupported AI provider:', aiConfig.defaultProvider);
       // TODO: Add support for other providers (OpenAI, Anthropic)
       return NextResponse.json(
         { error: 'AI provider not yet implemented' },
@@ -205,31 +270,58 @@ export async function POST(request: NextRequest) {
     }
 
     if (!refinedContent) {
+      console.log('21. No refined content generated');
       return NextResponse.json(
-        { error: 'Failed to refine content' },
+        { error: 'Failed to refine content - no content returned from AI' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    console.log('22. Preparing response...');
+    const response = {
       content: refinedContent,
       wordCount: refinedContent.trim().split(/\s+/).filter(word => word.length > 0).length,
       characterCount: refinedContent.length,
       originalWordCount: validatedData.existingContent.trim().split(/\s+/).filter(word => word.length > 0).length,
       originalCharacterCount: validatedData.existingContent.length
+    };
+    console.log('23. Response prepared:', {
+      wordCount: response.wordCount,
+      characterCount: response.characterCount,
+      originalWordCount: response.originalWordCount,
+      originalCharacterCount: response.originalCharacterCount
     });
 
+    console.log('=== AI REFINE API CALL SUCCESS ===');
+    return NextResponse.json(response);
+
   } catch (error) {
+    console.error('=== AI REFINE API CALL ERROR ===');
+    console.error('Error type:', typeof error);
+    console.error('Error constructor:', isError(error) ? error.constructor.name : 'Unknown');
+    console.error('Error message:', isError(error) ? error.message : String(error));
+    console.error('Error stack:', isError(error) ? error.stack : undefined);
+    
     if (error instanceof z.ZodError) {
+      console.error('Zod validation error details:', {
+        errors: error.errors
+      });
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { 
+          error: 'Invalid request data', 
+          details: error.errors,
+          message: 'Please check your input data and try again'
+        },
         { status: 400 }
       );
     }
     
-    console.error('Error refining AI content:', error);
+    console.error('Unexpected error in AI refine:', error);
     return NextResponse.json(
-      { error: 'Failed to refine content' },
+      { 
+        error: 'Failed to refine content',
+        message: isError(error) ? error.message : 'An unexpected error occurred'
+      },
       { status: 500 }
     );
   }

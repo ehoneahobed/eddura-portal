@@ -308,8 +308,14 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
     setEditData(prev => ({ ...prev, content }));
   };
 
-  const handleAIContentRefined = (content: string) => {
-    setEditData(prev => ({ ...prev, content }));
+  const handleAIContentRefined = (content: string, createNewVersion?: boolean) => {
+    if (createNewVersion) {
+      // The new version was already created by the modal
+      // We just need to refresh the document list
+      window.location.reload();
+    } else {
+      setEditData(prev => ({ ...prev, content }));
+    }
   };
 
 
@@ -781,6 +787,8 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
         onContentRefined={handleAIContentRefined}
         existingContent={editData.content}
         documentType={document.type}
+        documentId={document._id}
+        documentTitle={document.title}
       />
 
       {/* Share Document Dialog */}
