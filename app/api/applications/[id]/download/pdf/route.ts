@@ -87,7 +87,7 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
     // Add title
     pdf.setFontSize(18);
     pdf.setFont('helvetica', 'bold');
-    const title = `Application: ${application.scholarshipId.title}`;
+    const title = `Application: ${application.scholarshipId?.title || 'Unknown Scholarship'}`;
     const titleLines = pdf.splitTextToSize(title, contentWidth);
     pdf.text(titleLines, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += (titleLines.length * 8) + 10;
@@ -95,7 +95,7 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
     // Add subtitle
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'normal');
-    const subtitle = application.applicationTemplateId.title;
+    const subtitle = application.applicationTemplateId?.title || 'Application Form';
     const subtitleLines = pdf.splitTextToSize(subtitle, contentWidth);
     pdf.text(subtitleLines, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += (subtitleLines.length * 6) + 15;
@@ -115,10 +115,10 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
     pdf.setFont('helvetica', 'normal');
     
     const scholarshipInfo = [
-      `Title: ${application.scholarshipId.title}`,
-      `Value: ${application.scholarshipId.value} ${application.scholarshipId.currency}`,
-      `Deadline: ${application.scholarshipId.deadline ? new Date(application.scholarshipId.deadline).toLocaleDateString() : 'N/A'}`,
-      `Status: ${application.status}`,
+      `Title: ${application.scholarshipId?.title || 'N/A'}`,
+      `Value: ${application.scholarshipId?.value || 'N/A'} ${application.scholarshipId?.currency || 'USD'}`,
+      `Deadline: ${application.scholarshipId?.deadline ? new Date(application.scholarshipId.deadline).toLocaleDateString() : 'N/A'}`,
+      `Status: ${application.status || 'N/A'}`,
       `Submitted: ${application.submittedAt ? new Date(application.submittedAt).toLocaleDateString() : 'N/A'}`
     ];
     
@@ -143,8 +143,15 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
     pdf.text('Application Responses:', margin, yPosition);
     yPosition += 8;
     
-    // Process each section
-    for (const section of application.applicationTemplateId.sections) {
+    // Check if there are sections to process
+    if (!application.applicationTemplateId.sections || application.applicationTemplateId.sections.length === 0) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('No application sections found.', margin, yPosition);
+      yPosition += 10;
+    } else {
+      // Process each section
+      for (const section of application.applicationTemplateId.sections) {
       if (yPosition > pageHeight - 40) {
         pdf.addPage();
         yPosition = margin;
