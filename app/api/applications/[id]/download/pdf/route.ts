@@ -150,47 +150,54 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
       pdf.text('No application sections found.', margin, yPosition);
       yPosition += 10;
     } else {
-      // Process each section
+            // Process each section
       for (const section of application.applicationTemplateId.sections) {
-      if (yPosition > pageHeight - 40) {
-        pdf.addPage();
-        yPosition = margin;
-      }
-      
-      // Section title
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'bold');
-      const sectionTitle = section.title;
-      const sectionTitleLines = pdf.splitTextToSize(sectionTitle, contentWidth);
-      for (const line of sectionTitleLines) {
         if (yPosition > pageHeight - 40) {
           pdf.addPage();
           yPosition = margin;
         }
-        pdf.text(line, margin, yPosition);
-        yPosition += 6;
-      }
-      
-      // Section description
-      if (section.description) {
-        yPosition += 2;
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'italic');
-        const descLines = pdf.splitTextToSize(section.description, contentWidth);
-        for (const line of descLines) {
+        
+        // Section title
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        const sectionTitle = section.title || 'Untitled Section';
+        const sectionTitleLines = pdf.splitTextToSize(sectionTitle, contentWidth);
+        for (const line of sectionTitleLines) {
           if (yPosition > pageHeight - 40) {
             pdf.addPage();
             yPosition = margin;
           }
-          pdf.text(line, margin + 5, yPosition);
-          yPosition += 4;
+          pdf.text(line, margin, yPosition);
+          yPosition += 6;
         }
-      }
-      
-      yPosition += 5;
-      
-      // Process questions in this section
-      for (const question of section.questions) {
+        
+        // Section description
+        if (section.description) {
+          yPosition += 2;
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'italic');
+          const descLines = pdf.splitTextToSize(section.description, contentWidth);
+          for (const line of descLines) {
+            if (yPosition > pageHeight - 40) {
+              pdf.addPage();
+              yPosition = margin;
+            }
+            pdf.text(line, margin + 5, yPosition);
+            yPosition += 4;
+          }
+        }
+        
+        yPosition += 5;
+        
+        // Check if section has questions
+        if (!section.questions || section.questions.length === 0) {
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text('No questions in this section.', margin + 5, yPosition);
+          yPosition += 8;
+        } else {
+          // Process questions in this section
+          for (const question of section.questions) {
         if (yPosition > pageHeight - 40) {
           pdf.addPage();
           yPosition = margin;
@@ -275,6 +282,7 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
         
         yPosition += 8;
       }
+        }
       
       yPosition += 5;
     }
