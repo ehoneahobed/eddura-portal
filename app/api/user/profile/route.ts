@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import UserActivity from '@/models/UserActivity';
+import Application from '@/models/Application';
+import Document from '@/models/Document';
+import RecommendationRequest from '@/models/RecommendationRequest';
+import SavedScholarship from '@/models/SavedScholarship';
 
 
 export async function GET(request: NextRequest) {
@@ -28,18 +33,39 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Calculate quiz score based on career preferences
-    let quizScore = 0;
-    if (user.careerPreferences?.recommendedFields?.length) {
-      quizScore = Math.min(95, 70 + (user.careerPreferences.recommendedFields.length * 5));
-    }
+    // Calculate user stats
+    const [
+      applicationPackagesCreated,
+      documentsCreated,
+      recommendationLettersRequested,
+      recommendationLettersReceived,
+      scholarshipsSaved
+    ] = await Promise.all([
+      // Count application packages created by user
+      Application.countDocuments({ userId: user._id }),
+      
+      // Count documents created by user
+      Document.countDocuments({ userId: user._id, isActive: true }),
+      
+      // Count recommendation letters requested
+      RecommendationRequest.countDocuments({ studentId: user._id }),
+      
+      // Count recommendation letters received (status = 'received')
+      RecommendationRequest.countDocuments({ 
+        studentId: user._id, 
+        status: 'received' 
+      }),
+      
+      // Count scholarships saved by user
+      SavedScholarship.countDocuments({ userId: user._id })
+    ]);
 
-    // Get user activity stats
     const stats = {
-      quizScore,
-      recommendationsCount: user.careerPreferences?.recommendedFields?.length || 0,
-      programsViewed: 0, // This would need to be tracked separately
-      applicationsStarted: 0 // This would need to be tracked separately
+      applicationPackagesCreated,
+      documentsCreated,
+      recommendationLettersRequested,
+      recommendationLettersReceived,
+      scholarshipsSaved
     };
 
     const userProfile = {
@@ -59,6 +85,30 @@ export async function GET(request: NextRequest) {
       stats,
       careerPreferences: user.careerPreferences
     };
+
+    // Log login activity if this is a fresh login
+    if (user.lastLoginAt) {
+      const lastLogin = new Date(user.lastLoginAt);
+      const now = new Date();
+      const hoursSinceLastLogin = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+      
+      // Log activity if more than 1 hour has passed since last login
+      if (hoursSinceLastLogin > 1) {
+        try {
+          const activity = new UserActivity({
+            userId: user._id as any,
+            type: 'login',
+            title: 'User Login',
+            description: 'User logged into the platform',
+            metadata: {},
+            timestamp: new Date()
+          });
+          await activity.save();
+        } catch (error) {
+          console.error('Error logging login activity:', error);
+        }
+      }
+    }
 
     return NextResponse.json(userProfile);
   } catch (error) {
