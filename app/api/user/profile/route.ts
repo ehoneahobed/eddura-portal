@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import UserActivity from '@/models/UserActivity';
 
 
 export async function GET(request: NextRequest) {
@@ -59,6 +60,30 @@ export async function GET(request: NextRequest) {
       stats,
       careerPreferences: user.careerPreferences
     };
+
+    // Log login activity if this is a fresh login
+    if (user.lastLoginAt) {
+      const lastLogin = new Date(user.lastLoginAt);
+      const now = new Date();
+      const hoursSinceLastLogin = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+      
+      // Log activity if more than 1 hour has passed since last login
+      if (hoursSinceLastLogin > 1) {
+        try {
+          const activity = new UserActivity({
+            userId: user._id,
+            type: 'login',
+            title: 'User Login',
+            description: 'User logged into the platform',
+            metadata: {},
+            timestamp: new Date()
+          });
+          await activity.save();
+        } catch (error) {
+          console.error('Error logging login activity:', error);
+        }
+      }
+    }
 
     return NextResponse.json(userProfile);
   } catch (error) {

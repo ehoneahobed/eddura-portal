@@ -28,6 +28,15 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 
+interface UserActivity {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  metadata?: any;
+}
+
 interface UserProfile {
   id: string;
   firstName: string;
@@ -56,6 +65,7 @@ export default function DashboardContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userActivities, setUserActivities] = useState<UserActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -68,6 +78,7 @@ export default function DashboardContent() {
     }
 
     fetchUserProfile();
+    fetchUserActivities();
   }, [session, status, router]);
 
   const fetchUserProfile = async () => {
@@ -81,6 +92,20 @@ export default function DashboardContent() {
       setUserProfile(profile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const fetchUserActivities = async () => {
+    try {
+      const response = await fetch('/api/user/activities?limit=10');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user activities');
+      }
+      
+      const data = await response.json();
+      setUserActivities(data.activities || []);
+    } catch (error) {
+      console.error('Error fetching user activities:', error);
     } finally {
       setIsLoading(false);
     }
@@ -94,6 +119,46 @@ export default function DashboardContent() {
 
   const handleProfileUpdate = (updatedProfile: UserProfile) => {
     setUserProfile(updatedProfile);
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'quiz_completed':
+      case 'quiz_retaken':
+        return { icon: Brain, bgColor: 'bg-green-100', iconColor: 'text-green-600' };
+      case 'program_viewed':
+        return { icon: BookOpen, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' };
+      case 'scholarship_viewed':
+        return { icon: Award, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' };
+      case 'application_started':
+      case 'application_submitted':
+        return { icon: Target, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' };
+      case 'document_uploaded':
+        return { icon: CheckCircle, bgColor: 'bg-indigo-100', iconColor: 'text-indigo-600' };
+      case 'profile_updated':
+        return { icon: Settings, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
+      case 'recommendation_viewed':
+        return { icon: Sparkles, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+      case 'login':
+        return { icon: Clock, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
+      default:
+        return { icon: Clock, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
+    }
+  };
+
+  const formatTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const activityTime = new Date(timestamp);
+    const diffInMs = now.getTime() - activityTime.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    return activityTime.toLocaleDateString();
   };
 
   if (isLoading) {
@@ -307,38 +372,31 @@ export default function DashboardContent() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-4 p-3 bg-green-50 rounded-lg">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                    {userActivities.length > 0 ? (
+                      userActivities.map((activity) => {
+                        const { icon: Icon, bgColor, iconColor } = getActivityIcon(activity.type);
+                        return (
+                          <div key={activity.id} className={`flex items-center space-x-4 p-3 ${bgColor.replace('bg-', 'bg-').replace('-100', '-50')} rounded-lg`}>
+                            <div className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}>
+                              <Icon className={`w-4 h-4 ${iconColor}`} />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                              <p className="text-xs text-gray-500">{activity.description}</p>
+                            </div>
+                            <span className="text-xs text-gray-400">{formatTimeAgo(activity.timestamp)}</span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Clock className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-500">No recent activity</p>
+                        <p className="text-xs text-gray-400 mt-1">Your activities will appear here</p>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Quiz Completed</p>
-                        <p className="text-xs text-gray-500">Career discovery quiz finished</p>
-                      </div>
-                      <span className="text-xs text-gray-400">2 days ago</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 p-3 bg-blue-50 rounded-lg">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <BookOpen className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Program Viewed</p>
-                        <p className="text-xs text-gray-500">Stanford Data Science Program</p>
-                      </div>
-                      <span className="text-xs text-gray-400">1 day ago</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 p-3 bg-purple-50 rounded-lg">
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                        <Target className="w-4 h-4 text-purple-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Recommendations Updated</p>
-                        <p className="text-xs text-gray-500">New career paths available</p>
-                      </div>
-                      <span className="text-xs text-gray-400">3 days ago</span>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
