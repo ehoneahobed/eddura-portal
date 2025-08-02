@@ -59,7 +59,7 @@ export async function POST(
     }
 
     // Check if user is the creator
-    if (squad.creatorId.toString() !== currentUser._id.toString()) {
+    if (squad.creatorId.toString() !== (currentUser._id as any).toString()) {
       return NextResponse.json({ error: 'Only squad creators can add goals' }, { status: 403 });
     }
 
@@ -146,7 +146,7 @@ export async function PUT(
 
     // Update user's progress for this goal
     const existingProgress = goal.memberProgress.find(
-      (p: any) => p.userId.toString() === currentUser._id.toString()
+      (p: any) => p.userId.toString() === (currentUser._id as any).toString()
     );
 
     if (existingProgress) {
@@ -156,7 +156,7 @@ export async function PUT(
       existingProgress.isOnTrack = existingProgress.percentage >= (goal.daysRemaining / goal.timeframe) * 100;
     } else {
       goal.memberProgress.push({
-        userId: currentUser._id,
+        userId: currentUser._id as any,
         progress,
         target: goal.target,
         percentage: Math.round((progress / goal.target) * 100),
@@ -210,7 +210,7 @@ export async function DELETE(
     }
 
     // Check if user is the creator
-    if (squad.creatorId.toString() !== currentUser._id.toString()) {
+    if (squad.creatorId.toString() !== (currentUser._id as any).toString()) {
       return NextResponse.json({ error: 'Only squad creators can delete goals' }, { status: 403 });
     }
 
