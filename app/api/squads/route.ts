@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
 
     // Filter by user membership
     if (userId) {
-      query.memberIds = userId;
+      // Convert email to user ID if needed
+      const user = await User.findOne({ email: userId });
+      if (user) {
+        query.memberIds = user._id;
+      } else {
+        // If userId is already an ObjectId, use it directly
+        query.memberIds = userId;
+      }
     }
 
     // Filter by squad type
@@ -91,7 +98,7 @@ export async function POST(request: NextRequest) {
     // Check if user already has a primary squad
     if (squadType === 'primary') {
       const existingPrimarySquad = await EdduraSquad.findOne({
-        memberIds: user._id,
+        memberIds: user._id as any,
         squadType: 'primary'
       });
 
@@ -115,8 +122,8 @@ export async function POST(request: NextRequest) {
       geographicRegion,
       activityLevel,
       squadType,
-      creatorId: user._id,
-      memberIds: [user._id],
+      creatorId: user._id as any,
+      memberIds: [user._id as any],
       goals: goals.map((goal: any) => ({
         ...goal,
         startDate: new Date(goal.startDate),
@@ -133,12 +140,12 @@ export async function POST(request: NextRequest) {
 
     // Update user's squad membership
     if (squadType === 'primary') {
-      await User.findByIdAndUpdate(user._id, {
+      await User.findByIdAndUpdate(user._id as any, {
         primarySquadId: newSquad._id,
         primarySquadRole: 'creator'
       });
     } else {
-      await User.findByIdAndUpdate(user._id, {
+      await User.findByIdAndUpdate(user._id as any, {
         $push: { secondarySquadIds: newSquad._id }
       });
     }

@@ -41,23 +41,29 @@ interface UserProfile {
   email: string;
   dateOfBirth?: string;
   phoneNumber?: string;
-  countryOfResidence?: string;
-  nationality?: string;
+  country?: string;
   city?: string;
+  profilePicture?: string;
+  educationLevel?: string;
+  currentInstitution?: string;
+  fieldOfStudy?: string;
+  graduationYear?: number;
+  gpa?: number;
+  languages?: string[];
+  certifications?: string[];
+  skills?: string[];
   quizCompleted?: boolean;
   quizCompletedAt?: string;
   lastLoginAt?: string;
   createdAt: string;
   stats: {
-    quizScore: number;
-    recommendationsCount: number;
-    programsViewed: number;
-    applicationsStarted: number;
+    applicationPackagesCreated: number;
+    documentsCreated: number;
+    recommendationLettersRequested: number;
+    recommendationLettersReceived: number;
+    scholarshipsSaved: number;
   };
-  careerPreferences?: {
-    recommendedFields: string[];
-    interests: string[];
-  };
+  careerPreferences?: any;
 }
 
 export default function SettingsPage() {
@@ -72,10 +78,17 @@ export default function SettingsPage() {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    countryOfResidence: '',
-    nationality: '',
+    country: '',
     city: '',
-    dateOfBirth: ''
+    dateOfBirth: '',
+    educationLevel: '',
+    currentInstitution: '',
+    fieldOfStudy: '',
+    graduationYear: '',
+    gpa: '',
+    languages: [] as string[],
+    certifications: [] as string[],
+    skills: [] as string[]
   });
 
   // Preferences states
@@ -102,10 +115,17 @@ export default function SettingsPage() {
           firstName: userProfile.firstName || '',
           lastName: userProfile.lastName || '',
           phoneNumber: userProfile.phoneNumber || '',
-          countryOfResidence: userProfile.countryOfResidence || userProfile.country || '',
-          nationality: userProfile.nationality || '',
+          country: userProfile.country || '',
           city: userProfile.city || '',
-          dateOfBirth: userProfile.dateOfBirth ? new Date(userProfile.dateOfBirth).toISOString().split('T')[0] : ''
+          dateOfBirth: userProfile.dateOfBirth ? new Date(userProfile.dateOfBirth).toISOString().split('T')[0] : '',
+          educationLevel: userProfile.educationLevel || '',
+          currentInstitution: userProfile.currentInstitution || '',
+          fieldOfStudy: userProfile.fieldOfStudy || '',
+          graduationYear: userProfile.graduationYear?.toString() || '',
+          gpa: userProfile.gpa?.toString() || '',
+          languages: userProfile.languages || [],
+          certifications: userProfile.certifications || [],
+          skills: userProfile.skills || []
         });
       } else {
         toast.error('Failed to fetch profile');
@@ -252,10 +272,10 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="countryOfResidence">Country of Residence</Label>
-                  <Select value={formData.countryOfResidence} onValueChange={(value) => setFormData(prev => ({ ...prev, countryOfResidence: value }))}>
+                  <Label htmlFor="country">Country</Label>
+                  <Select value={formData.country} onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select your country of residence" />
+                      <SelectValue placeholder="Select your country" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="af">Afghanistan</SelectItem>
@@ -664,6 +684,74 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* Academic Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
+                  <GraduationCap className="h-5 w-5" />
+                  <span>Academic Information</span>
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="educationLevel">Education Level</Label>
+                    <Select value={formData.educationLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, educationLevel: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your education level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="high_school">High School</SelectItem>
+                        <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
+                        <SelectItem value="masters">Master's Degree</SelectItem>
+                        <SelectItem value="phd">PhD</SelectItem>
+                        <SelectItem value="postdoc">Postdoc</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currentInstitution">Current Institution</Label>
+                    <Input
+                      id="currentInstitution"
+                      value={formData.currentInstitution}
+                      onChange={(e) => setFormData(prev => ({ ...prev, currentInstitution: e.target.value }))}
+                      placeholder="Enter your current institution"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fieldOfStudy">Field of Study</Label>
+                    <Input
+                      id="fieldOfStudy"
+                      value={formData.fieldOfStudy}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fieldOfStudy: e.target.value }))}
+                      placeholder="Enter your field of study"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="graduationYear">Graduation Year</Label>
+                    <Input
+                      id="graduationYear"
+                      type="number"
+                      value={formData.graduationYear}
+                      onChange={(e) => setFormData(prev => ({ ...prev, graduationYear: e.target.value }))}
+                      placeholder="Enter graduation year"
+                      min="1900"
+                      max="2030"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gpa">GPA</Label>
+                    <Input
+                      id="gpa"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="4"
+                      value={formData.gpa}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gpa: e.target.value }))}
+                      placeholder="Enter your GPA"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <Button 
                 onClick={handleProfileUpdate} 
                 disabled={isSaving}
@@ -698,8 +786,20 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Quiz Score</span>
-                  <Badge variant="secondary">{profile.stats.quizScore}%</Badge>
+                  <span className="text-sm font-medium">Application Packages Created</span>
+                  <Badge variant="secondary">{profile.stats.applicationPackagesCreated || 0}</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Documents Created</span>
+                  <Badge variant="secondary">{profile.stats.documentsCreated || 0}</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Recommendation Letters</span>
+                  <Badge variant="secondary">{profile.stats.recommendationLettersRequested || 0} / {profile.stats.recommendationLettersReceived || 0}</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Scholarships Saved</span>
+                  <Badge variant="secondary">{profile.stats.scholarshipsSaved || 0}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Completed On</span>
@@ -786,27 +886,27 @@ export default function SettingsPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[#007fbd]">
-                    {profile?.stats.quizScore || 0}%
+                    {profile?.stats.applicationPackagesCreated || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Quiz Score</div>
+                  <div className="text-sm text-muted-foreground">Application Packages</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[#007fbd]">
-                    {profile?.stats.recommendationsCount || 0}
+                    {profile?.stats.documentsCreated || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Recommendations</div>
+                  <div className="text-sm text-muted-foreground">Documents Created</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[#007fbd]">
-                    {profile?.stats.programsViewed || 0}
+                    {profile?.stats.recommendationLettersRequested || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Programs Viewed</div>
+                  <div className="text-sm text-muted-foreground">Recommendation Letters</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[#007fbd]">
-                    {profile?.stats.applicationsStarted || 0}
+                    {profile?.stats.scholarshipsSaved || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Applications Started</div>
+                  <div className="text-sm text-muted-foreground">Scholarships Saved</div>
                 </div>
               </div>
             </CardContent>
