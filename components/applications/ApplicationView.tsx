@@ -241,18 +241,18 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `application-${application?.scholarshipId.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+        a.download = `application-${application?.scholarshipId.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.docx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        toast.success('Text document downloaded successfully');
+        toast.success('Word document downloaded successfully');
       } else {
-        toast.error('Failed to download text document');
+        toast.error('Failed to download Word document');
       }
     } catch (error) {
-      console.error('Error downloading text document:', error);
-      toast.error('Failed to download text document');
+      console.error('Error downloading Word document:', error);
+      toast.error('Failed to download Word document');
     } finally {
       setIsDownloading(false);
     }
@@ -335,7 +335,7 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
             ) : (
               <Download className="w-4 h-4" />
             )}
-            Download Text
+            Download Word
           </Button>
         </div>
       </div>
