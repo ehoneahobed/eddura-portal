@@ -204,7 +204,7 @@ export default function DashboardContent() {
           className="mb-8"
         >
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {userProfile?.firstName}! 👋
+            Welcome back, {userProfile?.firstName || session?.user?.name || 'User'}! 👋
           </h2>
           <p className="text-gray-600">
             Here&apos;s your personalized dashboard with career insights and recommendations.

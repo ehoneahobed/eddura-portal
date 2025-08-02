@@ -9,13 +9,23 @@ import {
   User, 
   Search,
   Menu,
-  X
+  X,
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'next-auth/react';
 import StudentSidebar from '@/components/student/StudentSidebar';
 import { NotificationBell } from '@/components/ui/notification-bell';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -42,6 +52,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
   const fetchUserProfile = async () => {
     try {
       const response = await fetch('/api/user/profile');
+      
       if (response.ok) {
         const profile = await response.json();
         setUserProfile(profile);
@@ -147,25 +158,68 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
                     <NotificationBell />
 
                     {/* User Menu */}
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-[#007fbd] text-white text-sm">
-                          {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="flex items-center space-x-2 p-2">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src="" />
+                            <AvatarFallback className="bg-[#007fbd] text-white text-sm">
+                              {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="hidden md:block text-left">
+                            <p className="text-sm font-medium text-gray-900">
+                              {userProfile?.firstName && userProfile?.lastName 
+                                ? `${userProfile.firstName} ${userProfile.lastName}`
+                                : session?.user?.name || 'User'
+                              }
+                            </p>
+                            <p className="text-xs text-gray-500">{userProfile?.email || session?.user?.email}</p>
+                          </div>
+                          
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        </Button>
+                      </DropdownMenuTrigger>
                       
-                      <div className="hidden md:block">
-                        <p className="text-sm font-medium text-gray-900">
-                          {userProfile?.firstName} {userProfile?.lastName}
-                        </p>
-                        <p className="text-xs text-gray-500">{userProfile?.email}</p>
-                      </div>
-                      
-                      <Button variant="ghost" size="sm" onClick={handleLogout}>
-                        <LogOut className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>
+                          <div className="flex items-center space-x-2">
+                                                      <Avatar className="w-8 h-8">
+                            <AvatarImage src="" />
+                            <AvatarFallback className="bg-[#007fbd] text-white text-sm">
+                              {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                            <div>
+                              <p className="text-sm font-medium">
+                                {userProfile?.firstName && userProfile?.lastName 
+                                  ? `${userProfile.firstName} ${userProfile.lastName}`
+                                  : session?.user?.name || 'User'
+                                }
+                              </p>
+                              <p className="text-xs text-gray-500">{userProfile?.email || session?.user?.email}</p>
+                            </div>
+                          </div>
+                        </DropdownMenuLabel>
+                        
+                        <DropdownMenuSeparator />
+                        
+                        <DropdownMenuItem asChild>
+                          <a href="/settings" className="flex items-center space-x-2 w-full">
+                            <User className="h-4 w-4" />
+                            <span>Profile & Settings</span>
+                          </a>
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuSeparator />
+                        
+                        <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                          <LogOut className="h-4 w-4 mr-2" />
+                          <span>Sign Out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 )}
               </div>

@@ -10,17 +10,34 @@ import SavedScholarship from '@/models/SavedScholarship';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 [UserProfile API] Starting GET request');
     const session = await auth();
+    console.log('🔍 [UserProfile API] Session data:', session);
+    
     if (!session?.user?.email) {
+      console.log('🔍 [UserProfile API] No session user email, returning 401');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('🔍 [UserProfile API] Connecting to database...');
     await connectDB();
 
+    console.log('🔍 [UserProfile API] Looking up user with email:', session.user.email);
     const user = await User.findOne({ email: session.user.email })
       .select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires');
 
+    console.log('🔍 [UserProfile API] User lookup result:', user ? 'Found' : 'Not found');
+    if (user) {
+      console.log('🔍 [UserProfile API] User data:', {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      });
+    }
+
     if (!user) {
+      console.log('🔍 [UserProfile API] User not found, returning 404');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
