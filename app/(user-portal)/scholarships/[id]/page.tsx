@@ -965,15 +965,6 @@ function ScholarshipDetailContent() {
           </DialogHeader>
           
           <div className="mt-4">
-            <div className="p-4 bg-blue-50 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold mb-2">Test Application Package Builder</h3>
-              <p className="text-gray-600 mb-4">
-                Scholarship: {scholarship?.title}<br/>
-                Target ID: {scholarshipId}<br/>
-                Deadline: {scholarship?.deadline}
-              </p>
-            </div>
-            
             <ApplicationPackageBuilder
               onComplete={handleApplicationPackageComplete}
               onCancel={handleApplicationPackageCancel}
