@@ -386,14 +386,14 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
       />
 
       {/* AI Refinement Modal */}
-      <AIRefinementModal
-        open={aiRefinementModalOpen}
-        onOpenChange={setAiRefinementModalOpen}
-        onContentRefined={handleAIContentRefined}
-        existingContent={editedContent}
-        documentId={document?._id}
-        documentTitle={document?.title}
-      />
+              <AIRefinementModal
+          open={aiRefinementModalOpen}
+          onOpenChange={setAiRefinementModalOpen}
+          onContentRefined={handleAIContentRefined}
+          existingContent={editedContent}
+          documentId={document?._id}
+          documentTitle={document?.customizations?.title || document?.originalDocument?.title}
+        />
     </div>
   );
 } 
