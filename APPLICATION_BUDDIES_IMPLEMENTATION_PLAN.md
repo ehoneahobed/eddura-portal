@@ -139,26 +139,29 @@ This document provides a comprehensive, task-by-task implementation plan for the
 ## 👥 Phase 2: Group Management (Weeks 3-4)
 
 ### Task 2.1: Buddy Group Database & Models
-**Priority**: High | **Estimated Time**: 2-3 days
+**Priority**: High | **Estimated Time**: 3-4 days
 
 #### Subtasks:
 - [ ] **2.1.1**: Create BuddyGroup model
   - Define group schema with all fields
+  - Add group type (primary/secondary) classification
   - Add group member relationships
   - Add trackable group goals and settings
   - Add group activity tracking
 
 - [ ] **2.1.2**: Create GroupMember model
   - Define member role and permissions
+  - Add primary vs secondary group membership
   - Add member activity tracking
   - Add member contribution metrics
   - Add member join/leave timestamps
 
 - [ ] **2.1.3**: Create GroupGoal model
   - Define trackable goal types
-  - Add goal progress tracking
+  - Add goal progress tracking with timeframes
   - Add individual member progress
-  - Add goal timeframe management
+  - Add smart goal features (start/end dates, on-track monitoring)
+  - Add goal milestone celebrations
 
 - [ ] **2.1.4**: Create GroupInvitation model
   - Handle group invitations
@@ -166,7 +169,13 @@ This document provides a comprehensive, task-by-task implementation plan for the
   - Add invitation expiration
   - Add invitation analytics
 
-- [ ] **2.1.5**: Add database indexes and relationships
+- [ ] **2.1.5**: Create UserGroupMembership model
+  - Track primary group membership
+  - Track secondary group memberships
+  - Add membership roles and permissions
+  - Add membership activity tracking
+
+- [ ] **2.1.6**: Add database indexes and relationships
   - Optimize queries for group operations
   - Add proper foreign key relationships
   - Add compound indexes for performance

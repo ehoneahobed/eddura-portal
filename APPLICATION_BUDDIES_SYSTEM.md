@@ -161,9 +161,14 @@ interface GroupGoal {
   type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'group_activity';
   target: number;
   timeframe: 'weekly' | 'monthly' | 'quarterly' | 'ongoing';
+  startDate: Date;
+  endDate: Date;
   description?: string;
   individualTarget?: number; // Per member target
   currentProgress: number;
+  progressPercentage: number;
+  daysRemaining: number;
+  isOnTrack: boolean;
   memberProgress: {
     userId: string;
     progress: number;
@@ -171,16 +176,24 @@ interface GroupGoal {
     percentage: number;
     lastActivity: Date;
     needsHelp: boolean;
+    isOnTrack: boolean;
   }[];
 }
 ```
 
-#### Goal Examples
-- **"Start 50 applications as a group this month"** (applications_started)
-- **"Create 100 documents as a group this quarter"** (documents_created)
-- **"Provide 200 peer reviews as a group this month"** (peer_reviews_provided)
-- **"Maintain 7-day activity streak for all members"** (streak_days)
-- **"Have everyone active for 20 days this month"** (days_active)
+#### Smart Goal Examples
+- **"Start 50 applications as a group by March 31st"** (applications_started, 3 months)
+- **"Create 100 documents as a group by end of Q2"** (documents_created, 3 months)
+- **"Provide 200 peer reviews as a group this month"** (peer_reviews_provided, 1 month)
+- **"Maintain 7-day activity streak for all members by next week"** (streak_days, 1 week)
+- **"Have everyone active for 20 days by end of semester"** (days_active, 4 months)
+
+#### Smart Goal Features
+- **Time-Bound**: Specific start and end dates
+- **Progress Tracking**: Real-time percentage completion
+- **On-Track Monitoring**: Automatic assessment of goal feasibility
+- **Individual Accountability**: Per-member targets and progress
+- **Milestone Celebrations**: Celebrate progress at 25%, 50%, 75%, 100%
 
 #### Progress Monitoring
 - **Real-time Tracking**: Monitor progress against goals automatically
