@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate user's rank
-    const userIndex = leaderboard.findIndex(entry => entry._id.toString() === currentUser._id.toString());
+    const userIndex = leaderboard.findIndex(entry => entry._id.toString() === (currentUser._id as any).toString());
     userRank = userIndex !== -1 ? userIndex + 1 : null;
 
     return NextResponse.json({
