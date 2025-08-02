@@ -11,6 +11,19 @@ import Docxtemplater from 'docxtemplater';
 interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'applicationTemplateId'> {
   scholarshipId: IScholarship;
   applicationTemplateId: IApplicationTemplate;
+  sections: Array<{
+    sectionId: string;
+    responses: Array<{
+      questionId: string;
+      value: any;
+      files?: string[];
+      timestamp: Date;
+      isComplete: boolean;
+    }>;
+    isComplete: boolean;
+    startedAt: Date;
+    completedAt?: Date;
+  }>;
 }
 
 export async function POST(
@@ -89,10 +102,10 @@ function generateWordDocument(application: PopulatedApplication): Buffer {
   };
 
   const getQuestionResponse = (sectionId: string, questionId: string) => {
-    const section = application.sections.find((s: any) => s.sectionId === sectionId);
+    const section = application.sections.find(s => s.sectionId === sectionId);
     if (!section) return null;
     
-    const response = section.responses.find((r: any) => r.questionId === questionId);
+    const response = section.responses.find(r => r.questionId === questionId);
     return response;
   };
 
@@ -349,56 +362,195 @@ function generateWordDocument(application: PopulatedApplication): Buffer {
     </w:document>
   `;
 
-  // For now, we'll create a simple text-based document
-  // In a real implementation, you would use a proper Word document library
-  const content = `
-EDDURA
-Scholarship Application
-${application.scholarshipId.title}
-
-Application Overview
-===================
-
-Scholarship: ${application.scholarshipId.title}
-Amount: ${application.scholarshipId.value ? formatCurrency(application.scholarshipId.value, application.scholarshipId.currency) : 'Not specified'}
-Deadline: ${formatDate(application.scholarshipId.deadline)}
-Status: ${application.status.charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ')}
-Started: ${formatDate(application.startedAt.toISOString())}
-Submitted: ${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}
-
-${application.applicationTemplateId.sections.map((section: any) => `
-${section.title}
-${'='.repeat(section.title.length)}
-
-${section.description ? `${section.description}\n` : ''}
-
-${section.questions.map((question: any) => {
-  const response = getQuestionResponse(section.id, question.id);
-  const responseValue = response ? formatResponseValue(response.value, question.type) : 'Not answered';
+  // Create a proper Word document using docxtemplater
+  const zip = new PizZip();
   
-  return `
-${question.title}${question.required ? ' *' : ''}
-${'-'.repeat(question.title.length + (question.required ? 2 : 0))}
+  // Create a basic Word document structure with proper XML
+  const wordDocumentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading1"/>
+        <w:jc w:val="center"/>
+      </w:pPr>
+      <w:r>
+        <w:t>EDDURA</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:jc w:val="center"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Scholarship Application</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading3"/>
+        <w:jc w:val="center"/>
+      </w:pPr>
+      <w:r>
+        <w:t>${application.scholarshipId?.title || 'Unknown Scholarship'}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Application Overview</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Scholarship: ${application.scholarshipId?.title || 'N/A'}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Amount: ${application.scholarshipId?.value ? formatCurrency(application.scholarshipId.value, application.scholarshipId.currency) : 'Not specified'}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Deadline: ${application.scholarshipId?.deadline ? formatDate(application.scholarshipId.deadline) : 'N/A'}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Status: ${application.status ? application.status.charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ') : 'N/A'}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Started: ${application.startedAt ? formatDate(application.startedAt.toISOString()) : 'N/A'}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:r>
+        <w:t>Submitted: ${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}</w:t>
+      </w:r>
+    </w:p>
+    
+    ${application.applicationTemplateId?.sections?.map((section: any) => `
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading3"/>
+      </w:pPr>
+      <w:r>
+        <w:t>${section.title || 'Untitled Section'}</w:t>
+      </w:r>
+    </w:p>
+    
+    ${section.description ? `
+    <w:p>
+      <w:r>
+        <w:t>${section.description}</w:t>
+      </w:r>
+    </w:p>
+    ` : ''}
+    
+    ${section.questions?.map((question: any) => {
+      const response = getQuestionResponse(section.id, question.id);
+      const responseValue = response ? formatResponseValue(response.value, question.type) : 'Not answered';
+      
+      return `
+      <w:p>
+        <w:r>
+          <w:t><strong>${question.title}${question.required ? ' *' : ''}</strong></w:t>
+        </w:r>
+      </w:p>
+      
+      ${question.description ? `
+      <w:p>
+        <w:r>
+          <w:t>${question.description}</w:t>
+        </w:r>
+      </w:p>
+      ` : ''}
+      
+      <w:p>
+        <w:r>
+          <w:t><strong>Your Answer:</strong></w:t>
+        </w:r>
+      </w:p>
+      
+      <w:p>
+        <w:r>
+          <w:t>${responseValue}</w:t>
+        </w:r>
+      </w:p>
+      
+      ${response?.files && response.files.length > 0 ? `
+      <w:p>
+        <w:r>
+          <w:t><strong>Attached Files:</strong></w:t>
+        </w:r>
+      </w:p>
+      ${response.files.map((file: string) => `
+      <w:p>
+        <w:r>
+          <w:t>- ${file.split('/').pop() || file}</w:t>
+        </w:r>
+      </w:p>
+      `).join('')}
+      ` : ''}
+      `;
+    }).join('') || ''}
+    `).join('') || ''}
+    
+    <w:p>
+      <w:r>
+        <w:t>Powered by Eddura on ${new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>`;
 
-${question.description ? `${question.description}\n` : ''}
-Your Answer: ${responseValue}
+  // Create a minimal Word document structure
+  const docxBuffer = createMinimalDocx(wordDocumentXml);
+  
+  return docxBuffer;
+}
 
-${response?.files && response.files.length > 0 ? `
-Attached Files:
-${response.files.map((file: string) => `- ${file.split('/').pop()}`).join('\n')}
-` : ''}
-`;
-}).join('\n')}
-`).join('\n\n')}
+function createMinimalDocx(documentXml: string): Buffer {
+  const zip = new PizZip();
+  
+  // Add the main document XML
+  zip.file('word/document.xml', documentXml);
+  
+  // Add required Office Open XML files
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
 
-Powered by Eddura on ${new Date().toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit'
-})}
-  `;
+  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
 
-  return Buffer.from(content, 'utf-8');
+  zip.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+</Relationships>`);
+
+  // Generate the DOCX file
+  return zip.generate({ type: 'nodebuffer' });
 }

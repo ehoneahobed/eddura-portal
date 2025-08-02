@@ -11,14 +11,20 @@ import ApplicationTemplate from '@/models/ApplicationTemplate';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[API] Applications GET request started');
+    
     const session = await auth();
+    console.log('[API] Session check:', !!session?.user?.id);
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('[API] Connecting to database...');
     await connectDB();
+    console.log('[API] Database connected');
 
+    console.log('[API] Fetching applications for user:', session.user.id);
     const applications = await Application.find({ 
       userId: session.user.id,
       isActive: true 
@@ -29,38 +35,51 @@ export async function GET(request: NextRequest) {
     .populate('applicationTemplateId', 'title estimatedTime')
     .sort({ lastActivityAt: -1 });
 
+    console.log('[API] Found applications:', applications.length);
+
+    console.log('[API] Processing applications with form status...');
     // For scholarship applications, check if there's a corresponding application form
     const applicationsWithFormStatus = await Promise.all(
       applications.map(async (app) => {
-        let applicationFormStatus = 'not_started';
-        let applicationFormProgress = 0;
-        let applicationFormId = null;
+        try {
+          let applicationFormStatus = 'not_started';
+          let applicationFormProgress = 0;
+          let applicationFormId = null;
 
-        // Only check for application forms for scholarship packages that are not external
-        if (app.applicationType === 'scholarship' && app.scholarshipId && !app.isExternal) {
-          // Check if there's an application form for this scholarship
-          const applicationForm = await Application.findOne({
-            userId: session.user.id,
-            scholarshipId: app.scholarshipId,
-            applicationType: 'scholarship',
-            isActive: true,
-            // Exclude the current application package itself
-            _id: { $ne: app._id }
-          });
+          // Only check for application forms for scholarship packages that are not external
+          if (app.applicationType === 'scholarship' && app.scholarshipId && !app.isExternal) {
+            // Check if there's an application form for this scholarship
+            const applicationForm = await Application.findOne({
+              userId: session.user.id,
+              scholarshipId: app.scholarshipId,
+              applicationType: 'scholarship',
+              isActive: true,
+              // Exclude the current application package itself
+              _id: { $ne: app._id }
+            });
 
-          if (applicationForm) {
-            applicationFormId = applicationForm._id;
-            applicationFormStatus = applicationForm.status;
-            applicationFormProgress = applicationForm.progress || 0;
+            if (applicationForm) {
+              applicationFormId = applicationForm._id;
+              applicationFormStatus = applicationForm.status;
+              applicationFormProgress = applicationForm.progress || 0;
+            }
           }
-        }
 
-        return {
-          ...app.toObject(),
-          applicationFormStatus,
-          applicationFormProgress,
-          applicationFormId
-        };
+          return {
+            ...app.toObject(),
+            applicationFormStatus,
+            applicationFormProgress,
+            applicationFormId
+          };
+        } catch (error) {
+          console.error('[API] Error processing application:', app._id, error);
+          return {
+            ...app.toObject(),
+            applicationFormStatus: 'not_started',
+            applicationFormProgress: 0,
+            applicationFormId: null
+          };
+        }
       })
     );
 
@@ -76,42 +95,44 @@ export async function GET(request: NextRequest) {
       programIdType: typeof app.programId
     })));
     
+    console.log('[API] Transforming applications...');
     // Transform applications to include proper data
     const transformedApplications = applicationsWithFormStatus.map(app => {
-      let applicationData: any = {
-        _id: app._id,
-        name: app.name,
-        description: app.description,
-        status: app.status,
-        priority: app.priority,
-        progress: app.progress,
-        currentSectionId: app.currentSectionId,
-        startedAt: app.startedAt,
-        lastActivityAt: app.lastActivityAt,
-        submittedAt: app.submittedAt,
-        estimatedTimeRemaining: app.estimatedTimeRemaining,
-        notes: app.notes,
-        applicationType: app.applicationType,
-        applicationDeadline: app.applicationDeadline,
-        targetId: app.targetId,
-        targetName: app.targetName,
-        isExternal: app.isExternal,
-        externalSchoolName: app.externalSchoolName,
-        externalProgramName: app.externalProgramName,
-        externalApplicationUrl: app.externalApplicationUrl,
-        createdAt: app.createdAt,
-        updatedAt: app.updatedAt,
-        requirementsProgress: app.requirementsProgress || {
-          total: 0,
-          completed: 0,
-          required: 0,
-          requiredCompleted: 0
-        },
-        // Application form tracking
-        applicationFormStatus: app.applicationFormStatus,
-        applicationFormProgress: app.applicationFormProgress,
-        applicationFormId: app.applicationFormId
-      };
+      try {
+        let applicationData: any = {
+          _id: app._id,
+          name: app.name,
+          description: app.description,
+          status: app.status,
+          priority: app.priority,
+          progress: app.progress,
+          currentSectionId: app.currentSectionId,
+          startedAt: app.startedAt,
+          lastActivityAt: app.lastActivityAt,
+          submittedAt: app.submittedAt,
+          estimatedTimeRemaining: app.estimatedTimeRemaining,
+          notes: app.notes,
+          applicationType: app.applicationType,
+          applicationDeadline: app.applicationDeadline,
+          targetId: app.targetId,
+          targetName: app.targetName,
+          isExternal: app.isExternal,
+          externalSchoolName: app.externalSchoolName,
+          externalProgramName: app.externalProgramName,
+          externalApplicationUrl: app.externalApplicationUrl,
+          createdAt: app.createdAt,
+          updatedAt: app.updatedAt,
+          requirementsProgress: app.requirementsProgress || {
+            total: 0,
+            completed: 0,
+            required: 0,
+            requiredCompleted: 0
+          },
+          // Application form tracking
+          applicationFormStatus: app.applicationFormStatus,
+          applicationFormProgress: app.applicationFormProgress,
+          applicationFormId: app.applicationFormId
+        };
 
       // Add the appropriate data based on application type
       if (app.applicationType === 'scholarship' && app.scholarshipId && typeof app.scholarshipId === 'object') {
@@ -166,10 +187,34 @@ export async function GET(request: NextRequest) {
         };
       }
 
-      return applicationData;
+        return applicationData;
+      } catch (error) {
+        console.error('[API] Error transforming application:', app._id, error);
+        // Return a minimal application object to prevent the entire request from failing
+        return {
+          _id: app._id,
+          name: app.name || 'Unknown Application',
+          description: app.description || '',
+          status: app.status || 'draft',
+          priority: app.priority || 'medium',
+          progress: app.progress || 0,
+          applicationType: app.applicationType || 'unknown',
+          scholarshipId: {
+            _id: String(app._id),
+            title: app.name || 'Unknown Application',
+            value: null,
+            currency: null,
+            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            type: app.applicationType || 'unknown'
+          },
+          applicationFormStatus: 'not_started',
+          applicationFormProgress: 0,
+          applicationFormId: null
+        };
+      }
     });
 
-    console.log('Transformed applications:', transformedApplications);
+    console.log('[API] Transformed applications:', transformedApplications.length);
     return NextResponse.json({ applications: transformedApplications });
   } catch (error) {
     console.error('Error fetching applications:', error);

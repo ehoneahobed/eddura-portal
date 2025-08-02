@@ -233,22 +233,17 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
       const response = await fetch('/api/user/saved-scholarships');
       if (response.ok) {
         const data = await response.json();
-        console.log('Saved scholarships raw data:', data);
         
         // Check if we have the expected structure
         if (!data.savedScholarships || !Array.isArray(data.savedScholarships)) {
-          console.warn('No saved scholarships array found:', data);
           setSavedScholarships([]);
           return;
         }
         
         // Transform the data to match our expected structure
         const transformedScholarships = data.savedScholarships.map((saved: any) => {
-          console.log('Processing saved scholarship:', saved);
-          
           // Check if scholarshipId is populated
           if (!saved.scholarshipId || typeof saved.scholarshipId !== 'object') {
-            console.warn('Saved scholarship without populated scholarshipId:', saved);
             return null;
           }
           
@@ -263,7 +258,6 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
           };
         }).filter(Boolean); // Remove null entries
         
-        console.log('Transformed saved scholarships:', transformedScholarships);
         setSavedScholarships(transformedScholarships);
       } else {
         console.error('Failed to fetch saved scholarships:', response.status, response.statusText);
@@ -281,7 +275,6 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
       const response = await fetch('/api/applications?status=in_progress&applicationType=scholarship');
       if (response.ok) {
         const data = await response.json();
-        console.log('Started applications raw data:', data);
         // Transform the data to include scholarship details
         const transformedApplications = data.applications?.map((app: any) => ({
           _id: app._id,
@@ -290,7 +283,6 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
           progress: app.progress || 0,
           status: app.status
         })) || [];
-        console.log('Transformed started applications:', transformedApplications);
         setStartedApplications(transformedApplications);
       }
     } catch (error) {
@@ -371,87 +363,56 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
     }
     
     // Auto-generate application package name if not already set
-    console.log('=== AUTO-GENERATION DEBUG ===');
-    console.log('targetId:', targetId);
-    console.log('targetName:', targetName);
-    console.log('applicationType:', applicationData.applicationType);
-    console.log('programs available:', programs.length);
-    console.log('schools available:', schools.length);
-    console.log('scholarships available:', scholarships.length);
     
-    setApplicationData(prevData => {
-      console.log('Auto-generation check:', {
-        currentName: prevData.name,
-        nameExists: !!prevData.name,
-        nameTrimmed: prevData.name?.trim(),
-        shouldGenerate: !prevData.name || !prevData.name.trim(),
-        nameIsUserEntered: prevData.name && prevData.name.trim() && 
-          !prevData.name.includes('Application') && 
-          !prevData.name.includes('Test Application Package') &&
-          !prevData.name.includes('Application Package')
+          setApplicationData(prevData => {
+        // Only auto-generate if the name is empty or looks like it was auto-generated
+        const shouldAutoGenerate = !prevData.name || 
+          !prevData.name.trim() || 
+          prevData.name.includes('Test Application Package') ||
+          prevData.name.includes('Application Package');
+
+        if (shouldAutoGenerate) {
+          let generatedName = '';
+          
+          if (prevData.applicationType === 'program') {
+            const selectedProgram = programs.find(p => p._id === targetId);
+            if (selectedProgram) {
+              generatedName = `${selectedProgram.school.name} ${selectedProgram.name} Application`;
+            }
+          } else if (prevData.applicationType === 'school') {
+            const selectedSchool = schools.find(s => s._id === targetId);
+            if (selectedSchool) {
+              generatedName = `${selectedSchool.name} Application`;
+            }
+          } else if (prevData.applicationType === 'scholarship') {
+            const selectedScholarship = scholarships.find(s => s._id === targetId);
+            if (selectedScholarship) {
+              generatedName = `${selectedScholarship.title} Application`;
+            }
+          }
+          
+          if (generatedName) {
+            return { ...prevData, name: generatedName };
+          }
+        }
+        
+        return prevData;
       });
-
-      // Only auto-generate if the name is empty or looks like it was auto-generated
-      const shouldAutoGenerate = !prevData.name || 
-        !prevData.name.trim() || 
-        prevData.name.includes('Test Application Package') ||
-        prevData.name.includes('Application Package');
-
-      if (shouldAutoGenerate) {
-        let generatedName = '';
-        
-        if (prevData.applicationType === 'program') {
-          const selectedProgram = programs.find(p => p._id === targetId);
-          console.log('Selected program:', selectedProgram);
-          if (selectedProgram) {
-            generatedName = `${selectedProgram.school.name} ${selectedProgram.name} Application`;
-            console.log('Generated program name:', generatedName);
-          }
-        } else if (prevData.applicationType === 'school') {
-          const selectedSchool = schools.find(s => s._id === targetId);
-          console.log('Selected school:', selectedSchool);
-          if (selectedSchool) {
-            generatedName = `${selectedSchool.name} Application`;
-            console.log('Generated school name:', generatedName);
-          }
-        } else if (prevData.applicationType === 'scholarship') {
-          const selectedScholarship = scholarships.find(s => s._id === targetId);
-          console.log('Selected scholarship:', selectedScholarship);
-          if (selectedScholarship) {
-            generatedName = `${selectedScholarship.title} Application`;
-            console.log('Generated scholarship name:', generatedName);
-          }
-        }
-        
-        if (generatedName) {
-          console.log('Returning updated data with generated name:', generatedName);
-          return { ...prevData, name: generatedName };
-        } else {
-          console.log('No name generated, returning original data');
-        }
-      } else {
-        console.log('Name already exists or user entered, not generating');
-      }
-      
-      return prevData;
-    });
     
-    // Auto-select specific template if available
-    if (applicationData.applicationType === 'scholarship') {
-      // Find the selected scholarship and get its template
-      const selectedScholarship = scholarships.find(s => s._id === targetId);
-      if (selectedScholarship?.requirementsTemplateId) {
-        updateApplicationData('selectedTemplateId', selectedScholarship.requirementsTemplateId);
-        console.log('Auto-selected scholarship-specific template:', selectedScholarship.requirementsTemplateId);
+          // Auto-select specific template if available
+      if (applicationData.applicationType === 'scholarship') {
+        // Find the selected scholarship and get its template
+        const selectedScholarship = scholarships.find(s => s._id === targetId);
+        if (selectedScholarship?.requirementsTemplateId) {
+          updateApplicationData('selectedTemplateId', selectedScholarship.requirementsTemplateId);
+        }
+      } else if (applicationData.applicationType === 'program') {
+        // Find the selected program and get its template
+        const selectedProgram = programs.find(p => p._id === targetId);
+        if (selectedProgram?.requirementsTemplateId) {
+          updateApplicationData('selectedTemplateId', selectedProgram.requirementsTemplateId);
+        }
       }
-    } else if (applicationData.applicationType === 'program') {
-      // Find the selected program and get its template
-      const selectedProgram = programs.find(p => p._id === targetId);
-      if (selectedProgram?.requirementsTemplateId) {
-        updateApplicationData('selectedTemplateId', selectedProgram.requirementsTemplateId);
-        console.log('Auto-selected program-specific template:', selectedProgram.requirementsTemplateId);
-      }
-    }
     
     // Auto-fill deadline for scholarships
     if (applicationData.applicationType === 'scholarship') {
@@ -647,37 +608,7 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
               <p className="text-sm text-gray-600">
                 Choose a unique name for this application package. The name will be auto-generated when you select a program, school, or scholarship.
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  console.log('Setting test name...');
-                  updateApplicationData('name', 'Test Application Package ' + Date.now());
-                }}
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-              >
-                Set Test Name (Debug)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const uniqueName = `Application Package ${Date.now()}`;
-                  console.log('Setting unique name:', uniqueName);
-                  updateApplicationData('name', uniqueName);
-                }}
-                className="text-sm text-green-600 hover:text-green-800 underline ml-2"
-              >
-                Generate Unique Name
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  console.log('Testing submission with current name:', applicationData.name);
-                  handleSubmit();
-                }}
-                className="text-sm text-red-600 hover:text-red-800 underline ml-2"
-              >
-                Test Submit
-              </button>
+
             </div>
 
             <div className="space-y-2">
