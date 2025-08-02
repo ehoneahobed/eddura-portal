@@ -30,7 +30,9 @@ export default function EditApplicationTemplatePage({ params }: EditApplicationT
   }, [params]);
 
   const handleSubmit = async (data: Partial<ApplicationTemplate>) => {
-    if (!templateId) return;
+    if (!templateId) {
+      return;
+    }
     
     setIsUpdating(true);
     try {
