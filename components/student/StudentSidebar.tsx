@@ -23,7 +23,9 @@ import {
   MessageSquare,
   Users,
   Users2,
-  Trophy
+  Trophy,
+  Gift,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -100,6 +102,18 @@ const navigation = [
     href: '/squads', 
     icon: Trophy,
     description: 'Join collaborative squads for support'
+  },
+  { 
+    name: 'Referral Program', 
+    href: '/referrals', 
+    icon: Gift,
+    description: 'Invite friends & earn tokens'
+  },
+  { 
+    name: 'Leaderboard', 
+    href: '/leaderboard', 
+    icon: BarChart3,
+    description: 'Compete with other users'
   },
   { 
     name: 'My Cloned Documents', 

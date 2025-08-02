@@ -18,7 +18,10 @@ import {
   Clock,
   DollarSign,
   CheckCircle,
-  LogOut
+  LogOut,
+  Gift,
+  Trophy,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +31,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 import SquadWidget from './SquadWidget';
+import TokenDisplay from './TokenDisplay';
 
 interface UserActivity {
   id: string;
@@ -51,6 +55,9 @@ interface UserProfile {
   quizCompletedAt?: string;
   lastLoginAt?: string;
   createdAt: string;
+  tokens: number;
+  totalTokensEarned: number;
+  referralCode?: string;
   stats: DashboardStats;
   careerPreferences?: any;
 }
@@ -276,6 +283,21 @@ export default function DashboardContent() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
+                  <Gift className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Tokens Earned</p>
+                  <p className="text-2xl font-bold text-gray-900">{userProfile?.tokens || 0}</p>
+                  <p className="text-xs text-gray-500">Total: {userProfile?.totalTokensEarned || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Main Content Grid */}
@@ -353,6 +375,30 @@ export default function DashboardContent() {
                           <div className="text-left">
                             <p className="font-semibold">Application Management</p>
                             <p className="text-sm opacity-90">Manage your applications</p>
+                          </div>
+                        </div>
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/referrals">
+                      <Button className="h-20 w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white">
+                        <div className="flex items-start space-x-3 w-full">
+                          <Users className="w-6 h-6 flex-shrink-0 mt-1" />
+                          <div className="text-left">
+                            <p className="font-semibold">Referral Program</p>
+                            <p className="text-sm opacity-90">Invite friends & earn tokens</p>
+                          </div>
+                        </div>
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/leaderboard">
+                      <Button className="h-20 w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white">
+                        <div className="flex items-start space-x-3 w-full">
+                          <Trophy className="w-6 h-6 flex-shrink-0 mt-1" />
+                          <div className="text-left">
+                            <p className="font-semibold">Leaderboard</p>
+                            <p className="text-sm opacity-90">Compete with other users</p>
                           </div>
                         </div>
                       </Button>
@@ -499,11 +545,24 @@ export default function DashboardContent() {
               </motion.div>
             )}
 
-            {/* Eddura Squads Widget */}
+            {/* Token Display */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              <TokenDisplay 
+                tokens={userProfile?.tokens || 0}
+                totalTokensEarned={userProfile?.totalTokensEarned || 0}
+                totalTokensSpent={userProfile?.totalTokensSpent || 0}
+              />
+            </motion.div>
+
+            {/* Eddura Squads Widget */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
             >
               <SquadWidget />
             </motion.div>
@@ -512,7 +571,7 @@ export default function DashboardContent() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 1.0 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
             >
               <Card className="border-0 shadow-lg">
                 <CardHeader>
@@ -542,6 +601,18 @@ export default function DashboardContent() {
                       <Button variant="ghost" className="w-full justify-start">
                         <Target className="w-4 h-4 mr-2" />
                         Application Management
+                      </Button>
+                    </Link>
+                    <Link href="/referrals" className="block">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Users className="w-4 h-4 mr-2" />
+                        Referral Program
+                      </Button>
+                    </Link>
+                    <Link href="/leaderboard" className="block">
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Trophy className="w-4 h-4 mr-2" />
+                        Leaderboard
                       </Button>
                     </Link>
                     <Button variant="ghost" className="w-full justify-start">
