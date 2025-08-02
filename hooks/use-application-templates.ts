@@ -133,6 +133,8 @@ export async function createApplicationTemplate(data: ApplicationTemplateFormDat
  * Update an existing application template
  */
 export async function updateApplicationTemplate(id: string, data: Partial<ApplicationTemplateFormData>): Promise<ApplicationTemplate> {
+  console.log('updateApplicationTemplate called with:', { id, data });
+  
   const response = await fetch(`/api/application-templates/${id}`, {
     method: 'PUT',
     headers: {
@@ -141,12 +143,17 @@ export async function updateApplicationTemplate(id: string, data: Partial<Applic
     body: JSON.stringify(data),
   });
 
+  console.log('Update response status:', response.status);
+  
   if (!response.ok) {
     const error = await response.json();
+    console.error('Update error response:', error);
     throw new Error(error.error || 'Failed to update application template');
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('Update successful, result:', result);
+  return result;
 }
 
 /**

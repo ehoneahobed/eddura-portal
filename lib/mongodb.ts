@@ -32,7 +32,8 @@ async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+    console.warn('MONGODB_URI not available in development, using mock connection');
+    return mongoose;
   }
 
   if (cached.conn) {

@@ -30,11 +30,17 @@ export default function EditApplicationTemplatePage({ params }: EditApplicationT
   }, [params]);
 
   const handleSubmit = async (data: Partial<ApplicationTemplate>) => {
-    if (!templateId) return;
+    console.log('Edit page handleSubmit called with data:', data);
+    if (!templateId) {
+      console.error('No templateId available');
+      return;
+    }
     
     setIsUpdating(true);
     try {
-      await updateApplicationTemplate(templateId, data);
+      console.log('Calling updateApplicationTemplate with:', templateId, data);
+      const result = await updateApplicationTemplate(templateId, data);
+      console.log('Update result:', result);
       toast.success('Application template updated successfully');
       router.push(`/admin/application-templates/${templateId}`);
     } catch (error) {

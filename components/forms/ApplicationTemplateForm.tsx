@@ -218,6 +218,15 @@ export default function ApplicationTemplateForm({
     mode: 'onChange'
   });
 
+  // Reset form when template changes
+  useEffect(() => {
+    if (template) {
+      const initialValues = getInitialValues();
+      console.log('Resetting form with initial values:', initialValues);
+      reset(initialValues);
+    }
+  }, [template, reset, getInitialValues]);
+
   const { fields: sections, append: appendSection, remove: removeSection, move: moveSection } = useFieldArray({
     control,
     name: 'sections'
@@ -300,6 +309,9 @@ export default function ApplicationTemplateForm({
 
 
   const handleFormSubmit = async (data: ApplicationTemplate) => {
+    console.log('Form submission started with data:', data);
+    console.log('Form errors:', errors);
+    
     // Validate that we have at least one section with questions
     if (!data.sections || data.sections.length === 0) {
       toast.error('Please add at least one section to the form');
@@ -348,9 +360,12 @@ export default function ApplicationTemplateForm({
     // Clear saved data before submitting
     clearSavedData();
     try {
+      console.log('Calling onSubmit with data:', submissionData);
       // Use the onSubmit prop instead of SWR mutation to avoid double submission
-      onSubmit(submissionData);
+      await onSubmit(submissionData);
+      console.log('Form submission completed successfully');
     } catch (error) {
+      console.error('Form submission error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create application template';
       toast.error(errorMessage);
     }
