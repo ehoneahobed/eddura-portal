@@ -8,7 +8,7 @@ import Scholarship from '@/models/Scholarship';
 import School from '@/models/School';
 import Program from '@/models/Program';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
-import { ProgressTracker } from '@/lib/services/progressTracker';
+import { ActivityTracker } from '@/lib/services/activityTracker';
 
 export async function GET(request: NextRequest) {
   try {
@@ -608,12 +608,11 @@ export async function POST(request: NextRequest) {
     await application.save();
 
     // Track application creation activity
-    await ProgressTracker.trackActivity({
-      userId: session.user.id,
-      activityType: 'application_started',
-      timestamp: new Date(),
-      metadata: { applicationId: application._id.toString() }
-    });
+    await ActivityTracker.trackApplicationActivity(
+      session.user.id,
+      'started',
+      application._id.toString()
+    );
 
     return NextResponse.json({ 
       message: 'Application package created successfully',

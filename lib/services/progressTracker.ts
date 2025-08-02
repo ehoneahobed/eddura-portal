@@ -6,7 +6,7 @@ import { Application } from '@/models/Application';
 
 interface ActivityEvent {
   userId: string;
-  activityType: 'document_created' | 'application_started' | 'application_completed' | 'peer_review_provided' | 'login';
+  activityType: 'document_created' | 'application_started' | 'application_completed' | 'peer_review_provided' | 'platform_activity';
   timestamp: Date;
   metadata?: any;
 }
@@ -54,7 +54,7 @@ export class ProgressTracker {
       case 'peer_review_provided':
         updateData['platformStats.peerReviewsProvided'] = (user.platformStats?.peerReviewsProvided || 0) + 1;
         break;
-      case 'login':
+      case 'platform_activity':
         // Update days active if it's a new day
         const lastActive = user.platformStats?.lastActive;
         if (!lastActive || this.isNewDay(lastActive)) {
@@ -116,7 +116,7 @@ export class ProgressTracker {
           }
           break;
         case 'days_active':
-          if (event.activityType === 'login' && this.isNewDay(user.platformStats?.lastActive)) {
+          if (event.activityType === 'platform_activity' && this.isNewDay(user.platformStats?.lastActive)) {
             shouldUpdate = true;
             progressIncrement = 1;
           }

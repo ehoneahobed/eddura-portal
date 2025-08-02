@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react';
 
-export type ActivityType = 'document_created' | 'application_started' | 'application_completed' | 'peer_review_provided' | 'login';
+export type ActivityType = 'document_created' | 'document_edited' | 'application_started' | 'application_updated' | 'application_completed' | 'peer_review_provided' | 'platform_activity' | 'quiz_completed' | 'profile_updated' | 'search_performed' | 'content_shared';
 
 interface ActivityMetadata {
   documentId?: string;
@@ -55,8 +55,8 @@ export function useActivityTracker() {
     return trackActivity('peer_review_provided', { reviewId });
   };
 
-  const trackLogin = () => {
-    return trackActivity('login');
+  const trackPlatformActivity = () => {
+    return trackActivity('platform_activity');
   };
 
   return {
@@ -65,6 +65,6 @@ export function useActivityTracker() {
     trackApplicationStarted,
     trackApplicationCompleted,
     trackPeerReviewProvided,
-    trackLogin
+    trackPlatformActivity
   };
 }

@@ -6,7 +6,7 @@ import DocumentFeedback from '@/models/DocumentFeedback';
 import DocumentShare from '@/models/DocumentShare';
 import { sendFeedbackReceivedEmail } from '@/lib/email';
 import { z } from 'zod';
-import { ProgressTracker } from '@/lib/services/progressTracker';
+import { ActivityTracker } from '@/lib/services/activityTracker';
 
 // Validation schema for creating feedback
 const CreateFeedbackSchema = z.object({
@@ -109,15 +109,11 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       });
       
       if (reviewerUser) {
-        await ProgressTracker.trackActivity({
-          userId: reviewerUser._id.toString(),
-          activityType: 'peer_review_provided',
-          timestamp: new Date(),
-          metadata: { 
-            reviewId: feedback._id.toString(),
-            documentId: documentId
-          }
-        });
+        await ActivityTracker.trackPeerReviewActivity(
+          reviewerUser._id.toString(),
+          feedback._id.toString(),
+          documentId
+        );
       }
     } catch (error) {
       console.error('Error tracking peer review activity:', error);
