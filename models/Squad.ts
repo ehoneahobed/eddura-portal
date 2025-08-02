@@ -17,7 +17,6 @@ export interface IEdduraSquad extends Document {
   academicLevel?: string[];
   fieldOfStudy?: string[];
   geographicRegion?: string[];
-  activityLevel?: 'high' | 'medium' | 'low';
   
   // Squad Goals (Trackable & Measurable)
   goals: Array<{
@@ -137,10 +136,6 @@ const EdduraSquadSchema: Schema = new Schema<IEdduraSquad>({
     type: String, 
     trim: true 
   }],
-  activityLevel: { 
-    type: String, 
-    enum: ['high', 'medium', 'low'] 
-  },
   
   // Squad Goals (Trackable & Measurable)
   goals: [SquadGoalSchema],
@@ -186,22 +181,24 @@ const EdduraSquadSchema: Schema = new Schema<IEdduraSquad>({
 
 // Virtual for member count
 EdduraSquadSchema.virtual('memberCount').get(function() {
-  return this.memberIds ? this.memberIds.length : 0;
+  return this.memberIds ? (this.memberIds as any[]).length : 0;
 });
 
 // Virtual for squad activity level
 EdduraSquadSchema.virtual('activityLevel').get(function() {
-  if (this.averageActivityScore >= 80) return 'high';
-  if (this.averageActivityScore >= 50) return 'medium';
+  const score = this.averageActivityScore as number;
+  if (score >= 80) return 'high';
+  if (score >= 50) return 'medium';
   return 'low';
 });
 
 // Virtual for squad completion percentage
 EdduraSquadSchema.virtual('completionPercentage').get(function() {
-  if (!this.goals || this.goals.length === 0) return 0;
+  const goals = this.goals as any[];
+  if (!goals || goals.length === 0) return 0;
   
-  const totalProgress = this.goals.reduce((sum, goal) => sum + goal.progressPercentage, 0);
-  return Math.round(totalProgress / this.goals.length);
+  const totalProgress = goals.reduce((sum: number, goal: any) => sum + goal.progressPercentage, 0);
+  return Math.round(totalProgress / goals.length);
 });
 
 // Indexes for better query performance

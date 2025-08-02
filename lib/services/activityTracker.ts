@@ -143,7 +143,7 @@ export class ActivityTracker {
       
       // This would query the activity log to calculate streak
       // For now, we'll use the platformStats.daysActive as a proxy
-      const { User } = await import('@/models/User');
+      const User = (await import('@/models/User')).default;
       const user = await User.findById(userId);
       
       return user?.platformStats?.daysActive || 0;
@@ -160,7 +160,7 @@ export class ActivityTracker {
     try {
       await connectDB();
       
-      const { User } = await import('@/models/User');
+      const User = (await import('@/models/User')).default;
       const user = await User.findById(userId);
       
       if (!user?.platformStats?.lastActive) return false;

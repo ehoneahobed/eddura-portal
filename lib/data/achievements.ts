@@ -1,6 +1,30 @@
 import { IAchievement } from '@/models/Achievement';
 
-export const predefinedAchievements: Omit<IAchievement, '_id' | 'createdAt' | 'updatedAt'>[] = [
+// Create a simpler interface for predefined achievements
+interface PredefinedAchievement {
+  name: string;
+  description: string;
+  category: 'squad' | 'personal' | 'document' | 'application' | 'review' | 'streak' | 'milestone';
+  icon: string;
+  color: string;
+  requirements: {
+    type: 'count' | 'streak' | 'percentage' | 'completion';
+    target: number;
+    metric: string;
+    timeframe?: 'daily' | 'weekly' | 'monthly' | 'all_time';
+  };
+  rewards: {
+    points: number;
+    badges?: string[];
+    tokens?: number;
+    specialAccess?: string[];
+  };
+  isActive: boolean;
+  isHidden: boolean;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+}
+
+export const predefinedAchievements: PredefinedAchievement[] = [
   // Squad Achievements
   {
     name: 'Squad Pioneer',

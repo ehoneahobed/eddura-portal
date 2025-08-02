@@ -5,6 +5,7 @@ import Document from '@/models/Document';
 import Application from '@/models/Application';
 import { NotificationService } from './notificationService';
 import { AchievementService } from './achievementService';
+import mongoose from 'mongoose';
 
 interface ActivityEvent {
   userId: string;
@@ -37,7 +38,7 @@ export class ProgressTracker {
     await this.sendProgressNotifications(user, event);
 
     // Check for achievements
-    await AchievementService.checkAchievements(user._id.toString(), event.activityType, event.metadata);
+    await AchievementService.checkAchievements((user._id as any).toString(), event.activityType, event.metadata);
 
     } catch (error) {
       console.error('Error tracking activity:', error);
@@ -167,7 +168,7 @@ export class ProgressTracker {
     if (memberProgressIndex === -1) {
       // Add new member progress
       goalToUpdate.memberProgress.push({
-        userId: userId,
+        userId: new mongoose.Types.ObjectId(userId),
         progress: increment,
         target: goalToUpdate.individualTarget || goalToUpdate.target,
         percentage: Math.round((increment / (goalToUpdate.individualTarget || goalToUpdate.target)) * 100),
@@ -261,8 +262,8 @@ export class ProgressTracker {
 
         if (goal) {
           await NotificationService.notifyHelpRequest(
-            squad._id.toString(),
-            user._id.toString(),
+            (squad._id as any).toString(),
+            (user._id as any).toString(),
             `${user.firstName} ${user.lastName}`,
             goal.type
           );
@@ -294,7 +295,7 @@ export class ProgressTracker {
           
           if (crossedMilestone) {
             await NotificationService.notifyGoalProgress(
-              squad._id.toString(),
+              (squad._id as any).toString(),
               goal.type,
               progress,
               `${user.firstName} ${user.lastName}`
@@ -304,13 +305,13 @@ export class ProgressTracker {
       }
 
       // Check for squad milestones
-      const squadProgress = squad.completionPercentage;
+      const squadProgress = (squad as any).completionPercentage;
       const milestones = [25, 50, 75, 100];
       const crossedMilestone = milestones.find(m => squadProgress >= m);
       
       if (crossedMilestone && squadProgress === crossedMilestone) {
         await NotificationService.notifySquadMilestone(
-          squad._id.toString(),
+          (squad._id as any).toString(),
           `${crossedMilestone}% Complete`,
           squadProgress
         );
@@ -371,8 +372,8 @@ export class ProgressTracker {
 
         // Update squad progress for this user
         await this.updateSquadProgress(user, {
-          userId: user._id.toString(),
-          activityType: 'login',
+          userId: (user._id as any).toString(),
+          activityType: 'platform_activity' as const,
           timestamp: new Date()
         });
       }

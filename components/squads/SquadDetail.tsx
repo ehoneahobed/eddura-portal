@@ -57,7 +57,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
     );
   }
 
-  const isMember = squad.memberIds.some(member => member._id === session?.user?.id);
+  const isMember = squad.memberIds.some((member: any) => member._id === session?.user?.id);
   const isCreator = squad.creatorId._id === session?.user?.id;
 
   const getActivityColor = (level: string) => {
@@ -225,7 +225,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {squad.goals.map((goal) => (
+                {squad.goals.map((goal: any) => (
                   <div key={goal.type} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-3">
                       <div className="text-lg">
@@ -256,12 +256,12 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
 
         <TabsContent value="goals" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {squad.goals.map((goal) => (
+            {squad.goals.map((goal: any) => (
               <Card key={goal.type}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="h-5 w-5" />
-                    {goal.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {goal.type.replace('_', ' ').replace(/\b\w/g, (l: any) => l.toUpperCase())}
                   </CardTitle>
                   <CardDescription>
                     {goal.description || `Complete ${goal.target} ${goal.type.replace('_', ' ')}`}
@@ -283,8 +283,8 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium">Member Progress</h4>
                     <div className="space-y-1">
-                      {goal.memberProgress.map((memberProgress) => {
-                        const member = squad.memberIds.find(m => m._id === memberProgress.userId);
+                      {goal.memberProgress.map((memberProgress: any) => {
+                        const member = squad.memberIds.find((m: any) => m._id === memberProgress.userId);
                         if (!member) return null;
 
                         return (
@@ -335,7 +335,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {squad.memberIds.map((member) => (
+                {squad.memberIds.map((member: any) => (
                   <div key={member._id} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">

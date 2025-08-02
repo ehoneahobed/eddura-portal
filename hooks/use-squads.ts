@@ -11,7 +11,6 @@ interface Squad {
   academicLevel?: string[];
   fieldOfStudy?: string[];
   geographicRegion?: string[];
-  activityLevel?: 'high' | 'medium' | 'low';
   goals: Array<{
     type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'squad_activity';
     target: number;

@@ -23,7 +23,7 @@ export class AchievementService {
 
       // Check each predefined achievement
       for (const achievement of predefinedAchievements) {
-        if (completedAchievementIds.includes(achievement._id?.toString() || '')) {
+        if (completedAchievementIds.includes((achievement as any)._id?.toString() || '')) {
           continue; // Already completed
         }
 
@@ -144,10 +144,10 @@ export class AchievementService {
 
       // Create or update user achievement
       const userAchievement = await UserAchievement.findOneAndUpdate(
-        { userId, achievementId: achievement._id },
+        { userId, achievementId: (achievement as any)._id },
         {
           userId,
-          achievementId: achievement._id,
+          achievementId: (achievement as any)._id,
           currentProgress: achievement.requirements.target,
           targetProgress: achievement.requirements.target,
           isCompleted: true,
@@ -213,7 +213,7 @@ export class AchievementService {
       for (const achievement of predefinedAchievements) {
         const userAchievement = await UserAchievement.findOne({
           userId,
-          achievementId: achievement._id
+          achievementId: (achievement as any)._id
         });
 
         const isCompleted = userAchievement?.isCompleted || false;
