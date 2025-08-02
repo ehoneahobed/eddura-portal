@@ -10,11 +10,13 @@ import jsPDF from 'jspdf';
 interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'applicationTemplateId'> {
   scholarshipId: IScholarship;
   applicationTemplateId: IApplicationTemplate;
-  responses: Array<{
+  sections: Array<{
     sectionId: string;
-    questionId: string;
-    value: any;
-    files?: string[];
+    responses: Array<{
+      questionId: string;
+      value: any;
+      files?: string[];
+    }>;
   }>;
 }
 
@@ -44,6 +46,14 @@ export async function POST(
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
+
+    // Debug: Log application structure
+    console.log('[PDF] Application structure:', {
+      id: application._id,
+      sections: application.sections?.length || 0,
+      templateSections: application.applicationTemplateId?.sections?.length || 0,
+      scholarshipTitle: application.scholarshipId?.title
+    });
 
     // Generate PDF using jsPDF
     const pdfBuffer = await generatePDF(application);
@@ -140,7 +150,9 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
     yPosition += 8;
     
     // Process each section
+    console.log('[PDF] Processing sections:', application.applicationTemplateId.sections.length);
     for (const section of application.applicationTemplateId.sections) {
+      console.log('[PDF] Processing section:', section.title, 'with', section.questions.length, 'questions');
       if (yPosition > pageHeight - 40) {
         pdf.addPage();
         yPosition = margin;
@@ -220,7 +232,9 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'normal');
         
-        const response = application.responses.find((r: { sectionId: string; questionId: string; value: any; files?: string[] }) => r.sectionId === section.id && r.questionId === question.id);
+        // Find the section response
+        const sectionResponse = application.sections.find(s => s.sectionId === section.id);
+        const response = sectionResponse?.responses.find(r => r.questionId === question.id);
         const answerText = response ? formatResponseValue(response.value, question.type) : 'Not answered';
         
         pdf.setFont('helvetica', 'bold');
