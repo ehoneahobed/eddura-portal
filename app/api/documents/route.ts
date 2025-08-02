@@ -192,6 +192,20 @@ export async function POST(request: NextRequest) {
       document._id.toString()
     );
 
+    // Update squad progress if user is in squads
+    try {
+      const { ProgressTracker } = await import('@/lib/services/progressTracker');
+      await ProgressTracker.trackActivity({
+        userId: session.user.id,
+        activityType: 'document_created',
+        timestamp: new Date(),
+        metadata: { documentId: document._id.toString() }
+      });
+    } catch (error) {
+      console.error('Error updating squad progress:', error);
+      // Don't fail the request if squad tracking fails
+    }
+
     return NextResponse.json({ document }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -27,6 +27,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
+import SquadWidget from './SquadWidget';
 
 interface UserProfile {
   id: string;
@@ -426,11 +427,20 @@ export default function DashboardContent() {
               </motion.div>
             )}
 
-            {/* Quick Links */}
+            {/* Eddura Squads Widget */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              <SquadWidget />
+            </motion.div>
+
+            {/* Quick Links */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
             >
               <Card className="border-0 shadow-lg">
                 <CardHeader>

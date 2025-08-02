@@ -4,6 +4,7 @@ import EdduraSquad from '@/models/Squad';
 import { Document } from '@/models/Document';
 import { Application } from '@/models/Application';
 import { NotificationService } from './notificationService';
+import { AchievementService } from './achievementService';
 
 interface ActivityEvent {
   userId: string;
@@ -34,6 +35,9 @@ export class ProgressTracker {
 
     // Send notifications for significant progress
     await this.sendProgressNotifications(user, event);
+
+    // Check for achievements
+    await AchievementService.checkAchievements(user._id.toString(), event.activityType, event.metadata);
 
     } catch (error) {
       console.error('Error tracking activity:', error);

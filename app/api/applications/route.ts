@@ -614,6 +614,20 @@ export async function POST(request: NextRequest) {
       application._id.toString()
     );
 
+    // Update squad progress if user is in squads
+    try {
+      const { ProgressTracker } = await import('@/lib/services/progressTracker');
+      await ProgressTracker.trackActivity({
+        userId: session.user.id,
+        activityType: 'application_started',
+        timestamp: new Date(),
+        metadata: { applicationId: application._id.toString() }
+      });
+    } catch (error) {
+      console.error('Error updating squad progress:', error);
+      // Don't fail the request if squad tracking fails
+    }
+
     return NextResponse.json({ 
       message: 'Application package created successfully',
       applicationId: application._id,
