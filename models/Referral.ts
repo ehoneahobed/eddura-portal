@@ -99,14 +99,14 @@ const ReferralSchema: Schema = new Schema<IReferral>({
 
 // Virtual for referral status
 ReferralSchema.virtual('status').get(function() {
-  if (this.isUsed) return 'used';
-  if (this.clicks > 0) return 'active';
+  if ((this as any).isUsed) return 'used';
+  if ((this as any).clicks > 0) return 'active';
   return 'pending';
 });
 
 // Virtual for total reward value
 ReferralSchema.virtual('totalRewardValue').get(function() {
-  return this.referrerReward + this.referredReward;
+  return (this as any).referrerReward + (this as any).referredReward;
 });
 
 // Indexes for better query performance
