@@ -50,6 +50,17 @@ export async function POST(
     // Generate a short code for easy joining
     const shortCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     
+    // Store the shortcode in the squad with expiration (7 days)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    
+    squad.shortcodes.push({
+      code: shortCode,
+      createdBy: currentUser._id as any,
+      createdAt: new Date(),
+      expiresAt: expiresAt
+    });
+    
     // Check if user exists
     const invitedUser = await User.findOne({ email });
     
@@ -58,11 +69,10 @@ export async function POST(
       if (squad.memberIds.includes(invitedUser._id as any)) {
         return NextResponse.json({ error: 'User is already a member of this squad' }, { status: 400 });
       }
-      
-      // Add user to squad immediately for existing users
-      squad.memberIds.push(invitedUser._id as any);
-      await squad.save();
     }
+    
+    // Save the squad with the new shortcode
+    await squad.save();
     
     // Send invitation email
     const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL}/squads/${id}/join?code=${shortCode}`;

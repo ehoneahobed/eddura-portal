@@ -53,6 +53,16 @@ export interface IEdduraSquad extends Document {
   totalReviews: number;
   averageActivityScore: number;
   
+  // Invitation System
+  shortcodes: Array<{
+    code: string;
+    createdBy: mongoose.Types.ObjectId;
+    createdAt: Date;
+    expiresAt: Date;
+    usedBy?: mongoose.Types.ObjectId;
+    usedAt?: Date;
+  }>;
+  
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -172,7 +182,38 @@ const EdduraSquadSchema: Schema = new Schema<IEdduraSquad>({
   averageActivityScore: { 
     type: Number, 
     default: 0 
-  }
+  },
+  
+  // Invitation System
+  shortcodes: [{
+    code: { 
+      type: String, 
+      required: true, 
+      uppercase: true,
+      minlength: 6,
+      maxlength: 6
+    },
+    createdBy: { 
+      type: Schema.Types.ObjectId, 
+      ref: 'User', 
+      required: true 
+    },
+    createdAt: { 
+      type: Date, 
+      default: Date.now 
+    },
+    expiresAt: { 
+      type: Date, 
+      required: true 
+    },
+    usedBy: { 
+      type: Schema.Types.ObjectId, 
+      ref: 'User' 
+    },
+    usedAt: { 
+      type: Date 
+    }
+  }]
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
