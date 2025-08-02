@@ -1,8 +1,8 @@
-# Application Buddies System - Comprehensive Implementation Guide
+# Eddura Squads System - Comprehensive Implementation Guide
 
 ## Executive Summary
 
-The Application Buddies system is a revolutionary social feature that transforms the solitary scholarship application process into a collaborative, supportive experience. This system addresses the fundamental need for peer accountability, quality feedback, and emotional support during the stressful application journey.
+The Eddura Squads system is a revolutionary social feature that transforms the solitary scholarship application process into a collaborative, supportive experience. This system addresses the fundamental need for peer accountability, quality feedback, and emotional support during the stressful application journey.
 
 ## 🎯 Core Problem & Solution
 
@@ -61,20 +61,21 @@ interface UserProfile {
     documents: 'buddies_only' | 'private';
   };
   
-  // Buddy Group Settings
-  buddyGroupId?: string;
-  buddyGroupRole?: 'creator' | 'admin' | 'member';
+  // Eddura Squad Settings
+  primarySquadId?: string;
+  secondarySquadIds?: string[];
+  primarySquadRole?: 'creator' | 'admin' | 'member';
   autoShareProgress: boolean;
   autoShareAchievements: boolean;
 }
 ```
 
-### 2. **Flexible Buddy Group Formation**
+### 2. **Flexible Squad Formation**
 
-#### Group Formation Options
+#### Squad Formation Options
 ```typescript
-interface BuddyGroup {
-  // Group Identity
+interface EdduraSquad {
+  // Squad Identity
   id: string;
   name: string;
   description: string;
@@ -90,23 +91,38 @@ interface BuddyGroup {
   geographicRegion?: string[];
   activityLevel?: 'high' | 'medium' | 'low';
   
-  // Group Goals (Trackable & Measurable)
+  // Squad Goals (Trackable & Measurable)
   goals: {
-    type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'group_activity';
+    type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'squad_activity';
     target: number;
     timeframe: 'weekly' | 'monthly' | 'quarterly' | 'ongoing';
+    startDate: Date;
+    endDate: Date;
     description?: string;
     individualTarget?: number; // Per member target
+    currentProgress: number;
+    progressPercentage: number;
+    daysRemaining: number;
+    isOnTrack: boolean;
+    memberProgress: {
+      userId: string;
+      progress: number;
+      target: number;
+      percentage: number;
+      lastActivity: Date;
+      needsHelp: boolean;
+      isOnTrack: boolean;
+    }[];
   }[];
 }
 ```
 
-#### Group Types
-1. **General Support Groups**: "Application Buddies" - anyone can join
-2. **Academic Level Groups**: "Graduate Students" - based on education level
-3. **Activity-Based Groups**: "High Achievers" - based on platform activity
-4. **Geographic Groups**: "International Students" - based on location
-5. **Custom Groups**: "My Study Group" - specific purpose
+#### Squad Types
+1. **General Support Squads**: "Application Squads" - anyone can join
+2. **Academic Level Squads**: "Graduate Students Squad" - based on education level
+3. **Activity-Based Squads**: "High Achievers Squad" - based on platform activity
+4. **Geographic Squads**: "International Students Squad" - based on location
+5. **Custom Squads**: "My Study Squad" - specific purpose
 
 ### 3. **Simple Referral System**
 
@@ -140,10 +156,10 @@ interface ProgressTracker {
   streakDays: number;
   totalTimeSpent: number;
   
-  // Group Contributions
-  groupReviewsProvided: number;
-  groupResourcesShared: number;
-  groupMotivationProvided: number;
+  // Squad Contributions
+  squadReviewsProvided: number;
+  squadResourcesShared: number;
+  squadMotivationProvided: number;
 }
 ```
 
@@ -218,15 +234,15 @@ interface ProgressNotification {
 
 #### Automated Celebrations & Alerts
 - **"🎉 Sarah just created her 10th document!"**
-- **"📝 Your buddy group has provided 50 peer reviews!"**
-- **"📈 Your group is in the top 10% of active groups!"**
-- **"🎯 You're 2 applications away from your group goal!"**
+- **"📝 Your squad has provided 50 peer reviews!"**
+- **"📈 Your squad is in the top 10% of active squads!"**
+- **"🎯 You're 2 applications away from your squad goal!"**
 - **"🔥 Sarah has been active for 30 days straight!"**
 - **"⚠️ John hasn't started any applications this week - maybe he needs help?"**
-- **"📊 Your group is 75% toward the monthly goal of 50 applications!"**
-- **"🏆 Everyone in your group has been active for 7+ days!"**
-- **"🎯 Group Goal Alert: 3 members need to start 2 more applications to reach target!"**
-- **"📈 Progress Update: Your group is ahead of schedule for document creation!"**
+- **"📊 Your squad is 75% toward the monthly goal of 50 applications!"**
+- **"🏆 Everyone in your squad has been active for 7+ days!"**
+- **"🎯 Squad Goal Alert: 3 members need to start 2 more applications to reach target!"**
+- **"📈 Progress Update: Your squad is ahead of schedule for document creation!"**
 - **"🤝 Support Needed: Sarah hasn't been active for 5 days - reach out to help!"**
 
 ## 🏆 Reliable Leaderboard System
@@ -241,12 +257,12 @@ interface ProgressNotification {
 - **Longest Streak**: Track consecutive days active
 - **Most Consistent**: Track steady weekly activity
 
-#### Group Leaderboards (Reliable Group Metrics)
-- **Collective Applications**: Total applications per group
-- **Group Activity Level**: Average activity per member
-- **Most Supportive**: Groups with highest peer review activity
-- **Most Consistent**: Groups with steady weekly progress
-- **Most Engaged**: Groups with highest member participation
+#### Squad Leaderboards (Reliable Squad Metrics)
+- **Collective Applications**: Total applications per squad
+- **Squad Activity Level**: Average activity per member
+- **Most Supportive**: Squads with highest peer review activity
+- **Most Consistent**: Squads with steady weekly progress
+- **Most Engaged**: Squads with highest member participation
 
 ### 2. **Achievement System (Trackable Only)**
 
@@ -275,8 +291,8 @@ interface Achievement {
 - **"Application Master"**: Start 20 applications
 - **"Supportive Reviewer"**: Provide 15 peer reviews
 - **"Consistent Performer"**: Active for 30 consecutive days
-- **"Group Helper"**: Help 5 different group members
-- **"Resource Sharer"**: Share 10 documents with group
+- **"Squad Helper"**: Help 5 different squad members
+- **"Resource Sharer"**: Share 10 documents with squad
 
 ### 3. **Real-Time Competition**
 
@@ -288,8 +304,8 @@ interface Achievement {
 
 #### Competitive Features
 - **Weekly Challenges**: Time-limited competitions
-- **Group vs Group**: Inter-group competitions
-- **Individual vs Individual**: Friendly competition within groups
+- **Squad vs Squad**: Inter-squad competitions
+- **Individual vs Individual**: Friendly competition within squads
 - **Milestone Races**: "First to 100 applications"
 
 ## 🎮 Gamification & Motivation
@@ -297,19 +313,19 @@ interface Achievement {
 ### 1. **Token Economy Integration**
 
 #### Earning Tokens
-- **Group Creation**: 50 tokens for creating an active buddy group
+- **Squad Creation**: 50 tokens for creating an active squad
 - **Member Invitation**: 10 tokens per successful invitation
 - **Document Review**: 5 tokens per helpful review provided
 - **Resource Sharing**: 3 tokens per valuable resource shared
-- **Group Success**: 100 tokens when group achieves collective goals
+- **Squad Success**: 100 tokens when squad achieves collective goals
 - **Leaderboard Rankings**: 10-50 tokens for top leaderboard positions
 
 #### Spending Tokens
 - **Premium Features**: Access advanced application tools
-- **Priority Support**: Faster response times for group leaders
+- **Priority Support**: Faster response times for squad leaders
 - **Exclusive Resources**: Premium templates and guides
-- **Extended Group Size**: Allow larger groups (up to 12 members)
-- **Advanced Analytics**: Detailed group progress insights
+- **Extended Squad Size**: Allow larger squads (up to 12 members)
+- **Advanced Analytics**: Detailed squad progress insights
 
 ### 2. **Challenge System**
 
@@ -329,13 +345,13 @@ interface Achievement {
 
 ### 1. **Trackable Goal Setting**
 ```
-Create Group → Set Measurable Goals → Monitor Progress → Identify Needs → Provide Support
+Create Squad → Set Measurable Goals → Monitor Progress → Identify Needs → Provide Support
 ```
 
 **Goal Setting Examples:**
-- **"Start 50 applications as a group this month"** - Trackable via application system
-- **"Create 100 documents as a group this quarter"** - Trackable via document system
-- **"Provide 200 peer reviews as a group this month"** - Trackable via feedback system
+- **"Start 50 applications as a squad this month"** - Trackable via application system
+- **"Create 100 documents as a squad this quarter"** - Trackable via document system
+- **"Provide 200 peer reviews as a squad this month"** - Trackable via feedback system
 - **"Maintain 7-day activity streak for all members"** - Trackable via activity system
 
 ### 2. **Progress Monitoring & Help Identification**
@@ -355,29 +371,29 @@ System Tracks Activity → Calculates Progress → Identifies Lagging Members �
 - **Resource Sharing**: Automatically share relevant resources
 - **Motivation Messages**: Send encouraging messages
 
-### 3. **Flexible Group Formation**
+### 3. **Flexible Squad Formation**
 
 ```
-Complete Profile → Analyze Compatibility → Suggest Groups → Join/Create Group → Start Collaborating
+Complete Profile → Analyze Compatibility → Suggest Squads → Join/Create Squad → Start Collaborating
 ```
 
 **Example Flows:**
-- **General Group**: "Application Buddies" - anyone can join
-- **Academic Group**: "Graduate Students" - based on education level
-- **Activity Group**: "High Achievers" - based on platform activity
-- **Custom Group**: "My Study Group" - specific purpose
+- **General Squad**: "Application Squad" - anyone can join
+- **Academic Squad**: "Graduate Students Squad" - based on education level
+- **Activity Squad**: "High Achievers Squad" - based on platform activity
+- **Custom Squad**: "My Study Squad" - specific purpose
 
 ### 2. **Reliable Progress Sharing**
 
 ```
-Platform Activity → System Tracks → Auto-Share → Group Notification → Celebration
+Platform Activity → System Tracks → Auto-Share → Squad Notification → Celebration
 ```
 
 **Example Flow:**
 1. User creates 5th document
-2. System automatically shares with buddy group
-3. Group receives notification: "Sarah just created her 5th document!"
-4. Group celebrates and provides encouragement
+2. System automatically shares with squad
+3. Squad receives notification: "Sarah just created her 5th document!"
+4. Squad celebrates and provides encouragement
 
 ### 3. **Trackable Competition**
 
@@ -389,7 +405,7 @@ Activity Update → Leaderboard Update → Achievement Check → Celebration →
 1. User provides 10th peer review
 2. System updates leaderboard rankings
 3. Checks for "Supportive Reviewer" achievement
-4. Celebrates achievement and motivates group
+4. Celebrates achievement and motivates squad
 
 ## 🔒 Privacy & Trust Features
 
@@ -610,10 +626,10 @@ Application Progress:
 - **"Success Story"**: Win your first scholarship
 - **"Group Champion"**: Help 3 group members win scholarships
 
-#### Group Achievements
-- **"First Group to Apply to 50 Scholarships"**
+#### Squad Achievements
+- **"First Squad to Apply to 50 Scholarships"**
 - **"100% Success Rate"**: All members win at least one scholarship
-- **"Most Supportive Group"**: Highest peer review activity
+- **"Most Supportive Squad"**: Highest peer review activity
 - **"Document Library"**: Create comprehensive resource collection
 - **"Interview Prep Masters"**: All members complete interview preparation
 

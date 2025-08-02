@@ -1,16 +1,16 @@
-# Application Buddies Implementation Plan
+# Eddura Squads Implementation Plan
 
 ## Overview
 
-This document provides a comprehensive, task-by-task implementation plan for the Application Buddies system. Each task is designed to be completed independently while building toward the complete system.
+This document provides a comprehensive, task-by-task implementation plan for the Eddura Squads system. Each task is designed to be completed independently while building toward the complete system.
 
 ## 📋 Implementation Phases
 
 ### Phase 1: Foundation (Weeks 1-2)
 **Goal**: Set up the basic infrastructure and user profile system
 
-### Phase 2: Group Management (Weeks 3-4)
-**Goal**: Implement buddy group creation and management
+### Phase 2: Squad Management (Weeks 3-4)
+**Goal**: Implement squad creation and management
 
 ### Phase 3: Progress Tracking (Weeks 5-6)
 **Goal**: Add automated progress tracking and sharing
@@ -136,42 +136,42 @@ This document provides a comprehensive, task-by-task implementation plan for the
 
 ---
 
-## 👥 Phase 2: Group Management (Weeks 3-4)
+## 👥 Phase 2: Squad Management (Weeks 3-4)
 
-### Task 2.1: Buddy Group Database & Models
+### Task 2.1: Eddura Squad Database & Models
 **Priority**: High | **Estimated Time**: 3-4 days
 
 #### Subtasks:
-- [ ] **2.1.1**: Create BuddyGroup model
-  - Define group schema with all fields
-  - Add group type (primary/secondary) classification
-  - Add group member relationships
-  - Add trackable group goals and settings
-  - Add group activity tracking
+- [ ] **2.1.1**: Create EdduraSquad model
+  - Define squad schema with all fields
+  - Add squad type (primary/secondary) classification
+  - Add squad member relationships
+  - Add trackable squad goals and settings
+  - Add squad activity tracking
 
-- [ ] **2.1.2**: Create GroupMember model
+- [ ] **2.1.2**: Create SquadMember model
   - Define member role and permissions
-  - Add primary vs secondary group membership
+  - Add primary vs secondary squad membership
   - Add member activity tracking
   - Add member contribution metrics
   - Add member join/leave timestamps
 
-- [ ] **2.1.3**: Create GroupGoal model
+- [ ] **2.1.3**: Create SquadGoal model
   - Define trackable goal types
   - Add goal progress tracking with timeframes
   - Add individual member progress
   - Add smart goal features (start/end dates, on-track monitoring)
   - Add goal milestone celebrations
 
-- [ ] **2.1.4**: Create GroupInvitation model
-  - Handle group invitations
+- [ ] **2.1.4**: Create SquadInvitation model
+  - Handle squad invitations
   - Track invitation status
   - Add invitation expiration
   - Add invitation analytics
 
-- [ ] **2.1.5**: Create UserGroupMembership model
-  - Track primary group membership
-  - Track secondary group memberships
+- [ ] **2.1.5**: Create UserSquadMembership model
+  - Track primary squad membership
+  - Track secondary squad memberships
   - Add membership roles and permissions
   - Add membership activity tracking
 
@@ -192,36 +192,36 @@ This document provides a comprehensive, task-by-task implementation plan for the
 
 ---
 
-### Task 2.2: Group Creation & Management API
+### Task 2.2: Squad Creation & Management API
 **Priority**: High | **Estimated Time**: 3-4 days
 
 #### Subtasks:
-- [ ] **2.2.1**: Create group management API endpoints
-  - POST /api/buddy-groups - Create new group
-  - GET /api/buddy-groups - List user's groups
-  - PUT /api/buddy-groups/[id] - Update group
-  - DELETE /api/buddy-groups/[id] - Delete group
+- [ ] **2.2.1**: Create squad management API endpoints
+  - POST /api/squads - Create new squad
+  - GET /api/squads - List user's squads
+  - PUT /api/squads/[id] - Update squad
+  - DELETE /api/squads/[id] - Delete squad
 
-- [ ] **2.2.2**: Create group member management API
-  - POST /api/buddy-groups/[id]/members - Add member
-  - DELETE /api/buddy-groups/[id]/members/[userId] - Remove member
-  - PUT /api/buddy-groups/[id]/members/[userId]/role - Update role
+- [ ] **2.2.2**: Create squad member management API
+  - POST /api/squads/[id]/members - Add member
+  - DELETE /api/squads/[id]/members/[userId] - Remove member
+  - PUT /api/squads/[id]/members/[userId]/role - Update role
 
-- [ ] **2.2.3**: Create group invitation API
-  - POST /api/buddy-groups/[id]/invite - Send invitation
-  - GET /api/buddy-groups/invite/[token] - Get invitation details
-  - POST /api/buddy-groups/invite/[token]/accept - Accept invitation
+- [ ] **2.2.3**: Create squad invitation API
+  - POST /api/squads/[id]/invite - Send invitation
+  - GET /api/squads/invite/[token] - Get invitation details
+  - POST /api/squads/invite/[token]/accept - Accept invitation
 
-- [ ] **2.2.4**: Add group discovery API
-  - GET /api/buddy-groups/discover - Find public groups
-  - GET /api/buddy-groups/suggestions - Get group suggestions
-  - GET /api/buddy-groups/[id]/stats - Get group statistics
+- [ ] **2.2.4**: Add squad discovery API
+  - GET /api/squads/discover - Find public squads
+  - GET /api/squads/suggestions - Get squad suggestions
+  - GET /api/squads/[id]/stats - Get squad statistics
 
 #### Acceptance Criteria:
-- All group CRUD operations work
+- All squad CRUD operations work
 - Member management functions correctly
 - Invitations work properly
-- Group discovery works
+- Squad discovery works
 
 #### Dependencies:
 - Task 2.1 (Database models)
@@ -229,38 +229,38 @@ This document provides a comprehensive, task-by-task implementation plan for the
 
 ---
 
-### Task 2.3: Group Management UI
+### Task 2.3: Squad Management UI
 **Priority**: High | **Estimated Time**: 4-5 days
 
 #### Subtasks:
-- [ ] **2.3.1**: Create group creation form
-  - Add group name and description fields
-  - Add group type selection
+- [ ] **2.3.1**: Create squad creation form
+  - Add squad name and description fields
+  - Add squad type selection
   - Add optional filters
-  - Add group goals setting
+  - Add squad goals setting
 
-- [ ] **2.3.2**: Create group dashboard
-  - Display group information
+- [ ] **2.3.2**: Create squad dashboard
+  - Display squad information
   - Show member list
-  - Display group statistics
-  - Add group management actions
+  - Display squad statistics
+  - Add squad management actions
 
-- [ ] **2.3.3**: Create group discovery page
-  - List public groups
-  - Add group search and filters
-  - Show group compatibility scores
-  - Add join group functionality
+- [ ] **2.3.3**: Create squad discovery page
+  - List public squads
+  - Add squad search and filters
+  - Show squad compatibility scores
+  - Add join squad functionality
 
-- [ ] **2.3.4**: Create group invitation system
+- [ ] **2.3.4**: Create squad invitation system
   - Add invitation form
   - Create invitation email templates
   - Add invitation acceptance flow
   - Add invitation management
 
 #### Acceptance Criteria:
-- Users can create groups easily
-- Group management interface is intuitive
-- Group discovery works well
+- Users can create squads easily
+- Squad management interface is intuitive
+- Squad discovery works well
 - Invitations function properly
 
 #### Dependencies:
@@ -270,34 +270,34 @@ This document provides a comprehensive, task-by-task implementation plan for the
 
 ---
 
-### Task 2.4: Group Integration with Existing Features
+### Task 2.4: Squad Integration with Existing Features
 **Priority**: Medium | **Estimated Time**: 2-3 days
 
 #### Subtasks:
 - [ ] **2.4.1**: Integrate with document sharing
-  - Add "Share with Buddy Group" option
+  - Add "Share with Squad" option
   - Use existing document feedback system
-  - Track group document reviews
+  - Track squad document reviews
 
 - [ ] **2.4.2**: Integrate with application tracking
-  - Add group progress sharing
+  - Add squad progress sharing
   - Use existing application data
-  - Track group application stats
+  - Track squad application stats
 
-- [ ] **2.4.3**: Add group context to existing features
-  - Show group information in dashboards
-  - Add group filters to existing lists
-  - Display group achievements
+- [ ] **2.4.3**: Add squad context to existing features
+  - Show squad information in dashboards
+  - Add squad filters to existing lists
+  - Display squad achievements
 
 - [ ] **2.4.4**: Update navigation and menus
-  - Add buddy groups to main navigation
-  - Add group quick actions
-  - Update user dashboard with group info
+  - Add Eddura Squads to main navigation
+  - Add squad quick actions
+  - Update user dashboard with squad info
 
 #### Acceptance Criteria:
-- Existing features work with groups
-- Group context is properly displayed
-- Navigation includes group features
+- Existing features work with squads
+- Squad context is properly displayed
+- Navigation includes squad features
 - Integration is seamless
 
 #### Dependencies:
