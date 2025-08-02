@@ -218,8 +218,8 @@ export default function AIRefinementModal({
     } catch (error) {
       console.error('=== AI REFINE FRONTEND ERROR ===');
       console.error('Error type:', typeof error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Error stack:', error instanceof Error ? error.stack : undefined);
       toast.error('Failed to refine content');
     } finally {
       setLoading(false);

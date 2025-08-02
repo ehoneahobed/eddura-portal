@@ -20,6 +20,11 @@ const RefineRequestSchema = z.object({
 // Initialize AI providers
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
+// Type guard for error handling
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+
 // Function to craft refinement prompts based on refinement type
 function craftRefinementPrompt(
   existingContent: string,
@@ -240,18 +245,21 @@ export async function POST(request: NextRequest) {
         const response = await result.response;
         refinedContent = response.text();
         console.log('18. Content generated successfully, length:', refinedContent.length);
-      } catch (aiError) {
-        console.error('19. AI API error:', aiError);
-        console.error('20. AI Error details:', {
-          name: aiError.name,
-          message: aiError.message,
-          stack: aiError.stack
-        });
-        return NextResponse.json(
-          { error: 'AI service error. Please check your API key and try again.', details: aiError.message },
-          { status: 500 }
-        );
-      }
+              } catch (aiError) {
+          console.error('19. AI API error:', aiError);
+          console.error('20. AI Error details:', {
+            name: isError(aiError) ? aiError.name : 'Unknown',
+            message: isError(aiError) ? aiError.message : String(aiError),
+            stack: isError(aiError) ? aiError.stack : undefined
+          });
+          return NextResponse.json(
+            { 
+              error: 'AI service error. Please check your API key and try again.', 
+              details: isError(aiError) ? aiError.message : String(aiError)
+            },
+            { status: 500 }
+          );
+        }
     } else {
       console.log('14. Unsupported AI provider:', aiConfig.defaultProvider);
       // TODO: Add support for other providers (OpenAI, Anthropic)
@@ -290,9 +298,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('=== AI REFINE API CALL ERROR ===');
     console.error('Error type:', typeof error);
-    console.error('Error constructor:', error.constructor.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
+    console.error('Error constructor:', isError(error) ? error.constructor.name : 'Unknown');
+    console.error('Error message:', isError(error) ? error.message : String(error));
+    console.error('Error stack:', isError(error) ? error.stack : undefined);
     
     if (error instanceof z.ZodError) {
       console.error('Zod validation error details:', {
@@ -315,7 +323,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Failed to refine content',
-        message: error.message || 'An unexpected error occurred'
+        message: isError(error) ? error.message : 'An unexpected error occurred'
       },
       { status: 500 }
     );
