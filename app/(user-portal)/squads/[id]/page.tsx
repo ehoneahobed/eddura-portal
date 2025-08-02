@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   keywords: 'squad details, progress tracking, member activities, Eddura',
 };
 
-export default function SquadDetailPage({ params }: { params: { id: string } }) {
-  return <SquadDetail squadId={params.id} />;
+interface SquadPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function SquadDetailPage({ params }: SquadPageProps) {
+  const { id } = await params;
+  return <SquadDetail squadId={id} />;
 }

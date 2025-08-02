@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import EdduraSquad from '@/models/Squad';
 import User from '@/models/User';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const body = await request.json();
     const { action, userId } = body; // action: 'join' | 'leave', userId: optional (for invites)
@@ -25,14 +25,14 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await EdduraSquad.findById(params.id);
+    const squad = await EdduraSquad.findById(id);
     if (!squad) {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
     if (action === 'join') {
       // Check if user is already a member
-      const isMember = squad.memberIds.some((memberId: any) => memberId.toString() === user._id.toString());
+      const isMember = squad.memberIds.some((memberId: any) => memberId.toString() === (user as any)._id.toString());
       if (isMember) {
         return NextResponse.json({ error: 'User is already a member' }, { status: 400 });
       }
@@ -48,17 +48,17 @@ export async function POST(
       }
 
       // Add user to squad
-      squad.memberIds.push(user._id);
+      squad.memberIds.push((user as any)._id);
       await squad.save();
 
       // Update user's squad membership
       if (squad.squadType === 'primary') {
-        await User.findByIdAndUpdate(user._id, {
+        await User.findByIdAndUpdate((user as any)._id, {
           primarySquadId: squad._id,
           primarySquadRole: 'member'
         });
       } else {
-        await User.findByIdAndUpdate(user._id, {
+        await User.findByIdAndUpdate((user as any)._id, {
           $push: { secondarySquadIds: squad._id }
         });
       }
@@ -68,22 +68,22 @@ export async function POST(
 
     if (action === 'leave') {
       // Check if user is a member
-      const isMember = squad.memberIds.some((memberId: any) => memberId.toString() === user._id.toString());
+      const isMember = squad.memberIds.some((memberId: any) => memberId.toString() === (user as any)._id.toString());
       if (!isMember) {
         return NextResponse.json({ error: 'User is not a member' }, { status: 400 });
       }
 
       // Remove user from squad
-      squad.memberIds = squad.memberIds.filter((memberId: any) => memberId.toString() !== user._id.toString());
+      squad.memberIds = squad.memberIds.filter((memberId: any) => memberId.toString() !== (user as any)._id.toString());
       await squad.save();
 
       // Update user's squad membership
       if (squad.squadType === 'primary') {
-        await User.findByIdAndUpdate(user._id, {
+        await User.findByIdAndUpdate((user as any)._id, {
           $unset: { primarySquadId: "", primarySquadRole: "" }
         });
       } else {
-        await User.findByIdAndUpdate(user._id, {
+        await User.findByIdAndUpdate((user as any)._id, {
           $pull: { secondarySquadIds: squad._id }
         });
       }
@@ -103,15 +103,16 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get('memberId');
@@ -121,13 +122,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await EdduraSquad.findById(params.id);
+    const squad = await EdduraSquad.findById(id);
     if (!squad) {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
     // Check if user is creator or admin
-    const isCreator = squad.creatorId.toString() === user._id.toString();
+    const isCreator = squad.creatorId.toString() === (user as any)._id.toString();
     if (!isCreator) {
       return NextResponse.json({ error: 'Only squad creator can remove members' }, { status: 403 });
     }

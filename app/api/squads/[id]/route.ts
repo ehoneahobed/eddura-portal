@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import EdduraSquad from '@/models/Squad';
 import User from '@/models/User';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
-    const squad = await EdduraSquad.findById(params.id)
+    const squad = await EdduraSquad.findById(id)
       .populate('creatorId', 'firstName lastName email profilePicture')
       .populate('memberIds', 'firstName lastName email profilePicture platformStats');
 
@@ -31,7 +31,7 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const isMember = squad.memberIds.some((member: any) => member._id.toString() === user._id.toString());
+    const isMember = squad.memberIds.some((member: any) => member._id.toString() === (user as any)._id.toString());
     const isPublic = squad.visibility === 'public';
 
     if (!isMember && !isPublic) {
@@ -50,15 +50,16 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const body = await request.json();
     const {
@@ -80,13 +81,13 @@ export async function PUT(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await EdduraSquad.findById(params.id);
+    const squad = await EdduraSquad.findById(id);
     if (!squad) {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
     // Check if user is creator or admin
-    const isCreator = squad.creatorId.toString() === user._id.toString();
+    const isCreator = squad.creatorId.toString() === (user as any)._id.toString();
     if (!isCreator) {
       return NextResponse.json({ error: 'Only squad creator can edit squad' }, { status: 403 });
     }
@@ -116,7 +117,7 @@ export async function PUT(
     }
 
     const updatedSquad = await EdduraSquad.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true }
     ).populate('creatorId', 'firstName lastName email profilePicture')
@@ -134,15 +135,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     // Get user and squad
     const user = await User.findOne({ email: session.user.email });
@@ -150,13 +152,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await EdduraSquad.findById(params.id);
+    const squad = await EdduraSquad.findById(id);
     if (!squad) {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
     // Check if user is creator
-    const isCreator = squad.creatorId.toString() === user._id.toString();
+    const isCreator = squad.creatorId.toString() === (user as any)._id.toString();
     if (!isCreator) {
       return NextResponse.json({ error: 'Only squad creator can delete squad' }, { status: 403 });
     }
@@ -176,7 +178,7 @@ export async function DELETE(
     );
 
     // Delete the squad
-    await EdduraSquad.findByIdAndDelete(params.id);
+    await EdduraSquad.findByIdAndDelete(id);
 
     return NextResponse.json({ message: 'Squad deleted successfully' });
   } catch (error) {

@@ -1,4 +1,4 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import { Achievement, UserAchievement } from '@/models/Achievement';
 import User from '@/models/User';
 import { predefinedAchievements } from '@/lib/data/achievements';
@@ -10,7 +10,7 @@ export class AchievementService {
    */
   static async checkAchievements(userId: string, activityType: string, metadata?: any): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const user = await User.findById(userId);
       if (!user) return;
@@ -140,7 +140,7 @@ export class AchievementService {
    */
   private static async awardAchievement(userId: string, achievement: any): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       // Create or update user achievement
       const userAchievement = await UserAchievement.findOneAndUpdate(
@@ -185,7 +185,7 @@ export class AchievementService {
    */
   static async getUserAchievements(userId: string): Promise<any[]> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const userAchievements = await UserAchievement.find({ userId })
         .populate('achievementId')
@@ -203,7 +203,7 @@ export class AchievementService {
    */
   static async getUserAchievementProgress(userId: string): Promise<any[]> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const user = await User.findById(userId);
       if (!user) return [];

@@ -1,8 +1,8 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import EdduraSquad from '@/models/Squad';
-import { Document } from '@/models/Document';
-import { Application } from '@/models/Application';
+import Document from '@/models/Document';
+import Application from '@/models/Application';
 import { NotificationService } from './notificationService';
 import { AchievementService } from './achievementService';
 
@@ -19,7 +19,7 @@ export class ProgressTracker {
    */
   static async trackActivity(event: ActivityEvent): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const user = await User.findById(event.userId);
       if (!user) return;
@@ -352,7 +352,7 @@ export class ProgressTracker {
    */
   static async syncExistingActivities(): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const users = await User.find({});
       

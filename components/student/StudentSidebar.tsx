@@ -108,12 +108,6 @@ const navigation = [
     description: 'Your cloned documents'
   },
   { 
-    name: 'Eddura Squads', 
-    href: '/squads', 
-    icon: Users2,
-    description: 'Join collaborative groups'
-  },
-  { 
     name: 'Settings', 
     href: '/settings', 
     icon: Settings,

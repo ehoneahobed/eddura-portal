@@ -611,7 +611,7 @@ export async function POST(request: NextRequest) {
     await ActivityTracker.trackApplicationActivity(
       session.user.id,
       'started',
-      application._id.toString()
+      (application as any)._id.toString()
     );
 
     // Update squad progress if user is in squads
@@ -621,7 +621,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         activityType: 'application_started',
         timestamp: new Date(),
-        metadata: { applicationId: application._id.toString() }
+        metadata: { applicationId: (application as any)._id.toString() }
       });
     } catch (error) {
       console.error('Error updating squad progress:', error);

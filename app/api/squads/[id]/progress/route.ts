@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import EdduraSquad from '@/models/Squad';
 import User from '@/models/User';
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const body = await request.json();
     const { goalType, progress, userId } = body;
@@ -25,13 +25,13 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await EdduraSquad.findById(params.id);
+    const squad = await EdduraSquad.findById(id);
     if (!squad) {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
     // Check if user is a member
-    const isMember = squad.memberIds.some((memberId: any) => memberId.toString() === user._id.toString());
+    const isMember = squad.memberIds.some((memberId: any) => memberId.toString() === (user as any)._id.toString());
     if (!isMember) {
       return NextResponse.json({ error: 'User is not a member of this squad' }, { status: 403 });
     }
@@ -46,13 +46,13 @@ export async function POST(
     
     // Update member progress
     const memberProgressIndex = goal.memberProgress.findIndex(
-      (mp: any) => mp.userId.toString() === user._id.toString()
+      (mp: any) => mp.userId.toString() === (user as any)._id.toString()
     );
 
     if (memberProgressIndex === -1) {
       // Add new member progress
       goal.memberProgress.push({
-        userId: user._id,
+        userId: (user as any)._id,
         progress: progress,
         target: goal.individualTarget || goal.target,
         percentage: Math.round((progress / (goal.individualTarget || goal.target)) * 100),
@@ -110,7 +110,7 @@ export async function POST(
     await squad.save();
 
     // Populate the response
-    const updatedSquad = await EdduraSquad.findById(params.id)
+    const updatedSquad = await EdduraSquad.findById(id)
       .populate('creatorId', 'firstName lastName email profilePicture')
       .populate('memberIds', 'firstName lastName email profilePicture platformStats');
 
@@ -129,22 +129,23 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToDatabase();
+    await connectDB();
 
     const user = await User.findOne({ email: session.user.email });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await EdduraSquad.findById(params.id)
+    const squad = await EdduraSquad.findById(id)
       .populate('creatorId', 'firstName lastName email profilePicture')
       .populate('memberIds', 'firstName lastName email profilePicture platformStats');
 
@@ -153,7 +154,7 @@ export async function GET(
     }
 
     // Check if user is a member
-    const isMember = squad.memberIds.some((member: any) => member._id.toString() === user._id.toString());
+    const isMember = squad.memberIds.some((member: any) => member._id.toString() === (user as any)._id.toString());
     if (!isMember) {
       return NextResponse.json({ error: 'User is not a member of this squad' }, { status: 403 });
     }

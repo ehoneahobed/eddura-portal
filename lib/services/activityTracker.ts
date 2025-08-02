@@ -1,4 +1,4 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import { ProgressTracker } from './progressTracker';
 
 interface UserActivity {
@@ -14,7 +14,7 @@ export class ActivityTracker {
    */
   static async trackMeaningfulActivity(userId: string, action: string, metadata?: any): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const activity: UserActivity = {
         userId,
@@ -139,7 +139,7 @@ export class ActivityTracker {
    */
   static async getUserStreak(userId: string): Promise<number> {
     try {
-      await connectToDatabase();
+      await connectDB();
       
       // This would query the activity log to calculate streak
       // For now, we'll use the platformStats.daysActive as a proxy
@@ -158,7 +158,7 @@ export class ActivityTracker {
    */
   static async isUserActiveToday(userId: string): Promise<boolean> {
     try {
-      await connectToDatabase();
+      await connectDB();
       
       const { User } = await import('@/models/User');
       const user = await User.findById(userId);

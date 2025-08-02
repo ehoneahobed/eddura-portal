@@ -104,14 +104,15 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
     // Track peer review activity if the reviewer is a registered user
     try {
-      const reviewerUser = await import('@/models/User').then(m => m.default).findOne({
+      const User = (await import('@/models/User')).default;
+      const reviewerUser = await User.findOne({
         email: validatedData.reviewerEmail
       });
       
       if (reviewerUser) {
         await ActivityTracker.trackPeerReviewActivity(
-          reviewerUser._id.toString(),
-          feedback._id.toString(),
+          (reviewerUser as any)._id.toString(),
+          (feedback as any)._id.toString(),
           documentId
         );
       }

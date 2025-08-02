@@ -8,7 +8,7 @@ import { AdminRole } from "@/types/admin";
 import connectDB from "@/lib/mongodb";
 
 // Create NextAuth configuration
-export const authConfig: NextAuthConfig = {
+export const authOptions: NextAuthConfig = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({

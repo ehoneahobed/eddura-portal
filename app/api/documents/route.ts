@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
     await ActivityTracker.trackDocumentActivity(
       session.user.id,
       'created',
-      document._id.toString()
+      (document as any)._id.toString()
     );
 
     // Update squad progress if user is in squads
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         activityType: 'document_created',
         timestamp: new Date(),
-        metadata: { documentId: document._id.toString() }
+        metadata: { documentId: (document as any)._id.toString() }
       });
     } catch (error) {
       console.error('Error updating squad progress:', error);

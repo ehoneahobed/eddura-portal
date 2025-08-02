@@ -1,4 +1,4 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import connectDB from '@/lib/mongodb';
 import Notification from '@/models/Notification';
 import User from '@/models/User';
 import EdduraSquad from '@/models/Squad';
@@ -32,7 +32,7 @@ export class NotificationService {
    */
   static async createNotification(data: NotificationData): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const notification = new Notification({
         userId: data.userId,
@@ -56,7 +56,7 @@ export class NotificationService {
    */
   static async notifyGoalProgress(squadId: string, goalType: string, progress: number, memberName: string): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const squad = await EdduraSquad.findById(squadId).populate('memberIds');
       if (!squad) return;
@@ -92,7 +92,7 @@ export class NotificationService {
    */
   static async notifyHelpRequest(squadId: string, memberId: string, memberName: string, goalType: string): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const squad = await EdduraSquad.findById(squadId).populate('memberIds');
       if (!squad) return;
@@ -181,7 +181,7 @@ export class NotificationService {
    */
   static async notifyGoalDeadline(squadId: string, goalName: string, daysRemaining: number): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const squad = await EdduraSquad.findById(squadId).populate('memberIds');
       if (!squad) return;
@@ -216,7 +216,7 @@ export class NotificationService {
    */
   static async notifySquadMilestone(squadId: string, milestone: string, progress: number): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const squad = await EdduraSquad.findById(squadId).populate('memberIds');
       if (!squad) return;
@@ -250,7 +250,7 @@ export class NotificationService {
    */
   static async markAsRead(notificationId: string, userId: string): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       await Notification.findOneAndUpdate(
         { _id: notificationId, userId },
@@ -269,7 +269,7 @@ export class NotificationService {
    */
   static async markAllAsRead(userId: string): Promise<void> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       await Notification.updateMany(
         { userId, isRead: false },
@@ -288,7 +288,7 @@ export class NotificationService {
    */
   static async getUnreadCount(userId: string): Promise<number> {
     try {
-      await connectToDatabase();
+      await connectDB();
 
       const count = await Notification.countDocuments({
         userId,
