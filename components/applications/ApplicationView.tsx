@@ -307,7 +307,7 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
                       <div>
               <h1 className="text-3xl font-bold text-gray-900">Application View</h1>
               <p className="text-gray-600 mt-1">
-                {application.scholarshipId?.title || application.name || 'Application'}
+                {application.scholarshipId?.title || 'Application'}
               </p>
               <p className="text-sm text-blue-600 mt-1">
                 You can edit your responses at any time
@@ -359,7 +359,7 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl">
-                {application.scholarshipId?.title || application.name || 'Application'}
+                {application.scholarshipId?.title || 'Application'}
               </CardTitle>
               <CardDescription className="mt-2">
                 Application submitted on {application.submittedAt ? formatDateTime(application.submittedAt) : 'Not submitted yet'}
