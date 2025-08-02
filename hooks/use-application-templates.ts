@@ -133,37 +133,20 @@ export async function createApplicationTemplate(data: ApplicationTemplateFormDat
  * Update an existing application template
  */
 export async function updateApplicationTemplate(id: string, data: Partial<ApplicationTemplateFormData>): Promise<ApplicationTemplate> {
-  console.log('=== UPDATE APPLICATION TEMPLATE FUNCTION ===');
-  console.log('updateApplicationTemplate called with:', { id, data });
-  
-  const url = `/api/application-templates/${id}`;
-  console.log('🌐 Making PUT request to:', url);
-  
-  const requestBody = JSON.stringify(data);
-  console.log('📦 Request body:', requestBody);
-  
-  const response = await fetch(url, {
+  const response = await fetch(`/api/application-templates/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: requestBody,
+    body: JSON.stringify(data),
   });
 
-  console.log('📊 Update response status:', response.status);
-  console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
-  
   if (!response.ok) {
-    console.log('❌ Response not ok, reading error...');
     const error = await response.json();
-    console.error('❌ Update error response:', error);
     throw new Error(error.error || 'Failed to update application template');
   }
 
-  console.log('✅ Response ok, reading result...');
-  const result = await response.json();
-  console.log('✅ Update successful, result:', result);
-  return result;
+  return response.json();
 }
 
 /**
