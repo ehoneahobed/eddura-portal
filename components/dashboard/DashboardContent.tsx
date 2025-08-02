@@ -231,49 +231,59 @@ export default function DashboardContent() {
                       onClick={handleRetakeQuiz}
                       className="h-20 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
                     >
-                      <div className="text-left">
-                        <Brain className="w-6 h-6 mb-2" />
-                        <p className="font-semibold">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
-                        <p className="text-sm opacity-90">{userProfile?.quizCompleted ? 'Update your preferences' : 'Start your career discovery'}</p>
+                      <div className="flex items-start space-x-3 w-full">
+                        <Brain className="w-6 h-6 flex-shrink-0 mt-1" />
+                        <div className="text-left">
+                          <p className="font-semibold">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
+                          <p className="text-sm opacity-90">{userProfile?.quizCompleted ? 'Update your preferences' : 'Start your career discovery'}</p>
+                        </div>
                       </div>
                     </Button>
                     
                     <Link href="/quiz/results">
                       <Button className="h-20 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white">
-                        <div className="text-left">
-                          <Target className="w-6 h-6 mb-2" />
-                          <p className="font-semibold">View Results</p>
-                          <p className="text-sm opacity-90">See your recommendations</p>
+                        <div className="flex items-start space-x-3 w-full">
+                          <Target className="w-6 h-6 flex-shrink-0 mt-1" />
+                          <div className="text-left">
+                            <p className="font-semibold">View Results</p>
+                            <p className="text-sm opacity-90">See your recommendations</p>
+                          </div>
                         </div>
                       </Button>
                     </Link>
                     
                     <Link href="/programs">
                       <Button className="h-20 w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
-                        <div className="text-left">
-                          <GraduationCap className="w-6 h-6 mb-2" />
-                          <p className="font-semibold">Browse Programs</p>
-                          <p className="text-sm opacity-90">Explore universities</p>
+                        <div className="flex items-start space-x-3 w-full">
+                          <GraduationCap className="w-6 h-6 flex-shrink-0 mt-1" />
+                          <div className="text-left">
+                            <p className="font-semibold">Browse Programs</p>
+                            <p className="text-sm opacity-90">Explore universities</p>
+                          </div>
                         </div>
                       </Button>
                     </Link>
                     
                     <Link href="/scholarships">
                       <Button className="h-20 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                        <div className="text-left">
-                          <TrendingUp className="w-6 h-6 mb-2" />
-                          <p className="font-semibold">Browse Scholarships</p>
-                          <p className="text-sm opacity-90">Find funding opportunities</p>
+                        <div className="flex items-start space-x-3 w-full">
+                          <TrendingUp className="w-6 h-6 flex-shrink-0 mt-1" />
+                          <div className="text-left">
+                            <p className="font-semibold">Browse Scholarships</p>
+                            <p className="text-sm opacity-90">Find funding opportunities</p>
+                          </div>
                         </div>
                       </Button>
                     </Link>
                     
                     <Link href="/applications/manage">
                       <Button className="h-20 w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white">
-                        <div className="text-left">
-                          <Target className="w-6 h-6 mb-2" />
-                          <p className="font-semibold">Application Management</p>
-                          <p className="text-sm opacity-90">Manage your applications</p>
+                        <div className="flex items-start space-x-3 w-full">
+                          <Target className="w-6 h-6 flex-shrink-0 mt-1" />
+                          <div className="text-left">
+                            <p className="font-semibold">Application Management</p>
+                            <p className="text-sm opacity-90">Manage your applications</p>
+                          </div>
                         </div>
                       </Button>
                     </Link>
