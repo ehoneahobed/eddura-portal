@@ -11,6 +11,19 @@ import Docxtemplater from 'docxtemplater';
 interface PopulatedApplication extends Omit<IApplication, 'scholarshipId' | 'applicationTemplateId'> {
   scholarshipId: IScholarship;
   applicationTemplateId: IApplicationTemplate;
+  sections: Array<{
+    sectionId: string;
+    responses: Array<{
+      questionId: string;
+      value: any;
+      files?: string[];
+      timestamp: Date;
+      isComplete: boolean;
+    }>;
+    isComplete: boolean;
+    startedAt: Date;
+    completedAt?: Date;
+  }>;
 }
 
 export async function POST(
@@ -43,11 +56,11 @@ export async function POST(
     // Generate Word document content
     const docxContent = generateWordDocument(application);
 
-    // Return Word document as response
+    // Return text document as response (since Word document generation is complex)
     return new NextResponse(docxContent, {
       headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="application-${application.scholarshipId.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.docx"`
+        'Content-Type': 'text/plain',
+        'Content-Disposition': `attachment; filename="application-${application.scholarshipId.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt"`
       }
     });
 
@@ -89,10 +102,10 @@ function generateWordDocument(application: PopulatedApplication): Buffer {
   };
 
   const getQuestionResponse = (sectionId: string, questionId: string) => {
-    const section = application.sections.find((s: any) => s.sectionId === sectionId);
+    const section = application.sections.find(s => s.sectionId === sectionId);
     if (!section) return null;
     
-    const response = section.responses.find((r: any) => r.questionId === questionId);
+    const response = section.responses.find(r => r.questionId === questionId);
     return response;
   };
 
@@ -349,30 +362,29 @@ function generateWordDocument(application: PopulatedApplication): Buffer {
     </w:document>
   `;
 
-  // For now, we'll create a simple text-based document
-  // In a real implementation, you would use a proper Word document library
+  // Create a simple text document
   const content = `
 EDDURA
 Scholarship Application
-${application.scholarshipId.title}
+${application.scholarshipId?.title || 'Unknown Scholarship'}
 
 Application Overview
 ===================
 
-Scholarship: ${application.scholarshipId.title}
-Amount: ${application.scholarshipId.value ? formatCurrency(application.scholarshipId.value, application.scholarshipId.currency) : 'Not specified'}
-Deadline: ${formatDate(application.scholarshipId.deadline)}
-Status: ${application.status.charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ')}
-Started: ${formatDate(application.startedAt.toISOString())}
+Scholarship: ${application.scholarshipId?.title || 'N/A'}
+Amount: ${application.scholarshipId?.value ? formatCurrency(application.scholarshipId.value, application.scholarshipId.currency) : 'Not specified'}
+Deadline: ${application.scholarshipId?.deadline ? formatDate(application.scholarshipId.deadline) : 'N/A'}
+Status: ${application.status ? application.status.charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ') : 'N/A'}
+Started: ${application.startedAt ? formatDate(application.startedAt.toISOString()) : 'N/A'}
 Submitted: ${application.submittedAt ? formatDateTime(application.submittedAt.toISOString()) : 'Not submitted'}
 
-${application.applicationTemplateId.sections.map((section: any) => `
-${section.title}
-${'='.repeat(section.title.length)}
+${application.applicationTemplateId?.sections?.map((section: any) => `
+${section.title || 'Untitled Section'}
+${'='.repeat((section.title || 'Untitled Section').length)}
 
 ${section.description ? `${section.description}\n` : ''}
 
-${section.questions.map((question: any) => {
+${section.questions?.map((question: any) => {
   const response = getQuestionResponse(section.id, question.id);
   const responseValue = response ? formatResponseValue(response.value, question.type) : 'Not answered';
   
@@ -385,11 +397,11 @@ Your Answer: ${responseValue}
 
 ${response?.files && response.files.length > 0 ? `
 Attached Files:
-${response.files.map((file: string) => `- ${file.split('/').pop()}`).join('\n')}
+${response.files.map((file: string) => `- ${file.split('/').pop() || file}`).join('\n')}
 ` : ''}
 `;
-}).join('\n')}
-`).join('\n\n')}
+}).join('\n') || ''}
+`).join('\n\n') || ''}
 
 Powered by Eddura on ${new Date().toLocaleDateString('en-US', {
   year: 'numeric',
