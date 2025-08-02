@@ -304,10 +304,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       console.error('Zod validation error details:', {
-        errors: error.errors,
-        issues: error.issues,
-        formErrors: error.formErrors,
-        fieldErrors: error.fieldErrors
+        errors: error.errors
       });
       return NextResponse.json(
         { 
