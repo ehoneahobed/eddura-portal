@@ -153,27 +153,65 @@ IMPORTANT:
 }
 
 export async function POST(request: NextRequest) {
+  console.log('=== AI REFINE API CALL START ===');
+  
   try {
+    console.log('1. Starting authentication check...');
     const session = await auth();
+    console.log('2. Session result:', { 
+      hasSession: !!session, 
+      userId: session?.user?.id,
+      userEmail: session?.user?.email 
+    });
     
     if (!session?.user?.id) {
+      console.log('3. Authentication failed - no user ID');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('4. Authentication successful, checking AI provider...');
     // Check if AI service is configured
     const activeProvider = getActiveProvider();
+    console.log('5. Active provider check:', { 
+      hasProvider: !!activeProvider,
+      providerName: activeProvider?.name,
+      providerModel: activeProvider?.model,
+      defaultProvider: aiConfig.defaultProvider
+    });
+    
     if (!activeProvider) {
+      console.log('6. No active AI provider found');
       return NextResponse.json(
         { error: 'AI service not configured. Please set up an AI provider API key in your environment variables.' },
         { status: 400 }
       );
     }
 
+    console.log('7. Parsing request body...');
     const body = await request.json();
+    console.log('8. Request body received:', {
+      hasExistingContent: !!body.existingContent,
+      existingContentLength: body.existingContent?.length,
+      refinementType: body.refinementType,
+      documentType: body.documentType,
+      hasCustomInstruction: !!body.customInstruction,
+      customInstructionLength: body.customInstruction?.length,
+      targetLength: body.targetLength,
+      specificFocus: body.specificFocus,
+      tone: body.tone,
+      additionalContext: body.additionalContext
+    });
     
+    console.log('9. Validating input with schema...');
     // Validate input
     const validatedData = RefineRequestSchema.parse(body);
+    console.log('10. Validation successful:', {
+      refinementType: validatedData.refinementType,
+      documentType: validatedData.documentType,
+      contentLength: validatedData.existingContent.length
+    });
 
+    console.log('11. Crafting refinement prompt...');
     // Craft the refinement prompt
     const prompt = craftRefinementPrompt(
       validatedData.existingContent,
@@ -185,24 +223,37 @@ export async function POST(request: NextRequest) {
       validatedData.tone,
       validatedData.additionalContext
     );
+    console.log('12. Prompt crafted, length:', prompt.length);
 
+    console.log('13. Generating refined content...');
     // Generate refined content using the active AI provider
     let refinedContent = '';
     
     if (aiConfig.defaultProvider === 'google') {
+      console.log('14. Using Google AI provider...');
       try {
+        console.log('15. Creating generative model...');
         const model = genAI.getGenerativeModel({ model: activeProvider.model });
+        console.log('16. Generating content...');
         const result = await model.generateContent(prompt);
+        console.log('17. Getting response...');
         const response = await result.response;
         refinedContent = response.text();
+        console.log('18. Content generated successfully, length:', refinedContent.length);
       } catch (aiError) {
-        console.error('AI API error:', aiError);
+        console.error('19. AI API error:', aiError);
+        console.error('20. AI Error details:', {
+          name: aiError.name,
+          message: aiError.message,
+          stack: aiError.stack
+        });
         return NextResponse.json(
-          { error: 'AI service error. Please check your API key and try again.' },
+          { error: 'AI service error. Please check your API key and try again.', details: aiError.message },
           { status: 500 }
         );
       }
     } else {
+      console.log('14. Unsupported AI provider:', aiConfig.defaultProvider);
       // TODO: Add support for other providers (OpenAI, Anthropic)
       return NextResponse.json(
         { error: 'AI provider not yet implemented' },
@@ -211,32 +262,61 @@ export async function POST(request: NextRequest) {
     }
 
     if (!refinedContent) {
+      console.log('21. No refined content generated');
       return NextResponse.json(
-        { error: 'Failed to refine content' },
+        { error: 'Failed to refine content - no content returned from AI' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
+    console.log('22. Preparing response...');
+    const response = {
       content: refinedContent,
       wordCount: refinedContent.trim().split(/\s+/).filter(word => word.length > 0).length,
       characterCount: refinedContent.length,
       originalWordCount: validatedData.existingContent.trim().split(/\s+/).filter(word => word.length > 0).length,
       originalCharacterCount: validatedData.existingContent.length
+    };
+    console.log('23. Response prepared:', {
+      wordCount: response.wordCount,
+      characterCount: response.characterCount,
+      originalWordCount: response.originalWordCount,
+      originalCharacterCount: response.originalCharacterCount
     });
 
+    console.log('=== AI REFINE API CALL SUCCESS ===');
+    return NextResponse.json(response);
+
   } catch (error) {
+    console.error('=== AI REFINE API CALL ERROR ===');
+    console.error('Error type:', typeof error);
+    console.error('Error constructor:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     if (error instanceof z.ZodError) {
-      console.error('Validation error:', error.errors);
+      console.error('Zod validation error details:', {
+        errors: error.errors,
+        issues: error.issues,
+        formErrors: error.formErrors,
+        fieldErrors: error.fieldErrors
+      });
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { 
+          error: 'Invalid request data', 
+          details: error.errors,
+          message: 'Please check your input data and try again'
+        },
         { status: 400 }
       );
     }
     
-    console.error('Error refining AI content:', error);
+    console.error('Unexpected error in AI refine:', error);
     return NextResponse.json(
-      { error: 'Failed to refine content' },
+      { 
+        error: 'Failed to refine content',
+        message: error.message || 'An unexpected error occurred'
+      },
       { status: 500 }
     );
   }

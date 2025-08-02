@@ -125,25 +125,56 @@ export default function AIRefinementModal({
 
     setLoading(true);
     try {
+      const requestBody = {
+        existingContent,
+        documentType,
+        ...formData
+      };
+      
+      console.log('=== AI REFINE FRONTEND REQUEST ===');
+      console.log('Request body:', {
+        hasExistingContent: !!existingContent,
+        existingContentLength: existingContent?.length,
+        documentType,
+        refinementType: formData.refinementType,
+        hasCustomInstruction: !!formData.customInstruction,
+        customInstructionLength: formData.customInstruction?.length,
+        targetLength: formData.targetLength,
+        specificFocus: formData.specificFocus,
+        tone: formData.tone,
+        additionalContext: formData.additionalContext
+      });
+      
       const response = await fetch('/api/ai/refine', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          existingContent,
-          documentType,
-          ...formData
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('=== AI REFINE FRONTEND RESPONSE ===');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Response data:', {
+          hasContent: !!data.content,
+          contentLength: data.content?.length,
+          wordCount: data.wordCount,
+          characterCount: data.characterCount,
+          originalWordCount: data.originalWordCount,
+          originalCharacterCount: data.originalCharacterCount
+        });
         
         if (createNewVersion && documentId) {
+          console.log('Creating new version...');
           // Create new version
           const versionTitle = newVersionTitle.trim() || 
             (documentTitle ? `${documentTitle} (Refined Version)` : `Document (Refined Version)`);
+          
+          console.log('Version title:', versionTitle);
           
           const versionResponse = await fetch('/api/documents/version', {
             method: 'POST',
@@ -157,17 +188,22 @@ export default function AIRefinementModal({
             }),
           });
 
+          console.log('Version response status:', versionResponse.status);
+          
           if (versionResponse.ok) {
             const versionData = await versionResponse.json();
+            console.log('Version created successfully:', versionData);
             onContentRefined(data.content, true);
             onOpenChange(false);
             toast.success('New document version created successfully!');
             resetForm();
           } else {
             const versionError = await versionResponse.json();
+            console.error('Version creation failed:', versionError);
             toast.error(versionError.error || 'Failed to create new version');
           }
         } else {
+          console.log('Updating existing document...');
           // Update existing document
           onContentRefined(data.content, false);
           onOpenChange(false);
@@ -176,10 +212,14 @@ export default function AIRefinementModal({
         }
       } else {
         const error = await response.json();
+        console.error('AI refine failed:', error);
         toast.error(error.error || 'Failed to refine content');
       }
     } catch (error) {
-      console.error('Error refining content:', error);
+      console.error('=== AI REFINE FRONTEND ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       toast.error('Failed to refine content');
     } finally {
       setLoading(false);
