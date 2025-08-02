@@ -18,22 +18,10 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    console.log('🔍 [UserProfile API] Looking up user with email:', session.user.email);
     const user = await User.findOne({ email: session.user.email })
       .select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires');
 
-    console.log('🔍 [UserProfile API] User lookup result:', user ? 'Found' : 'Not found');
-    if (user) {
-      console.log('🔍 [UserProfile API] User data:', {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email
-      });
-    }
-
     if (!user) {
-      console.log('🔍 [UserProfile API] User not found, returning 404');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -46,22 +34,22 @@ export async function GET(request: NextRequest) {
       scholarshipsSaved
     ] = await Promise.all([
       // Count application packages created by user
-      Application.countDocuments({ userId: user._id }),
+      Application.countDocuments({ userId: user._id as any }),
       
       // Count documents created by user
-      Document.countDocuments({ userId: user._id, isActive: true }),
+      Document.countDocuments({ userId: user._id as any, isActive: true }),
       
       // Count recommendation letters requested
-      RecommendationRequest.countDocuments({ studentId: user._id }),
+      RecommendationRequest.countDocuments({ studentId: user._id as any }),
       
       // Count recommendation letters received (status = 'received')
       RecommendationRequest.countDocuments({ 
-        studentId: user._id, 
+        studentId: user._id as any, 
         status: 'received' 
       }),
       
       // Count scholarships saved by user
-      SavedScholarship.countDocuments({ userId: user._id })
+      SavedScholarship.countDocuments({ userId: user._id as any })
     ]);
 
     const stats = {
@@ -73,7 +61,7 @@ export async function GET(request: NextRequest) {
     };
 
     const userProfile = {
-      id: user._id.toString(),
+      id: (user._id as any).toString(),
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
