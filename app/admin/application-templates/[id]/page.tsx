@@ -22,7 +22,7 @@ import { useApplicationTemplate } from '@/hooks/use-application-templates';
 import { useScholarship } from '@/hooks/use-scholarships';
 import { ApplicationTemplate, QuestionType, FormSection, Question } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
-import { deleteApplicationTemplate, updateApplicationTemplate } from '@/hooks/use-application-templates';
+import { deleteApplicationTemplate } from '@/hooks/use-application-templates';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 
@@ -92,19 +92,7 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
     }
   };
 
-  const handleToggleActive = async () => {
-    if (!template || !templateId) return;
-    
-    try {
-      await updateApplicationTemplate(templateId, { isActive: !template.isActive });
-      toast.success(`Template ${template.isActive ? 'deactivated' : 'activated'} successfully`);
-      // Refresh the template data
-      window.location.reload();
-    } catch (error) {
-      console.error('Error toggling template status:', error);
-      toast.error('Failed to update template status');
-    }
-  };
+
 
   const formatScholarshipValue = (scholarship: any) => {
     if (!scholarship.value) return null;
@@ -187,23 +175,6 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              onClick={handleToggleActive}
-              variant={template.isActive ? "outline" : "default"}
-              className={`flex items-center gap-2 ${template.isActive ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
-            >
-              {template.isActive ? (
-                <>
-                  <XCircle className="w-4 h-4" />
-                  Deactivate
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  Activate
-                </>
-              )}
-            </Button>
             <Button
               onClick={handleEdit}
               variant="outline"

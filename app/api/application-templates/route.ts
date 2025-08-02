@@ -179,25 +179,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for existing active template to prevent duplicates
-    const duplicateQuery: any = {
-      applicationType: body.applicationType,
-      isActive: true
+    // Check for existing template (any status) to prevent duplicates
+    const existingTemplateQuery: any = {
+      applicationType: body.applicationType
     };
 
     // Add the appropriate ID field based on application type
     if (body.applicationType === 'scholarship' && body.scholarshipId) {
-      duplicateQuery.scholarshipId = body.scholarshipId;
+      existingTemplateQuery.scholarshipId = body.scholarshipId;
     } else if (body.applicationType === 'school' && body.schoolId) {
-      duplicateQuery.schoolId = body.schoolId;
+      existingTemplateQuery.schoolId = body.schoolId;
     } else if (body.applicationType === 'program' && body.programId) {
-      duplicateQuery.programId = body.programId;
+      existingTemplateQuery.programId = body.programId;
     }
 
-    const existingTemplate = await ApplicationTemplate.findOne(duplicateQuery);
+    const existingTemplate = await ApplicationTemplate.findOne(existingTemplateQuery);
     if (existingTemplate) {
-      // Automatically deactivate the existing template and create the new one
-      await ApplicationTemplate.findByIdAndUpdate(existingTemplate._id, { isActive: false });
+      return NextResponse.json(
+        { 
+          error: `An application template already exists for this ${body.applicationType}`,
+          existingTemplateId: existingTemplate._id,
+          existingTemplateTitle: existingTemplate.title,
+          message: `A template titled "${existingTemplate.title}" already exists for this ${body.applicationType}. You can edit the existing template instead of creating a new one.`
+        },
+        { status: 409 }
+      );
     }
     
     const template = new ApplicationTemplate({

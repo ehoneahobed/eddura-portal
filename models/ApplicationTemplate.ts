@@ -222,19 +222,18 @@ ApplicationTemplateSchema.index({ scholarshipId: 1 });
 ApplicationTemplateSchema.index({ isActive: 1 });
 ApplicationTemplateSchema.index({ createdAt: -1 });
 
-// Unique compound index to prevent duplicates
-// This ensures only one active template per scholarship/school/program
+// Unique compound indexes to prevent duplicates
+// This ensures only one template per scholarship/school/program (regardless of active status)
 ApplicationTemplateSchema.index(
   { 
     applicationType: 1, 
-    scholarshipId: 1, 
-    isActive: 1 
+    scholarshipId: 1
   }, 
   { 
     unique: true, 
     partialFilterExpression: { 
       applicationType: 'scholarship',
-      isActive: true 
+      scholarshipId: { $exists: true }
     }
   }
 );
@@ -242,14 +241,13 @@ ApplicationTemplateSchema.index(
 ApplicationTemplateSchema.index(
   { 
     applicationType: 1, 
-    schoolId: 1, 
-    isActive: 1 
+    schoolId: 1
   }, 
   { 
     unique: true, 
     partialFilterExpression: { 
       applicationType: 'school',
-      isActive: true 
+      schoolId: { $exists: true }
     }
   }
 );
@@ -257,14 +255,13 @@ ApplicationTemplateSchema.index(
 ApplicationTemplateSchema.index(
   { 
     applicationType: 1, 
-    programId: 1, 
-    isActive: 1 
+    programId: 1
   }, 
   { 
     unique: true, 
     partialFilterExpression: { 
       applicationType: 'program',
-      isActive: true 
+      programId: { $exists: true }
     }
   }
 );
