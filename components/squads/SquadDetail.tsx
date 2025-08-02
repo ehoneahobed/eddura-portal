@@ -25,6 +25,7 @@ import {
 import SquadLeaderboard from './SquadLeaderboard';
 import InviteMemberModal from './InviteMemberModal';
 import ManageSquadModal from './ManageSquadModal';
+import SquadGoalsModal from './SquadGoalsModal';
 import { toast } from 'sonner';
 
 interface SquadDetailProps {
@@ -38,6 +39,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showManageModal, setShowManageModal] = useState(false);
+  const [showGoalsModal, setShowGoalsModal] = useState(false);
 
   if (isLoading) {
     return (
@@ -103,6 +105,10 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
               Manage Squad
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={() => setShowGoalsModal(true)}>
+            <Target className="w-4 h-4 mr-2" />
+            Manage Goals
+          </Button>
           {!isMember && squad.visibility !== 'private' && (
             <Button size="sm">
               <UserPlus className="w-4 h-4 mr-2" />
@@ -399,6 +405,14 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
           // Refresh the squad data
           window.location.reload();
         }}
+      />
+      
+      <SquadGoalsModal
+        isOpen={showGoalsModal}
+        onClose={() => setShowGoalsModal(false)}
+        squadId={squadId}
+        squadName={squad?.name || ''}
+        isCreator={isCreator}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import EdduraSquad from '@/models/Squad';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
+import { sendSquadInvitationEmail } from '@/lib/email/squad-invitation';
 
 export async function POST(
   request: NextRequest,
@@ -46,25 +47,47 @@ export async function POST(
       return NextResponse.json({ error: 'Squad is at maximum capacity' }, { status: 400 });
     }
 
-    // Find the user to invite
+    // Generate a short code for easy joining
+    const shortCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    // Check if user exists
     const invitedUser = await User.findOne({ email });
-    if (!invitedUser) {
-      return NextResponse.json({ error: 'User not found with this email' }, { status: 404 });
+    
+    if (invitedUser) {
+      // User exists - check if already a member
+      if (squad.memberIds.includes(invitedUser._id as any)) {
+        return NextResponse.json({ error: 'User is already a member of this squad' }, { status: 400 });
+      }
+      
+      // Add user to squad immediately for existing users
+      squad.memberIds.push(invitedUser._id as any);
+      await squad.save();
     }
-
-    // Check if user is already a member
-    if (squad.memberIds.includes(invitedUser._id as any)) {
-      return NextResponse.json({ error: 'User is already a member of this squad' }, { status: 400 });
+    
+    // Send invitation email
+    const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL}/squads/${id}/join?code=${shortCode}`;
+    
+    const emailSent = await sendSquadInvitationEmail({
+      invitedUserEmail: email,
+      invitedUserName: invitedUser?.firstName ? `${invitedUser.firstName} ${invitedUser.lastName}` : undefined,
+      squadName: squad.name,
+      squadDescription: squad.description,
+      inviterName: `${currentUser.firstName} ${currentUser.lastName}`,
+      inviterEmail: currentUser.email,
+      message: message || `You've been invited to join ${squad.name}!`,
+      joinUrl,
+      shortCode
+    });
+    
+    if (!emailSent) {
+      return NextResponse.json({ error: 'Failed to send invitation email' }, { status: 500 });
     }
-
-    // For now, just add the user to the squad
-    // In a real implementation, you would send an email invitation
-    squad.memberIds.push(invitedUser._id as any);
-    await squad.save();
 
     return NextResponse.json({ 
       message: 'Invitation sent successfully',
-      squad: squad
+      squad: squad,
+      shortCode,
+      joinUrl
     });
   } catch (error) {
     console.error('Error inviting member:', error);
