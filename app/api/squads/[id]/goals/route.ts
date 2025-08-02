@@ -139,7 +139,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const goal = squad.goals.id(goalId);
+    const goal = squad.goals.find((g: any) => g._id.toString() === goalId);
     if (!goal) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }

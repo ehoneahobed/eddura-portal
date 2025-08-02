@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,6 +83,7 @@ const timeframes = [
 ];
 
 export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, isCreator }: SquadGoalsModalProps) {
+  const { data: session } = useSession();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('goals');
@@ -473,7 +475,7 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
               <div className="space-y-4">
                 {goals.map((goal) => {
                   const IconComponent = getGoalTypeIcon(goal.type);
-                  const userProgress = goal.memberProgress.find(p => p.userId === 'current-user-id'); // You'll need to get the actual user ID
+                  const userProgress = goal.memberProgress.find(p => p.userId === session?.user?.id);
                   const currentProgress = userProgress?.progress || 0;
                   
                   return (
