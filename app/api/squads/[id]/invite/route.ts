@@ -6,8 +6,9 @@ import connectDB from '@/lib/mongodb';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -23,7 +24,7 @@ export async function POST(
     }
 
     // Find the squad
-    const squad = await EdduraSquad.findById(params.id)
+    const squad = await EdduraSquad.findById(id)
       .populate('creatorId', 'firstName lastName email');
 
     if (!squad) {
