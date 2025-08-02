@@ -25,6 +25,19 @@ import { formatDistanceToNow } from 'date-fns';
 import { deleteApplicationTemplate } from '@/hooks/use-application-templates';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ViewApplicationTemplatePageProps {
   params: Promise<{ id: string }>;
@@ -61,6 +74,8 @@ const getQuestionTypeDisplayName = (type: QuestionType): string => {
 export default function ViewApplicationTemplatePage({ params }: ViewApplicationTemplatePageProps) {
   const router = useRouter();
   const [templateId, setTemplateId] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const { template, error, isLoading } = useApplicationTemplate(templateId || '');
   const { scholarship, isLoading: isLoadingScholarship } = useScholarship(template?.scholarshipId || '');
 
@@ -80,15 +95,22 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
   const handleDelete = async () => {
     if (!template || !templateId) return;
     
-    if (confirm(`Are you sure you want to delete "${template.title}"?`)) {
-      try {
-        await deleteApplicationTemplate(templateId);
-        toast.success('Application template deleted successfully');
-        router.push('/admin/application-templates');
-      } catch (error) {
-        console.error('Error deleting template:', error);
-        toast.error('Failed to delete application template');
-      }
+    if (deleteConfirmation.toLowerCase() !== 'delete') {
+      toast.error('Please type "delete" to confirm deletion');
+      return;
+    }
+    
+    setIsDeleting(true);
+    try {
+      await deleteApplicationTemplate(templateId);
+      toast.success('Application template deleted successfully');
+      router.push('/admin/application-templates');
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast.error('Failed to delete application template');
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmation('');
     }
   };
 
@@ -183,14 +205,51 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
               <Edit className="w-4 h-4" />
               Edit Template
             </Button>
-            <Button
-              onClick={handleDelete}
-              variant="outline"
-              className="flex items-center gap-2 text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Application Template</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the application template "{template.title}".
+                    <br /><br />
+                    To confirm deletion, please type <strong>delete</strong> in the field below.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="delete-confirmation">Type "delete" to confirm</Label>
+                    <Input
+                      id="delete-confirmation"
+                      value={deleteConfirmation}
+                      onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      placeholder="Type 'delete' to confirm"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setDeleteConfirmation('')}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={deleteConfirmation.toLowerCase() !== 'delete' || isDeleting}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete Template'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
