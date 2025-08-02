@@ -47,8 +47,6 @@ export async function POST(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-
-
     // Generate PDF using jsPDF
     const pdfBuffer = await generatePDF(application);
 
@@ -150,7 +148,7 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
       pdf.text('No application sections found.', margin, yPosition);
       yPosition += 10;
     } else {
-            // Process each section
+      // Process each section
       for (const section of application.applicationTemplateId.sections) {
         if (yPosition > pageHeight - 40) {
           pdf.addPage();
@@ -198,78 +196,58 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
         } else {
           // Process questions in this section
           for (const question of section.questions) {
-        if (yPosition > pageHeight - 40) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-        
-        // Question title
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'bold');
-        const questionTitle = `${question.title}${question.required ? ' *' : ''}`;
-        const questionTitleLines = pdf.splitTextToSize(questionTitle, contentWidth);
-        for (const line of questionTitleLines) {
-          if (yPosition > pageHeight - 40) {
-            pdf.addPage();
-            yPosition = margin;
-          }
-          pdf.text(line, margin + 5, yPosition);
-          yPosition += 5;
-        }
-        
-        // Question description
-        if (question.description) {
-          yPosition += 2;
-          pdf.setFontSize(8);
-          pdf.setFont('helvetica', 'italic');
-          const questionDescLines = pdf.splitTextToSize(question.description, contentWidth - 10);
-          for (const line of questionDescLines) {
             if (yPosition > pageHeight - 40) {
               pdf.addPage();
               yPosition = margin;
             }
-            pdf.text(line, margin + 10, yPosition);
+            
+            // Question title
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            const questionTitle = `${question.title}${question.required ? ' *' : ''}`;
+            const questionTitleLines = pdf.splitTextToSize(questionTitle, contentWidth);
+            for (const line of questionTitleLines) {
+              if (yPosition > pageHeight - 40) {
+                pdf.addPage();
+                yPosition = margin;
+              }
+              pdf.text(line, margin + 5, yPosition);
+              yPosition += 5;
+            }
+            
+            // Question description
+            if (question.description) {
+              yPosition += 2;
+              pdf.setFontSize(8);
+              pdf.setFont('helvetica', 'italic');
+              const questionDescLines = pdf.splitTextToSize(question.description, contentWidth - 10);
+              for (const line of questionDescLines) {
+                if (yPosition > pageHeight - 40) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text(line, margin + 10, yPosition);
+                yPosition += 4;
+              }
+            }
+            
+            // Answer
+            yPosition += 3;
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            
+            // Find the section response
+            const sectionResponse = application.sections.find(s => s.sectionId === section.id);
+            const response = sectionResponse?.responses.find(r => r.questionId === question.id);
+            const answerText = response ? formatResponseValue(response.value, question.type) : 'Not answered';
+            
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Answer:', margin + 5, yPosition);
             yPosition += 4;
-          }
-        }
-        
-        // Answer
-        yPosition += 3;
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        
-        // Find the section response
-        const sectionResponse = application.sections.find(s => s.sectionId === section.id);
-        const response = sectionResponse?.responses.find(r => r.questionId === question.id);
-        const answerText = response ? formatResponseValue(response.value, question.type) : 'Not answered';
-        
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Answer:', margin + 5, yPosition);
-        yPosition += 4;
-        
-        pdf.setFont('helvetica', 'normal');
-        const answerLines = pdf.splitTextToSize(answerText, contentWidth - 10);
-        for (const line of answerLines) {
-          if (yPosition > pageHeight - 40) {
-            pdf.addPage();
-            yPosition = margin;
-          }
-          pdf.text(line, margin + 10, yPosition);
-          yPosition += 4;
-        }
-        
-        // Files if any
-        if (response?.files && response.files.length > 0) {
-          yPosition += 3;
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('Attached Files:', margin + 5, yPosition);
-          yPosition += 4;
-          
-          pdf.setFont('helvetica', 'normal');
-          for (const file of response.files) {
-            const fileName = file.split('/').pop() || file;
-            const fileLines = pdf.splitTextToSize(`- ${fileName}`, contentWidth - 10);
-            for (const line of fileLines) {
+            
+            pdf.setFont('helvetica', 'normal');
+            const answerLines = pdf.splitTextToSize(answerText, contentWidth - 10);
+            for (const line of answerLines) {
               if (yPosition > pageHeight - 40) {
                 pdf.addPage();
                 yPosition = margin;
@@ -277,14 +255,35 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
               pdf.text(line, margin + 10, yPosition);
               yPosition += 4;
             }
+            
+            // Files if any
+            if (response?.files && response.files.length > 0) {
+              yPosition += 3;
+              pdf.setFont('helvetica', 'bold');
+              pdf.text('Attached Files:', margin + 5, yPosition);
+              yPosition += 4;
+              
+              pdf.setFont('helvetica', 'normal');
+              for (const file of response.files) {
+                const fileName = file.split('/').pop() || file;
+                const fileLines = pdf.splitTextToSize(`- ${fileName}`, contentWidth - 10);
+                for (const line of fileLines) {
+                  if (yPosition > pageHeight - 40) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(line, margin + 10, yPosition);
+                  yPosition += 4;
+                }
+              }
+            }
+            
+            yPosition += 8;
           }
         }
         
-        yPosition += 8;
+        yPosition += 5;
       }
-        }
-      
-      yPosition += 5;
     }
     
     // Add footer
