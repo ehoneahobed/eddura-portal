@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import User from '@/models/User';
-import UserAchievement from '@/models/Achievement';
+import { UserAchievement } from '@/models/Achievement';
 import connectDB from '@/lib/mongodb';
 
 export async function GET(request: NextRequest) {
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
             }).populate('achievementId');
 
             const totalPoints = achievements.reduce((sum, userAchievement) => {
-              return sum + (userAchievement.pointsEarned || 0);
+              return sum + ((userAchievement as any).pointsEarned || 0);
             }, 0);
 
             return {
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
               achievements: achievements.map(ua => ({
                 name: (ua.achievementId as any)?.name || 'Unknown',
                 category: (ua.achievementId as any)?.category || 'general',
-                points: ua.pointsEarned || 0
+                points: (ua as any).pointsEarned || 0
               })),
               totalAchievementPoints: totalPoints
             };
