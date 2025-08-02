@@ -31,7 +31,6 @@ interface SquadCardProps {
     academicLevel?: string[];
     fieldOfStudy?: string[];
     geographicRegion?: string[];
-    activityLevel?: 'high' | 'medium' | 'low';
     goals: Array<{
       type: string;
       target: number;

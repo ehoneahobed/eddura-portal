@@ -121,7 +121,7 @@ const NotificationSchema: Schema = new Schema<INotification>({
 // Virtual for notification age
 NotificationSchema.virtual('age').get(function() {
   const now = new Date();
-  const created = new Date(this.createdAt);
+  const created = new Date(this.createdAt as string | number | Date);
   const diffInHours = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60));
   
   if (diffInHours < 1) return 'Just now';

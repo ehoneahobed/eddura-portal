@@ -208,7 +208,9 @@ const UserAchievementSchema: Schema = new Schema<IUserAchievement>({
 
 // Virtual for progress percentage
 UserAchievementSchema.virtual('progressPercentage').get(function() {
-  return Math.round((this.currentProgress / this.targetProgress) * 100);
+  const currentProgress = this.currentProgress as number;
+  const targetProgress = this.targetProgress as number;
+  return Math.round((currentProgress / targetProgress) * 100);
 });
 
 // Indexes

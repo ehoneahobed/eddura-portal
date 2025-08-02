@@ -231,7 +231,7 @@ export const authOptions: NextAuthConfig = {
 };
 
 // Export NextAuth handlers and functions
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
 
 // Helper function to check if user has permission
 export function hasPermission(user: any, permission: string): boolean {

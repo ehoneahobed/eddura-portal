@@ -19,8 +19,8 @@ export default function SquadsDashboard() {
   const { squads: mySquads, isLoading: isLoadingMySquads } = useSquads('all');
   const { squads: publicSquads, isLoading: isLoadingPublicSquads } = useSquads('all', 'public');
 
-  const primarySquad = mySquads.find(squad => squad.squadType === 'primary');
-  const secondarySquads = mySquads.filter(squad => squad.squadType === 'secondary');
+  const primarySquad = mySquads.find((squad: any) => squad.squadType === 'primary');
+  const secondarySquads = mySquads.filter((squad: any) => squad.squadType === 'secondary');
 
   if (!session) {
     return (
@@ -71,7 +71,7 @@ export default function SquadsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mySquads.reduce((total, squad) => total + squad.goals.length, 0)}
+              {mySquads.reduce((total: number, squad: any) => total + squad.goals.length, 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all squads
@@ -87,7 +87,7 @@ export default function SquadsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">
               {mySquads.length > 0 
-                ? Math.round(mySquads.reduce((total, squad) => total + squad.completionPercentage, 0) / mySquads.length)
+                ? Math.round(mySquads.reduce((total: number, squad: any) => total + squad.completionPercentage, 0) / mySquads.length)
                 : 0}%
             </div>
             <p className="text-xs text-muted-foreground">
@@ -103,9 +103,9 @@ export default function SquadsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mySquads.reduce((total, squad) => 
-                total + squad.goals.reduce((goalTotal, goal) => 
-                  goalTotal + goal.memberProgress.filter(mp => mp.needsHelp).length, 0
+              {mySquads.reduce((total: number, squad: any) => 
+                total + squad.goals.reduce((goalTotal: number, goal: any) => 
+                  goalTotal + goal.memberProgress.filter((mp: any) => mp.needsHelp).length, 0
                 ), 0
               )}
             </div>
@@ -167,7 +167,7 @@ export default function SquadsDashboard() {
                     <h2 className="text-xl font-semibold">Specialized Groups</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {secondarySquads.map((squad) => (
+                    {secondarySquads.map((squad: any) => (
                       <SquadCard key={squad._id} squad={squad} />
                     ))}
                   </div>
@@ -197,7 +197,7 @@ export default function SquadsDashboard() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {publicSquads.map((squad) => (
+              {publicSquads.map((squad: any) => (
                 <SquadCard key={squad._id} squad={squad} showJoinButton />
               ))}
             </div>

@@ -26,7 +26,7 @@ export default function CreateSquadModal({ open, onOpenChange, primarySquadExist
     maxMembers: 6,
     visibility: 'invite_only' as const,
     formationType: 'general' as const,
-    squadType: 'secondary' as const,
+    squadType: 'secondary' as 'primary' | 'secondary',
     academicLevel: [] as string[],
     fieldOfStudy: [] as string[],
     geographicRegion: [] as string[],

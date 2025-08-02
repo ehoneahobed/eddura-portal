@@ -11,6 +11,72 @@ import { Trophy, Users, Target, TrendingUp, Plus, ArrowRight } from 'lucide-reac
 import { useSquads } from '@/hooks/use-squads';
 import Link from 'next/link';
 
+// Define the Squad interface locally to match the hook's interface
+interface Squad {
+  _id: string;
+  name: string;
+  description: string;
+  maxMembers: number;
+  visibility: 'public' | 'private' | 'invite_only';
+  formationType: 'general' | 'academic_level' | 'field_of_study' | 'geographic' | 'activity_based';
+  academicLevel?: string[];
+  fieldOfStudy?: string[];
+  geographicRegion?: string[];
+  goals: Array<{
+    type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'squad_activity';
+    target: number;
+    timeframe: 'weekly' | 'monthly' | 'quarterly' | 'ongoing';
+    startDate: string;
+    endDate: string;
+    description?: string;
+    individualTarget?: number;
+    currentProgress: number;
+    progressPercentage: number;
+    daysRemaining: number;
+    isOnTrack: boolean;
+    memberProgress: Array<{
+      userId: string;
+      progress: number;
+      target: number;
+      percentage: number;
+      lastActivity: string;
+      needsHelp: boolean;
+      isOnTrack: boolean;
+    }>;
+  }>;
+  squadType: 'primary' | 'secondary';
+  creatorId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture?: string;
+  };
+  memberIds: Array<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture?: string;
+    platformStats?: {
+      documentsCreated: number;
+      applicationsStarted: number;
+      peerReviewsProvided: number;
+      daysActive: number;
+      lastActive: string;
+    };
+  }>;
+  totalApplications: number;
+  totalDocuments: number;
+  totalReviews: number;
+  averageActivityScore: number;
+  memberCount: number;
+  activityLevel: 'high' | 'medium' | 'low';
+  completionPercentage: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function SquadWidget() {
   const { data: session } = useSession();
   const { squads, isLoading } = useSquads('all');
@@ -18,8 +84,8 @@ export default function SquadWidget() {
 
   if (!session) return null;
 
-  const primarySquad = squads.find(squad => squad.squadType === 'primary');
-  const secondarySquads = squads.filter(squad => squad.squadType === 'secondary');
+  const primarySquad = squads.find((squad: Squad) => squad.squadType === 'primary');
+  const secondarySquads = squads.filter((squad: Squad) => squad.squadType === 'secondary');
   const displayedSquads = showAll ? squads : squads.slice(0, 2);
 
   if (isLoading) {
@@ -93,7 +159,7 @@ export default function SquadWidget() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {displayedSquads.map((squad) => (
+          {displayedSquads.map((squad: Squad) => (
             <div key={squad._id} className="flex items-center gap-3 p-3 rounded-lg border">
               <div className="flex items-center gap-3 flex-1">
                 <Avatar className="h-8 w-8">
