@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       .lean();
 
     // Transform activities for frontend
-    const transformedActivities = activities.map(activity => ({
+    const transformedActivities = activities.map((activity: any) => ({
       id: activity._id.toString(),
       type: activity.type,
       title: activity.title,

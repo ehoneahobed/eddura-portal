@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       if (hoursSinceLastLogin > 1) {
         try {
           const activity = new UserActivity({
-            userId: user._id,
+            userId: user._id as any,
             type: 'login',
             title: 'User Login',
             description: 'User logged into the platform',
