@@ -61,7 +61,7 @@ export default function AIRefinementModal({
     customInstruction: '',
     targetLength: '',
     specificFocus: '',
-    tone: '',
+    tone: undefined as string | undefined,
     additionalContext: ''
   });
 
@@ -128,11 +128,18 @@ export default function AIRefinementModal({
       const requestBody = {
         existingContent,
         documentType,
-        ...formData
+        refinementType: formData.refinementType,
+        ...(formData.customInstruction && { customInstruction: formData.customInstruction }),
+        ...(formData.targetLength && { targetLength: formData.targetLength }),
+        ...(formData.specificFocus && { specificFocus: formData.specificFocus }),
+        ...(formData.tone && { tone: formData.tone }),
+        ...(formData.additionalContext && { additionalContext: formData.additionalContext })
       };
       
       console.log('=== AI REFINE FRONTEND REQUEST ===');
-      console.log('Request body:', {
+      console.log('Original form data:', formData);
+      console.log('Filtered request body:', requestBody);
+      console.log('Request body details:', {
         hasExistingContent: !!existingContent,
         existingContentLength: existingContent?.length,
         documentType,
@@ -232,7 +239,7 @@ export default function AIRefinementModal({
       customInstruction: '',
       targetLength: '',
       specificFocus: '',
-      tone: '',
+      tone: undefined,
       additionalContext: ''
     });
     setCreateNewVersion(false);
