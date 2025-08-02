@@ -23,21 +23,21 @@ interface LeaderboardEntry {
   lastName: string;
   email: string;
   profilePicture?: string;
-  tokens: number;
-  totalTokensEarned: number;
-  platformStats: {
-    documentsCreated: number;
-    applicationsStarted: number;
-    peerReviewsProvided: number;
-    daysActive: number;
-    lastActive: string;
+  tokens?: number;
+  totalTokensEarned?: number;
+  platformStats?: {
+    documentsCreated?: number;
+    applicationsStarted?: number;
+    peerReviewsProvided?: number;
+    daysActive?: number;
+    lastActive?: string;
   };
-  referralStats: {
-    totalReferrals: number;
-    successfulReferrals: number;
-    totalRewardsEarned: number;
+  referralStats?: {
+    totalReferrals?: number;
+    successfulReferrals?: number;
+    totalRewardsEarned?: number;
   };
-  achievements: Array<{
+  achievements?: Array<{
     name: string;
     category: string;
     points: number;
@@ -118,16 +118,18 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
   const getScoreValue = (entry: LeaderboardEntry, category: string) => {
     switch (category) {
       case 'tokens':
-        return entry.tokens;
+        return entry.tokens || 0;
       case 'activity':
-        return entry.platformStats.documentsCreated * 10 + 
-               entry.platformStats.applicationsStarted * 15 + 
-               entry.platformStats.peerReviewsProvided * 20 + 
-               entry.platformStats.daysActive * 5;
+        const stats = entry.platformStats || {};
+        return (stats.documentsCreated || 0) * 10 + 
+               (stats.applicationsStarted || 0) * 15 + 
+               (stats.peerReviewsProvided || 0) * 20 + 
+               (stats.daysActive || 0) * 5;
       case 'referrals':
-        return entry.referralStats.successfulReferrals;
+        const referralStats = entry.referralStats || {};
+        return referralStats.successfulReferrals || 0;
       case 'achievements':
-        return entry.achievements.reduce((sum, achievement) => sum + achievement.points, 0);
+        return (entry.achievements || []).reduce((sum, achievement) => sum + (achievement.points || 0), 0);
       default:
         return 0;
     }
@@ -237,7 +239,7 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
                             {entry.firstName} {entry.lastName}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {entry.tokens} tokens
+                            {entry.tokens || 0} tokens
                           </p>
                         </div>
                         <div className="text-right">
@@ -335,9 +337,9 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
                           <p className="font-medium">
                             {entry.firstName} {entry.lastName}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {entry.referralStats.successfulReferrals} successful referrals
-                          </p>
+                                                      <p className="text-sm text-muted-foreground">
+                              {(entry.referralStats?.successfulReferrals || 0)} successful referrals
+                            </p>
                         </div>
                         <div className="text-right">
                           <Badge variant="secondary">

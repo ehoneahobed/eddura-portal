@@ -121,7 +121,28 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      leaderboard,
+      leaderboard: leaderboard.map(user => ({
+        _id: user._id,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        profilePicture: user.profilePicture,
+        tokens: user.tokens || 0,
+        totalTokensEarned: user.totalTokensEarned || 0,
+        platformStats: user.platformStats || {
+          documentsCreated: 0,
+          applicationsStarted: 0,
+          peerReviewsProvided: 0,
+          daysActive: 0,
+          lastActive: new Date().toISOString()
+        },
+        referralStats: user.referralStats || {
+          totalReferrals: 0,
+          successfulReferrals: 0,
+          totalRewardsEarned: 0
+        },
+        achievements: user.achievements || []
+      })),
       userRank,
       category
     });
