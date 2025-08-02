@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { RequirementsTemplateSelector } from './RequirementsTemplateSelector';
 import { RequirementsChecklist } from './RequirementsChecklist';
+import { toast } from 'sonner';
 
 interface ApplicationPackageBuilderProps {
   onComplete: (applicationData: any) => void;
@@ -450,32 +451,17 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
   };
 
   const handleSubmit = async () => {
-    console.log('=== SUBMIT CALLED ===', new Date().toISOString());
-    console.log('isSubmitting before:', isSubmitting);
-    
     if (isSubmitting) {
-      console.log('Already submitting, preventing duplicate submission');
-      return;
+      return; // Prevent duplicate submissions
     }
     
     setIsSubmitting(true);
-    console.log('isSubmitting after:', true);
     
     try {
-      // Debug: Log the data being sent
-      console.log('=== FRONTEND SUBMIT DEBUG ===');
-      console.log('Full applicationData:', applicationData);
-      console.log('name:', applicationData.name);
-      console.log('name type:', typeof applicationData.name);
-      console.log('name length:', applicationData.name?.length);
-      console.log('name trimmed:', applicationData.name?.trim());
-      console.log('name === "undefined":', applicationData.name === 'undefined');
-      console.log('name === undefined:', applicationData.name === undefined);
-      console.log('name === null:', applicationData.name === null);
-      console.log('name === "":', applicationData.name === '');
-      console.log('applicationType:', applicationData.applicationType);
-      console.log('targetId:', applicationData.targetId);
-      console.log('targetName:', applicationData.targetName);
+      // Show loading toast
+      toast.loading('Creating application package...', {
+        id: 'create-application'
+      });
 
       // Create the application first
       const response = await fetch('/api/applications', {
@@ -490,66 +476,30 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
         // Handle 409 conflict (duplicate name)
         if (response.status === 409) {
           if (errorData.suggestedName) {
-            // Ask user if they want to use the suggested name
-            const useSuggestedName = window.confirm(
-              `An application package with the name "${applicationData.name}" already exists. Would you like to use the suggested name "${errorData.suggestedName}" instead?`
-            );
-            
-            if (useSuggestedName) {
-              // Update the name and try again with the new name directly
-              console.log('User accepted suggested name, retrying with:', errorData.suggestedName);
-              
-              // Create a new request with the suggested name
-              const updatedData = { ...applicationData, name: errorData.suggestedName };
-              console.log('Retrying with updated data:', updatedData);
-              
-              const retryResponse = await fetch('/api/applications', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-              });
-
-              if (!retryResponse.ok) {
-                const retryErrorData = await retryResponse.json();
-                throw new Error(retryErrorData.error || 'Failed to create application package with suggested name');
-              }
-
-              const retryResult = await retryResponse.json();
-              const applicationId = retryResult.applicationId;
-
-              // Apply template if one was selected
-              if (applicationData.selectedTemplateId) {
-                try {
-                  const templateResponse = await fetch(`/api/requirements-templates/${applicationData.selectedTemplateId}/apply`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ applicationId })
-                  });
-
-                  if (templateResponse.ok) {
-                    console.log('Template applied successfully');
-                  } else {
-                    console.warn('Failed to apply template, but application was created');
-                  }
-                } catch (templateError) {
-                  console.warn('Error applying template:', templateError);
+            // Show toast with suggested name option
+            toast.dismiss('create-application');
+            toast.error(`Application package "${applicationData.name}" already exists. Use "${errorData.suggestedName}" instead?`, {
+              action: {
+                label: 'Use Suggested Name',
+                onClick: async () => {
+                  await handleSubmitWithName(errorData.suggestedName);
                 }
-              }
-
-              // Call the onComplete callback with the created application
-              onComplete(retryResult.application);
-              return; // Exit early since we handled the retry
-            } else {
-              // User chose not to use suggested name, show error
-              throw new Error(`Application package with this name already exists. Please choose a different name.`);
-            }
+              },
+              duration: 10000
+            });
+            return;
           } else {
             // No suggested name, show generic error
-            throw new Error(`Application package with the name "${applicationData.name}" already exists. Please choose a different name.`);
+            toast.dismiss('create-application');
+            toast.error(`Application package "${applicationData.name}" already exists. Please choose a different name.`);
+            return;
           }
         }
         
-        throw new Error(errorData.error || 'Failed to create application package');
+        // Handle other errors
+        toast.dismiss('create-application');
+        toast.error(errorData.error || 'Failed to create application package');
+        return;
       }
 
       const result = await response.json();
@@ -574,12 +524,81 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
         }
       }
 
+      // Show success toast
+      toast.dismiss('create-application');
+      toast.success('Application package created successfully!', {
+        description: 'Redirecting to your new application...'
+      });
+
       // Call the onComplete callback with the created application
       onComplete(result.application);
     } catch (error) {
       console.error('Error creating application package:', error);
-      // Show error to user (you might want to add a toast notification here)
-      alert(error instanceof Error ? error.message : 'Failed to create application package');
+      toast.dismiss('create-application');
+      toast.error(error instanceof Error ? error.message : 'Failed to create application package');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Helper function to handle submission with a specific name
+  const handleSubmitWithName = async (name: string) => {
+    setIsSubmitting(true);
+    
+    try {
+      toast.loading('Creating application package...', {
+        id: 'create-application-retry'
+      });
+
+      const updatedData = { ...applicationData, name };
+      
+      const retryResponse = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (!retryResponse.ok) {
+        const retryErrorData = await retryResponse.json();
+        toast.dismiss('create-application-retry');
+        toast.error(retryErrorData.error || 'Failed to create application package');
+        return;
+      }
+
+      const retryResult = await retryResponse.json();
+      const applicationId = retryResult.applicationId;
+
+      // Apply template if one was selected
+      if (applicationData.selectedTemplateId) {
+        try {
+          const templateResponse = await fetch(`/api/requirements-templates/${applicationData.selectedTemplateId}/apply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ applicationId })
+          });
+
+          if (templateResponse.ok) {
+            console.log('Template applied successfully');
+          } else {
+            console.warn('Failed to apply template, but application was created');
+          }
+        } catch (templateError) {
+          console.warn('Error applying template:', templateError);
+        }
+      }
+
+      // Show success toast
+      toast.dismiss('create-application-retry');
+      toast.success('Application package created successfully!', {
+        description: 'Redirecting to your new application...'
+      });
+
+      // Call the onComplete callback with the created application
+      onComplete(retryResult.application);
+    } catch (error) {
+      console.error('Error creating application package with suggested name:', error);
+      toast.dismiss('create-application-retry');
+      toast.error(error instanceof Error ? error.message : 'Failed to create application package');
     } finally {
       setIsSubmitting(false);
     }
