@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
 import Scholarship from '@/models/Scholarship';
 import mongoose from 'mongoose';
+import { auth, isAdmin } from '@/lib/auth';
 
 /**
  * Transform MongoDB document to include id field
@@ -148,6 +149,11 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user || !isAdmin(session.user)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await connectDB();
     const body = await request.json();
     
