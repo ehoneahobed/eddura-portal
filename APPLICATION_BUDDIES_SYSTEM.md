@@ -90,11 +90,13 @@ interface BuddyGroup {
   geographicRegion?: string[];
   activityLevel?: 'high' | 'medium' | 'low';
   
-  // Group Goals (Flexible)
+  // Group Goals (Trackable & Measurable)
   goals: {
-    type: 'applications' | 'documents' | 'reviews' | 'activity' | 'custom';
+    type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'group_activity';
     target: number;
+    timeframe: 'weekly' | 'monthly' | 'quarterly' | 'ongoing';
     description?: string;
+    individualTarget?: number; // Per member target
   }[];
 }
 ```
@@ -151,9 +153,42 @@ interface ProgressTracker {
 - ❌ Application deadlines (application-specific)
 - ❌ Target programs/scholarships (user-defined)
 
-### 5. **Smart Progress Sharing**
+### 5. **Trackable Goals & Progress Monitoring**
 
-#### Automated Triggers (Based on Trackable Data)
+#### Measurable Goal Types
+```typescript
+interface GroupGoal {
+  type: 'applications_started' | 'applications_completed' | 'documents_created' | 'peer_reviews_provided' | 'days_active' | 'streak_days' | 'group_activity';
+  target: number;
+  timeframe: 'weekly' | 'monthly' | 'quarterly' | 'ongoing';
+  description?: string;
+  individualTarget?: number; // Per member target
+  currentProgress: number;
+  memberProgress: {
+    userId: string;
+    progress: number;
+    target: number;
+    percentage: number;
+    lastActivity: Date;
+    needsHelp: boolean;
+  }[];
+}
+```
+
+#### Goal Examples
+- **"Start 50 applications as a group this month"** (applications_started)
+- **"Create 100 documents as a group this quarter"** (documents_created)
+- **"Provide 200 peer reviews as a group this month"** (peer_reviews_provided)
+- **"Maintain 7-day activity streak for all members"** (streak_days)
+- **"Have everyone active for 20 days this month"** (days_active)
+
+#### Progress Monitoring
+- **Real-time Tracking**: Monitor progress against goals automatically
+- **Individual Contributions**: Track each member's contribution to group goals
+- **Help Identification**: Flag members who are falling behind
+- **Motivation Alerts**: Celebrate progress and encourage lagging members
+
+### 6. **Smart Progress Sharing**
 ```typescript
 interface ProgressNotification {
   type: 'milestone' | 'activity' | 'contribution' | 'motivation';
@@ -168,12 +203,18 @@ interface ProgressNotification {
 }
 ```
 
-#### Automated Celebrations
+#### Automated Celebrations & Alerts
 - **"🎉 Sarah just created her 10th document!"**
 - **"📝 Your buddy group has provided 50 peer reviews!"**
 - **"📈 Your group is in the top 10% of active groups!"**
 - **"🎯 You're 2 applications away from your group goal!"**
 - **"🔥 Sarah has been active for 30 days straight!"**
+- **"⚠️ John hasn't started any applications this week - maybe he needs help?"**
+- **"📊 Your group is 75% toward the monthly goal of 50 applications!"**
+- **"🏆 Everyone in your group has been active for 7+ days!"**
+- **"🎯 Group Goal Alert: 3 members need to start 2 more applications to reach target!"**
+- **"📈 Progress Update: Your group is ahead of schedule for document creation!"**
+- **"🤝 Support Needed: Sarah hasn't been active for 5 days - reach out to help!"**
 
 ## 🏆 Reliable Leaderboard System
 
@@ -273,7 +314,35 @@ interface Achievement {
 
 ## 🎯 User Experience Flow
 
-### 1. **Flexible Group Formation**
+### 1. **Trackable Goal Setting**
+```
+Create Group → Set Measurable Goals → Monitor Progress → Identify Needs → Provide Support
+```
+
+**Goal Setting Examples:**
+- **"Start 50 applications as a group this month"** - Trackable via application system
+- **"Create 100 documents as a group this quarter"** - Trackable via document system
+- **"Provide 200 peer reviews as a group this month"** - Trackable via feedback system
+- **"Maintain 7-day activity streak for all members"** - Trackable via activity system
+
+### 2. **Progress Monitoring & Help Identification**
+```
+System Tracks Activity → Calculates Progress → Identifies Lagging Members → Alerts Group → Provides Support
+```
+
+**Help Identification Triggers:**
+- **Inactivity Alert**: Member hasn't been active for 5+ days
+- **Progress Lag**: Member is 50%+ behind group average
+- **Goal Risk**: Member's progress puts group goal at risk
+- **Streak Break**: Member breaks activity streak
+
+**Support Actions:**
+- **Automated Alerts**: "Sarah needs help with applications"
+- **Peer Outreach**: Suggest members reach out to struggling peers
+- **Resource Sharing**: Automatically share relevant resources
+- **Motivation Messages**: Send encouraging messages
+
+### 3. **Flexible Group Formation**
 
 ```
 Complete Profile → Analyze Compatibility → Suggest Groups → Join/Create Group → Start Collaborating
@@ -439,8 +508,10 @@ Application Progress:
 ```
 
 #### Group Progress Overview
-- **Collective Goals**: "Apply to 100 scholarships as a group"
+- **Collective Goals**: "Start 50 applications as a group this month"
 - **Individual Contributions**: Each member's progress visible to group
+- **Progress Tracking**: Real-time measurement against goals
+- **Help Identification**: Automatically identify members who need support
 - **Milestone Celebrations**: Group achievements and celebrations
 - **Competitive Elements**: Friendly competition within the group
 

@@ -145,7 +145,7 @@ This document provides a comprehensive, task-by-task implementation plan for the
 - [ ] **2.1.1**: Create BuddyGroup model
   - Define group schema with all fields
   - Add group member relationships
-  - Add group goals and settings
+  - Add trackable group goals and settings
   - Add group activity tracking
 
 - [ ] **2.1.2**: Create GroupMember model
@@ -154,13 +154,19 @@ This document provides a comprehensive, task-by-task implementation plan for the
   - Add member contribution metrics
   - Add member join/leave timestamps
 
-- [ ] **2.1.3**: Create GroupInvitation model
+- [ ] **2.1.3**: Create GroupGoal model
+  - Define trackable goal types
+  - Add goal progress tracking
+  - Add individual member progress
+  - Add goal timeframe management
+
+- [ ] **2.1.4**: Create GroupInvitation model
   - Handle group invitations
   - Track invitation status
   - Add invitation expiration
   - Add invitation analytics
 
-- [ ] **2.1.4**: Add database indexes and relationships
+- [ ] **2.1.5**: Add database indexes and relationships
   - Optimize queries for group operations
   - Add proper foreign key relationships
   - Add compound indexes for performance
@@ -304,19 +310,31 @@ This document provides a comprehensive, task-by-task implementation plan for the
   - Track group contributions
   - Update progress automatically
 
-- [ ] **3.1.2**: Create progress notification system
+- [ ] **3.1.2**: Create goal progress monitoring
+  - Track progress against group goals
+  - Calculate individual contributions
+  - Identify lagging members
+  - Generate progress alerts
+
+- [ ] **3.1.3**: Create help identification system
+  - Monitor member inactivity
+  - Calculate progress gaps
+  - Identify members needing support
+  - Generate help alerts
+
+- [ ] **3.1.4**: Create progress notification system
   - Generate progress notifications
   - Create notification templates
   - Add notification preferences
   - Handle notification delivery
 
-- [ ] **3.1.3**: Add progress milestones
+- [ ] **3.1.5**: Add progress milestones
   - Define milestone thresholds
   - Create milestone celebrations
   - Add milestone tracking
   - Generate milestone notifications
 
-- [ ] **3.1.4**: Create progress analytics
+- [ ] **3.1.6**: Create progress analytics
   - Track individual progress
   - Track group progress
   - Calculate progress trends
@@ -342,7 +360,7 @@ This document provides a comprehensive, task-by-task implementation plan for the
 - [ ] **3.2.1**: Create group progress overview
   - Display collective progress
   - Show individual contributions
-  - Display group goals
+  - Display trackable group goals
   - Show progress trends
 
 - [ ] **3.2.2**: Create member progress cards
@@ -350,22 +368,31 @@ This document provides a comprehensive, task-by-task implementation plan for the
   - Display member contributions
   - Show member activity
   - Add member comparison
+  - Highlight members needing help
 
-- [ ] **3.2.3**: Create group activity feed
+- [ ] **3.2.3**: Create goal progress tracking
+  - Display group goals with progress
+  - Show individual contributions to goals
+  - Add goal completion celebrations
+  - Create new trackable goal setting
+
+- [ ] **3.2.4**: Create help identification dashboard
+  - Show members falling behind
+  - Display progress gaps
+  - Add support suggestions
+  - Create outreach prompts
+
+- [ ] **3.2.5**: Create group activity feed
   - Show recent group activities
   - Display member achievements
   - Show group celebrations
   - Add activity filtering
 
-- [ ] **3.2.4**: Create group goal tracking
-  - Display group goals
-  - Show goal progress
-  - Add goal completion celebrations
-  - Create new goal setting
-
 #### Acceptance Criteria:
 - Group progress is clearly displayed
 - Member contributions are visible
+- Trackable goals are properly monitored
+- Help identification works accurately
 - Activity feed works properly
 - Goal tracking functions correctly
 
@@ -376,7 +403,48 @@ This document provides a comprehensive, task-by-task implementation plan for the
 
 ---
 
-### Task 3.3: Automated Sharing & Notifications
+### Task 3.3: Help Identification & Support System
+**Priority**: High | **Estimated Time**: 3-4 days
+
+#### Subtasks:
+- [ ] **3.3.1**: Create help identification algorithms
+  - Monitor member inactivity patterns
+  - Calculate progress gaps vs group average
+  - Identify goal risk factors
+  - Generate help priority scores
+
+- [ ] **3.3.2**: Create support alert system
+  - Generate help alerts for group leaders
+  - Create peer outreach suggestions
+  - Add support resource recommendations
+  - Create motivation messages
+
+- [ ] **3.3.3**: Create support action system
+  - Add "reach out" prompts for members
+  - Create support resource sharing
+  - Add encouragement message templates
+  - Track support actions taken
+
+- [ ] **3.3.4**: Create support analytics
+  - Track help identification accuracy
+  - Monitor support action effectiveness
+  - Calculate support response rates
+  - Generate support impact reports
+
+#### Acceptance Criteria:
+- Help identification is accurate and timely
+- Support alerts are actionable
+- Support actions are tracked
+- Analytics provide insights
+
+#### Dependencies:
+- Task 3.1 (Progress tracking)
+- Task 2.1 (Group models)
+- Notification system
+
+---
+
+### Task 3.4: Automated Sharing & Notifications
 **Priority**: Medium | **Estimated Time**: 2-3 days
 
 #### Subtasks:
