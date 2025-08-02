@@ -19,7 +19,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Loader2
+  Loader2,
+  Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -302,15 +303,26 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Application View</h1>
-            <p className="text-gray-600 mt-1">
-              {application.scholarshipId.title}
-            </p>
-          </div>
+                      <div>
+              <h1 className="text-3xl font-bold text-gray-900">Application View</h1>
+              <p className="text-gray-600 mt-1">
+                {application.scholarshipId.title}
+              </p>
+              <p className="text-sm text-blue-600 mt-1">
+                You can edit your responses at any time
+              </p>
+            </div>
         </div>
         
         <div className="flex gap-2">
+          <Button 
+            onClick={() => router.push(`/applications/${applicationId}/form`)}
+            variant="default"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Edit className="w-4 h-4" />
+            Edit Application
+          </Button>
           <Button 
             onClick={handleDownloadPDF}
             disabled={isDownloading}
@@ -379,6 +391,18 @@ export default function ApplicationView({ applicationId }: ApplicationViewProps)
                 Progress: {application.progress}%
               </span>
             </div>
+          </div>
+          
+          {/* Edit Application Button */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <Button 
+              onClick={() => router.push(`/applications/${applicationId}/form`)}
+              variant="default"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Application Responses
+            </Button>
           </div>
         </CardContent>
       </Card>
