@@ -6,6 +6,12 @@ import { headers } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if MongoDB URI is configured
+    if (!process.env.MONGODB_URI) {
+      console.warn('MONGODB_URI not configured, skipping event tracking');
+      return NextResponse.json({ success: true, skipped: true });
+    }
+
     await connectDB();
     
     const headersList = await headers();
@@ -50,10 +56,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Event tracking error:', error);
-    return NextResponse.json(
-      { error: 'Failed to track event' },
-      { status: 500 }
-    );
+    // Return success even on error to prevent frontend issues
+    return NextResponse.json({ success: true, error: 'Event tracking failed but continuing' });
   }
 }
 

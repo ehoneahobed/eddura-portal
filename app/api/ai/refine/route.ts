@@ -164,8 +164,16 @@ export async function POST(request: NextRequest) {
     const activeProvider = getActiveProvider();
     if (!activeProvider) {
       return NextResponse.json(
-        { error: 'AI service not configured. Please set up an AI provider API key.' },
-        { status: 500 }
+        { error: 'AI service not configured. Please set up an AI provider API key in your environment variables.' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the API key is actually set (not just the placeholder)
+    if (!process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY === 'your-google-ai-api-key-here') {
+      return NextResponse.json(
+        { error: 'Google AI API key not configured. Please add your API key to the environment variables.' },
+        { status: 400 }
       );
     }
 
@@ -173,8 +181,6 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = RefineRequestSchema.parse(body);
-    
-
 
     // Craft the refinement prompt
     const prompt = craftRefinementPrompt(
@@ -192,10 +198,18 @@ export async function POST(request: NextRequest) {
     let refinedContent = '';
     
     if (aiConfig.defaultProvider === 'google') {
-      const model = genAI.getGenerativeModel({ model: activeProvider.model });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      refinedContent = response.text();
+      try {
+        const model = genAI.getGenerativeModel({ model: activeProvider.model });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        refinedContent = response.text();
+      } catch (aiError) {
+        console.error('AI API error:', aiError);
+        return NextResponse.json(
+          { error: 'AI service error. Please check your API key and try again.' },
+          { status: 500 }
+        );
+      }
     } else {
       // TODO: Add support for other providers (OpenAI, Anthropic)
       return NextResponse.json(
