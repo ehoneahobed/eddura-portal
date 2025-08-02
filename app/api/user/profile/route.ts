@@ -10,16 +10,12 @@ import SavedScholarship from '@/models/SavedScholarship';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 [UserProfile API] Starting GET request');
     const session = await auth();
-    console.log('🔍 [UserProfile API] Session data:', session);
     
     if (!session?.user?.email) {
-      console.log('🔍 [UserProfile API] No session user email, returning 401');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🔍 [UserProfile API] Connecting to database...');
     await connectDB();
 
     console.log('🔍 [UserProfile API] Looking up user with email:', session.user.email);
