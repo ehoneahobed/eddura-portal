@@ -4,7 +4,6 @@ import ApplicationTemplate from '@/models/ApplicationTemplate';
 import Scholarship from '@/models/Scholarship';
 import mongoose from 'mongoose';
 import { auth, hasPermission, isAdmin } from '@/lib/auth';
-import { getMockTemplateById, updateMockTemplate, deleteMockTemplate } from '@/lib/mock-data';
 
 /**
  * Transform MongoDB document to include id field
@@ -37,20 +36,10 @@ export async function GET(
     // }
 
     const resolvedParams = await params;
-    let useMockData = false;
-    
-    try {
-      await connectDB();
-    } catch (error) {
-      console.log('Database connection failed, using mock data:', error);
-      useMockData = true;
-    }
+    await connectDB();
     
     let template = null;
-    
-    if (useMockData) {
-      template = getMockTemplateById(resolvedParams.id);
-    } else if (mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+    if (mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
       template = await ApplicationTemplate.findById(resolvedParams.id)
         .populate('scholarshipId', 'title provider')
         .lean();
@@ -105,17 +94,9 @@ export async function PUT(
 
     const resolvedParams = await params;
     console.log('Template ID:', resolvedParams.id);
-    let useMockData = false;
+    await connectDB();
     
-    try {
-      await connectDB();
-    } catch (error) {
-      console.log('Database connection failed, using mock data:', error);
-      useMockData = true;
-    }
-    
-    // For mock data, we don't need to validate ObjectId format
-    if (!useMockData && !mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+    if (!mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
       return NextResponse.json({ error: 'Invalid template ID' }, { status: 400 });
     }
     
@@ -148,19 +129,6 @@ export async function PUT(
           }
         }
       }
-    }
-    
-    if (useMockData) {
-      console.log('Updating mock template...');
-      const updatedTemplate = updateMockTemplate(resolvedParams.id, body);
-      
-      if (!updatedTemplate) {
-        console.log('Mock template not found');
-        return NextResponse.json({ error: 'Application template not found' }, { status: 404 });
-      }
-      
-      console.log('Mock template updated successfully');
-      return NextResponse.json(updatedTemplate);
     }
     
     console.log('Updating template in database...');

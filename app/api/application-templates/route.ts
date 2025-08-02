@@ -4,7 +4,6 @@ import ApplicationTemplate from '@/models/ApplicationTemplate';
 import Scholarship from '@/models/Scholarship';
 import mongoose from 'mongoose';
 import { auth, isAdmin } from '@/lib/auth';
-import { getAllMockTemplates, getMockTemplateById, updateMockTemplate, deleteMockTemplate } from '@/lib/mock-data';
 
 /**
  * Transform MongoDB document to include id field
@@ -51,15 +50,8 @@ function transformTemplates(templates: any[]) {
 export async function GET(request: NextRequest) {
   try {
     console.log('Connecting to database...');
-    let useMockData = false;
-    
-    try {
-      await connectDB();
-      console.log('Database connected successfully');
-    } catch (error) {
-      console.log('Database connection failed, using mock data:', error);
-      useMockData = true;
-    }
+    await connectDB();
+    console.log('Database connected successfully');
     
     const { searchParams } = new URL(request.url);
     const scholarshipId = searchParams.get('scholarshipId');
@@ -69,60 +61,6 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('isActive');
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
-    
-    // Use mock data if database connection failed
-    if (useMockData) {
-      console.log('Using mock data for templates');
-      let templates = getAllMockTemplates();
-      
-      // Apply filters
-      if (scholarshipId) {
-        templates = templates.filter(t => t.scholarshipId === scholarshipId);
-      }
-      
-      if (isActive !== null && isActive !== undefined && isActive !== '') {
-        templates = templates.filter(t => t.isActive === (isActive === 'true'));
-      }
-      
-      if (search) {
-        templates = templates.filter(t => 
-          t.title.toLowerCase().includes(search.toLowerCase()) ||
-          (t.description && t.description.toLowerCase().includes(search.toLowerCase()))
-        );
-      }
-      
-      // Apply sorting
-      templates.sort((a, b) => {
-        const aValue = a[sortBy as keyof ApplicationTemplate];
-        const bValue = b[sortBy as keyof ApplicationTemplate];
-        
-        if (sortOrder === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-        }
-      });
-      
-      const totalCount = templates.length;
-      const skip = (page - 1) * limit;
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasNextPage = page < totalPages;
-      const hasPrevPage = page > 1;
-      
-      const paginatedTemplates = templates.slice(skip, skip + limit);
-      
-      return NextResponse.json({
-        templates: paginatedTemplates,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalCount,
-          hasNextPage,
-          hasPrevPage,
-          limit
-        }
-      });
-    }
     
     // Build query for MongoDB
     let query: any = {};
