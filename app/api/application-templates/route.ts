@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import ApplicationTemplate from '@/models/ApplicationTemplate';
 import Scholarship from '@/models/Scholarship';
 import mongoose from 'mongoose';
+import { auth, isAdmin } from '@/lib/auth';
 
 /**
  * Transform MongoDB document to include id field
@@ -148,6 +149,11 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user || !isAdmin(session.user)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await connectDB();
     const body = await request.json();
     
@@ -179,29 +185,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for existing template to prevent duplicates
-    const duplicateQuery: any = {
-      applicationType: body.applicationType,
-      isActive: true
+    // Check for existing template (any status) to prevent duplicates
+    const existingTemplateQuery: any = {
+      applicationType: body.applicationType
     };
 
     // Add the appropriate ID field based on application type
     if (body.applicationType === 'scholarship' && body.scholarshipId) {
-      duplicateQuery.scholarshipId = body.scholarshipId;
+      existingTemplateQuery.scholarshipId = body.scholarshipId;
     } else if (body.applicationType === 'school' && body.schoolId) {
-      duplicateQuery.schoolId = body.schoolId;
+      existingTemplateQuery.schoolId = body.schoolId;
     } else if (body.applicationType === 'program' && body.programId) {
-      duplicateQuery.programId = body.programId;
+      existingTemplateQuery.programId = body.programId;
     }
 
-    const existingTemplate = await ApplicationTemplate.findOne(duplicateQuery);
+    const existingTemplate = await ApplicationTemplate.findOne(existingTemplateQuery);
     if (existingTemplate) {
       return NextResponse.json(
         { 
-          error: `An active application template already exists for this ${body.applicationType}`,
+          error: `An application template already exists for this ${body.applicationType}`,
           existingTemplateId: existingTemplate._id,
           existingTemplateTitle: existingTemplate.title,
-          message: `A template titled "${existingTemplate.title}" is already active for this ${body.applicationType}. You can either edit the existing template or create a new one with a different title.`
+          message: `A template titled "${existingTemplate.title}" already exists for this ${body.applicationType}. You can edit the existing template instead of creating a new one.`
         },
         { status: 409 }
       );

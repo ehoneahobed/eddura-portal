@@ -50,7 +50,6 @@ import SearchableScholarshipSelect from '@/components/ui/searchable-scholarship-
 // --- Refactored: use SectionEditor for each section ---
 // Import SectionEditor
 import SectionEditor from './SectionEditor';
-import useSWRMutation from 'swr/mutation';
 
 interface ApplicationTemplateFormProps {
   template?: ApplicationTemplate;
@@ -89,16 +88,7 @@ const _fileTypes = [
   'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', '7z'
 ];
 
-// --- SWR mutation fetcher for submitting the application template ---
-async function submitTemplate(url: string, { arg }: { arg: ApplicationTemplate }) {
-  const res = await fetch(url, {
-    method: arg.id ? 'PUT' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(arg),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return await res.json();
-}
+
 
 export default function ApplicationTemplateForm({ 
   template, 
@@ -307,15 +297,7 @@ export default function ApplicationTemplateForm({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Fix: Dynamically set the endpoint for SWR mutation based on create vs update
-  const mutationEndpoint = template?.id
-    ? `/api/application-templates/${template.id}`
-    : '/api/application-templates';
 
-  const { trigger: submitTemplateMutation, isMutating, error: submitError } = useSWRMutation(
-    mutationEndpoint,
-    submitTemplate
-  );
 
   const handleFormSubmit = async (data: ApplicationTemplate) => {
     // Validate that we have at least one section with questions
@@ -366,9 +348,8 @@ export default function ApplicationTemplateForm({
     // Clear saved data before submitting
     clearSavedData();
     try {
-      await submitTemplateMutation(submissionData);
-      toast.success('Application template created successfully');
-      onSubmit(submissionData); // Call the original onSubmit prop
+      // Use the onSubmit prop instead of SWR mutation to avoid double submission
+      onSubmit(submissionData);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create application template';
       toast.error(errorMessage);
@@ -899,11 +880,11 @@ export default function ApplicationTemplateForm({
           </Button>
           <Button
             type="submit"
-            disabled={isLoading || isMutating}
+            disabled={isLoading}
             className="flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            {isLoading || isMutating ? 'Saving...' : 'Save Template'}
+            {isLoading ? 'Saving...' : 'Save Template'}
           </Button>
         </div>
       </form>

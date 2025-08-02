@@ -34,9 +34,9 @@ export default function CreateApplicationTemplatePage() {
     
     try {
       const templateData = data as ApplicationTemplateFormData;
-      await createApplicationTemplate(templateData);
+      const createdTemplate = await createApplicationTemplate(templateData);
       toast.success('Application template created successfully');
-      router.push('/admin/application-templates');
+      router.push(`/admin/application-templates/${createdTemplate.id}`);
     } catch (error: any) {
       console.error('Error creating template:', error);
       
@@ -51,7 +51,6 @@ export default function CreateApplicationTemplatePage() {
       }
       
       // Check if this is a 409 conflict error
-      // The error might be a JSON string with conflict information
       if ((parsedError as any).status === 409 || (error as any).status === 409 || 
           (parsedError.existingTemplateId && parsedError.error && parsedError.error.includes('already exists'))) {
         const conflictError = parsedError.existingTemplateId ? parsedError : error;

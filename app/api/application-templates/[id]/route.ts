@@ -161,7 +161,7 @@ export async function DELETE(
 ) {
   try {
     const session = await auth();
-    if (!session?.user || !isAdmin(session.user) || !hasPermission(session.user, 'template:delete')) {
+    if (!session?.user || !isAdmin(session.user)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
