@@ -3,6 +3,7 @@ import User from '@/models/User';
 import EdduraSquad from '@/models/Squad';
 import { Document } from '@/models/Document';
 import { Application } from '@/models/Application';
+import { NotificationService } from './notificationService';
 
 interface ActivityEvent {
   userId: string;
@@ -28,8 +29,11 @@ export class ProgressTracker {
       // Update squad progress for all user's squads
       await this.updateSquadProgress(user, event);
 
-      // Check for help identification
-      await this.checkHelpIdentification(user);
+          // Check for help identification
+    await this.checkHelpIdentification(user);
+
+    // Send notifications for significant progress
+    await this.sendProgressNotifications(user, event);
 
     } catch (error) {
       console.error('Error tracking activity:', error);
@@ -245,8 +249,67 @@ export class ProgressTracker {
       });
 
       if (needsHelp) {
-        // TODO: Send notification to squad members
-        console.log(`User ${user.firstName} ${user.lastName} needs help in squad ${squad.name}`);
+        // Send notification to squad members
+        const goal = squad.goals.find((g: any) => {
+          const memberProgress = g.memberProgress.find((mp: any) => mp.userId.toString() === user._id.toString());
+          return memberProgress && memberProgress.needsHelp;
+        });
+
+        if (goal) {
+          await NotificationService.notifyHelpRequest(
+            squad._id.toString(),
+            user._id.toString(),
+            `${user.firstName} ${user.lastName}`,
+            goal.type
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * Send progress notifications for significant milestones
+   */
+  private static async sendProgressNotifications(user: any, event: ActivityEvent): Promise<void> {
+    const userSquads = await EdduraSquad.find({
+      memberIds: user._id
+    });
+
+    for (const squad of userSquads) {
+      // Check for goal progress milestones (25%, 50%, 75%, 100%)
+      for (const goal of squad.goals) {
+        const memberProgress = goal.memberProgress.find((mp: any) => mp.userId.toString() === user._id.toString());
+        
+        if (memberProgress) {
+          const progress = memberProgress.percentage;
+          const previousProgress = progress - (event.activityType === 'platform_activity' ? 1 : 0);
+          
+          // Check if user crossed a milestone
+          const milestones = [25, 50, 75, 100];
+          const crossedMilestone = milestones.find(m => previousProgress < m && progress >= m);
+          
+          if (crossedMilestone) {
+            await NotificationService.notifyGoalProgress(
+              squad._id.toString(),
+              goal.type,
+              progress,
+              `${user.firstName} ${user.lastName}`
+            );
+          }
+        }
+      }
+
+      // Check for squad milestones
+      const squadProgress = squad.completionPercentage;
+      const milestones = [25, 50, 75, 100];
+      const crossedMilestone = milestones.find(m => squadProgress >= m);
+      
+      if (crossedMilestone && squadProgress === crossedMilestone) {
+        await NotificationService.notifySquadMilestone(
+          squad._id.toString(),
+          `${crossedMilestone}% Complete`,
+          squadProgress
+        );
       }
     }
   }
