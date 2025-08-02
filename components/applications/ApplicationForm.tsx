@@ -398,6 +398,49 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
     }
   };
 
+  const isQuestionAnswered = (question: Question) => {
+    // Handle GPA and test_score questions that have separate value and scale/type fields
+    if (question.type === 'gpa') {
+      const gpaValue = responses[`${question.id}_value`];
+      const gpaScale = responses[`${question.id}_scale`];
+      return !!(gpaValue && gpaScale);
+    }
+    
+    if (question.type === 'test_score') {
+      const testValue = responses[`${question.id}_value`];
+      const testType = responses[`${question.id}_type`];
+      return !!(testValue && testType);
+    }
+    
+    const response = responses[question.id];
+    if (!response) return false;
+    
+    if (Array.isArray(response)) {
+      return response.length > 0;
+    }
+    
+    if (typeof response === 'string') {
+      return response.trim().length > 0;
+    }
+    
+    return true;
+  };
+
+  const getMissingRequiredFields = () => {
+    if (!currentSection) return [];
+    
+    const missingFields: string[] = [];
+    const requiredQuestions = currentSection.questions.filter((q: Question) => q.required);
+    
+    requiredQuestions.forEach((question: Question) => {
+      if (!isQuestionAnswered(question)) {
+        missingFields.push(question.title);
+      }
+    });
+    
+    return missingFields;
+  };
+
   const canProceed = () => {
     if (!currentSection) return false;
     
@@ -1008,6 +1051,25 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Edit Mode Banner for Submitted Applications */}
+        {application?.status === 'submitted' && (
+          <div className="mb-6">
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <h3 className="font-medium text-blue-900">Application Submitted</h3>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Your application has been submitted. You can still edit your responses, but changes will be saved as a new version.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
           {/* Left Sidebar - Section Info */}
           <div className="lg:col-span-2">
@@ -1065,26 +1127,69 @@ export default function ApplicationForm({ applicationId }: ApplicationFormProps)
                     )}
                   </CardHeader>
                   <CardContent className="space-y-8">
-                    {currentSection?.questions.map((question, index) => (
-                      <div key={question.id} className="space-y-4 p-6 border border-gray-200 rounded-lg bg-white">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {index + 1}. {question.title}
-                          </h3>
-                          {question.required && (
-                            <Badge variant="destructive" className="text-xs">
-                              Required
-                            </Badge>
+                    {currentSection?.questions.map((question, index) => {
+                      const isAnswered = isQuestionAnswered(question);
+                      const isRequiredAndUnanswered = question.required && !isAnswered;
+                      
+                      return (
+                        <div 
+                          key={question.id} 
+                          className={cn(
+                            "space-y-4 p-6 border rounded-lg bg-white transition-colors",
+                            isRequiredAndUnanswered 
+                              ? "border-red-300 bg-red-50/30" 
+                              : "border-gray-200"
                           )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {index + 1}. {question.title}
+                            </h3>
+                            <div className="flex items-center space-x-2">
+                              {isRequiredAndUnanswered && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Missing
+                                </Badge>
+                              )}
+                              {question.required && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Required
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          {question.description && (
+                            <p className="text-gray-600">{question.description}</p>
+                          )}
+                          <div className="mt-4">
+                            {renderQuestion(question)}
+                          </div>
                         </div>
-                        {question.description && (
-                          <p className="text-gray-600">{question.description}</p>
-                        )}
-                        <div className="mt-4">
-                          {renderQuestion(question)}
+                      );
+                    })}
+                    
+                    {/* Validation Banner */}
+                    {!canProceed() && getMissingRequiredFields().length > 0 && (
+                      <div className="mt-6 p-4 border border-red-200 bg-red-50 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-red-900">Required Fields Missing</h4>
+                            <p className="text-sm text-red-700 mt-1">
+                              Please complete the following required fields before proceeding:
+                            </p>
+                            <ul className="text-sm text-red-700 mt-2 space-y-1">
+                              {getMissingRequiredFields().map((field, index) => (
+                                <li key={index} className="flex items-center space-x-2">
+                                  <span className="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+                                  <span>{field}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    ))}
+                    )}
                     
                     {/* Navigation */}
                     <div className="flex justify-between items-center pt-6 border-t border-gray-200">
