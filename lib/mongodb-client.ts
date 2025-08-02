@@ -12,8 +12,7 @@ if (!uri) {
     console.warn('MONGODB_URI not available during build, using mock client');
     clientPromise = Promise.resolve({} as MongoClient);
   } else {
-    console.warn('MONGODB_URI not available in development, using mock client');
-    clientPromise = Promise.resolve({} as MongoClient);
+    throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
   }
 } else if (process.env.NODE_ENV === "development") {
   // In development mode, use a global variable so that the value
