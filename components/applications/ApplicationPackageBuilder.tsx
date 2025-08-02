@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,7 @@ import { RequirementsChecklist } from './RequirementsChecklist';
 import { toast } from 'sonner';
 
 interface ApplicationPackageBuilderProps {
-  onComplete: (applicationData: any) => void;
+  onComplete?: (applicationData: any) => void;
   onCancel: () => void;
   prefillData?: {
     applicationType?: 'scholarship' | 'school' | 'program' | 'external';
@@ -49,6 +50,7 @@ interface ApplicationPackageBuilderProps {
     applicationDeadline?: string;
     requirements?: any[];
   };
+  autoNavigate?: boolean;
 }
 
 type Step = 'basic-info' | 'target-selection' | 'deadline-setup' | 'template-selection' | 'requirements-review' | 'finalize';
@@ -85,8 +87,10 @@ interface Scholarship {
 export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps> = ({
   onComplete,
   onCancel,
-  prefillData
+  prefillData,
+  autoNavigate = true
 }) => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>('basic-info');
   const [applicationData, setApplicationData] = useState({
     name: '',
@@ -530,8 +534,15 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
         description: 'Redirecting to your new application...'
       });
 
-      // Call the onComplete callback with the created application
-      onComplete(result.application);
+      // Call the onComplete callback if provided
+      if (onComplete) {
+        onComplete(result.application);
+      }
+
+      // Navigate to the new application if autoNavigate is enabled
+      if (autoNavigate && result.applicationId) {
+        router.push(`/applications/${result.applicationId}`);
+      }
     } catch (error) {
       console.error('Error creating application package:', error);
       toast.dismiss('create-application');
@@ -593,8 +604,15 @@ export const ApplicationPackageBuilder: React.FC<ApplicationPackageBuilderProps>
         description: 'Redirecting to your new application...'
       });
 
-      // Call the onComplete callback with the created application
-      onComplete(retryResult.application);
+      // Call the onComplete callback if provided
+      if (onComplete) {
+        onComplete(retryResult.application);
+      }
+
+      // Navigate to the new application if autoNavigate is enabled
+      if (autoNavigate && retryResult.applicationId) {
+        router.push(`/applications/${retryResult.applicationId}`);
+      }
     } catch (error) {
       console.error('Error creating application package with suggested name:', error);
       toast.dismiss('create-application-retry');

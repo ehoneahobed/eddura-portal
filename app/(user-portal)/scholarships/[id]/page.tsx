@@ -292,42 +292,15 @@ function ScholarshipDetailContent() {
   };
 
   const handleApplicationPackageComplete = async (applicationData: any) => {
-    if (!scholarship) return;
-
-    setIsCreatingApplication(true);
-    try {
-      // Create the application with the package data
-      const response = await fetch('/api/applications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scholarshipId: scholarshipId,
-          applicationType: 'scholarship',
-          applicationPackageData: applicationData,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success('Application package created successfully!');
-        setIsApplicationPackageModalOpen(false);
-        
-        // Refresh the scholarship data to update the UI
-        await mutate();
-        
-        // Navigate to the new application
-        router.push(`/applications/${data.applicationId}`);
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to create application package');
-      }
-    } catch (error) {
-      console.error('Error creating application package:', error);
-      toast.error('Failed to create application package');
-    } finally {
-      setIsCreatingApplication(false);
+    // Close the modal
+    setIsApplicationPackageModalOpen(false);
+    
+    // Refresh the scholarship data to update the UI
+    await mutate();
+    
+    // Navigate to the new application if we have the application data
+    if (applicationData && applicationData._id) {
+      router.push(`/applications/${applicationData._id}`);
     }
   };
 
@@ -986,6 +959,7 @@ function ScholarshipDetailContent() {
             <ApplicationPackageBuilder
               onComplete={handleApplicationPackageComplete}
               onCancel={handleApplicationPackageCancel}
+              autoNavigate={false}
               prefillData={{
                 applicationType: 'scholarship',
                 targetId: scholarshipId,
