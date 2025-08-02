@@ -265,7 +265,8 @@ export default function CreateDocumentDialog({
     setFormData(prev => ({ ...prev, content }));
   };
 
-  const handleAIContentRefined = (content: string) => {
+  const handleAIContentRefined = (content: string, createNewVersion?: boolean) => {
+    // For new document creation, we always update the current form
     setFormData(prev => ({ ...prev, content }));
   };
 

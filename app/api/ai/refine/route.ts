@@ -169,14 +169,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if the API key is actually set (not just the placeholder)
-    if (!process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY === 'your-google-ai-api-key-here') {
-      return NextResponse.json(
-        { error: 'Google AI API key not configured. Please add your API key to the environment variables.' },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
     
     // Validate input
@@ -235,8 +227,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Invalid request data', details: error.errors },
         { status: 400 }
       );
     }

@@ -26,9 +26,11 @@ import { toast } from 'sonner';
 interface AIRefinementModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onContentRefined: (content: string) => void;
+  onContentRefined: (content: string, createNewVersion?: boolean) => void;
   existingContent: string;
   documentType?: DocumentType;
+  documentId?: string;
+  documentTitle?: string;
 }
 
 type RefinementType = 
@@ -46,9 +48,12 @@ export default function AIRefinementModal({
   onOpenChange,
   onContentRefined,
   existingContent,
-  documentType
+  documentType,
+  documentId,
+  documentTitle
 }: AIRefinementModalProps) {
   const [loading, setLoading] = useState(false);
+  const [createNewVersion, setCreateNewVersion] = useState(false);
   const [formData, setFormData] = useState({
     refinementType: '' as RefinementType,
     customInstruction: '',
@@ -132,10 +137,38 @@ export default function AIRefinementModal({
 
       if (response.ok) {
         const data = await response.json();
-        onContentRefined(data.content);
-        onOpenChange(false);
-        toast.success('Content refined successfully!');
-        resetForm();
+        
+        if (createNewVersion && documentId) {
+          // Create new version
+          const versionResponse = await fetch('/api/documents/version', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              originalDocumentId: documentId,
+              title: documentTitle ? `${documentTitle} (Version ${Date.now()})` : `Document Version ${Date.now()}`,
+              content: data.content,
+            }),
+          });
+
+          if (versionResponse.ok) {
+            const versionData = await versionResponse.json();
+            onContentRefined(data.content, true);
+            onOpenChange(false);
+            toast.success('New document version created successfully!');
+            resetForm();
+          } else {
+            const versionError = await versionResponse.json();
+            toast.error(versionError.error || 'Failed to create new version');
+          }
+        } else {
+          // Update existing document
+          onContentRefined(data.content, false);
+          onOpenChange(false);
+          toast.success('Content refined successfully!');
+          resetForm();
+        }
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to refine content');
@@ -157,6 +190,7 @@ export default function AIRefinementModal({
       tone: '',
       additionalContext: ''
     });
+    setCreateNewVersion(false);
   };
 
   const getRefinementPrompt = () => {
@@ -230,6 +264,58 @@ export default function AIRefinementModal({
               ))}
             </div>
           </div>
+
+          {/* Versioning Option */}
+          {documentId && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                How would you like to apply the refinement?
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    !createNewVersion
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setCreateNewVersion(false)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-primary mt-0.5">
+                      <Edit3 className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">Update Current Document</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Replace the content in the current document
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    createNewVersion
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setCreateNewVersion(true)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-primary mt-0.5">
+                      <Copy className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">Create New Version</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Keep the original and create a new document version
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Custom Instruction */}
           {formData.refinementType === 'custom' && (

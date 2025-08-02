@@ -152,8 +152,14 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
     setEditedContent(content);
   };
 
-  const handleAIContentRefined = (content: string) => {
-    setEditedContent(content);
+  const handleAIContentRefined = (content: string, createNewVersion?: boolean) => {
+    if (createNewVersion) {
+      // The new version was already created by the modal
+      // We just need to refresh the page
+      window.location.reload();
+    } else {
+      setEditedContent(content);
+    }
   };
 
   if (isLoading) {
@@ -385,6 +391,8 @@ export default function DocumentViewer({ documentId, onBack }: DocumentViewerPro
         onOpenChange={setAiRefinementModalOpen}
         onContentRefined={handleAIContentRefined}
         existingContent={editedContent}
+        documentId={document?._id}
+        documentTitle={document?.title}
       />
     </div>
   );

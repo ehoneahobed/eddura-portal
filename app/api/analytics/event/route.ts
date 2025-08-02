@@ -6,12 +6,6 @@ import { headers } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if MongoDB URI is configured
-    if (!process.env.MONGODB_URI) {
-      console.warn('MONGODB_URI not configured, skipping event tracking');
-      return NextResponse.json({ success: true, skipped: true });
-    }
-
     await connectDB();
     
     const headersList = await headers();
