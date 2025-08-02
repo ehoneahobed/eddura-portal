@@ -46,25 +46,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Squad is at maximum capacity' }, { status: 400 });
     }
 
-    // Return squad preview (without sensitive information)
-    const squadPreview = {
-      _id: squad._id,
-      name: squad.name,
-      description: squad.description,
-      maxMembers: squad.maxMembers,
-      visibility: squad.visibility,
-      formationType: squad.formationType,
-      academicLevel: squad.academicLevel,
-      fieldOfStudy: squad.fieldOfStudy,
-      geographicRegion: squad.geographicRegion,
-      goals: squad.goals,
-      squadType: squad.squadType,
-      creatorId: squad.creatorId,
-      memberIds: squad.memberIds,
-      memberCount: squad.memberIds.length,
-      activityLevel: squad.activityLevel,
-      completionPercentage: squad.completionPercentage,
-    };
+                    // Return squad preview (without sensitive information)
+                const squadPreview = {
+                  _id: squad._id,
+                  name: squad.name,
+                  description: squad.description,
+                  maxMembers: squad.maxMembers,
+                  visibility: squad.visibility,
+                  formationType: squad.formationType,
+                  academicLevel: squad.academicLevel,
+                  fieldOfStudy: squad.fieldOfStudy,
+                  geographicRegion: squad.geographicRegion,
+                  goals: squad.goals,
+                  squadType: squad.squadType,
+                  creatorId: squad.creatorId,
+                  memberIds: squad.memberIds,
+                  memberCount: squad.memberIds.length,
+                  activityLevel: (squad as any).activityLevel,
+                  completionPercentage: (squad as any).completionPercentage,
+                };
 
     return NextResponse.json({ squad: squadPreview });
   } catch (error) {
