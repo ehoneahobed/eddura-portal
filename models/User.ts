@@ -58,6 +58,21 @@ export interface IUser extends Document {
   autoShareProgress?: boolean;
   autoShareAchievements?: boolean;
   
+  // Token Economy
+  tokens: number;
+  totalTokensEarned: number;
+  totalTokensSpent: number;
+  
+  // Referral System
+  referralCode?: string;
+  referredBy?: string; // Referral code that was used when signing up
+  referralStats?: {
+    totalReferrals: number;
+    successfulReferrals: number;
+    totalRewardsEarned: number;
+    lastReferralAt?: Date;
+  };
+  
   // Quiz & Career Data
   quizResponses?: QuizResponses;
   quizCompleted: boolean;
@@ -577,6 +592,57 @@ const UserSchema: Schema = new Schema<IUser>({
   autoShareAchievements: { 
     type: Boolean, 
     default: true 
+  },
+  
+  // Token Economy
+  tokens: { 
+    type: Number, 
+    default: 0,
+    min: 0 
+  },
+  totalTokensEarned: { 
+    type: Number, 
+    default: 0,
+    min: 0 
+  },
+  totalTokensSpent: { 
+    type: Number, 
+    default: 0,
+    min: 0 
+  },
+  
+  // Referral System
+  referralCode: { 
+    type: String, 
+    unique: true,
+    sparse: true,
+    uppercase: true,
+    minlength: 6,
+    maxlength: 10
+  },
+  referredBy: { 
+    type: String, 
+    uppercase: true 
+  },
+  referralStats: {
+    totalReferrals: { 
+      type: Number, 
+      default: 0,
+      min: 0 
+    },
+    successfulReferrals: { 
+      type: Number, 
+      default: 0,
+      min: 0 
+    },
+    totalRewardsEarned: { 
+      type: Number, 
+      default: 0,
+      min: 0 
+    },
+    lastReferralAt: { 
+      type: Date 
+    }
   },
   
   // Quiz & Career Data

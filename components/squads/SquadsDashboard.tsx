@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Users, Target, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import CreateSquadModal from './CreateSquadModal';
+import JoinSquadModal from './JoinSquadModal';
 import SquadCard from './SquadCard';
 
 export default function SquadsDashboard() {
   const { data: session } = useSession();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [activeTab, setActiveTab] = useState('my-squads');
   
   const { squads: mySquads, isLoading: isLoadingMySquads } = useSquads('all');
@@ -43,10 +45,16 @@ export default function SquadsDashboard() {
             Join collaborative groups to support your application journey
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Squad
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowJoinModal(true)}>
+            <Users className="w-4 h-4 mr-2" />
+            Join Squad
+          </Button>
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Squad
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -254,6 +262,12 @@ export default function SquadsDashboard() {
         open={showCreateModal} 
         onOpenChange={setShowCreateModal}
         primarySquadExists={!!primarySquad}
+      />
+      
+      {/* Join Squad Modal */}
+      <JoinSquadModal 
+        isOpen={showJoinModal} 
+        onClose={() => setShowJoinModal(false)}
       />
     </div>
   );

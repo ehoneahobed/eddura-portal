@@ -47,7 +47,21 @@ export async function POST(
       return NextResponse.json({ error: 'Squad is at maximum capacity' }, { status: 400 });
     }
 
-    // For now, we'll accept any code (in a real implementation, you'd validate against stored codes)
+    // Find and validate the shortcode
+    const shortcode = squad.shortcodes.find(s => 
+      s.code === code.toUpperCase() && 
+      s.expiresAt > new Date() && 
+      !s.usedBy
+    );
+
+    if (!shortcode) {
+      return NextResponse.json({ error: 'Invalid or expired join code' }, { status: 400 });
+    }
+
+    // Mark shortcode as used
+    shortcode.usedBy = currentUser._id as any;
+    shortcode.usedAt = new Date();
+
     // Add user to squad
     squad.memberIds.push(currentUser._id as any);
     await squad.save();
