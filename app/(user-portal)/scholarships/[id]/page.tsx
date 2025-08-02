@@ -674,23 +674,40 @@ function ScholarshipDetailContent() {
               </div>
               
               <div className="flex flex-col gap-2">
-                {hasApplicationForm ? (
+                {/* Always show Prepare Application button for scholarships with application forms */}
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
+                  aria-label={scholarshipStatus?.applyButtonText || "Prepare Application"}
+                  onClick={handleApply}
+                  disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible || isCreatingApplication}
+                >
+                  {isCreatingApplication ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Preparing Application...
+                    </>
+                  ) : (
+                    scholarshipStatus?.applyButtonText || "Prepare Application"
+                  )}
+                </Button>
+                
+
+                
+                {/* Show Request Application Form button as secondary option */}
+                {!hasApplicationForm && !hasRequestedForm && (
                   <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all" 
-                    aria-label={scholarshipStatus?.applyButtonText || "Prepare Application"}
-                    onClick={handleApply}
-                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible || isCreatingApplication}
+                    variant="outline"
+                    className="w-full bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100" 
+                    aria-label="Request Application Form"
+                    onClick={() => setIsRequestDialogOpen(true)}
+                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible}
                   >
-                    {isCreatingApplication ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Preparing Application...
-                      </>
-                    ) : (
-                      scholarshipStatus?.applyButtonText || "Prepare Application"
-                    )}
+                    <FileText className="h-4 w-4 mr-2" />
+                    Request Application Form
                   </Button>
-                ) : hasRequestedForm ? (
+                )}
+                
+                {hasRequestedForm && (
                   <Button 
                     variant="outline"
                     className="w-full bg-yellow-50 border-yellow-200 text-yellow-700" 
@@ -698,15 +715,6 @@ function ScholarshipDetailContent() {
                   >
                     <Clock className="h-4 w-4 mr-2" />
                     Request Submitted
-                  </Button>
-                ) : (
-                  <Button 
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-all" 
-                    aria-label="Request Application Form"
-                    onClick={() => setIsRequestDialogOpen(true)}
-                    disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible}
-                  >
-                    Request Application Form
                   </Button>
                 )}
                 {isSaved ? (
@@ -943,6 +951,7 @@ function ScholarshipDetailContent() {
         open={isApplicationPackageModalOpen} 
         onOpenChange={setIsApplicationPackageModalOpen}
       >
+
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -956,6 +965,15 @@ function ScholarshipDetailContent() {
           </DialogHeader>
           
           <div className="mt-4">
+            <div className="p-4 bg-blue-50 rounded-lg mb-4">
+              <h3 className="text-lg font-semibold mb-2">Test Application Package Builder</h3>
+              <p className="text-gray-600 mb-4">
+                Scholarship: {scholarship?.title}<br/>
+                Target ID: {scholarshipId}<br/>
+                Deadline: {scholarship?.deadline}
+              </p>
+            </div>
+            
             <ApplicationPackageBuilder
               onComplete={handleApplicationPackageComplete}
               onCancel={handleApplicationPackageCancel}
@@ -965,7 +983,6 @@ function ScholarshipDetailContent() {
                 targetId: scholarshipId,
                 targetName: scholarship?.title || '',
                 applicationDeadline: scholarship?.deadline || '',
-                requirements: scholarship?.applicationRequirements ? [scholarship.applicationRequirements] : [],
               }}
             />
           </div>
