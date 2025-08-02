@@ -610,7 +610,7 @@ export default function SettingsPage() {
                   <div>
                     <span className="text-sm font-medium">Recommended Fields</span>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {profile.careerPreferences.recommendedFields.map((field, index) => (
+                      {profile.careerPreferences.recommendedFields.map((field: string, index: number) => (
                         <Badge key={index} variant="outline">
                           {field}
                         </Badge>
