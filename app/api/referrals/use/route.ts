@@ -46,13 +46,23 @@ export async function POST(request: NextRequest) {
     referral.referredId = userId;
     await referral.save();
 
-    // Award tokens to both users
-    referrer.tokens += referral.referrerReward;
-    referrer.totalTokensEarned += referral.referrerReward;
-    referrer.referralStats.successfulReferrals += 1;
-    referrer.referralStats.totalRewardsEarned += referral.referrerReward;
-    referrer.referralStats.lastReferralAt = new Date();
-    await referrer.save();
+                    // Award tokens to both users
+                referrer.tokens += referral.referrerReward;
+                referrer.totalTokensEarned += referral.referrerReward;
+                
+                // Initialize referralStats if it doesn't exist
+                if (!referrer.referralStats) {
+                  referrer.referralStats = {
+                    totalReferrals: 0,
+                    successfulReferrals: 0,
+                    totalRewardsEarned: 0
+                  };
+                }
+                
+                referrer.referralStats.successfulReferrals += 1;
+                referrer.referralStats.totalRewardsEarned += referral.referrerReward;
+                referrer.referralStats.lastReferralAt = new Date();
+                await referrer.save();
 
     referredUser.tokens += referral.referredReward;
     referredUser.totalTokensEarned += referral.referredReward;
