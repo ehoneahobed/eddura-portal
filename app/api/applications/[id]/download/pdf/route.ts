@@ -47,13 +47,7 @@ export async function POST(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // Debug: Log application structure
-    console.log('[PDF] Application structure:', {
-      id: application._id,
-      sections: application.sections?.length || 0,
-      templateSections: application.applicationTemplateId?.sections?.length || 0,
-      scholarshipTitle: application.scholarshipId?.title
-    });
+
 
     // Generate PDF using jsPDF
     const pdfBuffer = await generatePDF(application);
@@ -150,9 +144,7 @@ async function generatePDF(application: PopulatedApplication): Promise<Buffer> {
     yPosition += 8;
     
     // Process each section
-    console.log('[PDF] Processing sections:', application.applicationTemplateId.sections.length);
     for (const section of application.applicationTemplateId.sections) {
-      console.log('[PDF] Processing section:', section.title, 'with', section.questions.length, 'questions');
       if (yPosition > pageHeight - 40) {
         pdf.addPage();
         yPosition = margin;
