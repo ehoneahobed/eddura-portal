@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { mutate } from 'swr';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -158,6 +159,10 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
           individualTarget: undefined,
         });
         fetchGoals();
+        // Refresh squad data
+        await mutate(`/api/squads/${squadId}/goals`);
+        await mutate(`/api/squads/${squadId}`);
+        await mutate('/api/squads');
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to add goal');
@@ -184,6 +189,10 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
       if (response.ok) {
         toast.success('Progress updated successfully!');
         fetchGoals();
+        // Refresh squad data
+        await mutate(`/api/squads/${squadId}/goals`);
+        await mutate(`/api/squads/${squadId}`);
+        await mutate('/api/squads');
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to update progress');
@@ -209,6 +218,10 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
       if (response.ok) {
         toast.success('Goal deleted successfully!');
         fetchGoals();
+        // Refresh squad data
+        await mutate(`/api/squads/${squadId}/goals`);
+        await mutate(`/api/squads/${squadId}`);
+        await mutate('/api/squads');
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to delete goal');

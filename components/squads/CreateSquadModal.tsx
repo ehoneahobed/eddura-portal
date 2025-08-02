@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createSquad } from '@/hooks/use-squads';
+import { createSquad, mutate } from '@/hooks/use-squads';
 import { toast } from 'sonner';
 
 interface CreateSquadModalProps {
@@ -70,6 +70,9 @@ export default function CreateSquadModal({ open, onOpenChange, primarySquadExist
 
       toast.success('Squad created successfully!');
       onOpenChange(false);
+      
+      // Refresh squad data
+      await mutate('/api/squads');
       
       // Reset form
       setFormData({

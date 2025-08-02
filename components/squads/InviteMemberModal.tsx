@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { mutate } from 'swr';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,12 +48,15 @@ export default function InviteMemberModal({ isOpen, onClose, squadId, squadName 
         }),
       });
 
-      if (response.ok) {
-        toast.success('Invitation sent successfully!');
-        setEmail('');
-        setMessage('');
-        onClose();
-      } else {
+                        if (response.ok) {
+                    toast.success('Invitation sent successfully!');
+                    setEmail('');
+                    setMessage('');
+                    // Refresh squad data
+                    await mutate(`/api/squads/${squadId}`);
+                    await mutate('/api/squads');
+                    onClose();
+                  } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to send invitation');
       }

@@ -19,6 +19,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { joinSquad, leaveSquad } from '@/hooks/use-squads';
+import { mutate } from 'swr';
 
 interface SquadCardProps {
   squad: {
@@ -87,6 +88,9 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
     setIsJoining(true);
     try {
       await joinSquad(squad._id as any);
+      // Refresh squad data
+      await mutate(`/api/squads/${squad._id as any}`);
+      await mutate('/api/squads');
     } catch (error) {
       console.error('Failed to join squad:', error);
     } finally {
@@ -100,6 +104,9 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
     setIsLeaving(true);
     try {
       await leaveSquad(squad._id as any);
+      // Refresh squad data
+      await mutate(`/api/squads/${squad._id as any}`);
+      await mutate('/api/squads');
     } catch (error) {
       console.error('Failed to leave squad:', error);
     } finally {

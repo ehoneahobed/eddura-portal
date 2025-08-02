@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { mutate } from 'swr';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,6 +58,9 @@ export default function ManageSquadModal({ isOpen, onClose, squad, onUpdate }: M
 
       if (response.ok) {
         toast.success('Squad updated successfully!');
+        // Refresh squad data
+        await mutate(`/api/squads/${squad._id}`);
+        await mutate('/api/squads');
         onUpdate();
         onClose();
       } else {
@@ -84,6 +88,8 @@ export default function ManageSquadModal({ isOpen, onClose, squad, onUpdate }: M
 
       if (response.ok) {
         toast.success('Squad deleted successfully!');
+        // Refresh squad data
+        await mutate('/api/squads');
         onUpdate();
         onClose();
       } else {
