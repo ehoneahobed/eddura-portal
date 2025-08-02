@@ -23,6 +23,8 @@ import {
   UserPlus
 } from 'lucide-react';
 import SquadLeaderboard from './SquadLeaderboard';
+import InviteMemberModal from './InviteMemberModal';
+import ManageSquadModal from './ManageSquadModal';
 import { toast } from 'sonner';
 
 interface SquadDetailProps {
@@ -34,6 +36,8 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
   const { squad, isLoading, error } = useSquad(squadId);
   const { squad: squadWithProgress, progressSummary } = useSquadProgress(squadId);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
 
   if (isLoading) {
     return (
@@ -94,7 +98,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
         </div>
         <div className="flex items-center gap-2">
           {isCreator && (
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setShowManageModal(true)}>
               <Settings className="w-4 h-4 mr-2" />
               Manage Squad
             </Button>
@@ -326,7 +330,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
               <CardTitle className="flex items-center justify-between">
                 <span>Squad Members</span>
                 {isCreator && (
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => setShowInviteModal(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Invite Member
                   </Button>
@@ -378,6 +382,24 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
           <SquadLeaderboard squad={squad} />
         </TabsContent>
       </Tabs>
+
+      {/* Modals */}
+      <InviteMemberModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        squadId={squadId}
+        squadName={squad?.name || ''}
+      />
+      
+      <ManageSquadModal
+        isOpen={showManageModal}
+        onClose={() => setShowManageModal(false)}
+        squad={squad}
+        onUpdate={() => {
+          // Refresh the squad data
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }
