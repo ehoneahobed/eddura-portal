@@ -70,13 +70,35 @@ export default function ReferralDashboard({ userReferralCode, userReferralStats 
       const data = await response.json();
 
       if (response.ok) {
-        setStats(data.stats);
+        setStats(data.stats || {
+          totalReferrals: 0,
+          successfulReferrals: 0,
+          totalRewardsEarned: 0,
+          totalClicks: 0,
+          conversionRate: '0'
+        });
         setRecentReferrals(data.recentReferrals || []);
       } else {
         toast.error(data.error || 'Failed to load referral statistics');
+        setStats({
+          totalReferrals: 0,
+          successfulReferrals: 0,
+          totalRewardsEarned: 0,
+          totalClicks: 0,
+          conversionRate: '0'
+        });
+        setRecentReferrals([]);
       }
     } catch (error) {
       toast.error('Failed to load referral statistics');
+      setStats({
+        totalReferrals: 0,
+        successfulReferrals: 0,
+        totalRewardsEarned: 0,
+        totalClicks: 0,
+        conversionRate: '0'
+      });
+      setRecentReferrals([]);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +117,11 @@ export default function ReferralDashboard({ userReferralCode, userReferralStats 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Referral link created successfully!');
+        toast.success(`Referral link created successfully! Code: ${data.referral.code}`);
+        // Copy the referral link to clipboard
+        const referralLink = `${process.env.NEXT_PUBLIC_APP_URL}/join/${data.referral.code}`;
+        await navigator.clipboard.writeText(referralLink);
+        toast.success('Referral link copied to clipboard!');
         fetchReferralStats(); // Refresh stats
       } else {
         toast.error(data.error || 'Failed to create referral link');
@@ -166,6 +192,40 @@ export default function ReferralDashboard({ userReferralCode, userReferralStats 
           Share Referral Link
         </Button>
       </div>
+
+      {/* Your Referral Code */}
+      {userReferralCode && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              Your Referral Code
+            </CardTitle>
+            <CardDescription>
+              Share this code with friends to earn tokens
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="text-2xl font-mono font-bold text-primary">
+                  {userReferralCode}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Referral link: {process.env.NEXT_PUBLIC_APP_URL}/join/{userReferralCode}
+                </p>
+              </div>
+              <Button
+                onClick={() => copyToClipboard(`${process.env.NEXT_PUBLIC_APP_URL}/join/${userReferralCode}`, 'Referral link')}
+                className="flex items-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Copy Link
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -326,14 +386,14 @@ export default function ReferralDashboard({ userReferralCode, userReferralStats 
                     <div className="text-lg">
                       {referral.isUsed ? '✅' : '⏳'}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">
                         Code: {referral.referralCode}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {referral.isUsed 
                           ? `Used on ${new Date(referral.usedAt!).toLocaleDateString()}`
-                          : 'Pending'
+                          : `Created on ${new Date(referral.createdAt).toLocaleDateString()}`
                         }
                       </p>
                     </div>
@@ -346,6 +406,13 @@ export default function ReferralDashboard({ userReferralCode, userReferralStats 
                       {referral.clicks} clicks
                     </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(`${process.env.NEXT_PUBLIC_APP_URL}/join/${referral.referralCode}`, 'Referral link')}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
                 </div>
               ))}
             </div>

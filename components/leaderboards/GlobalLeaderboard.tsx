@@ -66,11 +66,17 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
       const data = await response.json();
 
       if (response.ok) {
-        setLeaderboardData(data.leaderboard);
+        setLeaderboardData(data.leaderboard || []);
         setUserRank(data.userRank);
+      } else {
+        console.error('Failed to fetch leaderboard data:', data.error);
+        setLeaderboardData([]);
+        setUserRank(null);
       }
     } catch (error) {
       console.error('Failed to fetch leaderboard data:', error);
+      setLeaderboardData([]);
+      setUserRank(null);
     } finally {
       setIsLoading(false);
     }
@@ -143,6 +149,20 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
           <p className="text-muted-foreground">Loading leaderboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (leaderboardData.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Leaderboard Data</h3>
+          <p className="text-muted-foreground">
+            No data available for this category yet. Start earning tokens and completing activities to appear on the leaderboard!
+          </p>
         </div>
       </div>
     );

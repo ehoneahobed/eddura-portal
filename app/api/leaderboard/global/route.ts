@@ -31,20 +31,47 @@ export async function GET(request: NextRequest) {
           .select('firstName lastName email profilePicture tokens totalTokensEarned')
           .sort({ tokens: -1 })
           .limit(50);
+        
+        // Filter out users without required fields and add defaults
+        leaderboard = leaderboard.map(user => ({
+          ...user.toObject(),
+          tokens: user.tokens || 0,
+          totalTokensEarned: user.totalTokensEarned || 0
+        }));
         break;
 
       case 'activity':
         leaderboard = await User.find({})
           .select('firstName lastName email profilePicture platformStats')
-          .sort({ 'platformStats.daysActive': -1 })
           .limit(50);
+        
+        // Filter out users without required fields and add defaults
+        leaderboard = leaderboard.map(user => ({
+          ...user.toObject(),
+          platformStats: {
+            documentsCreated: user.platformStats?.documentsCreated || 0,
+            applicationsStarted: user.platformStats?.applicationsStarted || 0,
+            peerReviewsProvided: user.platformStats?.peerReviewsProvided || 0,
+            daysActive: user.platformStats?.daysActive || 0,
+            lastActive: user.platformStats?.lastActive || new Date()
+          }
+        })).sort((a, b) => (b.platformStats.daysActive || 0) - (a.platformStats.daysActive || 0));
         break;
 
       case 'referrals':
         leaderboard = await User.find({})
           .select('firstName lastName email profilePicture referralStats')
-          .sort({ 'referralStats.successfulReferrals': -1 })
           .limit(50);
+        
+        // Filter out users without required fields and add defaults
+        leaderboard = leaderboard.map(user => ({
+          ...user.toObject(),
+          referralStats: {
+            totalReferrals: user.referralStats?.totalReferrals || 0,
+            successfulReferrals: user.referralStats?.successfulReferrals || 0,
+            totalRewardsEarned: user.referralStats?.totalRewardsEarned || 0
+          }
+        })).sort((a, b) => (b.referralStats.successfulReferrals || 0) - (a.referralStats.successfulReferrals || 0));
         break;
 
       case 'achievements':

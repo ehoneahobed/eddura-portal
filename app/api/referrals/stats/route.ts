@@ -32,10 +32,8 @@ export async function GET(request: NextRequest) {
       .reduce((sum, r) => sum + r.referrerReward, 0);
     const totalClicks = referrals.reduce((sum, r) => sum + r.clicks, 0);
 
-    // Get recent successful referrals
-    const recentReferrals = referrals
-      .filter(r => r.isUsed)
-      .slice(0, 5);
+    // Get all recent referrals (not just successful ones)
+    const recentReferrals = referrals.slice(0, 10);
 
     return NextResponse.json({
       success: true,
