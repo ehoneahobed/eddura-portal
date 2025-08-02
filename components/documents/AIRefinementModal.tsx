@@ -18,7 +18,8 @@ import {
   Target,
   FileText,
   MessageSquare,
-  Zap
+  Zap,
+  Copy
 } from 'lucide-react';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { toast } from 'sonner';
@@ -54,6 +55,7 @@ export default function AIRefinementModal({
 }: AIRefinementModalProps) {
   const [loading, setLoading] = useState(false);
   const [createNewVersion, setCreateNewVersion] = useState(false);
+  const [newVersionTitle, setNewVersionTitle] = useState('');
   const [formData, setFormData] = useState({
     refinementType: '' as RefinementType,
     customInstruction: '',
@@ -140,6 +142,9 @@ export default function AIRefinementModal({
         
         if (createNewVersion && documentId) {
           // Create new version
+          const versionTitle = newVersionTitle.trim() || 
+            (documentTitle ? `${documentTitle} (Refined Version)` : `Document (Refined Version)`);
+          
           const versionResponse = await fetch('/api/documents/version', {
             method: 'POST',
             headers: {
@@ -147,7 +152,7 @@ export default function AIRefinementModal({
             },
             body: JSON.stringify({
               originalDocumentId: documentId,
-              title: documentTitle ? `${documentTitle} (Version ${Date.now()})` : `Document Version ${Date.now()}`,
+              title: versionTitle,
               content: data.content,
             }),
           });
@@ -191,6 +196,7 @@ export default function AIRefinementModal({
       additionalContext: ''
     });
     setCreateNewVersion(false);
+    setNewVersionTitle('');
   };
 
   const getRefinementPrompt = () => {
@@ -265,11 +271,11 @@ export default function AIRefinementModal({
             </div>
           </div>
 
-          {/* Versioning Option */}
+          {/* Versioning Option - Only show if documentId is provided */}
           {documentId && (
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                How would you like to apply the refinement?
+                How would you like to apply the refinement? *
                 <HelpCircle className="h-4 w-4 text-muted-foreground" />
               </Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -315,6 +321,64 @@ export default function AIRefinementModal({
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Additional Options for New Version */}
+          {documentId && createNewVersion && (
+            <div className="space-y-2">
+              <Label htmlFor="newVersionTitle" className="flex items-center gap-2">
+                New Version Title
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </Label>
+              <Input
+                id="newVersionTitle"
+                value={newVersionTitle}
+                onChange={(e) => setNewVersionTitle(e.target.value)}
+                placeholder={`${documentTitle || 'Document'} (Refined Version)`}
+                maxLength={200}
+              />
+              <div className="text-xs text-muted-foreground">
+                Leave empty to use auto-generated title
+              </div>
+            </div>
+          )}
+
+          {/* Action Summary */}
+          {documentId ? (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm">
+                    <div className="font-medium text-blue-900">
+                      {createNewVersion ? 'Creating New Version' : 'Updating Current Document'}
+                    </div>
+                    <div className="text-blue-700 mt-1">
+                      {createNewVersion 
+                        ? `A new document version will be created, keeping the original "${documentTitle}" intact.`
+                        : `The content in "${documentTitle}" will be replaced with the refined version.`
+                      }
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-yellow-600 mt-0.5" />
+                  <div className="text-sm">
+                    <div className="font-medium text-yellow-900">
+                      New Document Creation
+                    </div>
+                    <div className="text-yellow-700 mt-1">
+                      The refined content will be used for creating a new document. You can save it when ready.
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Custom Instruction */}
