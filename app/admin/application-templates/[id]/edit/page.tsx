@@ -36,7 +36,7 @@ export default function EditApplicationTemplatePage({ params }: EditApplicationT
     try {
       await updateApplicationTemplate(templateId, data);
       toast.success('Application template updated successfully');
-      router.push('/admin/application-templates');
+      router.push(`/admin/application-templates/${templateId}`);
     } catch (error) {
       console.error('Error updating template:', error);
       toast.error('Failed to update application template');

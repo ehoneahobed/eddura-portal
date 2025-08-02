@@ -34,9 +34,9 @@ export default function CreateApplicationTemplatePage() {
     
     try {
       const templateData = data as ApplicationTemplateFormData;
-      await createApplicationTemplate(templateData);
+      const createdTemplate = await createApplicationTemplate(templateData);
       toast.success('Application template created successfully');
-      router.push('/admin/application-templates');
+      router.push(`/admin/application-templates/${createdTemplate.id}`);
     } catch (error: any) {
       console.error('Error creating template:', error);
       
