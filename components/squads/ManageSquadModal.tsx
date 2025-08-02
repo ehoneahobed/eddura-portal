@@ -47,7 +47,7 @@ export default function ManageSquadModal({ isOpen, onClose, squad, onUpdate }: M
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/squads/${squad._id}`, {
+      const response = await fetch(`/api/squads/${(squad._id as any)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export default function ManageSquadModal({ isOpen, onClose, squad, onUpdate }: M
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/squads/${squad._id}`, {
+      const response = await fetch(`/api/squads/${(squad._id as any)}`, {
         method: 'DELETE',
       });
 

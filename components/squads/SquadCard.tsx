@@ -78,15 +78,15 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  const isMember = squad.memberIds.some(member => member._id === session?.user?.id);
-  const isCreator = squad.creatorId._id === session?.user?.id;
+  const isMember = squad.memberIds.some(member => (member._id as any) === session?.user?.id);
+  const isCreator = (squad.creatorId._id as any) === session?.user?.id;
 
   const handleJoin = async () => {
     if (!session) return;
     
     setIsJoining(true);
     try {
-      await joinSquad(squad._id);
+      await joinSquad(squad._id as any);
     } catch (error) {
       console.error('Failed to join squad:', error);
     } finally {
@@ -99,7 +99,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
     
     setIsLeaving(true);
     try {
-      await leaveSquad(squad._id);
+      await leaveSquad(squad._id as any);
     } catch (error) {
       console.error('Failed to leave squad:', error);
     } finally {
@@ -207,7 +207,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
           <h4 className="text-sm font-medium">Members</h4>
           <div className="flex items-center gap-1">
             {squad.memberIds.slice(0, 3).map((member, index) => (
-              <Avatar key={member._id} className="h-6 w-6">
+                                    <Avatar key={member._id as any} className="h-6 w-6">
                 <AvatarImage src={member.profilePicture} />
                 <AvatarFallback className="text-xs">
                   {member.firstName[0]}{member.lastName[0]}
@@ -233,7 +233,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-2">
-          <Link href={`/squads/${squad._id}`}>
+          <Link href={`/squads/${squad._id as any}`}>
             <Button variant="outline" size="sm" className="flex-1">
               View Details
             </Button>

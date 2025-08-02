@@ -37,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (squad.creatorId._id.toString() !== currentUser._id.toString()) {
+    if (squad.creatorId._id.toString() !== (currentUser._id as any).toString()) {
       return NextResponse.json({ error: 'Only squad creators can invite members' }, { status: 403 });
     }
 
@@ -53,7 +53,7 @@ export async function POST(
     }
 
     // Check if user is already a member
-    if (squad.memberIds.includes(invitedUser._id)) {
+    if (squad.memberIds.includes(invitedUser._id as any)) {
       return NextResponse.json({ error: 'User is already a member of this squad' }, { status: 400 });
     }
 
