@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import Document from '@/models/Document';
 import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@/types/documents';
 import { z } from 'zod';
+import { ProgressTracker } from '@/lib/services/progressTracker';
 
 // Upload-based document types
 const UPLOAD_BASED_TYPES = [
@@ -183,6 +184,14 @@ export async function POST(request: NextRequest) {
     const document = new Document(documentData);
 
     await document.save();
+
+    // Track document creation activity
+    await ProgressTracker.trackActivity({
+      userId: session.user.id,
+      activityType: 'document_created',
+      timestamp: new Date(),
+      metadata: { documentId: document._id.toString() }
+    });
 
     return NextResponse.json({ document }, { status: 201 });
   } catch (error) {

@@ -21,7 +21,8 @@ import {
   Library,
   Copy,
   MessageSquare,
-  Users
+  Users,
+  Users2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -98,6 +99,12 @@ const navigation = [
     href: '/documents/cloned', 
     icon: Copy,
     description: 'Your cloned documents'
+  },
+  { 
+    name: 'Eddura Squads', 
+    href: '/squads', 
+    icon: Users2,
+    description: 'Join collaborative groups'
   },
   { 
     name: 'Settings', 
