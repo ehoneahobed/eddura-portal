@@ -109,9 +109,6 @@ export default function ProgramsPage() {
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
   const fetchSchools = useCallback(async () => {
-    console.log('🔍 [PROGRAMS PAGE] fetchSchools called');
-    console.log('🔍 [PROGRAMS PAGE] Current state:', { schoolSearch, schoolPagination });
-    
     setIsLoadingSchools(true);
     try {
       const params = new URLSearchParams({
@@ -120,38 +117,20 @@ export default function ProgramsPage() {
         search: schoolSearch,
       });
 
-      const url = `/api/schools?${params}`;
-      console.log('🔍 [PROGRAMS PAGE] Fetching from URL:', url);
-
-      const response = await fetch(url);
-      console.log('🔍 [PROGRAMS PAGE] Response status:', response.status, response.statusText);
+      const response = await fetch(`/api/schools?${params}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ [PROGRAMS PAGE] Schools data received:', {
-          schoolsCount: data.schools?.length || 0,
-          pagination: data.pagination
-        });
         setSchools(data.schools || []);
         setSchoolPagination(prev => data.pagination || prev);
       } else {
-        console.error('❌ [PROGRAMS PAGE] Failed to fetch schools:', response.status, response.statusText);
-        // Try to get error details
-        try {
-          const errorData = await response.text();
-          console.error('❌ [PROGRAMS PAGE] Error response body:', errorData);
-        } catch (e) {
-          console.error('❌ [PROGRAMS PAGE] Could not read error response');
-        }
-        // Set empty schools array to show error state
+        console.error('Failed to fetch schools:', response.status, response.statusText);
         setSchools([]);
       }
     } catch (error) {
-      console.error('❌ [PROGRAMS PAGE] Error fetching schools:', error);
-      // Set empty schools array to show error state
+      console.error('Error fetching schools:', error);
       setSchools([]);
     } finally {
-      console.log('🔍 [PROGRAMS PAGE] Setting isLoadingSchools to false');
       setIsLoadingSchools(false);
     }
   }, [schoolSearch, schoolPagination.currentPage, schoolPagination.limit]);
@@ -216,7 +195,6 @@ export default function ProgramsPage() {
 
   // Initial fetch on mount
   useEffect(() => {
-    console.log('🔍 [PROGRAMS PAGE] Initial useEffect triggered');
     fetchSchools();
   }, []); // Only run on mount
 
@@ -247,9 +225,7 @@ export default function ProgramsPage() {
 
   // Debounced search effect
   useEffect(() => {
-    console.log('🔍 [PROGRAMS PAGE] Debounced search effect triggered, schoolSearch:', schoolSearch);
     const timeoutId = setTimeout(() => {
-      console.log('🔍 [PROGRAMS PAGE] Executing debounced fetchSchools');
       fetchSchools();
     }, 300); // 300ms debounce
 
@@ -258,9 +234,7 @@ export default function ProgramsPage() {
 
   // Handle pagination changes
   useEffect(() => {
-    console.log('🔍 [PROGRAMS PAGE] Pagination effect triggered, currentPage:', schoolPagination.currentPage);
     if (schoolPagination.currentPage > 1) { // Don't fetch on initial load
-      console.log('🔍 [PROGRAMS PAGE] Executing pagination fetchSchools');
       fetchSchools();
     }
   }, [schoolPagination.currentPage]);
@@ -314,13 +288,7 @@ export default function ProgramsPage() {
       )
     : schools;
 
-  console.log('🔍 [PROGRAMS PAGE] Rendering component, state:', {
-    selectedSchool: !!selectedSchool,
-    isLoadingSchools,
-    schoolsCount: schools.length,
-    schoolSearch,
-    schoolPagination
-  });
+
 
   if (!selectedSchool) {
     // Show school selection UI with pagination
@@ -341,14 +309,7 @@ export default function ProgramsPage() {
                 Select a school to explore their available programs and find your perfect academic path.
               </p>
               
-              {/* Debug Info */}
-              <div className="mt-4 p-4 bg-gray-100 rounded-lg text-sm text-gray-600">
-                <p>Debug Info:</p>
-                <p>isLoadingSchools: {isLoadingSchools.toString()}</p>
-                <p>schools.length: {schools.length}</p>
-                <p>schoolSearch: "{schoolSearch}"</p>
-                <p>selectedSchool: {selectedSchool ? 'Yes' : 'No'}</p>
-              </div>
+
             </div>
           </div>
         </div>
@@ -385,8 +346,6 @@ export default function ProgramsPage() {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Schools</h2>
                 <p className="text-gray-600">Finding the best universities around the world...</p>
-                <p className="text-sm text-gray-500 mt-2">Debug: isLoadingSchools = {isLoadingSchools.toString()}</p>
-                <p className="text-sm text-gray-500">Debug: schools.length = {schools.length}</p>
               </motion.div>
             </div>
           ) : (
@@ -483,7 +442,6 @@ export default function ProgramsPage() {
                       : 'There was an error loading the schools. Please try refreshing the page or contact support if the problem persists.'
                     }
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">Debug: schools.length = 0, isLoadingSchools = false</p>
                   <div className="flex gap-4 justify-center">
                     <Button 
                       variant="outline" 
