@@ -106,7 +106,7 @@ export default function ProgramsPage() {
     hasPrevPage: false,
     limit: 12
   });
-  const [isLoadingSchools, setIsLoadingSchools] = useState(true);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
   const fetchSchools = useCallback(async () => {
     console.log('🔍 [PROGRAMS PAGE] fetchSchools called');
@@ -154,7 +154,7 @@ export default function ProgramsPage() {
       console.log('🔍 [PROGRAMS PAGE] Setting isLoadingSchools to false');
       setIsLoadingSchools(false);
     }
-  }, [schoolSearch, schoolPagination]);
+  }, [schoolSearch, schoolPagination.currentPage, schoolPagination.limit]);
 
   const filterPrograms = useCallback(() => {
     let filtered = [...programs];
@@ -218,7 +218,7 @@ export default function ProgramsPage() {
   useEffect(() => {
     console.log('🔍 [PROGRAMS PAGE] Initial useEffect triggered');
     fetchSchools();
-  }, [fetchSchools]); // Only run on mount
+  }, []); // Only run on mount
 
   // Fetch programs when a school is selected
   useEffect(() => {
@@ -254,7 +254,7 @@ export default function ProgramsPage() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [schoolSearch, fetchSchools]);
+  }, [schoolSearch]);
 
   // Handle pagination changes
   useEffect(() => {
@@ -263,7 +263,7 @@ export default function ProgramsPage() {
       console.log('🔍 [PROGRAMS PAGE] Executing pagination fetchSchools');
       fetchSchools();
     }
-  }, [schoolPagination.currentPage, fetchSchools]);
+  }, [schoolPagination.currentPage]);
 
   // Handle pagination
   const handlePageChange = (page: number) => {
@@ -340,6 +340,15 @@ export default function ProgramsPage() {
                 Discover academic programs from top universities around the world. 
                 Select a school to explore their available programs and find your perfect academic path.
               </p>
+              
+              {/* Debug Info */}
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg text-sm text-gray-600">
+                <p>Debug Info:</p>
+                <p>isLoadingSchools: {isLoadingSchools.toString()}</p>
+                <p>schools.length: {schools.length}</p>
+                <p>schoolSearch: "{schoolSearch}"</p>
+                <p>selectedSchool: {selectedSchool ? 'Yes' : 'No'}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -376,7 +385,8 @@ export default function ProgramsPage() {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Schools</h2>
                 <p className="text-gray-600">Finding the best universities around the world...</p>
-                <p className="text-sm text-gray-500 mt-2">Debug: isLoadingSchools = true</p>
+                <p className="text-sm text-gray-500 mt-2">Debug: isLoadingSchools = {isLoadingSchools.toString()}</p>
+                <p className="text-sm text-gray-500">Debug: schools.length = {schools.length}</p>
               </motion.div>
             </div>
           ) : (
