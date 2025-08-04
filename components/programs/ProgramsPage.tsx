@@ -123,9 +123,15 @@ export default function ProgramsPage() {
         const data = await response.json();
         setSchools(data.schools || []);
         setSchoolPagination(prev => data.pagination || prev);
+      } else {
+        console.error('Failed to fetch schools:', response.status, response.statusText);
+        // Set empty schools array to show error state
+        setSchools([]);
       }
     } catch (error) {
       console.error('Error fetching schools:', error);
+      // Set empty schools array to show error state
+      setSchools([]);
     } finally {
       setIsLoadingSchools(false);
     }
@@ -248,9 +254,13 @@ export default function ProgramsPage() {
       if (response.ok) {
         const data = await response.json();
         setPrograms(data.programs || []);
+      } else {
+        console.error('Failed to fetch programs:', response.status, response.statusText);
+        setPrograms([]);
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
+      setPrograms([]);
     } finally {
       setIsLoading(false);
     }
@@ -416,25 +426,38 @@ export default function ProgramsPage() {
                 </motion.div>
               )}
 
-              {schools.length === 0 && !isLoadingSchools && (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Building className="w-12 h-12 text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No schools found</h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    We couldn&apos;t find any schools matching your search criteria. 
-                    Try adjusting your search terms or browse all schools.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleSchoolSearch('')}
-                    className="px-6 py-2"
-                  >
-                    View All Schools
-                  </Button>
-                </div>
-              )}
+                        {schools.length === 0 && !isLoadingSchools && (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Building className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {schoolSearch ? 'No schools found' : 'Unable to load schools'}
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {schoolSearch 
+                  ? 'We couldn\'t find any schools matching your search criteria. Try adjusting your search terms or browse all schools.'
+                  : 'There was an error loading the schools. Please try refreshing the page or contact support if the problem persists.'
+                }
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleSchoolSearch('')}
+                  className="px-6 py-2"
+                >
+                  View All Schools
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2"
+                >
+                  Refresh Page
+                </Button>
+              </div>
+            </div>
+          )}
             </>
           )}
         </div>

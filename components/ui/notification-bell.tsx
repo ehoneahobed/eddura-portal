@@ -41,7 +41,7 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
 
   const fetchNotifications = async () => {
-    if (!session) return;
+    if (!session?.user?.id) return;
 
     try {
       setIsLoading(true);
@@ -50,6 +50,8 @@ export function NotificationBell() {
         const data = await response.json();
         setNotifications(data.notifications);
         setUnreadCount(data.pagination.unread);
+      } else {
+        console.error('Failed to fetch notifications:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -59,6 +61,8 @@ export function NotificationBell() {
   };
 
   const markAsRead = async (notificationId: string) => {
+    if (!session?.user?.id) return;
+    
     try {
       const response = await fetch('/api/notifications', {
         method: 'PUT',
@@ -80,6 +84,8 @@ export function NotificationBell() {
           )
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
+      } else {
+        console.error('Failed to mark notification as read:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -87,6 +93,8 @@ export function NotificationBell() {
   };
 
   const markAllAsRead = async () => {
+    if (!session?.user?.id) return;
+    
     try {
       const response = await fetch('/api/notifications', {
         method: 'PUT',
@@ -104,6 +112,8 @@ export function NotificationBell() {
         );
         setUnreadCount(0);
         toast.success('All notifications marked as read');
+      } else {
+        console.error('Failed to mark all notifications as read:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);

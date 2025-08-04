@@ -46,10 +46,15 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
       return;
     }
 
-    fetchUserProfile();
+    // Only fetch user profile if we have a valid session
+    if (session?.user?.id) {
+      fetchUserProfile();
+    }
   }, [session, status, router]);
 
   const fetchUserProfile = async () => {
+    if (!session?.user?.id) return;
+    
     try {
       const response = await fetch('/api/user/profile');
       
