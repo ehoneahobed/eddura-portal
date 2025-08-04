@@ -41,7 +41,7 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
 
   const fetchNotifications = async () => {
-    if (!session) return;
+    if (!session?.user?.id) return;
 
     try {
       setIsLoading(true);
@@ -59,6 +59,8 @@ export function NotificationBell() {
   };
 
   const markAsRead = async (notificationId: string) => {
+    if (!session?.user?.id) return;
+    
     try {
       const response = await fetch('/api/notifications', {
         method: 'PUT',
@@ -87,6 +89,8 @@ export function NotificationBell() {
   };
 
   const markAllAsRead = async () => {
+    if (!session?.user?.id) return;
+    
     try {
       const response = await fetch('/api/notifications', {
         method: 'PUT',

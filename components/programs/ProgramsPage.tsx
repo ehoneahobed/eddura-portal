@@ -106,7 +106,7 @@ export default function ProgramsPage() {
     hasPrevPage: false,
     limit: 12
   });
-  const [isLoadingSchools, setIsLoadingSchools] = useState(true);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
   const fetchSchools = useCallback(async () => {
     setIsLoadingSchools(true);
@@ -123,13 +123,17 @@ export default function ProgramsPage() {
         const data = await response.json();
         setSchools(data.schools || []);
         setSchoolPagination(prev => data.pagination || prev);
+      } else {
+        console.error('Failed to fetch schools:', response.status, response.statusText);
+        setSchools([]);
       }
     } catch (error) {
       console.error('Error fetching schools:', error);
+      setSchools([]);
     } finally {
       setIsLoadingSchools(false);
     }
-  }, [schoolSearch, schoolPagination]);
+  }, [schoolSearch, schoolPagination.currentPage, schoolPagination.limit]);
 
   const filterPrograms = useCallback(() => {
     let filtered = [...programs];
@@ -192,7 +196,7 @@ export default function ProgramsPage() {
   // Initial fetch on mount
   useEffect(() => {
     fetchSchools();
-  }, [fetchSchools]); // Only run on mount
+  }, []); // Only run on mount
 
   // Fetch programs when a school is selected
   useEffect(() => {
@@ -226,14 +230,14 @@ export default function ProgramsPage() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [schoolSearch, fetchSchools]);
+  }, [schoolSearch]);
 
   // Handle pagination changes
   useEffect(() => {
     if (schoolPagination.currentPage > 1) { // Don't fetch on initial load
       fetchSchools();
     }
-  }, [schoolPagination.currentPage, fetchSchools]);
+  }, [schoolPagination.currentPage]);
 
   // Handle pagination
   const handlePageChange = (page: number) => {
@@ -248,9 +252,13 @@ export default function ProgramsPage() {
       if (response.ok) {
         const data = await response.json();
         setPrograms(data.programs || []);
+      } else {
+        console.error('Failed to fetch programs:', response.status, response.statusText);
+        setPrograms([]);
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
+      setPrograms([]);
     } finally {
       setIsLoading(false);
     }
@@ -280,6 +288,8 @@ export default function ProgramsPage() {
       )
     : schools;
 
+
+
   if (!selectedSchool) {
     // Show school selection UI with pagination
     return (
@@ -298,6 +308,8 @@ export default function ProgramsPage() {
                 Discover academic programs from top universities around the world. 
                 Select a school to explore their available programs and find your perfect academic path.
               </p>
+              
+
             </div>
           </div>
         </div>
@@ -416,23 +428,36 @@ export default function ProgramsPage() {
                 </motion.div>
               )}
 
-              {schools.length === 0 && !isLoadingSchools && (
+                                      {schools.length === 0 && !isLoadingSchools && (
                 <div className="text-center py-16">
                   <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Building className="w-12 h-12 text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No schools found</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {schoolSearch ? 'No schools found' : 'Unable to load schools'}
+                  </h3>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    We couldn&apos;t find any schools matching your search criteria. 
-                    Try adjusting your search terms or browse all schools.
+                    {schoolSearch 
+                      ? 'We couldn\'t find any schools matching your search criteria. Try adjusting your search terms or browse all schools.'
+                      : 'There was an error loading the schools. Please try refreshing the page or contact support if the problem persists.'
+                    }
                   </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleSchoolSearch('')}
-                    className="px-6 py-2"
-                  >
-                    View All Schools
-                  </Button>
+                  <div className="flex gap-4 justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleSchoolSearch('')}
+                      className="px-6 py-2"
+                    >
+                      View All Schools
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => window.location.reload()}
+                      className="px-6 py-2"
+                    >
+                      Refresh Page
+                    </Button>
+                  </div>
                 </div>
               )}
             </>
