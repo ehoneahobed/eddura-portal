@@ -89,7 +89,19 @@ export default function TemplateManagement() {
         if (response.ok) {
           const data = await response.json();
           setDocuments(data.documents || []);
-          setPagination(data.pagination || pagination);
+          setPagination((previousPagination) => {
+            const incoming = data.pagination || previousPagination;
+            const next = {
+              ...previousPagination,
+              ...incoming,
+            };
+            const isUnchanged =
+              previousPagination.page === next.page &&
+              previousPagination.limit === next.limit &&
+              previousPagination.total === next.total &&
+              previousPagination.pages === next.pages;
+            return isUnchanged ? previousPagination : next;
+          });
           // Debug log API response
           console.log('[TemplateManagement] API response:', data);
         } else {
@@ -116,7 +128,7 @@ export default function TemplateManagement() {
       // Debug log state after fetch (removed from useEffect to silence linter)
     };
     fetchTemplates();
-  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination, pagination.page, pagination.limit]);
+  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination.page, pagination.limit]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
