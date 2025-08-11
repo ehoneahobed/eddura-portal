@@ -13,45 +13,55 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0);
     const unreadOnly = searchParams.get('unread') === 'true';
 
     // Get user ID from session
     const User = (await import('@/models/User')).default;
-    const user = await User.findOne({ email: session.user.email });
+    const user = await User.findOne({ email: session.user.email }).select('_id updatedAt').lean();
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // ETag / Last-Modified support using latest notification timestamp
+    const latest = await Notification.findOne({ userId: user._id }).sort({ updatedAt: -1 }).select({ updatedAt: 1, _id: 0 }).lean() as any;
+    const latestTs = latest?.updatedAt ? new Date(latest.updatedAt).getTime() : 0;
+    const lastModified = latestTs ? new Date(latestTs).toUTCString() : new Date(0).toUTCString();
+    const etag = `W/"notif-${user._id}-${latestTs}"`;
+
+    const ifNoneMatch = request.headers.get('if-none-match');
+    const ifModifiedSince = request.headers.get('if-modified-since');
+    if (ifNoneMatch === etag || (ifModifiedSince && new Date(ifModifiedSince).getTime() >= latestTs)) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag, 'Last-Modified': lastModified } });
+    }
+
     // Build query
     const query: any = { userId: user._id };
-    if (unreadOnly) {
-      query.isRead = false;
-    }
+    if (unreadOnly) query.isRead = false;
 
     // Get notifications
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(offset)
-      .populate('content.squadId', 'name')
-      .populate('content.memberId', 'firstName lastName');
+      .select('type title message priority isRead createdAt content metadata')
+      .lean();
 
-    // Get total count
-    const totalCount = await Notification.countDocuments(query);
-    const unreadCount = await Notification.countDocuments({ userId: user._id, isRead: false });
+    // Get counts
+    const [totalCount, unreadCount] = await Promise.all([
+      Notification.countDocuments(query),
+      Notification.countDocuments({ userId: user._id, isRead: false })
+    ]);
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       notifications,
-      pagination: {
-        total: totalCount,
-        unread: unreadCount,
-        limit,
-        offset,
-        hasMore: offset + limit < totalCount
-      }
+      pagination: { total: totalCount, unread: unreadCount, limit, offset, hasMore: offset + limit < totalCount }
     });
+    res.headers.set('ETag', etag);
+    res.headers.set('Last-Modified', lastModified);
+    res.headers.set('Cache-Control', 'private, max-age=60');
+    return res;
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(

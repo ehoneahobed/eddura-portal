@@ -183,6 +183,9 @@ PageViewSchema.index({ country: 1 });
 PageViewSchema.index({ browser: 1 });
 PageViewSchema.index({ device: 1 });
 
+// Optional TTL to retain 180 days of page views
+PageViewSchema.index({ createdAt: 1 }, { expireAfterSeconds: 180 * 24 * 60 * 60 });
+
 // Method to add interaction
 PageViewSchema.methods.addInteraction = function(type: string, element?: string, data?: any) {
   this.interactions.push({
