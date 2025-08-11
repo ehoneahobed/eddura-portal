@@ -103,19 +103,85 @@ export function UserAnalyticsDashboard() {
     fetchUserAnalytics();
   }, [timeRange]);
 
-  // Set up real-time updates for "today" range
+  // Set up real-time updates for "today" range via SSE
   useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    
-    if (timeRange === 'today') {
-      setIsRealTime(true);
-      const run = () => { if (document.visibilityState === 'visible') fetchUserAnalyticsSilently(); };
-      interval = setInterval(run, 60000); // 60s
-    } else {
-      setIsRealTime(false);
-    }
+    if (timeRange !== 'today') return;
+    let eventSource: EventSource | null = null;
 
-    return () => { if (interval) clearInterval(interval); };
+    const connect = () => {
+      if (document.visibilityState !== 'visible') return;
+      eventSource = new EventSource('/api/admin/analytics/realtime/stream');
+      eventSource.onmessage = (e) => {
+        try {
+          const analyticsData = JSON.parse(e.data);
+          const userData: UserAnalyticsData = {
+            overview: {
+              activeUsers: analyticsData.realTimeActiveUsers,
+              totalSessions: analyticsData.todaySessions,
+              totalPageViews: analyticsData.todayPageViews,
+              averageSessionDuration: 0,
+              bounceRate: 0,
+              avgTimeOnSite: 0,
+              avgPagesPerSession: 0,
+              uniqueUsers: analyticsData.todayActiveUsers
+            },
+            sessions: analyticsData.hourlyData.map((hour: any) => {
+              const utcHour = hour.hour;
+              const timezoneOffset = new Date().getTimezoneOffset() / 60;
+              const localHour = (utcHour - timezoneOffset + 24) % 24;
+              return { date: `${localHour.toString().padStart(2, '0')}:00`, sessions: hour.sessions, users: hour.sessions, pageViews: hour.pageViews };
+            }),
+            devices: [
+              { device: 'Desktop', sessions: 65, percentage: 65 },
+              { device: 'Mobile', sessions: 30, percentage: 30 },
+              { device: 'Tablet', sessions: 5, percentage: 5 }
+            ],
+            browsers: [
+              { browser: 'Chrome', sessions: 45, percentage: 45 },
+              { browser: 'Safari', sessions: 25, percentage: 25 },
+              { browser: 'Firefox', sessions: 15, percentage: 15 },
+              { browser: 'Edge', sessions: 10, percentage: 10 },
+              { browser: 'Other', sessions: 5, percentage: 5 }
+            ],
+            operatingSystems: [
+              { os: 'Windows', sessions: 40, percentage: 40 },
+              { os: 'macOS', sessions: 25, percentage: 25 },
+              { os: 'iOS', sessions: 20, percentage: 20 },
+              { os: 'Android', sessions: 10, percentage: 10 },
+              { os: 'Linux', sessions: 5, percentage: 5 }
+            ],
+            topPages: [],
+            recentSessions: analyticsData.recentSessions,
+            userEngagement: [
+              { metric: 'Current Hour Sessions', value: analyticsData.currentHourSessions, change: 0 },
+              { metric: 'Current Hour Page Views', value: analyticsData.currentHourPageViews, change: 0 },
+              { metric: 'Today Sessions', value: analyticsData.todaySessions, change: 0 },
+              { metric: 'Today Page Views', value: analyticsData.todayPageViews, change: 0 }
+            ]
+          };
+          setData(userData);
+          setLastUpdated(new Date());
+        } catch {}
+      };
+      eventSource.onerror = () => {
+        // Backoff reconnect on error
+        if (eventSource) eventSource.close();
+        setTimeout(connect, 5000);
+      };
+    };
+
+    const onVisible = () => {
+      if (eventSource) return;
+      connect();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    connect();
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      if (eventSource) eventSource.close();
+    };
   }, [timeRange]);
 
   const fetchUserAnalyticsSilently = async () => {
