@@ -28,19 +28,13 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    // Get query parameters with validation
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '12')));
     const search = searchParams.get('search') || '';
-    
-    // Calculate skip value for pagination
     const skip = (page - 1) * limit;
     
-    // Build filter object
     const filter: any = {};
-    
-    // Search filter
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -49,20 +43,32 @@ export async function GET(request: NextRequest) {
       ];
     }
     
-    // Get total count for pagination
-    const totalCount = await School.countDocuments(filter);
-    
-    // Get paginated schools
+    const [totalCount, latest] = await Promise.all([
+      School.countDocuments(filter),
+      School.findOne(filter).sort({ updatedAt: -1 }).select({ updatedAt: 1 }).lean() as any
+    ]);
+
+    const lastTs = latest?.updatedAt ? new Date(latest.updatedAt).getTime() : 0;
+    const lastModified = lastTs ? new Date(lastTs).toUTCString() : new Date(0).toUTCString();
+    const etag = `W/"schools-${page}-${limit}-${search}-${lastTs}"`;
+
+    const ifNoneMatch = request.headers.get('if-none-match');
+    const ifModifiedSince = request.headers.get('if-modified-since');
+    if (ifNoneMatch === etag || (ifModifiedSince && new Date(ifModifiedSince).getTime() >= lastTs)) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag, 'Last-Modified': lastModified } });
+    }
+
     const schools = await School.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
-    
-    // Calculate pagination info
+      .limit(limit)
+      .select('name country city createdAt updatedAt')
+      .lean();
+
     const totalPages = Math.ceil(totalCount / limit) || 1;
-    
-    return NextResponse.json({
-      schools: transformSchools(schools),
+
+    const res = NextResponse.json({
+      schools: schools.map(s => ({ ...s, id: s._id?.toString() })),
       pagination: {
         currentPage: page,
         totalPages,
@@ -72,6 +78,10 @@ export async function GET(request: NextRequest) {
         limit
       }
     });
+    res.headers.set('ETag', etag);
+    res.headers.set('Last-Modified', lastModified);
+    res.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    return res;
   } catch (error) {
     console.error('Error fetching schools:', error);
     
