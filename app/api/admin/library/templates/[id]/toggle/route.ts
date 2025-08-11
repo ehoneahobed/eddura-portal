@@ -9,7 +9,6 @@ export async function POST(
 ) {
   try {
     const session = await auth();
-    
     if (!session?.user || session.user.type !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -17,38 +16,30 @@ export async function POST(
     await connectDB();
 
     const { id } = await params;
-    const { isTemplate } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { isTemplate } = body as { isTemplate?: boolean };
 
-    // Find and update the document
-    const document = await LibraryDocument.findByIdAndUpdate(
-      id,
-      { 
-        isTemplate,
-        updatedBy: session.user.id
-      },
-      { new: true }
-    );
-
-    if (!document) {
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      );
+    if (typeof isTemplate !== 'boolean') {
+      return NextResponse.json({ error: 'isTemplate must be a boolean' }, { status: 400 });
     }
 
+    const document = await LibraryDocument.findById(id);
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    }
+
+    document.isTemplate = isTemplate;
+    await document.save();
+
     return NextResponse.json({
-      message: `Document ${isTemplate ? 'marked as' : 'removed from'} template successfully`,
+      message: 'Template status updated successfully',
       document: {
         _id: (document._id as any).toString(),
-        title: document.title,
-        isTemplate: document.isTemplate
-      }
+        isTemplate: document.isTemplate,
+      },
     });
   } catch (error) {
     console.error('Error toggling template status:', error);
-    return NextResponse.json(
-      { error: 'Failed to update template status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update template status' }, { status: 500 });
   }
 } 
