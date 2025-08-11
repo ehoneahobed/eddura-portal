@@ -19,47 +19,47 @@ export const authOptions: NextAuthConfig = {
         portal: { label: "Portal", type: "text" } // "admin" or "user"
       },
       async authorize(credentials) {
-        console.log("🔍 [AUTH] Authorize called for:", credentials?.email);
+        if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Authorize called for:", credentials?.email);
         
         if (!credentials?.email || !credentials?.password || !credentials?.portal) {
-          console.log("❌ [AUTH] Missing required credentials");
+          if (process.env.NODE_ENV !== 'production') console.log("❌ [AUTH] Missing required credentials");
           return null;
         }
 
         try {
-          console.log("🔍 [AUTH] Connecting to database...");
+          if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Connecting to database...");
           await connectDB();
-          console.log("✅ [AUTH] Database connected");
+          if (process.env.NODE_ENV !== 'production') console.log("✅ [AUTH] Database connected");
           
           const { email, password, portal } = credentials;
-          console.log("🔍 [AUTH] Processing login for:", { email, portal });
+          if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Processing login for:", { email, portal });
           
           if (portal === "admin") {
-            console.log("🔍 [AUTH] Admin authentication flow");
+            if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Admin authentication flow");
             // Admin authentication
             const admin = await Admin.findOne({ email, isActive: true }).select("+password");
-            console.log("🔍 [AUTH] Admin lookup result:", admin ? "Found" : "Not found");
+            if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Admin lookup result:", admin ? "Found" : "Not found");
             
             if (!admin) {
-              console.log("❌ [AUTH] No admin found with email:", email);
+              if (process.env.NODE_ENV !== 'production') console.log("❌ [AUTH] No admin found with email:", email);
               return null;
             }
             
-            console.log("🔍 [AUTH] Comparing password...");
+            if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Comparing password...");
             const isPasswordValid = await admin.comparePassword(password as string);
-            console.log("🔍 [AUTH] Password validation result:", isPasswordValid ? "Valid" : "Invalid");
+            if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Password validation result:", isPasswordValid ? "Valid" : "Invalid");
             
             if (!isPasswordValid) {
-              console.log("❌ [AUTH] Invalid password for admin:", email);
+              if (process.env.NODE_ENV !== 'production') console.log("❌ [AUTH] Invalid password for admin:", email);
               return null;
             }
             
-            console.log("🔍 [AUTH] Updating admin login stats...");
+            if (process.env.NODE_ENV !== 'production') console.log("🔍 [AUTH] Updating admin login stats...");
             // Update last login
             admin.lastLoginAt = new Date();
             admin.loginCount += 1;
             await admin.save();
-            console.log("✅ [AUTH] Admin login stats updated");
+            if (process.env.NODE_ENV !== 'production') console.log("✅ [AUTH] Admin login stats updated");
             
             const userData = {
               id: String(admin._id),
@@ -73,7 +73,7 @@ export const authOptions: NextAuthConfig = {
               isEmailVerified: admin.isEmailVerified
             };
             
-            console.log("✅ [AUTH] Admin authentication successful, returning user data:", {
+            if (process.env.NODE_ENV !== 'production') console.log("✅ [AUTH] Admin authentication successful, returning user data:", {
               id: userData.id,
               email: userData.email,
               type: userData.type,
@@ -124,13 +124,13 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async jwt({ token, user }: any) {
-      console.log("🔧 [JWT] JWT callback triggered");
-      console.log("🔧 [JWT] User data:", user ? {
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] JWT callback triggered");
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] User data:", user ? {
         type: user.type,
         email: user.email,
         hasPermissions: !!user.permissions
       } : "No user data");
-      console.log("🔧 [JWT] Current token:", {
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] Current token:", {
         sub: token.sub,
         type: token.type,
         email: token.email,
@@ -138,24 +138,24 @@ export const authOptions: NextAuthConfig = {
       });
       
       if (user) {
-        console.log("🔧 [JWT] Processing user data for JWT");
+        if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] Processing user data for JWT");
         token.type = user.type;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.isEmailVerified = user.isEmailVerified;
         
         if (user.type === "admin") {
-          console.log("🔧 [JWT] Processing admin user");
+          if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] Processing admin user");
           token.role = user.role;
           // Ensure permissions is a string for JWT serialization
           token.permissions = Array.isArray(user.permissions) ? user.permissions.join(',') : (user.permissions as string || '');
-          console.log("🔧 [JWT] Admin permissions converted to string:", token.permissions);
+          if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] Admin permissions converted to string:", token.permissions);
         } else {
-          console.log("🔧 [JWT] Processing regular user");
+          if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] Processing regular user");
           token.quizCompleted = user.quizCompleted;
         }
         
-        console.log("🔧 [JWT] Final token data:", {
+        if (process.env.NODE_ENV !== 'production') console.log("🔧 [JWT] Final token data:", {
           type: token.type,
           email: token.email,
           hasPermissions: !!token.permissions
@@ -164,19 +164,19 @@ export const authOptions: NextAuthConfig = {
       return token;
     },
     async session({ session, token }: any) {
-      console.log("🔧 [SESSION] Session callback triggered");
-      console.log("🔧 [SESSION] Token data:", {
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Session callback triggered");
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Token data:", {
         sub: token.sub,
         type: token.type,
         email: token.email,
         hasPermissions: !!token.permissions
       });
-      console.log("🔧 [SESSION] Raw session before processing:", {
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Raw session before processing:", {
         user: session.user
       });
       
       if (token && token.sub) {
-        console.log("🔧 [SESSION] Processing session for user:", token.sub);
+        if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Processing session for user:", token.sub);
         session.user.id = token.sub;
         session.user.type = (token.type as "admin" | "user") || "user";
         session.user.firstName = (token.firstName as string) || "";
@@ -184,25 +184,25 @@ export const authOptions: NextAuthConfig = {
         session.user.isEmailVerified = (token.isEmailVerified as boolean) || false;
         
         if (token.type === "admin") {
-          console.log("🔧 [SESSION] Processing admin session");
+          if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Processing admin session");
           session.user.role = token.role as AdminRole;
           // Convert permissions string back to array
           session.user.permissions = typeof token.permissions === 'string' ? token.permissions.split(',') : [];
-          console.log("🔧 [SESSION] Admin session created:", {
+          if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Admin session created:", {
             id: session.user.id,
             type: session.user.type,
             role: session.user.role,
             permissionsCount: session.user.permissions.length
           });
         } else {
-          console.log("🔧 [SESSION] Processing regular user session");
+          if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Processing regular user session");
           session.user.quizCompleted = (token.quizCompleted as boolean) || false;
         }
       } else {
-        console.log("🔧 [SESSION] No valid token found");
+        if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] No valid token found");
       }
       
-      console.log("🔧 [SESSION] Final session object:", {
+      if (process.env.NODE_ENV !== 'production') console.log("🔧 [SESSION] Final session object:", {
         user: {
           id: session.user.id,
           email: session.user.email,

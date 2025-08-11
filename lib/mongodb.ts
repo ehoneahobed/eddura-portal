@@ -6,6 +6,11 @@ try {
   // Ignore if models can't be loaded (e.g., during build)
 }
 
+// Silence Mongoose debug in production
+if (process.env.NODE_ENV === 'production') {
+  mongoose.set('debug', false);
+}
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 interface MongooseCache {
@@ -27,7 +32,6 @@ if (!global.mongoose) {
 async function connectDB(): Promise<typeof mongoose> {
   // During build time, return a mock connection to prevent build failures
   if (process.env.NODE_ENV === 'production' && !MONGODB_URI) {
-    console.warn('MONGODB_URI not available during build, skipping connection');
     return mongoose;
   }
 
@@ -42,10 +46,14 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-    };
+      // Cap pool and fail fast to avoid exhausting free-tier connections
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 7000,
+      socketTimeoutMS: 20000,
+    } as any;
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ Connected to MongoDB Atlas');
+      if (process.env.NODE_ENV !== 'production') console.log('✅ Connected to MongoDB Atlas');
       return mongoose;
     });
   }

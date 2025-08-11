@@ -164,12 +164,13 @@ const UserSessionSchema = new Schema<IUserSession>({
 // Indexes for efficient querying
 UserSessionSchema.index({ userId: 1, startTime: -1 });
 UserSessionSchema.index({ adminId: 1, startTime: -1 });
-UserSessionSchema.index({ sessionId: 1 });
-UserSessionSchema.index({ isActive: 1 });
 UserSessionSchema.index({ startTime: -1 });
 UserSessionSchema.index({ country: 1 });
 UserSessionSchema.index({ browser: 1 });
 UserSessionSchema.index({ device: 1 });
+
+// TTL index to auto-expire stale sessions after 30 days
+UserSessionSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 
 // Virtual for session duration
 UserSessionSchema.virtual('sessionDuration').get(function() {

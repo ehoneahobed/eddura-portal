@@ -81,12 +81,21 @@ export function useActiveUsers(minutes: number = 5): UseActiveUsersReturn {
   };
 
   useEffect(() => {
-    fetchActiveUsers();
-    
-    // Set up polling every 30 seconds
-    const interval = setInterval(fetchActiveUsers, 30000);
-    
-    return () => clearInterval(interval);
+    const run = () => {
+      if (document.visibilityState === 'visible') {
+        fetchActiveUsers();
+      }
+    };
+
+    run();
+    const onVisibility = () => document.visibilityState === 'visible' && fetchActiveUsers();
+    const interval = setInterval(run, 120000); // 2 minutes
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [minutes]);
 
   const refetch = () => {

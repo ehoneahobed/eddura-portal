@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    // Get query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
@@ -21,14 +20,9 @@ export async function GET(request: NextRequest) {
     const country = searchParams.get('country') || '';
     const sortBy = searchParams.get('sortBy') || 'name';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
-    
-    // Calculate skip value for pagination
     const skip = (page - 1) * limit;
     
-    // Build filter object
     const filter: any = {};
-    
-    // Search filter - search across program name, field of study, and school name
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -37,61 +31,45 @@ export async function GET(request: NextRequest) {
         { subfield: { $regex: search, $options: 'i' } }
       ];
     }
+    if (schoolId && schoolId !== 'all') filter.schoolId = schoolId;
+    if (level && level !== 'all') filter.programLevel = level;
+    if (degreeType && degreeType !== 'all') filter.degreeType = degreeType;
+    if (fieldOfStudy && fieldOfStudy !== 'all') filter.fieldOfStudy = fieldOfStudy;
+    if (mode && mode !== 'all') filter.mode = mode;
     
-    // School filter
-    if (schoolId && schoolId !== 'all') {
-      filter.schoolId = schoolId;
-    }
-    
-    // Level filter
-    if (level && level !== 'all') {
-      filter.programLevel = level;
-    }
-    
-    // Degree type filter
-    if (degreeType && degreeType !== 'all') {
-      filter.degreeType = degreeType;
-    }
-    
-    // Field of study filter
-    if (fieldOfStudy && fieldOfStudy !== 'all') {
-      filter.fieldOfStudy = fieldOfStudy;
-    }
-    
-    // Mode filter
-    if (mode && mode !== 'all') {
-      filter.mode = mode;
-    }
-    
-    // Build sort object
     const sort: any = {};
-    if (sortBy === 'name') {
-      sort.name = sortOrder === 'desc' ? -1 : 1;
-    } else if (sortBy === 'schoolName') {
-      sort['schoolId.name'] = sortOrder === 'desc' ? -1 : 1;
-    } else if (sortBy === 'degreeType') {
-      sort.degreeType = sortOrder === 'desc' ? -1 : 1;
-    } else if (sortBy === 'fieldOfStudy') {
-      sort.fieldOfStudy = sortOrder === 'desc' ? -1 : 1;
-    } else if (sortBy === 'createdAt') {
-      sort.createdAt = sortOrder === 'desc' ? -1 : 1;
-    } else if (sortBy === 'updatedAt') {
-      sort.updatedAt = sortOrder === 'desc' ? -1 : 1;
-    } else {
-      sort.name = 1; // Default sort by name ascending
+    if (sortBy === 'name') sort.name = sortOrder === 'desc' ? -1 : 1;
+    else if (sortBy === 'schoolName') sort['schoolId.name'] = sortOrder === 'desc' ? -1 : 1;
+    else if (sortBy === 'degreeType') sort.degreeType = sortOrder === 'desc' ? -1 : 1;
+    else if (sortBy === 'fieldOfStudy') sort.fieldOfStudy = sortOrder === 'desc' ? -1 : 1;
+    else if (sortBy === 'createdAt') sort.createdAt = sortOrder === 'desc' ? -1 : 1;
+    else if (sortBy === 'updatedAt') sort.updatedAt = sortOrder === 'desc' ? -1 : 1;
+    else sort.name = 1;
+    
+    const [totalCount, latest] = await Promise.all([
+      Program.countDocuments(filter),
+      Program.findOne(filter).sort({ updatedAt: -1 }).select({ updatedAt: 1 }).lean() as any
+    ]);
+
+    const lastTs = latest?.updatedAt ? new Date(latest.updatedAt).getTime() : 0;
+    const lastModified = lastTs ? new Date(lastTs).toUTCString() : new Date(0).toUTCString();
+    const etag = `W/"programs-${page}-${limit}-${search}-${schoolId}-${level}-${degreeType}-${fieldOfStudy}-${mode}-${country}-${sortBy}-${sortOrder}-${lastTs}"`;
+
+    const ifNoneMatch = request.headers.get('if-none-match');
+    const ifModifiedSince = request.headers.get('if-modified-since');
+    if (ifNoneMatch === etag || (ifModifiedSince && new Date(ifModifiedSince).getTime() >= lastTs)) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag, 'Last-Modified': lastModified } });
     }
-    
-    // Get total count for pagination
-    const totalCount = await Program.countDocuments(filter);
-    
-    // Get paginated programs
+
     let programs;
     try {
       programs = await Program.find(filter)
         .populate('schoolId', 'name country city')
         .sort(sort)
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .select('name degreeType fieldOfStudy programLevel mode updatedAt createdAt schoolId')
+        .lean();
     } catch (err) {
       console.error('Error during Program.find/populate:', err);
       return NextResponse.json(
@@ -99,36 +77,21 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       );
     }
-    
-    if (!Array.isArray(programs)) {
-      console.error('Programs is not an array:', programs);
-      return NextResponse.json({ programs: [], totalCount: 0, currentPage: page, totalPages: 0 }, { status: 200 });
-    }
-    
-    // Apply country filter after population (since country is in the school document)
+
     let filteredPrograms = programs;
     if (country && country !== 'all') {
-      filteredPrograms = programs.filter((program: any) => 
-        program.schoolId && 
-        typeof program.schoolId === 'object' && 
-        program.schoolId.country === country
-      );
+      filteredPrograms = programs.filter((program: any) => program.schoolId && typeof program.schoolId === 'object' && program.schoolId.country === country);
     }
-    
-    // Transform programs to match frontend expectations
-    const transformedPrograms = filteredPrograms.map((program: any) => {
-      const transformed = program.toObject ? program.toObject() : program;
-      return {
-        ...transformed,
-        school: transformed.schoolId, // Rename schoolId to school
-        schoolId: transformed.schoolId?._id // Keep the original ID as schoolId
-      };
-    });
-    
-    // Calculate pagination info
+
+    const transformedPrograms = filteredPrograms.map((program: any) => ({
+      ...program,
+      school: program.schoolId,
+      schoolId: (program.schoolId as any)?._id,
+    }));
+
     const totalPages = Math.ceil(totalCount / limit);
-    
-    return NextResponse.json({
+
+    const res = NextResponse.json({
       programs: transformedPrograms,
       pagination: {
         currentPage: page,
@@ -139,6 +102,10 @@ export async function GET(request: NextRequest) {
         limit
       }
     });
+    res.headers.set('ETag', etag);
+    res.headers.set('Last-Modified', lastModified);
+    res.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    return res;
   } catch (error) {
     console.error('Error fetching programs:', error);
     return NextResponse.json(

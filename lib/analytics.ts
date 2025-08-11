@@ -41,6 +41,11 @@ class AnalyticsTracker {
   private isPageActive: boolean = true;
   private heartbeatInterval?: NodeJS.Timeout;
   private pageLoadStartTime: number;
+  private eventQueue: any[] = [];
+  private flushInterval?: NodeJS.Timeout;
+  private maxQueuedEvents = 50;
+  private maxClicksPerPage = 10;
+  private clickEventsSent = 0;
 
   constructor(config: AnalyticsConfig) {
     this.sessionId = config.sessionId;
@@ -52,6 +57,8 @@ class AnalyticsTracker {
     this.pageLoadStartTime = performance.now();
 
     this.initializeTracking();
+    // Start periodic flush every 30s
+    this.flushInterval = setInterval(() => this.flushQueue(), 30000);
   }
 
   private initializeTracking() {
@@ -120,74 +127,62 @@ class AnalyticsTracker {
   private startHeartbeat() {
     this.heartbeatInterval = setInterval(() => {
       if (this.isPageActive) {
-        this.sendHeartbeat();
+        // Queue heartbeat instead of sending immediately
+        this.queue('heartbeat', {
+          sessionId: this.sessionId,
+          userId: this.userId,
+          adminId: this.userType === 'admin' ? this.userId : undefined,
+          timestamp: new Date().toISOString()
+        });
       }
-    }, 30000); // Send heartbeat every 30 seconds
+    }, 300000); // 5 minutes
   }
 
   private trackPageExit() {
     window.addEventListener('beforeunload', () => {
       const timeOnPage = Math.round((Date.now() - this.currentPageStartTime) / 1000);
-      this.updatePageView({ 
-        timeOnPage,
-        isBounce: true 
-      });
-      
-      // Send final page view data
-      this.sendPageView();
+      this.updatePageView({ timeOnPage, isBounce: true });
+      // Flush queue using sendBeacon
+      this.flushQueue(true);
     });
   }
 
   private trackUserInteractions() {
-    // Track clicks
+    // Throttled click tracking: cap per page to reduce noise
     document.addEventListener('click', (event) => {
+      if (this.clickEventsSent >= this.maxClicksPerPage) return;
+      this.clickEventsSent++;
       const target = event.target as HTMLElement;
       const element = target.tagName.toLowerCase();
       const className = target.className;
       const id = target.id;
-      
       this.trackEvent({
         eventType: 'click',
         eventCategory: 'interaction',
         eventName: 'page_click',
-        eventData: {
-          element,
-          className,
-          id,
-          text: target.textContent?.slice(0, 100)
-        }
+        eventData: { element, className, id, text: target.textContent?.slice(0, 100) }
       });
     });
 
-    // Track form submissions
     document.addEventListener('submit', (event) => {
       const form = event.target as HTMLFormElement;
       this.trackEvent({
         eventType: 'form_submit',
         eventCategory: 'engagement',
         eventName: 'form_submitted',
-        eventData: {
-          formId: form.id,
-          formAction: form.action,
-          formMethod: form.method
-        }
+        eventData: { formId: form.id, formAction: form.action, formMethod: form.method }
       });
     });
 
-    // Track downloads
     document.addEventListener('click', (event) => {
       const target = event.target as HTMLElement;
       const link = target.closest('a');
-      
       if (link && (link.download || link.href.includes('.pdf') || link.href.includes('.doc'))) {
         this.trackEvent({
           eventType: 'download',
           eventCategory: 'engagement',
           eventName: 'file_downloaded',
-          eventData: {
-            fileName: link.download || link.href.split('/').pop(),
-            fileUrl: link.href
-          }
+          eventData: { fileName: link.download || link.href.split('/').pop(), fileUrl: link.href }
         });
       }
     });
@@ -213,8 +208,7 @@ class AnalyticsTracker {
       referrer: document.referrer,
       referrerDomain: document.referrer ? new URL(document.referrer).hostname : null
     };
-
-    this.sendToServer('/api/analytics/pageview', pageViewData);
+    this.queue('pageview', pageViewData);
   }
 
   public trackEvent(data: UserEventData) {
@@ -234,8 +228,7 @@ class AnalyticsTracker {
       os: this.getOSInfo(),
       device: this.getDeviceInfo()
     };
-
-    this.sendToServer('/api/analytics/event', eventData);
+    this.queue('event', eventData);
   }
 
   private updatePageView(data: Partial<PageViewData>) {
@@ -256,26 +249,30 @@ class AnalyticsTracker {
     });
   }
 
-  private sendHeartbeat() {
-    this.sendToServer('/api/analytics/heartbeat', {
-      sessionId: this.sessionId,
-      userId: this.userId,
-      adminId: this.userType === 'admin' ? this.userId : undefined,
-      timestamp: new Date().toISOString()
-    });
+  // direct heartbeat sender removed in favor of batching
+
+  private queue(type: 'pageview' | 'event' | 'heartbeat', payload: any) {
+    this.eventQueue.push({ type, payload });
+    if (this.eventQueue.length >= this.maxQueuedEvents) {
+      this.flushQueue();
+    }
   }
 
-  private async sendToServer(endpoint: string, data: any) {
+  private async flushQueue(useBeacon: boolean = false) {
+    if (this.eventQueue.length === 0) return;
+    const batch = this.eventQueue.splice(0, this.eventQueue.length);
+    const body = JSON.stringify({ events: batch });
+
+    if (useBeacon && 'sendBeacon' in navigator) {
+      try {
+        navigator.sendBeacon('/api/analytics/batch', new Blob([body], { type: 'application/json' }));
+        return;
+      } catch {}
+    }
     try {
-      await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      await fetch('/api/analytics/batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
     } catch (error) {
-      console.warn('Analytics tracking failed:', error);
+      console.warn('Analytics batch failed:', error);
     }
   }
 
@@ -329,12 +326,9 @@ class AnalyticsTracker {
   }
 
   public destroy() {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
-    
-    // Send final page view
-    this.sendPageView();
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    if (this.flushInterval) clearInterval(this.flushInterval);
+    this.flushQueue(true);
   }
 }
 
