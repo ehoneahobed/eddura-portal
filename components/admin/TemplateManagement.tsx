@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +83,15 @@ export default function TemplateManagement() {
     setPage(1);
     setSearchTerm(searchInput.trim());
   };
+
+  // Debounce search input to avoid fetching on every keystroke aggressively
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setPage(1);
+      setSearchTerm(searchInput.trim());
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
 
   const toggleTemplateStatus = async (documentId: string, currentStatus: boolean) => {
     try {
@@ -240,6 +249,7 @@ export default function TemplateManagement() {
           ) : visibleDocuments.length === 0 ? (
             <div className="text-center text-gray-500 py-8">No templates found.</div>
           ) : (
+            <>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -360,6 +370,48 @@ export default function TemplateManagement() {
                 ))}
               </TableBody>
             </Table>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Rows per page</span>
+                <Select value={String(limit)} onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}>
+                  <SelectTrigger className="w-[110px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <span>
+                  Page {pagination?.page ?? page} of {pagination?.pages ?? 1}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={(pagination?.page ?? page) <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => (pagination ? Math.min(pagination.pages, p + 1) : p + 1))}
+                    disabled={pagination ? pagination.page >= pagination.pages : false}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+            </>
           )}
         </CardContent>
       </Card>
