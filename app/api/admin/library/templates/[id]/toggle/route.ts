@@ -5,7 +5,7 @@ import LibraryDocument from '@/models/LibraryDocument';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -15,7 +15,7 @@ export async function POST(
 
     await connectDB();
 
-    const documentId = params.id;
+    const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const { isTemplate } = body as { isTemplate?: boolean };
 
@@ -23,7 +23,7 @@ export async function POST(
       return NextResponse.json({ error: 'isTemplate must be a boolean' }, { status: 400 });
     }
 
-    const document = await LibraryDocument.findById(documentId);
+    const document = await LibraryDocument.findById(id);
     if (!document) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
