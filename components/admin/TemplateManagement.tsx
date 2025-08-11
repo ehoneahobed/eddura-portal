@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminTemplates } from '@/hooks/use-admin-templates';
 
 interface TemplateDocument {
   _id: string;
@@ -60,79 +61,27 @@ interface TemplateDocument {
 }
 
 export default function TemplateManagement() {
-  const [documents, setDocuments] = useState<TemplateDocument[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [documentsOverride, setDocumentsOverride] = useState<TemplateDocument[] | null>(null);
+  const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [templateFilter, setTemplateFilter] = useState<'all' | 'templates' | 'non-templates'>('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 20,
-    total: 0,
-    pages: 0
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+
+  const { documents, pagination, isLoading, isValidating, mutate } = useAdminTemplates({
+    page,
+    limit,
+    search: searchTerm,
+    templateFilter,
+    statusFilter,
+    categoryFilter,
   });
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      setIsLoading(true);
-      try {
-        const params = new URLSearchParams({
-          page: pagination.page.toString(),
-          limit: pagination.limit.toString(),
-          ...(searchTerm && { search: searchTerm }),
-          ...(templateFilter !== 'all' && { isTemplate: templateFilter === 'templates' ? 'true' : 'false' }),
-          ...(statusFilter !== 'all' && { status: statusFilter }),
-          ...(categoryFilter !== 'all' && { category: categoryFilter }),
-        });
-        const response = await fetch(`/api/admin/library/templates?${params}`);
-        if (response.ok) {
-          const data = await response.json();
-          setDocuments(data.documents || []);
-          setPagination((previousPagination) => {
-            const incoming = data.pagination || previousPagination;
-            const next = {
-              ...previousPagination,
-              ...incoming,
-            };
-            const isUnchanged =
-              previousPagination.page === next.page &&
-              previousPagination.limit === next.limit &&
-              previousPagination.total === next.total &&
-              previousPagination.pages === next.pages;
-            return isUnchanged ? previousPagination : next;
-          });
-          // Debug log API response
-          console.log('[TemplateManagement] API response:', data);
-        } else {
-          setIsLoading(false);
-          if (response.status === 401) {
-            toast.error('You are not authorized to view this page. Please log in as an admin.');
-          } else {
-            const errorData = await response.json().catch(() => ({}));
-            toast.error(errorData.error || 'Failed to fetch templates');
-            // Debug log API error
-            console.error('[TemplateManagement] API error:', errorData);
-          }
-          return;
-        }
-      } catch (error) {
-        setIsLoading(false);
-        console.error('Error fetching templates:', error);
-        toast.error('Failed to fetch templates');
-        // Debug log fetch error
-        console.error('[TemplateManagement] Fetch error:', error);
-        return;
-      }
-      setIsLoading(false);
-      // Debug log state after fetch (removed from useEffect to silence linter)
-    };
-    fetchTemplates();
-  }, [searchTerm, templateFilter, statusFilter, categoryFilter, pagination.page, pagination.limit]);
-
   const handleSearch = () => {
-    setPagination(prev => ({ ...prev, page: 1 }));
-    // fetchTemplates(); // No longer needed, useEffect will handle
+    setPage(1);
+    setSearchTerm(searchInput.trim());
   };
 
   const toggleTemplateStatus = async (documentId: string, currentStatus: boolean) => {
@@ -148,9 +97,9 @@ export default function TemplateManagement() {
       if (response.ok) {
         const data = await response.json();
         toast.success(data.message || 'Template status updated successfully');
-        // fetchTemplates(); // Refresh the list - now handled by useEffect
+        await mutate();
       } else {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({}));
         toast.error(error.error || 'Failed to update template status');
       }
     } catch (error) {
@@ -182,10 +131,12 @@ export default function TemplateManagement() {
     });
   };
 
+  const visibleDocuments = documentsOverride ?? documents;
+
   // Debug logs before rendering (safe for linter)
-  console.log('[TemplateManagement] Render - documents:', documents);
-  console.log('[TemplateManagement] Render - pagination:', pagination);
-  console.log('[TemplateManagement] Render - isLoading:', isLoading);
+  console.log('[TemplateManagement] Render - documents:', visibleDocuments);
+  console.log('[TemplateManagement] Render - pagination:', pagination || { page, limit });
+  console.log('[TemplateManagement] Render - isLoading:', isLoading, 'isValidating:', isValidating);
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -196,6 +147,12 @@ export default function TemplateManagement() {
             Manage document templates and their availability for cloning
           </p>
         </div>
+        {(isLoading || isValidating) && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Updating
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -210,8 +167,8 @@ export default function TemplateManagement() {
               <div className="flex space-x-2">
                 <Input
                   placeholder="Search templates..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <Button onClick={handleSearch} size="sm">
@@ -221,7 +178,7 @@ export default function TemplateManagement() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Template Status</label>
-              <Select value={templateFilter} onValueChange={(value: 'all' | 'templates' | 'non-templates') => setTemplateFilter(value)}>
+              <Select value={templateFilter} onValueChange={(value: 'all' | 'templates' | 'non-templates') => { setTemplateFilter(value); setPage(1); }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -234,7 +191,7 @@ export default function TemplateManagement() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -249,7 +206,7 @@ export default function TemplateManagement() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -276,11 +233,11 @@ export default function TemplateManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoading && (!visibleDocuments || visibleDocuments.length === 0) ? (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
-          ) : documents.length === 0 ? (
+          ) : visibleDocuments.length === 0 ? (
             <div className="text-center text-gray-500 py-8">No templates found.</div>
           ) : (
             <Table>
@@ -297,7 +254,7 @@ export default function TemplateManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.map((document) => (
+                {visibleDocuments.map((document) => (
                   <TableRow key={document._id}>
                     <TableCell>
                       <div>
