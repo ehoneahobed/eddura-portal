@@ -42,7 +42,11 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-    };
+      // Cap pool and fail fast to avoid exhausting free-tier connections
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 7000,
+      socketTimeoutMS: 20000,
+    } as any;
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       console.log('✅ Connected to MongoDB Atlas');

@@ -12,7 +12,15 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   const { data: session } = useSession();
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const analyticsEnabled = typeof window !== 'undefined' &&
+    (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'true');
+  const sampleRate = Number(process.env.NEXT_PUBLIC_ANALYTICS_SAMPLE || '0.25');
+
   useEffect(() => {
+    if (!analyticsEnabled) return; // Hard gate
+    if (navigator.doNotTrack === '1') return; // Respect DNT
+    if (Math.random() > sampleRate) return; // Traffic sampling
+
     const initializeTracking = async () => {
       try {
         // Check if we already have a valid session
@@ -23,23 +31,17 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         if (existingSessionData) {
           try {
             const parsed = JSON.parse(existingSessionData);
-            // Check if the session is still valid (not too old)
             const sessionAge = Date.now() - (parsed.timestamp || 0);
             const maxSessionAge = 30 * 60 * 1000; // 30 minutes
-            
             if (sessionAge < maxSessionAge && parsed.sessionId) {
-              // Reuse existing session
               sessionId = parsed.sessionId;
               serverSessionId = parsed.sessionId;
-              
-              // Initialize client-side analytics with existing session
               initializeAnalytics({
                 sessionId: serverSessionId,
                 userId: parsed.userId || undefined,
                 userType: parsed.userType as 'anonymous' | 'registered' | 'admin',
                 userRole: parsed.userRole
               });
-
               setIsInitialized(true);
               return;
             }
@@ -50,20 +52,18 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
 
         // Create new session if no valid existing session
         sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Get user information
+
         const userId = session?.user?.type === 'admin' ? null : session?.user?.id;
         const adminId = session?.user?.type === 'admin' ? session?.user?.id : null;
         const userType = session?.user?.type || 'anonymous';
         const userRole = session?.user?.role ? String(session.user.role) : undefined;
 
-        // Create session on server
+        // Create session on server (send client sessionId for precise reuse)
         const response = await fetch('/api/analytics/session', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            sessionId,
             userId,
             adminId,
             referrer: document.referrer,
@@ -76,16 +76,12 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         if (response.ok) {
           const { sessionId: newServerSessionId } = await response.json();
           serverSessionId = newServerSessionId;
-          
-          // Initialize client-side analytics
           initializeAnalytics({
             sessionId: serverSessionId,
             userId: userId || undefined,
             userType: userType as 'anonymous' | 'registered' | 'admin',
             userRole
           });
-
-          // Store session data for persistence
           sessionStorage.setItem('analytics_session', JSON.stringify({
             sessionId: serverSessionId,
             userId,
@@ -94,7 +90,6 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
             userRole,
             timestamp: Date.now()
           }));
-
           setIsInitialized(true);
         }
       } catch (error) {
@@ -102,14 +97,12 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       }
     };
 
-    // Initialize analytics when component mounts
     initializeTracking();
 
-    // Cleanup on unmount
     return () => {
       destroyAnalytics();
     };
-  }, [session]);
+  }, [session, analyticsEnabled, sampleRate]);
 
   // Track page changes
   useEffect(() => {

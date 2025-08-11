@@ -327,3 +327,20 @@ clientPromise = client.connect();
 - [ ] Add `maxPoolSize=10` to the Mongo URI(s).
 - [ ] Add rate limiting on `/api/analytics/*`.
 - [ ] Monitor Vercel analytics and MongoDB connection counts after deploy.
+
+---
+
+## Implemented Changes in This Commit
+
+- Hard gate + sampling for analytics in `components/AnalyticsProvider.tsx` (env: `NEXT_PUBLIC_ANALYTICS_ENABLED`, `NEXT_PUBLIC_ANALYTICS_SAMPLE`).
+- Converted analytics to batched writes with `sendBeacon` fallback in `lib/analytics.ts` and added `/api/analytics/batch` endpoint with bulkWrite.
+- Heartbeat reduced to every 5 minutes and queued.
+- Throttled click tracking (max 10 per page).
+- Fixed anonymous session reuse and now prefer client-provided `sessionId` in `app/api/analytics/session/route.ts`.
+- Added lightweight in-memory rate limiter `lib/rate-limit.ts` and applied to analytics endpoints.
+- Reduced admin-side polling: notifications and active users now fetch on focus/visibility and every 120s; real-time dashboard refreshes every 60s only when visible.
+- Capped MongoDB pool sizes and added fast timeouts in `lib/mongodb.ts` and pooled `lib/mongodb-client.ts` globally.
+
+### How to enable analytics
+
+- Add to environment: `NEXT_PUBLIC_ANALYTICS_ENABLED=true` and optionally `NEXT_PUBLIC_ANALYTICS_SAMPLE=0.25` (25% sampling). Default behavior with no env is disabled.

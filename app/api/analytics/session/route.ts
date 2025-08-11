@@ -6,9 +6,13 @@ import UserSession from '@/models/UserSession';
 import User from '@/models/User';
 import Admin from '@/models/Admin';
 import { headers } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await rateLimit(request as any, 30, 60); // 30 req/min per IP
+    if (!limited.ok) return limited.response as any;
+
     await connectDB();
     
     const session = await auth();
@@ -22,31 +26,37 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     const { userId, adminId, referrer, entryPage } = body;
+    const clientSessionId = body.sessionId as string | undefined;
 
-    // Check for existing active session for this user
-    const existingSession = await UserSession.findOne({
-      $or: [
-        { userId: userId || null },
-        { adminId: adminId || null }
-      ],
-      isActive: true,
-      updatedAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) } // Last 30 minutes
-    });
-
-    if (existingSession) {
-      // Update existing session instead of creating new one
-      existingSession.updatedAt = new Date();
-      await existingSession.save();
-      
-      return NextResponse.json({
-        sessionId: existingSession.sessionId,
-        success: true,
-        reused: true
-      });
+    // If client provided a sessionId, reuse/update that exact session only
+    if (clientSessionId) {
+      const existingById = await UserSession.findOne({ sessionId: clientSessionId });
+      if (existingById) {
+        existingById.updatedAt = new Date();
+        await existingById.save();
+        return NextResponse.json({ sessionId: existingById.sessionId, success: true, reused: true });
+      }
     }
 
-    // Generate session ID for new session
-    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // For authenticated users, reuse only by exact user/admin, not anonymous nulls
+    if (userId || adminId) {
+      const existingSession = await UserSession.findOne({
+        $or: [
+          userId ? { userId } : { _id: null },
+          adminId ? { adminId } : { _id: null }
+        ],
+        isActive: true,
+        updatedAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) }
+      });
+      if (existingSession) {
+        existingSession.updatedAt = new Date();
+        await existingSession.save();
+        return NextResponse.json({ sessionId: existingSession.sessionId, success: true, reused: true });
+      }
+    }
+
+    // Generate or use provided session ID
+    const sessionId = clientSessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Parse user agent for browser/OS info
     const browserInfo = parseUserAgent(userAgent);
@@ -76,30 +86,17 @@ export async function POST(request: NextRequest) {
       bounceRate: false
     };
 
-    // Create new session
     const userSession = new UserSession(sessionData);
     await userSession.save();
 
-    // Update user's last login if authenticated
     if (userId) {
-      await User.findByIdAndUpdate(userId, {
-        lastLoginAt: new Date(),
-        $inc: { loginCount: 1 }
-      });
+      await User.findByIdAndUpdate(userId, { lastLoginAt: new Date(), $inc: { loginCount: 1 } });
     }
-
-    // Update admin's last login if authenticated
     if (adminId) {
-      await Admin.findByIdAndUpdate(adminId, {
-        lastLoginAt: new Date(),
-        $inc: { loginCount: 1 }
-      });
+      await Admin.findByIdAndUpdate(adminId, { lastLoginAt: new Date(), $inc: { loginCount: 1 } });
     }
 
-    return NextResponse.json({
-      sessionId,
-      success: true
-    });
+    return NextResponse.json({ sessionId, success: true });
 
   } catch (error) {
     console.error('Session creation error:', error);

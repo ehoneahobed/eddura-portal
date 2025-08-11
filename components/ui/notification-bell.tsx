@@ -159,14 +159,25 @@ export function NotificationBell() {
   };
 
   useEffect(() => {
-    if (session) {
+    if (!session) return;
+
+    const onFocus = () => fetchNotifications();
+    window.addEventListener('focus', onFocus);
+
+    // Poll only when the popover is open and page visible
+    let interval: NodeJS.Timeout | null = null;
+    if (isOpen) {
       fetchNotifications();
-      
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
+      interval = setInterval(() => {
+        if (document.visibilityState === 'visible') fetchNotifications();
+      }, 120000); // 2 minutes
     }
-  }, [session]);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      if (interval) clearInterval(interval);
+    };
+  }, [session, isOpen]);
 
   if (!session) return null;
 

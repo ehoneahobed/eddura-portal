@@ -3,9 +3,12 @@ import connectDB from '@/lib/mongodb';
 import '@/models/index';
 import PageView from '@/models/PageView';
 import { headers } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await rateLimit(request as any, 60, 60);
+    if (!limited.ok) return limited.response as any;
     await connectDB();
     
     const headersList = await headers();

@@ -105,23 +105,17 @@ export function UserAnalyticsDashboard() {
 
   // Set up real-time updates for "today" range
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout | undefined;
     
     if (timeRange === 'today') {
       setIsRealTime(true);
-      interval = setInterval(() => {
-        // Silent update - don't show loading state
-        fetchUserAnalyticsSilently();
-      }, 30000); // Update every 30 seconds for real-time data
+      const run = () => { if (document.visibilityState === 'visible') fetchUserAnalyticsSilently(); };
+      interval = setInterval(run, 60000); // 60s
     } else {
       setIsRealTime(false);
     }
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
+    return () => { if (interval) clearInterval(interval); };
   }, [timeRange]);
 
   const fetchUserAnalyticsSilently = async () => {

@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import '@/models/index';
 import UserSession from '@/models/UserSession';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await rateLimit(request as any, 30, 60);
+    if (!limited.ok) return limited.response as any;
     await connectDB();
     
     const body = await request.json();

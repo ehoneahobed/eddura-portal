@@ -3,9 +3,12 @@ import connectDB from '@/lib/mongodb';
 import '@/models/index';
 import UserEvent from '@/models/UserEvent';
 import { headers } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await rateLimit(request as any, 120, 60); // Allow more but still bounded
+    if (!limited.ok) return limited.response as any;
     await connectDB();
     
     const headersList = await headers();
