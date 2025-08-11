@@ -9,52 +9,15 @@ export async function POST(request: NextRequest) {
   try {
     const limited = await rateLimit(request as any, 60, 60);
     if (!limited.ok) return limited.response as any;
-    await connectDB();
-    
-    const headersList = await headers();
+    // Forward to batch endpoint to unify pipeline
     const body = await request.json();
-    
-    // Get client information
-    const userAgent = headersList.get('user-agent') || '';
-    const ipAddress = headersList.get('x-forwarded-for') || 
-                     headersList.get('x-real-ip') || 
-                     'unknown';
-
-    // Parse user agent for browser/OS info
-    const browserInfo = parseUserAgent(userAgent);
-    
-    // Create page view data
-    const pageViewData = {
-      userId: body.userId || null,
-      sessionId: body.sessionId,
-      pageUrl: body.pageUrl,
-      pageTitle: body.pageTitle,
-      pageType: body.pageType,
-      visitTime: new Date(),
-      timeOnPage: body.timeOnPage || 0,
-      isBounce: body.isBounce || false,
-      scrollDepth: body.scrollDepth || 0,
-      interactions: [],
-      userAgent,
-      browser: browserInfo.browser,
-      os: browserInfo.os,
-      device: browserInfo.device,
-      screenResolution: body.screenResolution,
-      ipAddress,
-      country: body.country,
-      city: body.city,
-      referrer: body.referrer,
-      referrerDomain: body.referrerDomain,
-      pageLoadTime: body.pageLoadTime,
-      domContentLoaded: body.domContentLoaded
-    };
-
-    // Create new page view
-    const pageView = new PageView(pageViewData);
-    await pageView.save();
-
-    return NextResponse.json({ success: true });
-
+    const events = [{ type: 'pageview', payload: body }];
+    const res = await fetch(new URL('/api/analytics/batch', request.url), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', dnt: request.headers.get('dnt') || '' },
+      body: JSON.stringify({ events })
+    });
+    return new NextResponse(await res.text(), { status: res.status, headers: res.headers });
   } catch (error) {
     console.error('Page view tracking error:', error);
     return NextResponse.json(

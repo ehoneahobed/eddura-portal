@@ -340,6 +340,9 @@ clientPromise = client.connect();
 - Added lightweight in-memory rate limiter `lib/rate-limit.ts` and applied to analytics endpoints.
 - Reduced admin-side polling: notifications and active users now fetch on focus/visibility and every 120s; real-time dashboard refreshes every 60s only when visible.
 - Capped MongoDB pool sizes and added fast timeouts in `lib/mongodb.ts` and pooled `lib/mongodb-client.ts` globally.
+- Added server-side feature flag `ANALYTICS_ENABLED` and DNT/bot filtering in `api/analytics/batch`.
+- Forwarded legacy single-event endpoints (`/api/analytics/event|pageview|heartbeat`) to the batch pipeline for compatibility.
+- Added SSE endpoint `api/admin/analytics/realtime/stream` and migrated the admin dashboard to consume it.
 
 ### How to enable analytics
 

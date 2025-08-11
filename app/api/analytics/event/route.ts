@@ -9,51 +9,18 @@ export async function POST(request: NextRequest) {
   try {
     const limited = await rateLimit(request as any, 120, 60); // Allow more but still bounded
     if (!limited.ok) return limited.response as any;
-    await connectDB();
     
-    const headersList = await headers();
+    // Backward-compatible: forward to batch endpoint to unify pipeline
     const body = await request.json();
-    
-    // Get client information
-    const userAgent = headersList.get('user-agent') || '';
-    const ipAddress = headersList.get('x-forwarded-for') || 
-                     headersList.get('x-real-ip') || 
-                     'unknown';
-
-    // Parse user agent for browser/OS info
-    const browserInfo = parseUserAgent(userAgent);
-    
-    // Create event data
-    const eventData = {
-      userId: body.userId || null,
-      sessionId: body.sessionId,
-      eventType: body.eventType,
-      eventCategory: body.eventCategory,
-      eventName: body.eventName,
-      eventData: body.eventData || null,
-      pageUrl: body.pageUrl,
-      pageTitle: body.pageTitle,
-      userType: body.userType || 'anonymous',
-      userRole: body.userRole || null,
-      userAgent,
-      browser: browserInfo.browser,
-      os: browserInfo.os,
-      device: browserInfo.device,
-      ipAddress,
-      country: body.country,
-      city: body.city,
-      eventTime: new Date()
-    };
-
-    // Create new event
-    const userEvent = new UserEvent(eventData);
-    await userEvent.save();
-
-    return NextResponse.json({ success: true });
-
+    const events = [{ type: 'event', payload: body }];
+    const res = await fetch(new URL('/api/analytics/batch', request.url), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', dnt: request.headers.get('dnt') || '' },
+      body: JSON.stringify({ events })
+    });
+    return new NextResponse(await res.text(), { status: res.status, headers: res.headers });
   } catch (error) {
     console.error('Event tracking error:', error);
-    // Return success even on error to prevent frontend issues
     return NextResponse.json({ success: true, error: 'Event tracking failed but continuing' });
   }
 }
