@@ -249,28 +249,7 @@ class AnalyticsTracker {
     });
   }
 
-  private sendHeartbeat() {
-    this.sendToServer('/api/analytics/heartbeat', {
-      sessionId: this.sessionId,
-      userId: this.userId,
-      adminId: this.userType === 'admin' ? this.userId : undefined,
-      timestamp: new Date().toISOString()
-    });
-  }
-
-  private async sendToServer(endpoint: string, data: any) {
-    try {
-      await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-    } catch (error) {
-      console.warn('Analytics tracking failed:', error);
-    }
-  }
+  // direct heartbeat sender removed in favor of batching
 
   private queue(type: 'pageview' | 'event' | 'heartbeat', payload: any) {
     this.eventQueue.push({ type, payload });

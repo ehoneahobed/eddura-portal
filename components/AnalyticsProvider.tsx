@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { initializeAnalytics, destroyAnalytics } from '@/lib/analytics';
+import { trackEvent as trackClientEvent } from '@/lib/analytics';
 
 interface AnalyticsProviderProps {
   children: React.ReactNode;
@@ -122,30 +123,17 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   // Track user authentication changes
   useEffect(() => {
     if (session?.user && isInitialized) {
-      // Track login event
-      fetch('/api/analytics/event', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId: sessionStorage.getItem('analytics_session') ? 
-            JSON.parse(sessionStorage.getItem('analytics_session')!).sessionId : null,
-          userId: session.user.id,
-          eventType: 'login',
-          eventCategory: 'authentication',
-          eventName: 'user_logged_in',
-          eventData: {
-            userType: session.user.type,
-            userRole: session.user.role ? String(session.user.role) : undefined
-          },
-          pageUrl: window.location.href,
-          pageTitle: document.title,
+      // Track login event via batched analytics
+      trackClientEvent({
+        eventType: 'login',
+        eventCategory: 'authentication',
+        eventName: 'user_logged_in',
+        eventData: {
           userType: session.user.type,
-          userRole: session.user.role ? String(session.user.role) : undefined
-        }),
-      }).catch(error => {
-        console.warn('Failed to track login event:', error);
+          userRole: session.user.role ? String(session.user.role) : undefined,
+        },
+        pageUrl: window.location.href,
+        pageTitle: document.title,
       });
     }
   }, [session, isInitialized]);
@@ -164,27 +152,11 @@ export function useAnalytics() {
     const sessionData = sessionStorage.getItem('analytics_session');
     if (!sessionData) return;
 
-    const { sessionId, userId, userType, userRole } = JSON.parse(sessionData);
-
-    fetch('/api/analytics/event', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sessionId,
-        userId,
-        eventType: eventData.eventType,
-        eventCategory: eventData.eventCategory,
-        eventName: eventData.eventName,
-        eventData: eventData.eventData,
-        pageUrl: window.location.href,
-        pageTitle: document.title,
-        userType,
-        userRole
-      }),
-    }).catch(error => {
-      console.warn('Failed to track event:', error);
+    trackClientEvent({
+      eventType: eventData.eventType,
+      eventCategory: eventData.eventCategory,
+      eventName: eventData.eventName,
+      eventData: eventData.eventData,
     });
   };
 
