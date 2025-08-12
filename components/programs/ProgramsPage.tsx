@@ -196,7 +196,7 @@ export default function ProgramsPage() {
   // Initial fetch on mount
   useEffect(() => {
     fetchSchools();
-  }, []); // Only run on mount
+  }, [fetchSchools]); // Only run on mount
 
   // Fetch programs when a school is selected
   useEffect(() => {
@@ -206,7 +206,7 @@ export default function ProgramsPage() {
       setPrograms([]);
       setFilteredPrograms([]);
     }
-  }, [selectedSchool]);
+  }, [selectedSchool, fetchPrograms]);
 
   // Only filter programs if a school is selected
   useEffect(() => {
@@ -230,14 +230,14 @@ export default function ProgramsPage() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [schoolSearch]);
+  }, [schoolSearch, fetchSchools]);
 
   // Handle pagination changes
   useEffect(() => {
     if (schoolPagination.currentPage > 1) { // Don't fetch on initial load
       fetchSchools();
     }
-  }, [schoolPagination.currentPage]);
+  }, [schoolPagination.currentPage, fetchSchools]);
 
   // Handle pagination
   const handlePageChange = (page: number) => {
@@ -245,7 +245,7 @@ export default function ProgramsPage() {
   };
 
   // Fetch programs for a specific school
-  const fetchPrograms = async (schoolId: string) => {
+  const fetchPrograms = useCallback(async (schoolId: string) => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/programs?schoolId=${schoolId}&limit=50`);
@@ -262,7 +262,7 @@ export default function ProgramsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
 
 

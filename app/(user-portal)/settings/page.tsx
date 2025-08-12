@@ -498,8 +498,8 @@ export default function SettingsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="high_school">High School</SelectItem>
-                        <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
-                        <SelectItem value="masters">Master's Degree</SelectItem>
+                        <SelectItem value="bachelors">Bachelor&apos;s Degree</SelectItem>
+                        <SelectItem value="masters">Master&apos;s Degree</SelectItem>
                         <SelectItem value="phd">PhD</SelectItem>
                         <SelectItem value="postdoc">Postdoc</SelectItem>
                       </SelectContent>

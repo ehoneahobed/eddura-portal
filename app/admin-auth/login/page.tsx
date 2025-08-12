@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, Shield, Lock, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { ThemeAwareLogo } from "@/components/ui/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,10 +33,11 @@ export default function AdminLoginPage() {
   // Show loading while checking authentication status
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-eddura-900 via-eddura-800 to-eddura-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-2 text-red-200">Loading...</p>
+          <ThemeAwareLogo size="2xl" className="mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-eddura-400 mx-auto"></div>
+          <p className="mt-2 text-eddura-300">Loading...</p>
         </div>
       </div>
     );
@@ -88,34 +91,44 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Security Notice */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-            <Shield className="h-8 w-8 text-red-600" />
+    <div className="min-h-screen bg-gradient-to-br from-eddura-900 via-eddura-800 to-eddura-900 flex items-center justify-center p-4">
+      {/* Theme toggle in top right */}
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
+
+      <div className="w-full max-w-sm">
+        {/* Logo and title */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-8">
+            <ThemeAwareLogo size="2xl" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
-          <p className="text-red-200 text-sm">
+          <h1 className="text-3xl font-semibold text-white mb-2">
+            Admin portal
+          </h1>
+          <p className="text-eddura-200 text-sm">
+            Administrative access to Eddura platform
+          </p>
+        </div>
+
+        {/* Security Notice */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+            <Shield className="h-6 w-6 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-lg font-medium text-white mb-2">Admin access</h2>
+          <p className="text-red-200 dark:text-red-300 text-xs">
             Restricted area. Unauthorized access attempts will be logged.
           </p>
         </div>
 
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-xl text-center flex items-center justify-center gap-2">
-              <Lock className="h-5 w-5 text-gray-600" />
-              Administrator Login
-            </CardTitle>
-            <CardDescription className="text-center text-gray-600">
-              Enter your admin credentials to access the management portal
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <Card className="border-0 shadow-lg bg-white/90 dark:bg-eddura-800/90 backdrop-blur-sm">
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="admin-email" className="text-sm font-medium">
-                  Admin Email
+                <Label htmlFor="admin-email" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                  Admin email
                 </Label>
                 <Input
                   id="admin-email"
@@ -124,14 +137,14 @@ export default function AdminLoginPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   disabled={isLoading}
-                  className="border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  className="h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="admin-password" className="text-sm font-medium">
-                  Admin Password
+                <Label htmlFor="admin-password" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                  Admin password
                 </Label>
                 <div className="relative">
                   <Input
@@ -141,30 +154,30 @@ export default function AdminLoginPage() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     disabled={isLoading}
-                    className="border-gray-300 focus:border-red-500 focus:ring-red-500 pr-10"
+                    className="h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500 pr-12"
                     required
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-eddura-50 dark:hover:bg-eddura-600 text-eddura-500 dark:text-eddura-400"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </Button>
                 </div>
               </div>
 
               {error && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50">
+                <Alert variant="destructive" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="text-red-800">
+                  <AlertDescription className="text-red-800 dark:text-red-200">
                     {error}
                   </AlertDescription>
                 </Alert>
@@ -172,7 +185,7 @@ export default function AdminLoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
+                className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
                 disabled={isLoading || !formData.email || !formData.password}
               >
                 {isLoading ? (
@@ -181,19 +194,19 @@ export default function AdminLoginPage() {
                     Authenticating...
                   </>
                 ) : (
-                  "Access Admin Portal"
+                  "Access admin portal"
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-eddura-200 dark:border-eddura-600">
               <div className="text-center">
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-eddura-500 dark:text-eddura-400 mb-2">
                   Need help? Contact your system administrator
                 </p>
                 <Link 
                   href="/" 
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-xs text-eddura-400 dark:text-eddura-500 hover:text-eddura-600 dark:hover:text-eddura-400 transition-colors"
                 >
                   ← Back to main site
                 </Link>
@@ -204,7 +217,7 @@ export default function AdminLoginPage() {
 
         {/* Security Footer */}
         <div className="text-center mt-6">
-          <p className="text-xs text-red-200">
+          <p className="text-xs text-red-200 dark:text-red-300">
             <AlertTriangle className="inline h-3 w-3 mr-1" />
             This is a secure administrative area. All access attempts are monitored and logged.
           </p>

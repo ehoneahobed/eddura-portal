@@ -52,65 +52,75 @@ export default function VerifyContent() {
 
   if (isLoading) {
     return (
-      <Card className="shadow-xl border-0 w-full max-w-md">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-          <p className="text-gray-600">Verifying your email...</p>
+      <Card className="border-0 shadow-lg bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm">
+        <CardContent className="p-8 text-center">
+          <div className="w-12 h-12 bg-eddura-100 dark:bg-eddura-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Loader2 className="h-6 w-6 text-eddura-600 dark:text-eddura-400 animate-spin" />
+          </div>
+          <h2 className="text-xl font-medium text-eddura-900 dark:text-eddura-100 mb-2">
+            Verifying your account
+          </h2>
+          <p className="text-eddura-600 dark:text-eddura-400 text-sm">
+            Please wait while we verify your email address
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="shadow-xl border-0 w-full max-w-md">
-      <CardHeader className="text-center">
+    <Card className="border-0 shadow-lg bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm">
+      <CardContent className="p-8 text-center">
         {isSuccess ? (
           <>
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <CardTitle className="text-2xl text-green-600">Email Verified!</CardTitle>
-            <CardDescription>
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+            <h2 className="text-xl font-medium text-green-600 dark:text-green-400 mb-2">
+              Email verified!
+            </h2>
+            <p className="text-eddura-600 dark:text-eddura-400 text-sm mb-6">
               Your email has been successfully verified. You can now sign in to your account.
-            </CardDescription>
+            </p>
+            <Button 
+              asChild 
+              className="w-full h-11 bg-eddura-600 hover:bg-eddura-700 text-white font-medium rounded-lg transition-colors"
+            >
+              <Link href="/auth/signin">
+                Sign in
+              </Link>
+            </Button>
           </>
         ) : (
           <>
-            <XCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-            <CardTitle className="text-2xl text-red-600">Verification Failed</CardTitle>
-            <CardDescription>
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">
+              Verification failed
+            </h2>
+            <p className="text-eddura-600 dark:text-eddura-400 text-sm mb-6">
               {error || "Something went wrong with the verification process."}
-            </CardDescription>
+            </p>
+            <div className="space-y-3">
+              <Button 
+                asChild 
+                className="w-full h-11 bg-eddura-600 hover:bg-eddura-700 text-white font-medium rounded-lg transition-colors"
+              >
+                <Link href="/auth/signin">
+                  Back to sign in
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                asChild 
+                className="w-full h-11 border-eddura-200 dark:border-eddura-600 text-eddura-700 dark:text-eddura-300 hover:bg-eddura-50 dark:hover:bg-eddura-700 hover:border-eddura-300 dark:hover:border-eddura-500 transition-colors rounded-lg"
+              >
+                <Link href="/auth/signup">Create new account</Link>
+              </Button>
+            </div>
           </>
         )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {isSuccess && (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              Your account is now active and ready to use!
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="flex flex-col gap-2">
-          <Button asChild className="w-full">
-            <Link href="/auth/signin">
-              {isSuccess ? "Sign In" : "Back to Sign In"}
-            </Link>
-          </Button>
-          
-          {!isSuccess && (
-            <Button variant="outline" asChild className="w-full">
-              <Link href="/auth/signup">Create New Account</Link>
-            </Button>
-          )}
-        </div>
       </CardContent>
     </Card>
   );

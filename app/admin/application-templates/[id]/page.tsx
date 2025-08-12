@@ -219,14 +219,14 @@ export default function ViewApplicationTemplatePage({ params }: ViewApplicationT
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Application Template</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the application template "{template.title}".
+                    This action cannot be undone. This will permanently delete the application template &quot;{template.title}&quot;.
                     <br /><br />
                     To confirm deletion, please type <strong>delete</strong> in the field below.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="delete-confirmation">Type "delete" to confirm</Label>
+                    <Label htmlFor="delete-confirmation">Type &quot;delete&quot; to confirm</Label>
                     <Input
                       id="delete-confirmation"
                       value={deleteConfirmation}

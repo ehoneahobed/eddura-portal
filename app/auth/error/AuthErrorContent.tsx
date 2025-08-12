@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Home } from "lucide-react";
 import Link from "next/link";
 
 export default function AuthErrorContent() {
@@ -29,35 +29,33 @@ export default function AuthErrorContent() {
   };
 
   return (
-    <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-      <CardHeader className="space-y-1 pb-6">
-        <CardTitle className="text-xl text-center flex items-center justify-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          Authentication Error
-        </CardTitle>
-        <CardDescription className="text-center text-gray-600">
-          There was a problem with your authentication
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Alert variant="destructive" className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="text-red-800">
-            {getErrorMessage(error)}
-          </AlertDescription>
-        </Alert>
+    <Card className="border-0 shadow-lg bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm">
+      <CardContent className="p-8 text-center">
+        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+        </div>
+        <h2 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">
+          Authentication error
+        </h2>
+        <p className="text-eddura-600 dark:text-eddura-400 text-sm mb-6">
+          {getErrorMessage(error)}
+        </p>
 
-        <div className="flex flex-col space-y-2">
+        <div className="space-y-3">
           <Link href="/admin-auth/login">
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+            <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Admin Login
+              Back to admin login
             </Button>
           </Link>
           
           <Link href="/">
-            <Button variant="outline" className="w-full">
-              Back to Main Site
+            <Button 
+              variant="outline" 
+              className="w-full h-11 border-eddura-200 dark:border-eddura-600 text-eddura-700 dark:text-eddura-300 hover:bg-eddura-50 dark:hover:bg-eddura-700 hover:border-eddura-300 dark:hover:border-eddura-500 transition-colors rounded-lg"
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Back to main site
             </Button>
           </Link>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,9 +40,9 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
 
   useEffect(() => {
     validateReferralCode();
-  }, [referralCode]);
+  }, [referralCode, validateReferralCode]);
 
-  const validateReferralCode = async () => {
+  const validateReferralCode = useCallback(async () => {
     setIsValidating(true);
     try {
       const response = await fetch(`/api/referrals/validate?code=${referralCode}`);
@@ -73,7 +73,7 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
       setIsLoading(false);
       setIsValidating(false);
     }
-  };
+  }, [referralCode]);
 
   const handleSignup = () => {
     // Store referral code in session storage for signup process
@@ -106,7 +106,7 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
             </div>
             <CardTitle className="text-xl">Invalid Referral Code</CardTitle>
             <CardDescription>
-              The referral code "{referralCode}" is not valid or has expired.
+              The referral code &quot;{referralCode}&quot; is not valid or has expired.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -137,7 +137,7 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
               Welcome to Eddura!
             </h1>
             <p className="text-xl text-gray-600">
-              You've been invited by a friend to join the platform
+              You&apos;ve been invited by a friend to join the platform
             </p>
           </div>
 
@@ -150,7 +150,7 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
                   Referral Bonus
                 </CardTitle>
                 <CardDescription>
-                  You'll receive bonus tokens when you join using this referral code
+                  You&apos;ll receive bonus tokens when you join using this referral code
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -260,7 +260,7 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                   <p className="text-xs text-muted-foreground text-center mt-2">
-                    By joining, you'll automatically receive {referralInfo.referredReward} bonus tokens
+                    By joining, you&apos;ll automatically receive {referralInfo.referredReward} bonus tokens
                   </p>
                 </div>
               </CardContent>

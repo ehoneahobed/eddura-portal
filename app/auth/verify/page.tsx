@@ -2,24 +2,56 @@
 
 import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import VerifyContent from "./VerifyContent";
+import { ThemeAwareLogo } from "@/components/ui/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function VerifyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <Suspense
-        fallback={
-          <Card className="shadow-xl border-0 w-full max-w-md">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-              <p className="text-gray-600">Loading verification...</p>
-            </CardContent>
-          </Card>
-        }
-      >
-        <VerifyContent />
-      </Suspense>
+    <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center p-4">
+      {/* Theme toggle in top right */}
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
+
+      <div className="w-full max-w-sm">
+        {/* Logo and title */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-8">
+            <ThemeAwareLogo size="2xl" />
+          </div>
+          <h1 className="text-3xl font-semibold text-eddura-900 dark:text-eddura-100 mb-2">
+            Email verification
+          </h1>
+          <p className="text-eddura-600 dark:text-eddura-400">
+            Verify your email to activate your account
+          </p>
+        </div>
+
+        <Suspense
+          fallback={
+            <Card className="border-0 shadow-lg bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm">
+              <CardContent className="p-8 text-center">
+                <div className="w-12 h-12 bg-eddura-100 dark:bg-eddura-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-eddura-600 dark:text-eddura-400" />
+                </div>
+                <h2 className="text-xl font-medium text-eddura-900 dark:text-eddura-100 mb-2">
+                  Verifying your account
+                </h2>
+                <p className="text-eddura-600 dark:text-eddura-400 text-sm">
+                  Please wait while we verify your email address
+                </p>
+                <div className="mt-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-eddura-600 dark:text-eddura-400 mx-auto" />
+                </div>
+              </CardContent>
+            </Card>
+          }
+        >
+          <VerifyContent />
+        </Suspense>
+      </div>
     </div>
   );
 }

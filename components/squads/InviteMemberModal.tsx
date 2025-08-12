@@ -77,7 +77,7 @@ export default function InviteMemberModal({ isOpen, onClose, squadId, squadName 
             Invite Member
           </DialogTitle>
           <DialogDescription>
-            Send an invitation to join your squad "{squadName}"
+            Send an invitation to join your squad &quot;{squadName}&quot;
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

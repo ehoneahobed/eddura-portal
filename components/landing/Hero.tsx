@@ -2,18 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoveRight, Brain, Users } from "lucide-react";
+import { MoveRight, Brain, Users, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeAwareLogo } from "@/components/ui/logo";
 import Link from "next/link";
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
   const titles = useMemo(
     () => [
-      "Simpler.", // Option 1
-      "Smarter.", // Option 2
-      "More Successful.", // Option 3
-      "Personalized." // Option 4
+      "Simpler.",
+      "Smarter.",
+      "More Successful.",
+      "Personalized."
     ],
     []
   );
@@ -25,34 +26,59 @@ function Hero() {
       } else {
         setTitleNumber(titleNumber + 1);
       }
-    }, 2500); // Increased delay slightly for better readability
+    }, 2500);
     return () => clearTimeout(timeoutId);
   }, [titleNumber, titles]);
 
   return (
-    <div className="w-full">
-      <div className="container mx-auto">
-        <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
+    <div className="relative w-full overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-eddura-50 via-white to-eddura-100/30" />
+      
+      {/* Abstract geometric shapes */}
+      <div className="absolute top-20 left-10 w-32 h-32 bg-eddura-200/20 rounded-full blur-3xl" />
+      <div className="absolute top-40 right-20 w-24 h-24 bg-eddura-300/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-40 left-1/4 w-20 h-20 bg-accent/20 rounded-full blur-3xl" />
+      
+             <div className="container mx-auto relative z-10">
+         <div className="flex gap-8 items-center justify-center flex-col">
+          
           {/* Quiz Discovery Badge */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
             <Link href="/quiz">
-              <Button variant="secondary" size="sm" className="gap-4 bg-[#dbebfa] hover:bg-[#007fbd] hover:text-white text-[#00334e] border-[#007fbd]/30 transition-all duration-300">
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="gap-3 bg-eddura-100 hover:bg-eddura-200 text-eddura-700 border-eddura-200 hover:border-eddura-300 transition-all duration-300 rounded-full px-6 py-2 shadow-eddura"
+              >
                 <Brain className="w-4 h-4" />
-                Take Our Career Discovery Quiz <MoveRight className="w-4 h-4" />
+                Take Our Career Discovery Quiz
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
-          </div>
-          <div className="flex gap-4 flex-col">
-            <h1 className="text-5xl md:text-7xl max-w-4xl tracking-tighter text-center font-regular text-[#00334e]">
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.div 
+            className="flex gap-4 flex-col text-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+          >
+                         <h1 className="text-4xl md:text-6xl lg:text-7xl max-w-5xl tracking-tight font-bold text-eddura-800 leading-tight">
               Make Your University & Scholarships Applications
-              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
-                &nbsp; {/* This non-breaking space helps maintain height */}
+              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-2">
+                &nbsp;
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
-                    className="absolute font-semibold text-[#007fbd]"
-                    initial={{ opacity: 0, y: "-100%" }} // Use % for better responsiveness
-                    transition={{ type: "spring", stiffness: 50, damping: 10 }} // Added damping for smoother animation
+                    className="absolute font-bold text-eddura-500"
+                    initial={{ opacity: 0, y: "-100%" }}
+                    transition={{ type: "spring", stiffness: 50, damping: 10 }}
                     animate={
                       titleNumber === index
                         ? {
@@ -60,7 +86,7 @@ function Hero() {
                             opacity: 1,
                           }
                         : {
-                            y: titleNumber > index ? "-150%" : "150%", // Use % here too
+                            y: titleNumber > index ? "-150%" : "150%",
                             opacity: 0,
                           }
                     }
@@ -71,35 +97,86 @@ function Hero() {
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl leading-relaxed tracking-tight text-gray-600 max-w-3xl text-center">
-              Eddura is your <strong className="text-[#00334e]">AI-powered command center</strong> for academic success. Start with our <strong className="text-[#00334e]">career discovery quiz</strong> to get <strong className="text-[#00334e]">personalized program recommendations</strong>, then craft <strong className="text-[#00334e]">winning applications</strong> for every university and scholarship.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+                         <motion.p 
+               className="text-lg md:text-xl leading-relaxed tracking-tight text-eddura-800 max-w-4xl text-center mt-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+            >
+              Eddura is your <strong className="text-eddura-800">AI-powered command center</strong> for academic success. Start with our <strong className="text-eddura-800">career discovery quiz</strong> to get <strong className="text-eddura-800">personalized program recommendations</strong>, then craft <strong className="text-eddura-800">winning applications</strong> for every university and scholarship.
+            </motion.p>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+          >
             {/* Primary CTA - Start Quiz */}
             <Link href="/quiz">
-              <Button size="lg" className="gap-4 bg-[#007fbd] hover:bg-[#004d73] text-white border-0 shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105">
-                <Brain className="w-4 h-4" />
-                Start Career Discovery Quiz <MoveRight className="w-4 h-4" />
+              <Button 
+                size="lg" 
+                className="gap-3 bg-eddura-500 hover:bg-eddura-600 text-white border-0 shadow-eddura-lg hover:shadow-eddura-xl transition-all duration-300 transform hover:scale-105 rounded-xl px-8 py-4 text-lg font-semibold"
+              >
+                <Brain className="w-5 h-5" />
+                Start Career Discovery Quiz
+                <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
+            
             {/* Secondary CTA - Register */}
             <Link href="/auth/register">
-              <Button size="lg" className="gap-4 border-2 border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300" variant="outline">
-                <Users className="w-4 h-4" />
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="gap-3 border-2 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white hover:border-eddura-500 transition-all duration-300 rounded-xl px-8 py-4 text-lg font-semibold bg-white/80 backdrop-blur-sm"
+              >
+                <Users className="w-5 h-5" />
                 Create Account
               </Button>
             </Link>
-          </div>
+          </motion.div>
           
-          {/* Additional Info */}
-          <div className="text-center text-sm text-gray-500 mt-4">
-            <p>🎯 Get personalized recommendations in 10 minutes • 📊 No registration required to start</p>
-          </div>
+          {/* Trust Indicators */}
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
+          >
+            <div className="flex items-center gap-2 text-eddura-600">
+              <CheckCircle className="w-5 h-5 text-eddura-500" />
+              <span className="text-sm font-medium">Get personalized recommendations in 10 minutes</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-eddura-200" />
+            <div className="flex items-center gap-2 text-eddura-600">
+                             <ThemeAwareLogo size="md" className="text-eddura-500" />
+              <span className="text-sm font-medium">No registration required to start</span>
+            </div>
+          </motion.div>
+
+          {/* Social Proof */}
+          <motion.div 
+            className="mt-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 1.0 }}
+          >
+            <p className="text-sm text-eddura-500 mb-4 font-medium">Trusted by students worldwide</p>
+            <div className="flex items-center justify-center gap-8 opacity-60">
+              {/* Placeholder for partner logos */}
+              <div className="w-24 h-8 bg-eddura-200 rounded animate-pulse" />
+              <div className="w-20 h-8 bg-eddura-200 rounded animate-pulse" />
+              <div className="w-28 h-8 bg-eddura-200 rounded animate-pulse" />
+              <div className="w-24 h-8 bg-eddura-200 rounded animate-pulse" />
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
   );
 }
 
-export { Hero }; 
+export default Hero; 

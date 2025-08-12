@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Bell, Check, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +40,7 @@ export function NotificationBell() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!session?.user?.id) return;
 
     try {
@@ -56,7 +56,7 @@ export function NotificationBell() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.user?.id]);
 
   const markAsRead = async (notificationId: string) => {
     if (!session?.user?.id) return;
@@ -166,7 +166,7 @@ export function NotificationBell() {
       const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     }
-  }, [session]);
+  }, [session, fetchNotifications]);
 
   if (!session) return null;
 
@@ -210,7 +210,7 @@ export function NotificationBell() {
               <Bell className="h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">No notifications yet</p>
               <p className="text-xs text-muted-foreground mt-1">
-                You'll see updates about your squads here
+                You&apos;ll see updates about your squads here
               </p>
             </div>
           ) : (

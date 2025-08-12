@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { mutate } from 'swr';
 import { Button } from '@/components/ui/button';
@@ -110,9 +110,9 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
     if (isOpen) {
       fetchGoals();
     }
-  }, [isOpen, squadId]);
+  }, [isOpen, squadId, fetchGoals]);
 
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/squads/${squadId}/goals`);
@@ -128,7 +128,7 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [squadId]);
 
   const handleAddGoal = async () => {
     if (!newGoal.type || !newGoal.target || !newGoal.startDate || !newGoal.endDate) {

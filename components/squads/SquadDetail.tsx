@@ -57,7 +57,7 @@ export default function SquadDetail({ squadId }: SquadDetailProps) {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Squad not found</h2>
-          <p className="text-muted-foreground">The squad you're looking for doesn't exist or you don't have access.</p>
+          <p className="text-muted-foreground">The squad you&apos;re looking for doesn&apos;t exist or you don&apos;t have access.</p>
         </div>
       </div>
     );

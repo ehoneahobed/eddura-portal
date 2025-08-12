@@ -3,8 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { ThemeAwareLogo } from '@/components/ui/logo';
 import { 
-  Sparkles, 
   Rocket, 
   MessageCircle, 
   Users, 
@@ -14,7 +15,8 @@ import {
   Globe,
   Brain,
   Award,
-  MoveRight
+  MoveRight,
+  CheckCircle
 } from 'lucide-react';
 import { config } from '@/lib/config';
 
@@ -25,10 +27,10 @@ export function ComingSoon() {
   
   const titles = useMemo(
     () => [
-      "Simpler.", // Option 1
-      "Smarter.", // Option 2
-      "More Successful.", // Option 3
-      "Personalized." // Option 4
+      "Simpler.",
+      "Smarter.",
+      "More Successful.",
+      "Personalized."
     ],
     []
   );
@@ -44,7 +46,7 @@ export function ComingSoon() {
       } else {
         setTitleNumber(titleNumber + 1);
       }
-    }, 2500); // Increased delay slightly for better readability
+    }, 2500);
     return () => clearTimeout(timeoutId);
   }, [titleNumber, titles]);
 
@@ -60,118 +62,132 @@ export function ComingSoon() {
       icon: Brain,
       title: 'AI-Powered Intelligence',
       description: 'Advanced machine learning algorithms analyze your profile and match you with perfect opportunities.',
-      color: 'text-[#007fbd]'
+      color: 'text-eddura-500'
     },
     {
       icon: Globe,
       title: 'Global Opportunities',
-      description: 'Access to 50+ universities and 1000+ scholarship opportunities worldwide.',
-      color: 'text-[#007fbd]'
+      description: 'Access to 50+ universities and 100+ scholarship opportunities worldwide.',
+      color: 'text-eddura-500'
     },
     {
       icon: Zap,
       title: '10x Faster Applications',
       description: 'Automate repetitive tasks and optimize your application strategy with intelligent insights.',
-      color: 'text-[#007fbd]'
+      color: 'text-eddura-500'
     },
     {
       icon: Award,
       title: '95% Success Rate',
       description: 'Proven track record of helping students get accepted to their dream programs.',
-      color: 'text-[#007fbd]'
+      color: 'text-eddura-500'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-eddura-900 text-eddura-900 dark:text-eddura-100 overflow-hidden">
       {/* Animated Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_1px_1px,rgba(0,127,189,0.1)_1px,transparent_0)] bg-[length:20px_20px]"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-eddura-50 via-white to-eddura-100/20 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-700/20">
+                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_1px_1px,rgba(25,103,117,0.1)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgba(56,184,204,0.1)_1px,transparent_0)] bg-[length:20px_20px]"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-eddura-900 dark:via-transparent dark:to-transparent"></div>
       </div>
 
       {/* Floating Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-2 h-2 bg-[#007fbd] rounded-full animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-1 h-1 bg-[#dbebfa] rounded-full animate-ping"></div>
-        <div className="absolute bottom-40 left-20 w-3 h-3 bg-[#007fbd] rounded-full animate-bounce"></div>
-        <div className="absolute bottom-20 right-10 w-2 h-2 bg-[#dbebfa] rounded-full animate-pulse"></div>
+                 <div className="absolute top-20 left-10 w-2 h-2 bg-eddura-500/80 rounded-full animate-pulse"></div>
+         <div className="absolute top-40 right-20 w-1 h-1 bg-eddura-300/80 rounded-full animate-ping"></div>
+         <div className="absolute bottom-40 left-20 w-3 h-3 bg-eddura-500/80 rounded-full animate-bounce"></div>
+         <div className="absolute bottom-20 right-10 w-2 h-2 bg-eddura-300/80 rounded-full animate-pulse"></div>
       </div>
 
-      {/* Header */}
-      <header className="relative z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
-                  <h1 className="text-2xl font-bold text-[#00334e]">
-                    {config.appName}
-                  </h1>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                Coming Soon
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
+             {/* Header */}
+       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-eddura-900/95 backdrop-blur-xl border-b border-eddura-100 dark:border-eddura-800 shadow-sm transition-all duration-300">
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                       <div className="flex justify-between items-center py-4">
+             <div className="flex items-center">
+               <div className="flex-shrink-0">
+                                   <ThemeAwareLogo size="nav" />
+               </div>
+             </div>
+             <div className="flex items-center space-x-4">
+               <ThemeToggle />
+               <span className="text-sm text-eddura-700 bg-eddura-100 dark:bg-eddura-800 dark:text-eddura-300 px-4 py-2 rounded-full font-medium">
+                 Coming Soon
+               </span>
+             </div>
+           </div>
+         </div>
+       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-32">
+             {/* Hero Section */}
+       <section className="relative min-h-screen flex items-center justify-center z-10 pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {/* Badge */}
-            <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-[#dbebfa] hover:bg-[#007fbd] hover:text-white text-[#00334e] border-[#007fbd]/30 transition-all duration-300 mb-8 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+                             className="inline-flex items-center px-6 py-3 rounded-full text-sm font-medium bg-eddura-100 hover:bg-eddura-200 text-eddura-800 border-eddura-200 hover:border-eddura-300 transition-all duration-300 mb-8 shadow-eddura"
+            >
               Explore Our AI in Action <MoveRight className="w-4 h-4 ml-2" />
-            </div>
+            </motion.div>
 
-            {/* Main Heading with Animated Title */}
-            <h1 className={`text-5xl md:text-7xl font-bold text-[#00334e] mb-6 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-              Make Your University & Scholarships Applications
-              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
-                &nbsp; {/* This non-breaking space helps maintain height */}
-                {titles.map((title, index) => (
-                  <motion.span
-                    key={index}
-                    className="absolute font-semibold text-[#007fbd]"
-                    initial={{ opacity: 0, y: "-100%" }} // Use % for better responsiveness
-                    transition={{ type: "spring", stiffness: 50, damping: 10 }} // Added damping for smoother animation
-                    animate={
-                      titleNumber === index
-                        ? {
-                            y: "0%",
-                            opacity: 1,
-                          }
-                        : {
-                            y: titleNumber > index ? "-150%" : "150%", // Use % here too
-                            opacity: 0,
-                          }
-                    }
-                  >
-                    {title}
-                  </motion.span>
-                ))}
-              </span>
-            </h1>
+                         {/* Main Heading with Animated Title */}
+             <motion.h1 
+               initial={{ opacity: 0, y: 30 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                               className="text-4xl md:text-6xl lg:text-7xl font-bold text-eddura-800 dark:text-eddura-100 mb-6 leading-tight"
+             >
+               Make Your University & Scholarships Applications
+               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-2">
+                 &nbsp;
+                 {titles.map((title, index) => (
+                   <motion.span
+                     key={index}
+                     className="absolute font-bold text-eddura-500 dark:text-eddura-300"
+                     initial={{ opacity: 0, y: "-100%" }}
+                     transition={{ type: "spring", stiffness: 50, damping: 10 }}
+                     animate={
+                       titleNumber === index
+                         ? {
+                             y: "0%",
+                             opacity: 1,
+                           }
+                         : {
+                             y: titleNumber > index ? "-150%" : "150%",
+                             opacity: 0,
+                           }
+                     }
+                   >
+                     {title}
+                   </motion.span>
+                 ))}
+               </span>
+             </motion.h1>
 
-            {/* Subtitle */}
-            <p className={`text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-              {config.appDescription}. Get AI-powered insights, essay hacks, early betas & connect with future leaders.
-            </p>
+             {/* Subtitle */}
+             <motion.p 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+                               className="text-xl md:text-2xl text-eddura-800 dark:text-eddura-300 mb-12 max-w-3xl mx-auto"
+             >
+               {config.appDescription}. Get AI-powered insights, essay hacks, early betas & connect with future leaders.
+             </motion.p>
 
             {/* CTA Buttons */}
-            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 transition-all duration-700 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
+            >
               <Button 
                 asChild
                 size="lg"
-                className="bg-[#007fbd] hover:bg-[#004d73] text-white px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-eddura-500 hover:bg-eddura-600 text-white px-8 py-4 text-lg shadow-eddura-lg hover:shadow-eddura-xl transition-all duration-300 transform hover:scale-105 rounded-xl"
               >
                 <a href={config.telegramChannel} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="mr-2 h-5 w-5" />
@@ -183,63 +199,79 @@ export function ComingSoon() {
               <Button 
                 variant="outline"
                 size="lg"
-                className="border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white px-8 py-4 text-lg transition-all duration-300"
+                className="border-2 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white px-8 py-4 text-lg transition-all duration-300 rounded-xl"
               >
                 <Star className="mr-2 h-4 w-4" />
                 Get Early Access
               </Button>
-            </div>
+            </motion.div>
 
-            {/* Stats */}
-            <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-[#00334e] mb-1">50+</div>
-                <div className="text-sm text-gray-600">Universities</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-[#00334e] mb-1">1000+</div>
-                <div className="text-sm text-gray-600">Scholarships</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-[#00334e] mb-1">95%</div>
-                <div className="text-sm text-gray-600">Success Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-[#00334e] mb-1">10x</div>
-                <div className="text-sm text-gray-600">Faster</div>
-              </div>
-            </div>
+                         {/* Stats */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
+               className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
+             >
+               <div className="text-center">
+                                   <div className="text-3xl font-bold text-eddura-800 dark:text-eddura-100 mb-1">50+</div>
+                  <div className="text-sm text-eddura-700 dark:text-eddura-400">Universities</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-eddura-800 dark:text-eddura-100 mb-1">100+</div>
+                  <div className="text-sm text-eddura-700 dark:text-eddura-400">Scholarships</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-eddura-800 dark:text-eddura-100 mb-1">95%</div>
+                  <div className="text-sm text-eddura-700 dark:text-eddura-400">Success Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-eddura-800 dark:text-eddura-100 mb-1">10x</div>
+                  <div className="text-sm text-eddura-700 dark:text-eddura-400">Faster</div>
+               </div>
+             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Features Preview */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-eddura-50 dark:bg-eddura-800 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#00334e] mb-4">
-              What&apos;s Coming
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Be the first to know when we launch. Don&apos;t just apply, succeed.
-            </p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+                         <h2 className="text-3xl md:text-4xl font-bold text-eddura-800 dark:text-eddura-100 mb-4">
+               What&apos;s Coming
+             </h2>
+             <p className="text-lg text-eddura-800 dark:text-eddura-300 max-w-2xl mx-auto">
+               Be the first to know when we launch. Don&apos;t just apply, succeed.
+             </p>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div 
+                <motion.div 
                   key={index}
-                  className={`group p-6 rounded-2xl bg-white border border-gray-200 hover:border-[#007fbd]/30 hover:shadow-lg transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="group p-6 rounded-2xl bg-white dark:bg-eddura-900 border border-eddura-100 dark:border-eddura-700 hover:border-eddura-300 dark:hover:border-eddura-600 hover:shadow-eddura-lg transition-all duration-500 transform hover:-translate-y-2"
                 >
                   <div className="text-center">
-                    <Icon className={`h-8 w-8 ${feature.color} mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`} />
-                    <h3 className="text-lg font-semibold text-[#00334e] mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
+                    <div className="inline-flex p-3 rounded-xl bg-eddura-100 dark:bg-eddura-800 group-hover:bg-eddura-200 dark:group-hover:bg-eddura-700 transition-colors duration-300 mb-4">
+                      <Icon className={`h-8 w-8 ${feature.color} group-hover:scale-110 transition-transform duration-300`} />
+                    </div>
+                                         <h3 className="text-lg font-semibold text-eddura-800 dark:text-eddura-100 mb-2">{feature.title}</h3>
+                     <p className="text-sm text-eddura-800 dark:text-eddura-300">{feature.description}</p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -247,45 +279,50 @@ export function ComingSoon() {
       </section>
 
       {/* Email Signup Section */}
-      <section className="py-20">
+      <section className="py-20 bg-eddura-gradient relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#00334e] mb-4">
-            Get Early Access
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Be among the first to experience the future of scholarship applications
-          </p>
-          
-          <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007fbd] focus:border-transparent"
-              required
-            />
-            <Button 
-              type="submit"
-              className="bg-[#007fbd] hover:bg-[#004d73] text-white px-6 py-3"
-            >
-              Notify Me
-            </Button>
-          </form>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="p-12 rounded-3xl bg-white dark:bg-eddura-900 border border-eddura-100 dark:border-eddura-700 shadow-2xl"
+          >
+                         <h2 className="text-3xl md:text-4xl font-bold text-eddura-800 dark:text-eddura-100 mb-4">
+               Get Early Access
+             </h2>
+             <p className="text-lg text-eddura-800 dark:text-eddura-300 mb-8">
+               Be among the first to experience the future of scholarship applications
+             </p>
+            
+            <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                             <input
+                 type="email"
+                 value={email}
+                 onChange={(e) => setEmail(e.target.value)}
+                 placeholder="Enter your email"
+                                   className="flex-1 px-4 py-3 border border-eddura-200 dark:border-eddura-600 rounded-lg focus:ring-2 focus:ring-eddura-500 focus:border-eddura-500 transition-all duration-200 bg-white dark:bg-eddura-800 text-eddura-800 dark:text-eddura-100 placeholder:text-eddura-400 dark:placeholder:text-eddura-500"
+                 required
+               />
+              <Button 
+                type="submit"
+                className="bg-eddura-500 hover:bg-eddura-600 text-white px-6 py-3 rounded-lg"
+              >
+                Notify Me
+              </Button>
+            </form>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#00334e] text-white py-12">
+      <footer className="bg-eddura-900 dark:bg-eddura-950 text-white py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold">{config.appName}</h3>
-            </div>
-            <p className="text-gray-300 mb-6">
+                         <div className="flex items-center justify-center mb-4">
+               <ThemeAwareLogo size="xl" />
+             </div>
+            <p className="text-white/90 mb-6 text-lg">
               Revolutionizing university & scholarship applications with AI-powered insights
             </p>
             <div className="flex justify-center space-x-6">
@@ -293,12 +330,12 @@ export function ComingSoon() {
                 href={config.telegramChannel} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors duration-200"
+                className="text-white/80 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-white/10"
               >
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-6 w-6" />
               </a>
             </div>
-            <div className="mt-6 text-sm text-gray-400">
+            <div className="mt-6 text-sm text-white/70">
               © 2024 {config.appName}. All rights reserved.
             </div>
           </div>
@@ -306,4 +343,4 @@ export function ComingSoon() {
       </footer>
     </div>
   );
-} 
+}

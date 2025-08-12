@@ -101,7 +101,7 @@ export default function MyClonedDocumentsPage() {
     const data = await response.json();
     setPagination(data.pagination || pagination);
     return data;
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, sortBy, pagination]);
 
   const { data, loading: isLoading, error, refetch } = useDataFetching({
     fetchFunction: fetchClonedDocuments,
@@ -121,7 +121,7 @@ export default function MyClonedDocumentsPage() {
     if (session?.user?.id && pagination.page > 1) {
       refetch();
     }
-  }, [pagination.page, pagination.limit, session?.user?.id]);
+  }, [pagination.page, pagination.limit, session?.user?.id, refetch]);
 
   const documents = data?.documents || [];
 

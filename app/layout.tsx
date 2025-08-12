@@ -5,6 +5,7 @@ import { SWRProvider } from '@/components/providers/SWRProvider';
 import SessionProvider from '@/components/providers/SessionProvider';
 import ErrorBoundaryProvider from '@/components/providers/ErrorBoundaryProvider';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -101,7 +102,9 @@ export default function RootLayout({
           <SessionProvider>
             <SWRProvider>
               <AnalyticsProvider>
-                {children}
+                <ThemeProvider>
+                  {children}
+                </ThemeProvider>
                 <Toaster />
               </AnalyticsProvider>
             </SWRProvider>

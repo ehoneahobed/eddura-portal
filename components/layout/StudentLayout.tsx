@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -50,9 +50,9 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
     if (session?.user?.id) {
       fetchUserProfile();
     }
-  }, [session, status, router]);
+  }, [session, status, router, fetchUserProfile]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!session?.user?.id) return;
     
     try {
@@ -65,7 +65,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }
-  };
+  }, [session?.user?.id]);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' });

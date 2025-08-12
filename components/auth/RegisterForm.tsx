@@ -13,9 +13,7 @@ import {
   User, 
   Lock, 
   CheckCircle, 
-  AlertCircle,
-  Sparkles,
-  ArrowRight
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +21,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
+import { ThemeAwareLogo } from '@/components/ui/logo';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50, 'First name must be less than 50 characters'),
@@ -121,23 +121,23 @@ export default function RegisterForm() {
 
   if (submitSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="w-full max-w-md border-0 shadow-2xl">
+          <Card className="w-full max-w-sm border-0 shadow-lg bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-2xl font-semibold text-eddura-900 dark:text-eddura-100 mb-2">Registration successful!</h2>
+              <p className="text-eddura-700 dark:text-eddura-300 mb-6">
                 Please check your email to verify your account before logging in.
               </p>
               <div className="animate-pulse">
-                <div className="w-4 h-4 bg-blue-500 rounded-full mx-auto"></div>
+                <div className="w-4 h-4 bg-eddura-500 rounded-full mx-auto"></div>
               </div>
             </CardContent>
           </Card>
@@ -147,23 +147,25 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center px-4">
+      {/* Theme toggle in top right */}
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
+
+      <div className="w-full max-w-sm">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-8"
+          className="text-center mb-12"
         >
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-10 h-10 bg-[#007fbd] rounded-lg flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-[#00334e]">Eddura</h1>
-          </Link>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h2>
-          <p className="text-gray-600">
+          <div className="flex justify-center mb-8">
+            <ThemeAwareLogo size="2xl" />
+          </div>
+          <h2 className="text-3xl font-semibold text-eddura-900 dark:text-eddura-100 mb-2">Create your account</h2>
+          <p className="text-eddura-600 dark:text-eddura-400">
             Join thousands of students discovering their perfect university programs
           </p>
         </motion.div>
@@ -174,51 +176,48 @@ export default function RegisterForm() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <Card className="border-0 shadow-2xl">
-            <CardHeader className="pb-6">
-              <CardTitle className="text-xl text-center">Get Started</CardTitle>
-              <CardDescription className="text-center">
-                Create your account to save your quiz results and get personalized recommendations
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm">
+            <CardContent className="p-8">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Name Fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                      First name
+                    </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-eddura-400 dark:text-eddura-500" />
                       <Input
                         id="firstName"
                         type="text"
                         placeholder="John"
-                        className="pl-10"
+                        className="pl-10 h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500"
                         {...register('firstName')}
                       />
                     </div>
                     {errors.firstName && (
-                      <p className="text-sm text-red-600 flex items-center">
+                      <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
                         <AlertCircle className="w-4 h-4 mr-1" />
                         {errors.firstName.message}
                       </p>
                     )}
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                      Last name
+                    </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-eddura-400 dark:text-eddura-500" />
                       <Input
                         id="lastName"
                         type="text"
                         placeholder="Doe"
-                        className="pl-10"
+                        className="pl-10 h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500"
                         {...register('lastName')}
                       />
                     </div>
                     {errors.lastName && (
-                      <p className="text-sm text-red-600 flex items-center">
+                      <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
                         <AlertCircle className="w-4 h-4 mr-1" />
                         {errors.lastName.message}
                       </p>
@@ -228,19 +227,21 @@ export default function RegisterForm() {
 
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                    Email
+                  </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-eddura-400 dark:text-eddura-500" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="john.doe@example.com"
-                      className="pl-10"
+                      className="pl-10 h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500"
                       {...register('email')}
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-sm text-red-600 flex items-center">
+                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
                       <AlertCircle className="w-4 h-4 mr-1" />
                       {errors.email.message}
                     </p>
@@ -249,20 +250,22 @@ export default function RegisterForm() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                    Password
+                  </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-eddura-400 dark:text-eddura-500" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Create a strong password"
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-12 h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500"
                       {...register('password')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-3 text-eddura-400 dark:text-eddura-500 hover:text-eddura-600 dark:hover:text-eddura-400"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -271,26 +274,31 @@ export default function RegisterForm() {
                   {/* Password Strength Indicator */}
                   {password && (
                     <div className="space-y-2">
-                      <div className="flex space-x-1">
+                      <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((level) => (
                           <div
                             key={level}
-                            className={`h-2 flex-1 rounded-full transition-colors ${
+                            className={`h-2 flex-1 rounded-full transition-all duration-300 ${
                               level <= passwordStrength.strength
                                 ? passwordStrength.color
-                                : 'bg-gray-200'
+                                : 'bg-eddura-200 dark:bg-eddura-600'
                             }`}
                           />
                         ))}
                       </div>
-                      <p className="text-xs text-gray-600">
+                      <p className={`text-xs ${
+                        passwordStrength.strength >= 4 ? 'text-green-600 dark:text-green-400' : 
+                        passwordStrength.strength >= 3 ? 'text-blue-600 dark:text-blue-400' : 
+                        passwordStrength.strength >= 2 ? 'text-yellow-600 dark:text-yellow-400' : 
+                        'text-red-600 dark:text-red-400'
+                      }`}>
                         Password strength: {passwordStrength.label}
                       </p>
                     </div>
                   )}
                   
                   {errors.password && (
-                    <p className="text-sm text-red-600 flex items-center">
+                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
                       <AlertCircle className="w-4 h-4 mr-1" />
                       {errors.password.message}
                     </p>
@@ -299,26 +307,28 @@ export default function RegisterForm() {
 
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                    Confirm password
+                  </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-eddura-400 dark:text-eddura-500" />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-12 h-11 border-eddura-200 dark:border-eddura-600 focus:border-eddura-500 dark:focus:border-eddura-400 focus:ring-eddura-500 dark:focus:ring-eddura-400 bg-white dark:bg-eddura-700 text-eddura-900 dark:text-eddura-100 placeholder-eddura-400 dark:placeholder-eddura-500"
                       {...register('confirmPassword')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-3 text-eddura-400 dark:text-eddura-500 hover:text-eddura-600 dark:hover:text-eddura-400"
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-sm text-red-600 flex items-center">
+                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
                       <AlertCircle className="w-4 h-4 mr-1" />
                       {errors.confirmPassword.message}
                     </p>
@@ -327,9 +337,9 @@ export default function RegisterForm() {
 
                 {/* Error Alert */}
                 {submitError && (
-                  <Alert variant="destructive">
+                  <Alert variant="destructive" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{submitError}</AlertDescription>
+                    <AlertDescription className="text-red-800 dark:text-red-200">{submitError}</AlertDescription>
                   </Alert>
                 )}
 
@@ -337,53 +347,38 @@ export default function RegisterForm() {
                 <Button
                   type="submit"
                   disabled={!isValid || isSubmitting}
-                  className="w-full bg-[#007fbd] hover:bg-[#004d73] text-white py-3"
+                  className="w-full h-11 bg-eddura-600 hover:bg-eddura-700 text-white font-medium rounded-lg transition-colors"
                 >
                   {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating Account...
+                      Creating account...
                     </>
                   ) : (
-                    <>
-                      Create Account
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
+                    "Create account"
                   )}
                 </Button>
               </form>
 
               {/* Divider */}
-              <div className="relative">
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300" />
+                  <span className="w-full border-t border-eddura-200 dark:border-eddura-600" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Or</span>
+                  <span className="bg-white dark:bg-eddura-800 px-2 text-eddura-500 dark:text-eddura-400">Or</span>
                 </div>
               </div>
 
               {/* Login Link */}
               <div className="text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-eddura-600 dark:text-eddura-400">
                   Already have an account?{' '}
-                  <Link href="/auth/login" className="text-[#007fbd] hover:text-[#004d73] font-medium">
+                  <Link href="/auth/login" className="text-eddura-700 dark:text-eddura-300 hover:text-eddura-800 dark:hover:text-eddura-200 font-medium">
                     Sign in here
                   </Link>
                 </p>
               </div>
-
-              {/* Terms */}
-              <p className="text-xs text-gray-500 text-center">
-                By creating an account, you agree to our{' '}
-                <Link href="/terms" className="text-[#007fbd] hover:underline">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" className="text-[#007fbd] hover:underline">
-                  Privacy Policy
-                </Link>
-              </p>
             </CardContent>
           </Card>
         </motion.div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,9 +57,9 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
 
   useEffect(() => {
     fetchLeaderboardData();
-  }, [activeTab]);
+  }, [activeTab, fetchLeaderboardData]);
 
-  const fetchLeaderboardData = async () => {
+  const fetchLeaderboardData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/leaderboard/global?category=${activeTab}`);
@@ -80,7 +80,7 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab]);
 
   const getRankIcon = (index: number) => {
     switch (index) {

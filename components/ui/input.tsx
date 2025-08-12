@@ -1,6 +1,6 @@
-import * as React from 'react';
+import * as React from "react"
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils"
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -11,15 +11,51 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          "flex h-10 w-full rounded-lg border border-eddura-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-eddura-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eddura-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-in-out hover:border-eddura-300 focus:border-eddura-500",
           className
         )}
         ref={ref}
         {...props}
       />
-    );
+    )
   }
-);
-Input.displayName = 'Input';
+)
+Input.displayName = "Input"
 
-export { Input };
+// Eddura-specific input variants
+const InputEddura = React.forwardRef<
+  HTMLInputElement,
+  InputProps & {
+    variant?: 'default' | 'success' | 'error' | 'warning'
+    size?: 'sm' | 'md' | 'lg'
+  }
+>(({ className, variant = 'default', size = 'md', ...props }, ref) => {
+  const variantClasses = {
+    default: "border-eddura-200 focus:ring-eddura-500 focus:border-eddura-500",
+    success: "border-success focus:ring-success focus:border-success",
+    error: "border-error focus:ring-error focus:border-error",
+    warning: "border-warning focus:ring-warning focus:border-warning"
+  }
+
+  const sizeClasses = {
+    sm: "h-8 px-2 py-1 text-xs",
+    md: "h-10 px-3 py-2 text-sm",
+    lg: "h-12 px-4 py-3 text-base"
+  }
+
+  return (
+    <input
+      className={cn(
+        "flex w-full rounded-lg bg-white ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-eddura-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-in-out hover:border-eddura-300",
+        variantClasses[variant],
+        sizeClasses[size as keyof typeof sizeClasses],
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+InputEddura.displayName = "InputEddura"
+
+export { Input, InputEddura }

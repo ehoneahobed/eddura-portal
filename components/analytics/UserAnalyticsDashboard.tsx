@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -101,7 +101,7 @@ export function UserAnalyticsDashboard() {
 
   useEffect(() => {
     fetchUserAnalytics();
-  }, [timeRange]);
+  }, [timeRange, fetchUserAnalytics]);
 
   // Set up real-time updates for "today" range
   useEffect(() => {
@@ -122,9 +122,9 @@ export function UserAnalyticsDashboard() {
         clearInterval(interval);
       }
     };
-  }, [timeRange]);
+  }, [timeRange, fetchUserAnalyticsSilently]);
 
-  const fetchUserAnalyticsSilently = async () => {
+  const fetchUserAnalyticsSilently = useCallback(async () => {
     try {
       let response;
       if (timeRange === 'today') {
@@ -272,9 +272,9 @@ export function UserAnalyticsDashboard() {
     } catch (error) {
       console.error('Failed to fetch user analytics silently:', error);
     }
-  };
+  }, [timeRange]);
 
-  const fetchUserAnalytics = async () => {
+  const fetchUserAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       let response;
@@ -425,7 +425,7 @@ export function UserAnalyticsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
 
   const formatNumber = (num: number) => {
     return num.toLocaleString();

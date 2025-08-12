@@ -132,7 +132,7 @@ export default function LibraryPage() {
     
     setPagination(data.pagination || pagination);
     return data;
-  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination.page, pagination.limit]);
+  }, [session?.user?.id, searchTerm, categoryFilter, typeFilter, targetAudienceFilter, sortBy, pagination]);
 
   const { data, loading: isLoading, error, refetch } = useDataFetching({
     fetchFunction: fetchDocuments,
@@ -152,7 +152,7 @@ export default function LibraryPage() {
     if (session?.user?.id && pagination.page > 1) {
       refetch();
     }
-  }, [pagination.page, pagination.limit, session?.user?.id]);
+  }, [pagination.page, pagination.limit, session?.user?.id, refetch]);
 
   console.log('🔍 Library Page - Data structure:', {
     hasData: !!data,
