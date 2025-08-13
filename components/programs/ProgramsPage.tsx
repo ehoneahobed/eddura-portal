@@ -193,6 +193,26 @@ export default function ProgramsPage() {
     setFilteredPrograms(filtered);
   }, [programs, searchTerm, selectedFilters]);
 
+  // Fetch programs for a specific school
+  const fetchPrograms = useCallback(async (schoolId: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/programs?schoolId=${schoolId}&limit=50`);
+      if (response.ok) {
+        const data = await response.json();
+        setPrograms(data.programs || []);
+      } else {
+        console.error('Failed to fetch programs:', response.status, response.statusText);
+        setPrograms([]);
+      }
+    } catch (error) {
+      console.error('Error fetching programs:', error);
+      setPrograms([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Initial fetch on mount
   useEffect(() => {
     fetchSchools();
@@ -244,25 +264,7 @@ export default function ProgramsPage() {
     setSchoolPagination(prev => ({ ...prev, currentPage: page }));
   };
 
-  // Fetch programs for a specific school
-  const fetchPrograms = useCallback(async (schoolId: string) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/programs?schoolId=${schoolId}&limit=50`);
-      if (response.ok) {
-        const data = await response.json();
-        setPrograms(data.programs || []);
-      } else {
-        console.error('Failed to fetch programs:', response.status, response.statusText);
-        setPrograms([]);
-      }
-    } catch (error) {
-      console.error('Error fetching programs:', error);
-      setPrograms([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  
 
 
 
@@ -293,18 +295,18 @@ export default function ProgramsPage() {
   if (!selectedSchool) {
     // Show school selection UI with pagination
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-[var(--eddura-primary-900)] dark:via-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
         {/* Hero Section */}
-        <div className="bg-white border-b border-gray-100">
+        <div className="bg-white dark:bg-[var(--eddura-primary-900)] border-b border-gray-100 dark:border-[var(--eddura-primary-800)]">
           <div className="max-w-7xl mx-auto px-4 py-12">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-teal rounded-full mb-6 shadow-eddura">
                 <Building className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Browse Programs by School
               </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
                 Discover academic programs from top universities around the world. 
                 Select a school to explore their available programs and find your perfect academic path.
               </p>
@@ -323,7 +325,7 @@ export default function ProgramsPage() {
                 placeholder="Search schools by name, country, or city..."
                 value={schoolSearch}
                 onChange={e => handleSchoolSearch(e.target.value)}
-                className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl shadow-sm"
+                className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-eddura-500 focus:ring-2 focus:ring-eddura-200 rounded-xl shadow-sm dark:border-[var(--eddura-primary-700)] dark:bg-[var(--eddura-primary-800)] dark:text-white dark:placeholder:text-[var(--eddura-primary-300)]"
               />
             </div>
             {schoolSearch && (
@@ -341,7 +343,7 @@ export default function ProgramsPage() {
                 animate={{ opacity: 1 }}
                 className="text-center"
               >
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <div className="w-20 h-20 bg-gradient-teal rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse shadow-eddura">
                   <Building className="w-10 h-10 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Schools</h2>
@@ -358,7 +360,7 @@ export default function ProgramsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  Showing <span className="font-semibold text-blue-600">{schools.length}</span> of{' '}
+                  Showing <span className="font-semibold text-eddura-600">{schools.length}</span> of{' '}
                   <span className="font-semibold">{schoolPagination.totalCount}</span> schools
                   {schoolSearch && ` matching &quot;${schoolSearch}&quot;`}
                 </motion.p>
@@ -397,7 +399,7 @@ export default function ProgramsPage() {
                     size="lg"
                     onClick={() => handlePageChange(schoolPagination.currentPage - 1)}
                     disabled={!schoolPagination.hasPrevPage}
-                    className="px-6 py-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                    className="px-6 py-2 hover:bg-eddura-50 hover:border-eddura-200 transition-colors"
                   >
                     <ChevronLeft className="h-5 w-5 mr-2" />
                     Previous
@@ -420,7 +422,7 @@ export default function ProgramsPage() {
                     size="lg"
                     onClick={() => handlePageChange(schoolPagination.currentPage + 1)}
                     disabled={!schoolPagination.hasNextPage}
-                    className="px-6 py-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                    className="px-6 py-2 hover:bg-eddura-50 hover:border-eddura-200 transition-colors"
                   >
                     Next
                     <ChevronRight className="h-5 w-5 ml-2" />
@@ -492,12 +494,12 @@ export default function ProgramsPage() {
             />
           )}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{selectedSchool.name}</h1>
-            <p className="text-gray-600 flex items-center gap-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{selectedSchool.name}</h1>
+            <p className="text-gray-600 dark:text-gray-300 flex items-center gap-1">
               <MapPin className="h-4 w-4" />
               {selectedSchool.city}, {selectedSchool.country}
               {selectedSchool.globalRanking && (
-                <span className="ml-2 text-sm text-blue-600">
+                <span className="ml-2 text-sm text-eddura-600 dark:text-eddura-300">
                   • #{selectedSchool.globalRanking} Global Ranking
                 </span>
               )}
@@ -685,11 +687,11 @@ export default function ProgramsPage() {
             animate={{ opacity: 1 }}
             className="text-center"
           >
-            <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-teal rounded-full flex items-center justify-center mx-auto mb-4 shadow-eddura">
               <GraduationCap className="w-8 h-8 text-white animate-pulse" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Programs</h2>
-            <p className="text-gray-600">Finding the best academic opportunities at {selectedSchool.name}...</p>
+            <p className="text-gray-600 dark:text-gray-300">Finding the best academic opportunities at {selectedSchool.name}...</p>
           </motion.div>
         </div>
       ) : filteredPrograms.length > 0 ? (

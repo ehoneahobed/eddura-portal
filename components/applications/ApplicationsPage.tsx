@@ -28,6 +28,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { Pagination } from '@/components/ui/pagination';
 import { toast } from 'sonner';
 
 interface Application {
@@ -57,6 +58,10 @@ export default function ApplicationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
 
   const filterApplications = useCallback(() => {
     let filtered = applications;
@@ -78,20 +83,26 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      fetchApplications();
+      fetchApplications(1);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, pageSize]);
 
   useEffect(() => {
     filterApplications();
   }, [filterApplications]);
 
-  const fetchApplications = async () => {
+  const fetchApplications = async (page: number) => {
     try {
-      const response = await fetch('/api/applications');
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('pageSize', String(pageSize));
+      const response = await fetch(`/api/applications?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setApplications(data.applications);
+        setCurrentPage(data.page || page);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || data.applications.length);
       } else {
         toast.error('Failed to fetch applications');
       }
@@ -108,13 +119,13 @@ export default function ApplicationsPage() {
       case 'draft':
         return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: 'Draft' };
       case 'in_progress':
-        return { color: 'bg-blue-100 text-blue-800', icon: Play, label: 'In Progress' };
+        return { color: 'bg-eddura-100 text-eddura-700', icon: Play, label: 'In Progress' };
       case 'ready_for_submission':
         return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Ready for Submission' };
       case 'submitted':
         return { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Submitted' };
       case 'under_review':
-        return { color: 'bg-purple-100 text-purple-800', icon: Eye, label: 'Under Review' };
+        return { color: 'bg-eddura-50 text-eddura-700', icon: Eye, label: 'Under Review' };
       case 'approved':
         return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Approved' };
       case 'rejected':
@@ -155,11 +166,11 @@ export default function ApplicationsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-eddura-light flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Applications</h2>
-          <p className="text-gray-600">Getting your application data...</p>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-eddura-500" />
+          <h2 className="text-2xl font-bold text-eddura-primary dark:text-eddura-100 mb-2">Loading Applications</h2>
+          <p className="text-eddura-secondary dark:text-eddura-300">Getting your application data...</p>
         </div>
       </div>
     );
@@ -170,8 +181,8 @@ export default function ApplicationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Applications</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-eddura-primary dark:text-eddura-100">My Applications</h1>
+          <p className="text-eddura-secondary dark:text-eddura-300 mt-2">
             Track and manage your scholarship applications
           </p>
         </div>
@@ -184,7 +195,7 @@ export default function ApplicationsPage() {
           </Button>
           <Button 
             onClick={() => router.push('/scholarships')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-eddura-500 hover:bg-eddura-600 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Find Scholarships
@@ -198,10 +209,10 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">Total Applications</p>
+                <p className="text-2xl font-bold text-eddura-primary dark:text-eddura-100">{total || applications.length}</p>
               </div>
-              <FileText className="w-8 h-8 text-blue-600" />
+              <FileText className="w-8 h-8 text-eddura-500" />
             </div>
           </CardContent>
         </Card>
@@ -210,12 +221,12 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">In Progress</p>
+                <p className="text-2xl font-bold text-eddura-500">
                   {applications.filter(app => app.status === 'in_progress').length}
                 </p>
               </div>
-              <Play className="w-8 h-8 text-blue-600" />
+              <Play className="w-8 h-8 text-eddura-500" />
             </div>
           </CardContent>
         </Card>
@@ -224,7 +235,7 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Submitted</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">Submitted</p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {applications.filter(app => app.status === 'submitted').length}
                 </p>
@@ -238,7 +249,7 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Approved</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">Approved</p>
                 <p className="text-2xl font-bold text-green-600">
                   {applications.filter(app => app.status === 'approved').length}
                 </p>
@@ -250,23 +261,23 @@ export default function ApplicationsPage() {
       </div>
 
       {/* Application Management CTA */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-eddura-gradient border-eddura">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Target className="h-8 w-8 text-blue-600" />
+              <div className="p-3 bg-eddura-100 rounded-lg">
+                <Target className="h-8 w-8 text-eddura-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Application Management System</h3>
-                <p className="text-gray-600">
+                <h3 className="text-lg font-semibold text-white">Application Management System</h3>
+                <p className="text-white/90">
                   Create application packages, track requirements, and manage your entire application journey
                 </p>
               </div>
             </div>
             <Button 
               onClick={() => router.push('/applications/manage')}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-white text-eddura-700 hover:bg-eddura-50"
             >
               <Target className="w-4 h-4 mr-2" />
               Open Application Management
@@ -348,17 +359,17 @@ export default function ApplicationsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:shadow-eddura transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                       {/* Left side - Application info */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            <h3 className="text-lg font-semibold text-eddura-primary dark:text-eddura-100 mb-1">
                               {application.scholarshipId.title}
                             </h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-4 text-sm text-eddura-secondary dark:text-eddura-300">
                               {application.scholarshipId.value && (
                                 <span className="flex items-center gap-1">
                                   <Award className="w-4 h-4" />
@@ -385,7 +396,7 @@ export default function ApplicationsPage() {
                           <Progress value={application.progress} className="h-2" />
                         </div>
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 text-sm text-eddura-secondary dark:text-eddura-300">
                           <span>Started: {formatDate(application.startedAt)}</span>
                           <span>Last activity: {formatDate(application.lastActivityAt)}</span>
                           {application.estimatedTimeRemaining && (
@@ -399,7 +410,7 @@ export default function ApplicationsPage() {
                         {application.status === 'draft' || application.status === 'in_progress' ? (
                           <Button 
                             onClick={() => handleContinueApplication(application._id)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className="bg-eddura-500 hover:bg-eddura-600 text-white"
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Continue
@@ -429,6 +440,18 @@ export default function ApplicationsPage() {
             );
           })
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="pt-2">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => {
+            setIsLoading(true);
+            fetchApplications(page);
+          }}
+        />
       </div>
     </div>
   );

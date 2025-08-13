@@ -13,7 +13,7 @@ const buttonVariants = cva(
         destructive:
           'bg-error text-white hover:bg-error-dark focus-visible:ring-error shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95',
         outline:
-          'border-2 border-eddura-500 bg-white text-eddura-600 hover:bg-eddura-500 hover:text-white focus-visible:ring-eddura-500 transition-all duration-200',
+          'border-2 border-eddura-500 bg-white text-eddura-700 hover:bg-gray-50 hover:text-eddura-800 focus-visible:ring-eddura-500 transition-all duration-200 dark:border-[var(--eddura-primary-700)] dark:bg-[var(--eddura-primary-900)] dark:text-white dark:hover:bg-[var(--eddura-primary-800)]',
         secondary:
           'bg-eddura-100 text-eddura-700 hover:bg-eddura-200 focus-visible:ring-eddura-500 border border-eddura-200 hover:border-eddura-300',
         ghost: 'text-eddura-600 hover:bg-eddura-50 hover:text-eddura-700 focus-visible:ring-eddura-500',

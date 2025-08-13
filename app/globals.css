@@ -26,18 +26,46 @@
   --eddura-success: #10B981;
   --eddura-success-light: #34D399;
   --eddura-success-dark: #059669;
+  --eddura-success-50: #ECFDF5;
+  --eddura-success-100: #D1FAE5;
+  --eddura-success-600: #059669;
+  --eddura-success-800: #065F46;
+  --eddura-success-900: #064E3B;
   
   --eddura-warning: #F59E0B;
   --eddura-warning-light: #FBBF24;
   --eddura-warning-dark: #D97706;
+  --eddura-warning-50: #FFFBEB;
+  --eddura-warning-100: #FEF3C7;
+  --eddura-warning-600: #D97706;
+  --eddura-warning-800: #92400E;
+  --eddura-warning-900: #78350F;
   
   --eddura-error: #EF4444;
   --eddura-error-light: #F87171;
   --eddura-error-dark: #DC2626;
+  --eddura-error-50: #FEF2F2;
+  --eddura-error-100: #FEE2E2;
   
   --eddura-info: #3B82F6;
   --eddura-info-light: #60A5FA;
   --eddura-info-dark: #2563EB;
+  --eddura-info-50: #EFF6FF;
+  --eddura-info-100: #DBEAFE;
+  --eddura-info-600: #2563EB;
+  --eddura-info-700: #1D4ED8;
+  --eddura-info-800: #1E40AF;
+  --eddura-info-900: #1E3A8A;
+  
+  --eddura-accent: #FF6B35;
+  --eddura-accent-light: #FF8A5C;
+  --eddura-accent-dark: #E55A2B;
+  --eddura-accent-50: #FFF7ED;
+  --eddura-accent-100: #FFEDD5;
+  --eddura-accent-600: #EA580C;
+  --eddura-accent-700: #C2410C;
+  --eddura-accent-800: #9A3412;
+  --eddura-accent-900: #7C2D12;
   
 
   
@@ -148,15 +176,15 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #111827;
-    background-color: #ffffff;
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-weight: 600;
     line-height: 1.2;
-    color: #111827;
+    color: hsl(var(--foreground));
   }
   
   h1 {
@@ -191,7 +219,7 @@
   
   p {
     margin-bottom: 1rem;
-    color: #374151;
+    color: hsl(var(--muted-foreground));
   }
   
   a {
@@ -482,17 +510,17 @@
 
 /* Dark Mode Styles */
 .dark {
-  /* Dark mode color overrides */
-  --eddura-primary-50: #0a252a;
-  --eddura-primary-100: #0a2f35;
-  --eddura-primary-200: #0a3a42;
-  --eddura-primary-300: #0f4a54;
-  --eddura-primary-400: #196775;
-  --eddura-primary-500: #38b8cc;
-  --eddura-primary-600: #7dd3e0;
-  --eddura-primary-700: #bae6ed;
-  --eddura-primary-800: #e0f2f4;
-  --eddura-primary-900: #f0f9fa;
+  /* Dark mode color overrides (keep brand scale consistent; avoid inverted whites) */
+  --eddura-primary-50: #E6F2F5;
+  --eddura-primary-100: #CCE5EB;
+  --eddura-primary-200: #99C7D7;
+  --eddura-primary-300: #66A9C3;
+  --eddura-primary-400: #338BAF;
+  --eddura-primary-500: #196775;
+  --eddura-primary-600: #145A66;
+  --eddura-primary-700: #0F4A52;
+  --eddura-primary-800: #0A3A41;
+  --eddura-primary-900: #052A30;
   
   /* Dark mode background and text */
   --background: 222.2 84% 4.9%;

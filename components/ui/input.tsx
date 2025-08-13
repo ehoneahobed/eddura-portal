@@ -11,7 +11,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-lg border border-eddura-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-eddura-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eddura-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-in-out hover:border-eddura-300 focus:border-eddura-500",
+          "flex h-10 w-full rounded-lg border border-eddura-200 bg-white px-3 py-2 text-sm text-eddura-900 ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-eddura-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eddura-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-in-out hover:border-eddura-300 focus:border-eddura-500 dark:border-[var(--eddura-primary-700)] dark:bg-[var(--eddura-primary-800)] dark:text-white dark:placeholder:text-[var(--eddura-primary-300)] dark:ring-offset-[var(--eddura-primary-900)]",
           className
         )}
         ref={ref}
@@ -46,7 +46,7 @@ const InputEddura = React.forwardRef<
   return (
     <input
       className={cn(
-        "flex w-full rounded-lg bg-white ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-eddura-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-in-out hover:border-eddura-300",
+        "flex w-full rounded-lg bg-white text-eddura-900 ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-eddura-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-in-out hover:border-eddura-300 dark:bg-[var(--eddura-primary-800)] dark:text-white dark:ring-offset-[var(--eddura-primary-900)] dark:placeholder:text-[var(--eddura-primary-300)]",
         variantClasses[variant],
         sizeClasses[size as keyof typeof sizeClasses],
         className

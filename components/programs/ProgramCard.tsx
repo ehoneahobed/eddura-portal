@@ -99,15 +99,15 @@ export default function ProgramCard({ program }: ProgramCardProps) {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <Card className="h-full border border-[var(--eddura-primary-100)] dark:border-[var(--eddura-primary-800)] bg-white dark:bg-[var(--eddura-primary-900)] shadow-[0_4px_14px_rgba(25,103,117,0.08)] hover:shadow-[0_16px_34px_rgba(25,103,117,0.18)] transition-all duration-300 overflow-hidden">
         {/* Header */}
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2">
                 {program.name}
               </CardTitle>
-              <CardDescription className="text-sm text-gray-600">
+              <CardDescription className="text-sm text-gray-600 dark:text-gray-300">
                 {program.school.name}
               </CardDescription>
             </div>
@@ -119,7 +119,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
               className="ml-2 flex-shrink-0"
             >
               <Heart 
-                className={`h-4 w-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                className={`h-4 w-4 ${isSaved ? 'fill-eddura-500 text-eddura-500' : 'text-gray-400 dark:text-gray-500'}`} 
               />
             </Button>
           </div>
@@ -129,8 +129,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           {/* University Info */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Building className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-600">
+              <Building className="h-4 w-4 text-eddura-600 dark:text-eddura-300" />
+              <span className="text-sm font-medium text-eddura-600 dark:text-eddura-300">
                 {program.school.name}
               </span>
             </div>
@@ -143,8 +143,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
 
           {/* Location */}
           <div className="flex items-center space-x-2 mb-4">
-            <MapPin className="h-3 w-3 text-gray-400" />
-            <span className="text-xs text-gray-600">
+            <MapPin className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+            <span className="text-xs text-gray-600 dark:text-gray-300">
               {program.school.city}, {program.school.country}
             </span>
           </div>
@@ -153,8 +153,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           <div className="space-y-2 mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <GraduationCap className="h-3 w-3 text-gray-400" />
-                <span className="text-xs text-gray-600">{program.degreeType}</span>
+                <GraduationCap className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                <span className="text-xs text-gray-600 dark:text-gray-300">{program.degreeType}</span>
               </div>
               <Badge variant="secondary" className="text-xs">
                 {program.programLevel}
@@ -162,24 +162,24 @@ export default function ProgramCard({ program }: ProgramCardProps) {
             </div>
             
             <div className="flex items-center space-x-2">
-              <BookOpen className="h-3 w-3 text-gray-400" />
-              <span className="text-xs text-gray-600">
+              <BookOpen className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+              <span className="text-xs text-gray-600 dark:text-gray-300">
                 {program.fieldOfStudy}
                 {program.subfield && ` - ${program.subfield}`}
               </span>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Clock className="h-3 w-3 text-gray-400" />
-              <span className="text-xs text-gray-600">
+              <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+              <span className="text-xs text-gray-600 dark:text-gray-300">
                 {program.duration} • {program.mode}
               </span>
             </div>
 
             {program.languages.length > 0 && (
               <div className="flex items-center space-x-2">
-                <Globe className="h-3 w-3 text-gray-400" />
-                <span className="text-xs text-gray-600">
+                <Globe className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                <span className="text-xs text-gray-600 dark:text-gray-300">
                   {program.languages.join(', ')}
                 </span>
               </div>
@@ -189,8 +189,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           {/* Tuition */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <DollarSign className="h-4 w-4 text-green-600" />
-              <span className="font-semibold text-green-600">
+              <DollarSign className="h-4 w-4 text-eddura-600 dark:text-eddura-300" />
+              <span className="font-semibold text-eddura-600 dark:text-eddura-300">
                 {formatTuition(program.tuitionFees.international, program.tuitionFees.currency)}/year
               </span>
             </div>
@@ -205,8 +205,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           {program.availableScholarships && program.availableScholarships.length > 0 && (
             <div className="mb-4">
               <div className="flex items-center space-x-2 mb-2">
-                <Award className="h-3 w-3 text-yellow-600" />
-                <span className="text-xs font-medium text-gray-700">
+                <Award className="h-3 w-3 text-eddura-600 dark:text-eddura-300" />
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
                   {program.availableScholarships.length} Scholarships Available
                 </span>
               </div>
@@ -217,8 +217,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           {program.employabilityRank && (
             <div className="mb-4">
               <div className="flex items-center space-x-2">
-                <Star className="h-3 w-3 text-purple-600" />
-                <span className="text-xs text-gray-600">
+                <Star className="h-3 w-3 text-eddura-600 dark:text-eddura-300" />
+                <span className="text-xs text-gray-600 dark:text-gray-300">
                   Employability Rank: #{program.employabilityRank}
                 </span>
               </div>
@@ -248,8 +248,8 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           {nextDeadline && (
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <span className="text-xs text-gray-600">
+                <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <span className="text-xs text-gray-600 dark:text-gray-300">
                   {daysUntilDeadline} days left
                 </span>
               </div>
@@ -263,7 +263,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[var(--eddura-primary-800)]">
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm">
                 <Share2 className="h-4 w-4" />
@@ -278,7 +278,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
                 </Button>
               </Link>
               
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+              <Button size="sm" className="bg-eddura-500 hover:bg-eddura-600 text-white shadow-eddura">
                 Apply Now
               </Button>
             </div>

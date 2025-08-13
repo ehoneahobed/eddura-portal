@@ -151,38 +151,38 @@ export default function ApplicationManagePage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-100)]';
       case 'in_progress':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[var(--eddura-warning-50)] text-[var(--eddura-warning-800)] dark:bg-[var(--eddura-warning-800)] dark:text-[var(--eddura-warning-50)]';
       case 'ready_for_submission':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[var(--eddura-success-100)] text-[var(--eddura-success-800)] dark:bg-[var(--eddura-success-800)] dark:text-[var(--eddura-success-100)]';
       case 'submitted':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[var(--eddura-info-100)] text-[var(--eddura-info-800)] dark:bg-[var(--eddura-info-800)] dark:text-[var(--eddura-info-100)]';
       case 'accepted':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[var(--eddura-success-100)] text-[var(--eddura-success-800)] dark:bg-[var(--eddura-success-800)] dark:text-[var(--eddura-success-100)]';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[var(--eddura-error-100)] text-[var(--eddura-error-dark)] dark:bg-[var(--eddura-error-dark)] dark:text-[var(--eddura-error-50)]';
       case 'waitlisted':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-[var(--eddura-accent-100)] text-[var(--eddura-accent-800)] dark:bg-[var(--eddura-accent-800)] dark:text-[var(--eddura-accent-100)]';
       case 'withdrawn':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-100)]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-100)]';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[var(--eddura-success-100)] text-[var(--eddura-success-800)] dark:bg-[var(--eddura-success-800)] dark:text-[var(--eddura-success-100)]';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[var(--eddura-warning-100)] text-[var(--eddura-warning-800)] dark:bg-[var(--eddura-warning-800)] dark:text-[var(--eddura-warning-100)]';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-[var(--eddura-accent-100)] text-[var(--eddura-accent-800)] dark:bg-[var(--eddura-accent-800)] dark:text-[var(--eddura-accent-100)]';
       case 'urgent':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[var(--eddura-error-100)] text-[var(--eddura-error-dark)] dark:bg-[var(--eddura-error-dark)] dark:text-[var(--eddura-error-50)]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
@@ -199,13 +199,13 @@ export default function ApplicationManagePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Application Management</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-eddura-primary dark:text-white">Application Management</h1>
+          <p className="text-eddura-secondary dark:text-eddura-600 mt-2">
             Manage your applications, track progress, and stay organized
           </p>
         </div>
         <Link href="/applications/packages">
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-eddura-500 hover:bg-eddura-600 text-white shadow-eddura hover:shadow-eddura-lg">
             <Plus className="w-4 h-4 mr-2" />
             Create Application Package
           </Button>
@@ -214,68 +214,68 @@ export default function ApplicationManagePage() {
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Total Applications</p>
+                <p className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white">{stats.total}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Package className="h-8 w-8 text-eddura-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Ready to Apply</p>
-                <p className="text-2xl font-bold text-green-600">{stats.readyForSubmission}</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Ready to Apply</p>
+                <p className="text-2xl font-bold text-[var(--eddura-success)]">{stats.readyForSubmission}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-[var(--eddura-success)]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.inProgress}</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">In Progress</p>
+                <p className="text-2xl font-bold text-[var(--eddura-warning-dark)]">{stats.inProgress}</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+              <Clock className="h-8 w-8 text-[var(--eddura-warning-dark)]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Upcoming Deadlines</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.upcomingDeadlines}</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Upcoming Deadlines</p>
+                <p className="text-2xl font-bold text-[var(--eddura-accent-dark)]">{stats.upcomingDeadlines}</p>
               </div>
-              <AlertCircle className="h-8 w-8 text-orange-600" />
+              <AlertCircle className="h-8 w-8 text-[var(--eddura-accent-dark)]" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="text-eddura-primary dark:text-white">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((action, index) => (
               <Link key={index} href={action.href}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div className={`p-3 rounded-lg ${action.color} text-white`}>
+                      <div className={`p-3 rounded-lg ${action.color} text-white shadow-eddura`}>
                         <action.icon className="h-6 w-6" />
                       </div>
                       {action.badge && (
@@ -284,8 +284,8 @@ export default function ApplicationManagePage() {
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{action.title}</h3>
-                    <p className="text-sm text-gray-600">{action.description}</p>
+                    <h3 className="font-semibold text-[var(--eddura-primary-900)] dark:text-white mb-2">{action.title}</h3>
+                    <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{action.description}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -295,12 +295,12 @@ export default function ApplicationManagePage() {
       </Card>
 
       {/* Recent Applications */}
-      <Card>
+      <Card className="dark:bg-[var(--eddura-primary-900)]">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Recent Applications</CardTitle>
+            <CardTitle className="text-eddura-primary dark:text-white">Recent Applications</CardTitle>
             <Link href="/applications/packages">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
                 View All
                 <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
@@ -315,24 +315,24 @@ export default function ApplicationManagePage() {
                 <span>Loading applications...</span>
               </div>
             ) : recentApplications.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center py-8 text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
+                <Package className="h-12 w-12 mx-auto mb-4 text-[var(--eddura-primary-300)]" />
                 <p>No applications yet</p>
                 <p className="text-sm">Create your first application package to get started</p>
               </div>
             ) : (
               recentApplications.map((app) => (
-                <div key={app._id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div key={app._id} className="flex items-center justify-between p-4 border rounded-xl bg-white/60 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
                   <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 rounded-lg">
+                    <div className="p-2 rounded-lg bg-eddura-50 text-eddura-600 dark:bg-white/10 dark:text-white">
                       {app.applicationType === 'program' || app.applicationType === 'school' ? (
-                        <School className="h-5 w-5 text-blue-600" />
+                        <School className="h-5 w-5" />
                       ) : (
-                        <Award className="h-5 w-5 text-blue-600" />
+                        <Award className="h-5 w-5" />
                       )}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{app.name}</h3>
+                      <h3 className="font-normal text-gray-900 dark:text-white text-sm md:text-base">{app.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge className={getStatusColor(app.status)}>
                           {app.status.replace('_', ' ')}
@@ -343,23 +343,23 @@ export default function ApplicationManagePage() {
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">Progress</div>
-                      <div className="text-sm font-medium">{app.progress}%</div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="hidden sm:block text-right">
+                      <div className="text-[11px] text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Progress</div>
+                      <div className="text-xs md:text-sm font-medium text-[var(--eddura-primary-900)] dark:text-white">{app.progress}%</div>
                     </div>
-                    <div className="w-24">
-                      <Progress value={app.progress} className="h-2" />
+                    <div className="w-28">
+                      <Progress value={app.progress} className="h-2 bg-eddura-100 dark:bg-white/10" indicatorClassName="bg-eddura-500 dark:bg-eddura-500" />
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">Deadline</div>
-                      <div className="text-sm font-medium">
-                        {app.applicationDeadline ? getDaysUntilDeadline(app.applicationDeadline) : 'No deadline'} days
+                    <div className="text-right min-w-[88px]">
+                      <div className="text-[11px] text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Deadline</div>
+                      <div className="text-xs md:text-sm font-medium text-[var(--eddura-primary-900)] dark:text-white">
+                        {app.applicationDeadline ? `${getDaysUntilDeadline(app.applicationDeadline)} days` : 'No deadline'}
                       </div>
                     </div>
                     <Link href={`/applications/${app._id}`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
                         View
                       </Button>
                     </Link>
@@ -381,7 +381,7 @@ export default function ApplicationManagePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+                    <div className="space-y-3">
               {(() => {
                 const programApps = applications.filter(app => 
                   app.applicationType === 'program' || app.applicationType === 'school'
@@ -389,23 +389,23 @@ export default function ApplicationManagePage() {
                 return (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Total Applications</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Total Applications</span>
                       <span className="font-medium">{programApps.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Ready for Submission</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Ready for Submission</span>
                       <span className="font-medium text-green-600">
                         {programApps.filter(app => app.status === 'ready_for_submission').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">In Progress</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">In Progress</span>
                       <span className="font-medium text-yellow-600">
                         {programApps.filter(app => app.status === 'in_progress').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Accepted</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Accepted</span>
                       <span className="font-medium text-green-600">
                         {programApps.filter(app => app.status === 'accepted').length}
                       </span>
@@ -415,7 +415,7 @@ export default function ApplicationManagePage() {
               })()}
             </div>
             <Link href="/applications/packages">
-              <Button variant="outline" className="w-full mt-4">
+              <Button variant="outline" className="w-full mt-4 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
                 Manage Programs
               </Button>
             </Link>
@@ -430,7 +430,7 @@ export default function ApplicationManagePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+                    <div className="space-y-3">
               {(() => {
                 const scholarshipApps = applications.filter(app => 
                   app.applicationType === 'scholarship'
@@ -438,23 +438,23 @@ export default function ApplicationManagePage() {
                 return (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Total Applications</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Total Applications</span>
                       <span className="font-medium">{scholarshipApps.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Ready for Submission</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Ready for Submission</span>
                       <span className="font-medium text-green-600">
                         {scholarshipApps.filter(app => app.status === 'ready_for_submission').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">In Progress</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">In Progress</span>
                       <span className="font-medium text-yellow-600">
                         {scholarshipApps.filter(app => app.status === 'in_progress').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Awarded</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Awarded</span>
                       <span className="font-medium text-green-600">
                         {scholarshipApps.filter(app => app.status === 'accepted').length}
                       </span>
@@ -464,7 +464,7 @@ export default function ApplicationManagePage() {
               })()}
             </div>
             <Link href="/scholarships">
-              <Button variant="outline" className="w-full mt-4">
+              <Button variant="outline" className="w-full mt-4 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
                 Browse Scholarships
               </Button>
             </Link>

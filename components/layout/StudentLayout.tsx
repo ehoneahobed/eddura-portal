@@ -11,7 +11,9 @@ import {
   Menu,
   X,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,6 +28,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTheme } from '@/components/providers/ThemeProvider';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { ThemeAwareLogo } from '@/components/ui/logo';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -37,20 +42,8 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session?.user?.id) {
-      router.push('/auth/signin');
-      return;
-    }
-
-    // Only fetch user profile if we have a valid session
-    if (session?.user?.id) {
-      fetchUserProfile();
-    }
-  }, [session, status, router, fetchUserProfile]);
+  const { theme, toggleTheme } = useTheme();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const fetchUserProfile = useCallback(async () => {
     if (!session?.user?.id) return;
@@ -67,178 +60,203 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
     }
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session?.user?.id) {
+      router.push('/auth/signin');
+      return;
+    }
+
+    // Only fetch user profile if we have a valid session
+    if (session?.user?.id) {
+      fetchUserProfile();
+    }
+  }, [session, status, router, fetchUserProfile]);
+
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' });
   };
 
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => !prev);
+  };
+
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
-            <User className="w-8 h-8 text-white animate-pulse" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading</h2>
-          <p className="text-gray-600">Preparing your experience...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <ThemeAwareLogo size="7xl" className="animate-pulse" />
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="flex h-screen">
-        {/* Sidebar - Only show when user is authenticated */}
-        {showSidebar && session?.user && (
-          <>
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block">
-              <StudentSidebar />
-            </div>
-            
-            {/* Mobile Sidebar */}
-            {isMobileMenuOpen && (
-              <div className="lg:hidden fixed inset-0 z-50">
-                <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
-                <div className="fixed left-0 top-0 h-full z-50">
-                  <StudentSidebar />
-                </div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-white dark:bg-[var(--eddura-primary-900)]">
+        <div className="flex h-screen">
+          {/* Fixed Sidebar - Only show when user is authenticated */}
+          {showSidebar && session?.user && (
+            <>
+              {/* Desktop Sidebar - Fixed position */}
+              <div className="hidden lg:block fixed left-0 top-0 h-screen z-30">
+                <StudentSidebar isCollapsed={isSidebarCollapsed} onToggleCollapse={handleToggleSidebar} />
               </div>
-            )}
-          </>
-        )}
+              
+              {/* Mobile Sidebar - Overlay */}
+              {isMobileMenuOpen && (
+                <div className="lg:hidden fixed inset-0 z-50">
+                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+                  <div className="fixed left-0 top-0 h-full z-50">
+                    <StudentSidebar isCollapsed={false} onToggleCollapse={handleToggleSidebar} />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between px-4 py-4">
-              {/* Left side */}
-              <div className="flex items-center space-x-4">
-                {showSidebar && session?.user && (
+          {/* Main Content - Adjusted for fixed sidebar */}
+          <div className={`flex-1 flex flex-col overflow-hidden ${showSidebar && session?.user ? (isSidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[280px]') : ''}`}>
+            {/* Header */}
+            <header className="bg-white/90 dark:bg-[var(--eddura-primary-900)] backdrop-blur-xl border-b border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-800)] shadow-sm sticky top-0 z-20">
+              <div className="flex items-center justify-between px-4 py-4">
+                {/* Left side */}
+                <div className="flex items-center space-x-4">
+                  {showSidebar && session?.user && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                      className="lg:hidden"
+                    >
+                      {isMobileMenuOpen ? (
+                        <X className="h-5 w-5 text-[var(--eddura-primary)] dark:text-white" />
+                      ) : (
+                        <Menu className="h-5 w-5 text-[var(--eddura-primary)] dark:text-white" />
+                      )}
+                    </Button>
+                  )}
+                  
+                  <div className="flex items-center space-x-3">
+                    <ThemeAwareLogo size="3xl" />
+                    {/* <h1 className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white">Eddura</h1> */}
+                  </div>
+                </div>
+
+                {/* Center - Search */}
+                <div className="hidden md:flex flex-1 max-w-md mx-8">
+                  <div className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-300)]" />
+                    <input
+                      type="text"
+                      placeholder="Search scholarships, programs..."
+                      className="w-full pl-10 pr-4 py-2 border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] rounded-lg focus:ring-2 focus:ring-[var(--eddura-primary)] focus:border-transparent bg-white/90 dark:bg-[var(--eddura-primary-800)] text-[var(--eddura-primary-900)] dark:text-white placeholder-[var(--eddura-primary-400)] dark:placeholder-[var(--eddura-primary-500)]"
+                    />
+                  </div>
+                </div>
+
+                {/* Right side */}
+                <div className="flex items-center space-x-4">
+                  {/* Theme Toggle */}
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="lg:hidden"
+                    onClick={toggleTheme}
+                    className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] hover:bg-[var(--eddura-primary-50)] dark:hover:bg-[var(--eddura-primary-800)] transition-all duration-200"
                   >
-                    {isMobileMenuOpen ? (
-                      <X className="h-5 w-5" />
+                    {theme === 'dark' ? (
+                      <Sun className="h-5 w-5" />
                     ) : (
-                      <Menu className="h-5 w-5" />
+                      <Moon className="h-5 w-5" />
                     )}
                   </Button>
-                )}
-                
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                    <User className="h-5 w-5 text-white" />
-                  </div>
-                  <h1 className="text-xl font-bold text-[#00334e]">Eddura</h1>
-                </div>
-              </div>
 
-              {/* Center - Search */}
-              <div className="hidden md:flex flex-1 max-w-md mx-8">
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search scholarships, programs..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007fbd] focus:border-transparent"
-                  />
-                </div>
-              </div>
+                  {/* Only show user-specific elements when authenticated */}
+                  {session?.user && (
+                    <>
+                      {/* Notifications */}
+                      <NotificationBell />
 
-              {/* Right side */}
-              <div className="flex items-center space-x-4">
-                {/* Only show user-specific elements when authenticated */}
-                {session?.user && (
-                  <>
-                    {/* Notifications */}
-                    <NotificationBell />
-
-                    {/* User Menu */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="flex items-center space-x-2 p-2">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="bg-[#007fbd] text-white text-sm">
-                              {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          
-                          <div className="hidden md:block text-left">
-                            <p className="text-sm font-medium text-gray-900">
-                              {userProfile?.firstName && userProfile?.lastName 
-                                ? `${userProfile.firstName} ${userProfile.lastName}`
-                                : session?.user?.name || 'User'
-                              }
-                            </p>
-                            <p className="text-xs text-gray-500">{userProfile?.email || session?.user?.email}</p>
-                          </div>
-                          
-                          <ChevronDown className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>
-                          <div className="flex items-center space-x-2">
-                                                      <Avatar className="w-8 h-8">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="bg-[#007fbd] text-white text-sm">
-                              {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">
-                                {userProfile?.firstName && userProfile?.lastName 
-                                  ? `${userProfile.firstName} ${userProfile.lastName}`
-                                  : session?.user?.name || 'User'
-                                }
+                      {/* User Menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="flex items-center gap-2 rounded-full border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] px-2 py-1 pr-3 bg-white/90 dark:bg-[var(--eddura-primary-800)] hover:ring-1 hover:ring-[var(--eddura-primary-300)] dark:hover:ring-[var(--eddura-primary-600)] transition-all"
+                          >
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src="" />
+                              <AvatarFallback className="bg-[var(--eddura-primary)] text-white text-sm">
+                                {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="hidden md:block text-left">
+                              <p className="text-sm font-semibold leading-5 text-[var(--eddura-primary-900)] dark:text-white">
+                                {userProfile?.firstName && userProfile?.lastName ? `${userProfile.firstName} ${userProfile.lastName}` : session?.user?.name || 'User'}
                               </p>
-                              <p className="text-xs text-gray-500">{userProfile?.email || session?.user?.email}</p>
                             </div>
-                          </div>
-                        </DropdownMenuLabel>
-                        
-                        <DropdownMenuSeparator />
-                        
-                        <DropdownMenuItem asChild>
-                          <a href="/settings" className="flex items-center space-x-2 w-full">
-                            <User className="h-4 w-4" />
-                            <span>Profile & Settings</span>
-                          </a>
-                        </DropdownMenuItem>
-                        
-                        <DropdownMenuSeparator />
-                        
-                        <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                          <LogOut className="h-4 w-4 mr-2" />
-                          <span>Sign Out</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </div>
-            </div>
-          </header>
+                            <ChevronDown className="h-4 w-4 text-[var(--eddura-primary-500)] dark:text-white/80" />
+                          </Button>
+                        </DropdownMenuTrigger>
 
-          {/* Main Content Area */}
-          <main className="flex-1 overflow-auto">
-            <div className="p-6">
-              {children}
-            </div>
-          </main>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-72 p-0 overflow-hidden rounded-xl border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-800)] bg-white dark:bg-[var(--eddura-primary-900)] shadow-2xl"
+                        >
+                          <DropdownMenuLabel className="p-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10 shadow-sm">
+                                <AvatarImage src="" />
+                                <AvatarFallback className="bg-[var(--eddura-primary)] text-white text-sm">
+                                  {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-[var(--eddura-primary-900)] dark:text-white truncate">
+                                  {userProfile?.firstName && userProfile?.lastName ? `${userProfile.firstName} ${userProfile.lastName}` : session?.user?.name || 'User'}
+                                </p>
+                                <p className="text-xs text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] truncate">{userProfile?.email || session?.user?.email}</p>
+                              </div>
+                            </div>
+                          </DropdownMenuLabel>
+
+                          <DropdownMenuItem asChild className="px-4 py-3 focus:bg-[var(--eddura-primary-50)] dark:focus:bg-[var(--eddura-primary-800)]">
+                            <a
+                              href="/settings"
+                              className="flex items-center gap-2 w-full text-[var(--eddura-primary-800)] dark:text-white"
+                            >
+                              <User className="h-4 w-4" />
+                              <span className="font-medium">Profile & Settings</span>
+                            </a>
+                          </DropdownMenuItem>
+
+                          <div className="p-3">
+                            <button
+                              onClick={handleLogout}
+                              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--eddura-accent)] hover:bg-[var(--eddura-accent-dark)] text-white font-semibold py-2.5 transition-colors shadow-md"
+                            >
+                              <LogOut className="h-4 w-4" />
+                              Sign Out
+                            </button>
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+                </div>
+              </div>
+            </header>
+
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-auto">
+              <div className="p-6">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
