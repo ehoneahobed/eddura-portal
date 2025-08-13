@@ -7,12 +7,12 @@ import { motion } from 'framer-motion';
 import { 
   Bookmark, 
   Search, 
-  Filter, 
+  // Filter, 
   Calendar, 
   DollarSign, 
   MapPin,
   GraduationCap,
-  Target,
+  // Target,
   Edit3,
   Trash2,
   Share2,
@@ -20,7 +20,7 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  Clock,
+  // Clock,
   Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { ResponsiveContainer } from '@/components/ui/responsive-container';
 
 interface SavedScholarship {
   _id: string;
@@ -201,10 +202,14 @@ export default function SavedScholarshipsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'applied': return 'bg-green-100 text-green-800 border-green-200';
-      case 'interested': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'not-interested': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'applied':
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100 dark:border-green-800';
+      case 'interested':
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-100 dark:border-blue-800';
+      case 'not-interested':
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-100 dark:border-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-[var(--eddura-primary-800)] dark:text-white dark:border-[var(--eddura-primary-700)]';
     }
   };
 
@@ -273,35 +278,35 @@ export default function SavedScholarshipsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Bookmark className="h-7 w-7 text-blue-600" />
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[var(--eddura-primary-50)] dark:bg-[var(--eddura-primary-800)]">
+            <Bookmark className="h-7 w-7 text-[var(--eddura-primary-700)] dark:text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Saved Scholarships</h1>
-            <p className="text-gray-600">Manage your saved scholarships and track your applications</p>
+            <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white">Saved Scholarships</h1>
+            <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Manage your saved scholarships and track your applications</p>
           </div>
         </div>
 
         {/* Filters and Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[var(--eddura-primary-300)]" />
             <Input
               placeholder="Search scholarships, providers, or notes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white dark:bg-[var(--eddura-primary-800)]"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full sm:w-48 bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="saved">Saved</SelectItem>
               <SelectItem value="interested">Interested</SelectItem>
@@ -315,14 +320,14 @@ export default function SavedScholarshipsPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--eddura-primary-600)] dark:text-white" />
         </div>
       ) : filteredScholarships.length === 0 ? (
-        <Card className="border-dashed border-2 border-gray-300">
+        <Card className="border-dashed border-2 border-gray-300 dark:border-[var(--eddura-primary-700)] bg-white dark:bg-[var(--eddura-primary-900)]">
           <CardContent className="p-12 text-center">
-            <Bookmark className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No saved scholarships</h3>
-            <p className="text-gray-600 mb-4">
+            <Bookmark className="h-12 w-12 text-gray-400 dark:text-[var(--eddura-primary-300)] mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-[var(--eddura-primary-900)] dark:text-white mb-2">No saved scholarships</h3>
+            <p className="text-gray-600 dark:text-[var(--eddura-primary-300)] mb-4">
               {searchTerm || statusFilter !== 'all' 
                 ? 'No scholarships match your current filters.'
                 : 'Start saving scholarships to track them here.'
@@ -350,14 +355,16 @@ export default function SavedScholarshipsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
+                <Card className="h-full hover:shadow-eddura-lg transition-shadow border border-gray-200 dark:border-[var(--eddura-primary-800)] bg-white dark:bg-[var(--eddura-primary-900)] rounded-2xl overflow-hidden">
+                  {/* Brand accent top bar */}
+                  <div className="h-1.5 w-full bg-gradient-to-r from-[var(--eddura-primary)] via-[var(--eddura-primary-light)] to-[var(--eddura-accent)]" />
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg font-semibold line-clamp-2 mb-1">
+                        <CardTitle className="text-lg font-semibold line-clamp-2 mb-1 text-[var(--eddura-primary-900)] dark:text-white">
                           {scholarship.title}
                         </CardTitle>
-                        <CardDescription className="text-sm">
+                        <CardDescription className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
                           {scholarship.provider}
                         </CardDescription>
                       </div>
@@ -367,28 +374,31 @@ export default function SavedScholarshipsPage() {
                       </Badge>
                     </div>
                   </CardHeader>
+
+                  {/* Soft divider */}
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-[var(--eddura-primary-800)]" />
                   
                   <CardContent className="space-y-4">
                     {/* Key Info */}
                     <div className="space-y-2">
                       {scholarship.value && (
-                        <div className="flex items-center gap-2 text-green-700">
+                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                           <DollarSign className="h-4 w-4" />
                           <span className="font-medium">{formatCurrency(scholarship.value, scholarship.currency)}</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 text-gray-700">
+                      <div className="flex items-center gap-2 text-gray-700 dark:text-[var(--eddura-primary-200)]">
                         <Calendar className="h-4 w-4" />
                         <span className="text-sm">{formatDeadline(scholarship.deadline)}</span>
                       </div>
                       {scholarship.linkedSchool && (
-                        <div className="flex items-center gap-2 text-purple-700">
+                        <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                           <MapPin className="h-4 w-4" />
                           <span className="text-sm">{scholarship.linkedSchool}</span>
                         </div>
                       )}
                       {scholarship.eligibility?.degreeLevels && (
-                        <div className="flex items-center gap-2 text-blue-700">
+                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                           <GraduationCap className="h-4 w-4" />
                           <span className="text-sm">{scholarship.eligibility.degreeLevels.join(', ')}</span>
                         </div>
@@ -413,17 +423,17 @@ export default function SavedScholarshipsPage() {
 
                     {/* Notes */}
                     {savedScholarship.notes && (
-                      <div className="bg-gray-50 p-3 rounded-lg">
-                        <p className="text-sm text-gray-700 line-clamp-2">
+                      <div className="bg-gray-50 dark:bg-[var(--eddura-primary-800)] p-3 rounded-lg">
+                        <p className="text-sm text-gray-700 dark:text-[var(--eddura-primary-200)] line-clamp-2">
                           {savedScholarship.notes}
                         </p>
                       </div>
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2">
+                    <div className="mt-2 pt-4 -mx-6 px-6 border-t border-gray-100 dark:border-[var(--eddura-primary-800)] bg-[var(--eddura-primary-50)]/40 dark:bg-transparent rounded-b-2xl flex items-center gap-2">
                       <Link href={`/scholarships/${scholarship._id}`}>
-                        <Button size="sm" variant="outline" className="flex-1">
+                        <Button size="sm" variant="outline" className="flex-1 bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-dark)] text-white border-[var(--eddura-primary)]">
                           <ExternalLink className="h-4 w-4 mr-1" />
                           View Details
                         </Button>
@@ -514,6 +524,6 @@ export default function SavedScholarshipsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ResponsiveContainer>
   );
 }

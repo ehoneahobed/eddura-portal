@@ -417,18 +417,21 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
           )}
 
           <div className="flex items-center gap-2 mb-3">
-            <Badge variant={document.isActive ? "default" : "secondary"}>
+            <Badge 
+              variant={document.isActive ? "default" : "secondary"}
+              className={document.isActive ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"}
+            >
               {document.isActive ? 'Active' : 'Inactive'}
             </Badge>
             <VersionTooltip>
-              <Badge variant="outline" className="flex items-center gap-1 cursor-help">
+              <Badge variant="outline" className="flex items-center gap-1 cursor-help bg-eddura-50 border-eddura-200 text-eddura-700 dark:bg-eddura-800 dark:border-eddura-600 dark:text-eddura-300">
                 <Clock className="h-3 w-3" />
                 v{document.version}
                 <HelpCircle className="h-3 w-3" />
               </Badge>
             </VersionTooltip>
             {typeConfig && (
-              <Badge variant="outline" className="capitalize">
+              <Badge variant="outline" className="capitalize bg-accent/10 border-accent/30 text-accent-dark dark:text-accent-light">
                 {typeConfig.category}
               </Badge>
             )}
@@ -437,12 +440,12 @@ export default function DocumentCard({ document, onDelete, onUpdate, onPreview }
           {document.tags && document.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
               {document.tags.slice(0, 3).map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge key={index} variant="secondary" className="text-xs bg-eddura-100 text-eddura-700 dark:bg-eddura-800 dark:text-eddura-300">
                   {tag}
                 </Badge>
               ))}
               {document.tags.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs bg-accent/10 text-accent-dark dark:text-accent-light">
                   +{document.tags.length - 3} more
                 </Badge>
               )}

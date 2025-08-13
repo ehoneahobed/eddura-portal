@@ -2,10 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDataFetching } from '@/hooks/useDataFetching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ModernCard, StatCard, FeatureCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner, CardSkeleton } from '@/components/ui/enhanced-loading';
+import { ResponsiveContainer, ResponsiveGrid, ResponsiveStack } from '@/components/ui/responsive-container';
 import {
   Dialog,
   DialogContent,
@@ -30,10 +34,22 @@ import {
   Check,
   ExternalLink,
   Download,
-  FileDown
+  FileDown,
+  Library,
+  Sparkles,
+  // TrendingUp,
+  Search,
+  Heart,
+  // Bookmark,
+  // Share2,
+  // BarChart3,
+  Zap,
+  Target,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdvancedSearchFilters from '@/components/library/AdvancedSearchFilters';
+import DocumentErrorBoundary from '@/components/documents/DocumentErrorBoundary';
 
 interface LibraryDocument {
   _id: string;
@@ -67,6 +83,7 @@ export default function LibraryPage() {
   const [sortBy, setSortBy] = useState('relevance');
   const [selectedDocument, setSelectedDocument] = useState<LibraryDocument | null>(null);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState<boolean>(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isCloning, setIsCloning] = useState<string | undefined>(undefined);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -382,293 +399,427 @@ export default function LibraryPage() {
 
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Document Library</h1>
-          <p className="text-muted-foreground">
-            Browse and clone high-quality academic documents for your applications
-          </p>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Documents</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pagination.total}</div>
-            <p className="text-xs text-muted-foreground">
-              Total documents in library
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Cloned Documents</CardTitle>
-            <Copy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{userStats.totalCloned}</div>
-            <p className="text-xs text-muted-foreground">
-              {userStats.recentlyCloned} cloned this week
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Favorite Category</CardTitle>
-            <Filter className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {userStats.favoriteCategory || 'None'}
+    <DocumentErrorBoundary
+      onRetry={fetchDocuments}
+      onCreateNew={() => setCreateDialogOpen(true)}
+    >
+      <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
+      {/* Enhanced Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 sm:mb-12"
+      >
+        <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 sm:p-3 bg-eddura-100 dark:bg-eddura-800 rounded-lg sm:rounded-xl">
+                <Library className="h-6 w-6 sm:h-8 sm:w-8 text-eddura-600 dark:text-eddura-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl sm:text-4xl font-bold text-eddura-900 dark:text-eddura-100">
+                  Document Library
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-eddura-500" />
+                  <span className="text-sm sm:text-base text-eddura-600 dark:text-eddura-400 font-medium">
+                    {pagination.total} documents • {userStats.totalCloned} cloned
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Most cloned category
+            <p className="text-sm sm:text-lg text-eddura-700 dark:text-eddura-300">
+              Browse and clone high-quality academic documents for your applications. 
+              Discover essays, personal statements, and more from successful applicants.
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Documents Rated</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{userStats.totalRated}</div>
-            <p className="text-xs text-muted-foreground">
-              Your ratings submitted
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Quick access to your documents and common actions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Button
-              variant="outline"
-              onClick={() => window.open('/documents/cloned', '_blank')}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
-            >
-              <Copy className="h-6 w-6" />
-              <div className="text-center">
-                <div className="font-medium">My Cloned Documents</div>
-                <div className="text-sm text-muted-foreground">
-                  {userStats.totalCloned} documents
-                </div>
-              </div>
-            </Button>
-            <Button
-              variant="outline"
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button 
+              variant="outline" 
+              size="default"
               onClick={() => window.open('/documents', '_blank')}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+              className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800 h-11 sm:h-12"
             >
-              <FileText className="h-6 w-6" />
-              <div className="text-center">
-                <div className="font-medium">My Documents</div>
-                <div className="text-sm text-muted-foreground">
-                  Create new documents
-                </div>
-              </div>
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              My Documents
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.open('/applications/manage', '_blank')}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+            <Button 
+              variant="outline" 
+              size="default"
+              onClick={() => window.open('/documents/cloned', '_blank')}
+              className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800 h-11 sm:h-12"
             >
-              <Award className="h-6 w-6" />
-              <div className="text-center">
-                <div className="font-medium">Application Management</div>
-                <div className="text-sm text-muted-foreground">
-                  Manage applications
-                </div>
-              </div>
+              <Copy className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Cloned Documents
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
 
-      {/* Advanced Search Filters */}
-      <AdvancedSearchFilters
-        onFiltersChange={(filters) => {
-          console.log('🔍 Library Page - AdvancedSearchFilters onFiltersChange called with:', filters);
-          setSearchTerm(filters.searchTerm);
-          // For now, we'll use documentType for both category and type filters
-          // In the future, we should separate these properly
-          const newCategoryFilter = filters.documentType.length > 0 ? filters.documentType[0] : 'all';
-          const newTypeFilter = filters.documentType.length > 0 ? filters.documentType[0] : 'all';
-          const newTargetAudienceFilter = filters.targetAudience.length > 0 ? filters.targetAudience[0] : 'all';
-          
-          console.log('🔍 Library Page - Setting filters:', {
-            searchTerm: filters.searchTerm,
-            categoryFilter: newCategoryFilter,
-            typeFilter: newTypeFilter,
-            targetAudienceFilter: newTargetAudienceFilter,
-            sortBy: filters.sortBy
-          });
-          
-          setCategoryFilter(newCategoryFilter);
-          setTypeFilter(newTypeFilter);
-          setTargetAudienceFilter(newTargetAudienceFilter);
-          setSortBy(filters.sortBy);
-        }}
-        onSearch={handleSearch}
-        isLoading={isLoading}
-      />
+      {/* Enhanced Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mb-6 sm:mb-8"
+      >
+        <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="md">
+          <StatCard
+            label="Available Documents"
+            value={pagination.total.toString()}
+            icon={<BookOpen className="h-6 w-6 text-eddura-500" />}
+            change={{ value: "In library", trend: "neutral" }}
+          />
+          <StatCard
+            label="My Cloned Documents"
+            value={userStats.totalCloned.toString()}
+            icon={<Copy className="h-6 w-6 text-green-500" />}
+            change={{ 
+              value: `${userStats.recentlyCloned} this week`, 
+              trend: userStats.recentlyCloned > 0 ? "up" : "neutral" 
+            }}
+          />
+          <StatCard
+            label="Favorite Category"
+            value={userStats.favoriteCategory || 'None'}
+            icon={<Heart className="h-6 w-6 text-red-500" />}
+            change={{ value: "Most cloned", trend: "neutral" }}
+          />
+          <StatCard
+            label="Documents Rated"
+            value={userStats.totalRated.toString()}
+            icon={<Star className="h-6 w-6 text-yellow-500" />}
+            change={{ value: "Reviews given", trend: "neutral" }}
+          />
+        </ResponsiveGrid>
+      </motion.div>
 
-      {/* Documents Grid */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin" />
+      {/* Enhanced Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mb-6 sm:mb-8"
+      >
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-2 bg-eddura-100 dark:bg-eddura-800 rounded-lg">
+            <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
           </div>
-        ) : documents.length === 0 ? (
-          <Card>
-            <CardContent className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-                <p className="text-gray-500">Try adjusting your filters or search terms.</p>
+          <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">
+            Quick Actions
+          </h2>
+        </div>
+        
+        <ResponsiveGrid cols={{ default: 1, md: 3 }} gap="md">
+          <FeatureCard
+            icon={<Copy className="h-6 w-6 text-eddura-500" />}
+            title="My Cloned Documents"
+            description={`Access your ${userStats.totalCloned} cloned documents and continue working on them.`}
+            action={{ 
+              label: "View Cloned Documents", 
+              onClick: () => window.open('/documents/cloned', '_blank')
+            }}
+          />
+          <FeatureCard
+            icon={<FileText className="h-6 w-6 text-eddura-500" />}
+            title="My Documents"
+            description="Create new documents or edit your existing personal documents."
+            action={{ 
+              label: "Go to Documents", 
+              onClick: () => window.open('/documents', '_blank')
+            }}
+          />
+          <FeatureCard
+            icon={<Target className="h-6 w-6 text-eddura-500" />}
+            title="Application Management"
+            description="Manage your applications and track your progress across programs."
+            action={{ 
+              label: "Manage Applications", 
+              onClick: () => window.open('/applications/manage', '_blank')
+            }}
+          />
+        </ResponsiveGrid>
+      </motion.div>
+
+      {/* Enhanced Search Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mb-6 sm:mb-8"
+      >
+        <ModernCard variant="elevated" className="p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-2 bg-eddura-100 dark:bg-eddura-800 rounded-lg">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
+            </div>
+            <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">
+              Search & Filter Documents
+            </h2>
+          </div>
+          
+          <AdvancedSearchFilters
+            onFiltersChange={(filters) => {
+              console.log('🔍 Library Page - AdvancedSearchFilters onFiltersChange called with:', filters);
+              setSearchTerm(filters.searchTerm);
+              // For now, we'll use documentType for both category and type filters
+              // In the future, we should separate these properly
+              const newCategoryFilter = filters.documentType.length > 0 ? filters.documentType[0] : 'all';
+              const newTypeFilter = filters.documentType.length > 0 ? filters.documentType[0] : 'all';
+              const newTargetAudienceFilter = filters.targetAudience.length > 0 ? filters.targetAudience[0] : 'all';
+              
+              console.log('🔍 Library Page - Setting filters:', {
+                searchTerm: filters.searchTerm,
+                categoryFilter: newCategoryFilter,
+                typeFilter: newTypeFilter,
+                targetAudienceFilter: newTargetAudienceFilter,
+                sortBy: filters.sortBy
+              });
+              
+              setCategoryFilter(newCategoryFilter);
+              setTypeFilter(newTypeFilter);
+              setTargetAudienceFilter(newTargetAudienceFilter);
+              setSortBy(filters.sortBy);
+            }}
+            onSearch={handleSearch}
+            isLoading={isLoading}
+          />
+        </ModernCard>
+      </motion.div>
+
+      {/* Enhanced Documents Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <div className="space-y-8">
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <LoadingSpinner size="lg" />
+                  <p className="text-eddura-600 dark:text-eddura-400 mt-4">
+                    Loading documents...
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {documents.map((document: LibraryDocument) => (
-              <Card key={document._id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{document.title}</CardTitle>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Badge className={getCategoryColor(document.category)}>
-                          {getCategoryIcon(document.category)}
-                          <span className="ml-1">{document.category}</span>
-                        </Badge>
-                        <Badge variant="outline">{document.type.replace('_', ' ')}</Badge>
-                      </div>
-                    </div>
+            </div>
+          ) : documents.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <ModernCard variant="outlined" className="text-center py-16">
+                <div className="space-y-6">
+                  <div className="mx-auto w-24 h-24 bg-eddura-100 dark:bg-eddura-800 rounded-full flex items-center justify-center">
+                    <BookOpen className="h-12 w-12 text-eddura-500 dark:text-eddura-400" />
                   </div>
-                  <CardDescription className="line-clamp-3">
-                    {truncateText(document.description, 120)}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Stats */}
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-1">
-                          <Eye className="h-3 w-3" />
-                          <span>{document.viewCount}</span>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
+                      No documents found
+                    </h3>
+                    <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
+                      Try adjusting your search terms or filters to find the documents you&apos;re looking for. 
+                      Our library contains thousands of high-quality academic documents.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSearchTerm('');
+                        setCategoryFilter('all');
+                        setTypeFilter('all');
+                        setTargetAudienceFilter('all');
+                        handleSearch();
+                      }}
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      Clear Filters
+                    </Button>
+                    <Button onClick={() => window.open('/documents', '_blank')}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create Your Own
+                    </Button>
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+          ) : (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-2 bg-eddura-100 dark:bg-eddura-800 rounded-lg">
+                    <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">
+                    Available Documents
+                  </h2>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className="bg-eddura-100 dark:bg-eddura-800 text-eddura-700 dark:text-eddura-300 text-xs sm:text-sm"
+                >
+                  {documents.length} results
+                </Badge>
+              </div>
+              
+              <ResponsiveGrid cols={{ default: 1, md: 2, lg: 3 }} gap="md">
+                {documents.map((document: LibraryDocument, index: number) => (
+                  <motion.div
+                    key={document._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <ModernCard 
+                      variant="elevated" 
+                      hover="lift" 
+                      className="h-full group relative overflow-hidden"
+                    >
+                      {/* Gradient accent */}
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-eddura-500 to-eddura-600"></div>
+                      
+                      <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-semibold text-eddura-900 dark:text-eddura-100 text-base sm:text-lg line-clamp-2 flex-1">
+                              {document.title}
+                            </h3>
+                            {document.isCloned && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs shrink-0">
+                                <Check className="h-3 w-3 mr-1" />
+                                Cloned
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className={`${getCategoryColor(document.category)} text-xs`}>
+                              {getCategoryIcon(document.category)}
+                              <span className="ml-1 capitalize">{document.category}</span>
+                            </Badge>
+                            <Badge variant="outline" className="text-xs bg-accent/10 border-accent/30 text-accent-dark dark:text-accent-light">
+                              {document.type.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <p className="text-xs sm:text-sm text-eddura-600 dark:text-eddura-400 line-clamp-2 sm:line-clamp-3">
+                            {truncateText(document.description, 120)}
+                          </p>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Copy className="h-3 w-3" />
-                          <span>{document.cloneCount}</span>
+                      </CardHeader>
+                      
+                      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
+                        {/* Stats */}
+                        <div className="flex items-center justify-between text-xs text-eddura-500 dark:text-eddura-400">
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              <span>{document.viewCount}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Copy className="h-3 w-3" />
+                              <span>{document.cloneCount}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3" />
+                              <span>{document.averageRating.toFixed(1)}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-eddura-500 dark:text-eddura-400">
+                            {document.wordCount} words
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-3 w-3" />
-                          <span>{document.averageRating.toFixed(1)} ({document.ratingCount})</span>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Tags */}
-                    {document.tags && document.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {document.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {document.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{document.tags.length - 3} more
-                          </Badge>
+                        {/* Tags */}
+                        {document.tags && document.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {document.tags.slice(0, 2).map((tag, tagIndex) => (
+                              <Badge key={tagIndex} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {document.tags.length > 2 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{document.tags.length - 2}
+                              </Badge>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    )}
 
-                    {/* Actions */}
-                    <div className="flex items-center space-x-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedDocument(document);
-                          setIsPreviewDialogOpen(true);
-                        }}
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Preview
-                      </Button>
-                      {document.isCloned ? (
-                        <div className="flex-1 flex items-center justify-center">
-                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                            <Check className="h-3 w-3 mr-1" /> Cloned
-                          </Badge>
+                        {/* Actions */}
+                        <div className="flex gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            onClick={() => window.open('/documents/cloned', '_blank')}
-                            className="ml-2 h-6 px-2"
+                            onClick={() => {
+                              setSelectedDocument(document);
+                              setIsPreviewDialogOpen(true);
+                            }}
+                            className="flex-1 h-9 text-xs sm:text-sm"
                           >
-                            <ExternalLink className="h-3 w-3" />
+                            <Eye className="h-3 w-3 mr-1" />
+                            Preview
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleCloneDocument(document._id)}
-                          disabled={isCloning === document._id}
-                          className="flex-1"
-                        >
-                          {isCloning === document._id ? (
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          {document.isCloned ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open('/documents/cloned', '_blank')}
+                              className="flex-1 h-9 text-xs sm:text-sm"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
                           ) : (
-                            <Copy className="h-4 w-4 mr-1" />
+                            <Button
+                              size="sm"
+                              onClick={() => handleCloneDocument(document._id)}
+                              disabled={isCloning === document._id}
+                              className="flex-1 bg-eddura-500 hover:bg-eddura-600 h-9 text-xs sm:text-sm"
+                            >
+                              {isCloning === document._id ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <>
+                                  <Copy className="h-3 w-3 mr-1" />
+                                  Clone
+                                </>
+                              )}
+                            </Button>
                           )}
-                          Clone
-                        </Button>
-                      )}
-                    </div>
+                        </div>
 
-                    {/* Rating */}
-                    <div className="flex items-center justify-center space-x-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          onClick={() => handleRateDocument(document._id, star)}
-                          className="text-gray-300 hover:text-yellow-400 transition-colors"
-                        >
-                          <Star 
-                            className={`h-4 w-4 ${
-                              star <= document.averageRating ? 'text-yellow-400 fill-current' : ''
-                            }`} 
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                        {/* Interactive Rating */}
+                        <div className="flex items-center justify-center gap-1 pt-2 border-t border-eddura-100 dark:border-eddura-700">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              onClick={() => handleRateDocument(document._id, star)}
+                              className="text-eddura-300 dark:text-eddura-600 hover:text-yellow-400 transition-colors p-1"
+                            >
+                              <Star 
+                                className={`h-4 w-4 ${
+                                  star <= document.averageRating ? 'text-yellow-400 fill-current' : ''
+                                }`} 
+                              />
+                            </button>
+                          ))}
+                          <span className="ml-2 text-xs text-eddura-500 dark:text-eddura-400">
+                            ({document.ratingCount})
+                          </span>
+                        </div>
+                      </CardContent>
+                    </ModernCard>
+                  </motion.div>
+                ))}
+              </ResponsiveGrid>
+            </div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Preview Dialog */}
       <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
@@ -760,6 +911,7 @@ export default function LibraryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </ResponsiveContainer>
+    </DocumentErrorBoundary>
   );
 } 

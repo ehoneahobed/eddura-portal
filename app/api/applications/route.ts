@@ -25,16 +25,37 @@ export async function GET(request: NextRequest) {
     await connectDB();
     console.log('[API] Database connected');
 
-    console.log('[API] Fetching applications for user:', session.user.id);
-    const applications = await Application.find({ 
+    const { searchParams } = new URL(request.url);
+    const pageParam = parseInt(searchParams.get('page') || '1', 10);
+    const pageSizeParam = parseInt(searchParams.get('pageSize') || '0', 10);
+    const page = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
+    const pageSize = Number.isNaN(pageSizeParam) || pageSizeParam < 0 ? 0 : pageSizeParam;
+
+    console.log('[API] Fetching applications for user:', session.user.id, { page, pageSize });
+
+    const baseQuery = { 
       userId: session.user.id,
       isActive: true 
-    })
-    .populate('scholarshipId', 'title value currency deadline')
-    .populate('schoolId', 'name country city')
-    .populate('programId', 'name degreeType fieldOfStudy tuitionFees')
-    .populate('applicationTemplateId', 'title estimatedTime')
-    .sort({ lastActivityAt: -1 });
+    } as const;
+
+    // If pageSize is 0, return all (backward compatibility)
+    let applicationsQuery = Application.find(baseQuery)
+      .populate('scholarshipId', 'title value currency deadline')
+      .populate('schoolId', 'name country city')
+      .populate('programId', 'name degreeType fieldOfStudy tuitionFees')
+      .populate('applicationTemplateId', 'title estimatedTime')
+      .sort({ lastActivityAt: -1 });
+
+    let total = 0;
+    let totalPages = 1;
+    if (pageSize > 0) {
+      total = await Application.countDocuments(baseQuery);
+      totalPages = Math.max(1, Math.ceil(total / pageSize));
+      const skip = (page - 1) * pageSize;
+      applicationsQuery = applicationsQuery.skip(skip).limit(pageSize);
+    }
+
+    const applications = await applicationsQuery;
 
     console.log('[API] Found applications:', applications.length);
 
@@ -216,7 +237,13 @@ export async function GET(request: NextRequest) {
     });
 
     console.log('[API] Transformed applications:', transformedApplications.length);
-    return NextResponse.json({ applications: transformedApplications });
+    return NextResponse.json({ 
+      applications: transformedApplications,
+      page: pageSize > 0 ? page : 1,
+      pageSize: pageSize > 0 ? pageSize : transformedApplications.length,
+      total: pageSize > 0 ? total : transformedApplications.length,
+      totalPages: pageSize > 0 ? totalPages : 1
+    });
   } catch (error) {
     console.error('Error fetching applications:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

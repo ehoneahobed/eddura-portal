@@ -32,6 +32,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 import ScholarshipCard from './ScholarshipCard';
 import ScholarshipFilters from './ScholarshipFilters';
+import { ResponsiveContainer } from '../ui/responsive-container';
 
 // Define the Filters interface locally since it's not exported from ScholarshipFilters
 interface Filters {
@@ -312,35 +313,35 @@ export default function ScholarshipsPage() {
   // Show loading state only on initial load, not during search
   if (isLoading && scholarships.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] bg-transparent">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[var(--eddura-primary)] rounded-full flex items-center justify-center mx-auto mb-4">
             <Award className="w-8 h-8 text-white animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Scholarships</h2>
-          <p className="text-gray-600">Finding the best opportunities for you...</p>
+          <h2 className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">Loading Scholarships</h2>
+          <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Finding the best opportunities for you...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="max-w-7xl mx-auto">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
+      <div className=" mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">
             Discover Scholarships
           </h1>
-          <p className="text-gray-600">
+          <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
             Find and apply for scholarships that match your profile and academic goals.
           </p>
         </motion.div>
@@ -352,13 +353,13 @@ export default function ScholarshipsPage() {
           transition={{ delay: 0.1 }}
           className="mb-8"
         >
-          <Card className="border-0 shadow-lg">
+          <Card className="shadow-eddura border border-gray-200 dark:border-[var(--eddura-primary-800)] bg-white dark:bg-[var(--eddura-primary-900)] rounded-2xl">
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* Search */}
                 <div className="flex-1" data-search-container>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-300)]" />
                     <Input
                       type="text"
                       placeholder="Search scholarships by title, provider, or field of study..."
@@ -397,7 +398,7 @@ export default function ScholarshipsPage() {
                       }}
                       autoComplete="off"
                       spellCheck={false}
-                      className="pl-10"
+                      className="pl-10 bg-white dark:bg-[var(--eddura-primary-800)]"
                       ref={searchInputRef}
                     />
                   </div>
@@ -422,10 +423,10 @@ export default function ScholarshipsPage() {
                       }
                     }}
                   >
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-[140px] bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
                       <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
                       <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="One-time">One-time</SelectItem>
                       <SelectItem value="Annual">Annual</SelectItem>
@@ -448,10 +449,10 @@ export default function ScholarshipsPage() {
                       }
                     }}
                   >
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-[140px] bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="active">Currently Accepting</SelectItem>
                       <SelectItem value="expired">Expired</SelectItem>
@@ -481,7 +482,7 @@ export default function ScholarshipsPage() {
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
                     onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 border-gray-200 dark:border-[var(--eddura-primary-700)] hover:bg-gray-50 dark:hover:bg-[var(--eddura-primary-800)] hover:text-eddura-700"
                   >
                     <Filter className="h-4 w-4" />
                     Filters
@@ -505,7 +506,7 @@ export default function ScholarshipsPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 pt-4 border-t border-gray-200"
+                  className="mt-4 pt-4 border-t border-gray-200 dark:border-[var(--eddura-primary-800)]"
                 >
                   <ScholarshipFilters
                     filters={selectedFilters}
@@ -529,14 +530,14 @@ export default function ScholarshipsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-[var(--eddura-primary-200)]">
                 Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
                 <span className="font-semibold">{pagination.totalCount}</span> scholarships
                 {searchTerm && ` for &quot;${searchTerm}&quot;`}
                 {selectedStatus !== 'all' && ` (${getStatusLabel(selectedStatus)})`}
               </p>
               {isLoading && scholarships.length > 0 && (
-                <div className="flex items-center gap-1 text-sm text-gray-500">
+                <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-[var(--eddura-primary-300)]">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   <span>Updating...</span>
                 </div>
@@ -557,15 +558,15 @@ export default function ScholarshipsPage() {
                   }, 0);
                 }
               }}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-[160px] bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
                   {SORT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       <div className="flex flex-col">
                         <span>{option.label}</span>
-                        <span className="text-xs text-gray-500">{option.description}</span>
+                        <span className="text-xs text-gray-500 dark:text-[var(--eddura-primary-300)]">{option.description}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -600,9 +601,9 @@ export default function ScholarshipsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-12"
           >
-            <Award className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No scholarships found</h3>
-            <p className="text-gray-600 mb-4">
+            <Award className="h-16 w-16 text-gray-400 dark:text-[var(--eddura-primary-300)] mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No scholarships found</h3>
+            <p className="text-gray-600 dark:text-[var(--eddura-primary-300)] mb-4">
               Try adjusting your search terms or filters to find more opportunities.
             </p>
             <Button 
@@ -676,6 +677,6 @@ export default function ScholarshipsPage() {
           </motion.div>
         )}
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 }

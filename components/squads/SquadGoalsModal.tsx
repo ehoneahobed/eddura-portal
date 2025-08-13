@@ -106,12 +106,6 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
   const [updatingProgress, setUpdatingProgress] = useState<string | null>(null);
   const [progressValues, setProgressValues] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchGoals();
-    }
-  }, [isOpen, squadId, fetchGoals]);
-
   const fetchGoals = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -129,6 +123,12 @@ export default function SquadGoalsModal({ isOpen, onClose, squadId, squadName, i
       setIsLoading(false);
     }
   }, [squadId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchGoals();
+    }
+  }, [isOpen, squadId, fetchGoals]);
 
   const handleAddGoal = async () => {
     if (!newGoal.type || !newGoal.target || !newGoal.startDate || !newGoal.endDate) {

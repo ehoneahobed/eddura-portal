@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { ElementType } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
@@ -21,7 +22,10 @@ import {
   LogOut,
   Gift,
   Trophy,
-  Users
+  Users,
+  Star,
+  Zap,
+  Rocket
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +36,104 @@ import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 import SquadWidget from './SquadWidget';
 import TokenDisplay from './TokenDisplay';
+import { ResponsiveContainer } from '../ui/responsive-container';
+
+// Consistent stat card for equal sizing across the grid
+interface StatsCardProps {
+  title: string;
+  value: string | number;
+  icon: ElementType;
+  colorTheme: 'primary' | 'success' | 'accent' | 'warning' | 'info';
+  caption?: string;
+  delta?: string;
+  deltaDirection?: 'up' | 'down';
+}
+
+function StatsCard({ title, value, icon: Icon, colorTheme, caption }: StatsCardProps) {
+  const themeMap: Record<StatsCardProps['colorTheme'], { container: string; iconWrap: string; valueColor: string; titleColor: string; iconColor: string; stripe: string; blob: string; badge: string; } > = {
+    primary: {
+      container: 'from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]',
+      iconWrap: 'from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]',
+      valueColor: 'text-[var(--eddura-primary-900)] dark:text-white',
+      titleColor: 'text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]',
+      iconColor: 'text-[var(--eddura-primary)]',
+      stripe: 'bg-[var(--eddura-primary-600)] dark:bg-[var(--eddura-primary-600)]',
+      blob: 'bg-[var(--eddura-primary-200)] dark:bg-[var(--eddura-primary-700)]',
+      badge: 'bg-[var(--eddura-primary-100)] text-[var(--eddura-primary-700)]',
+    },
+    success: {
+      container: 'from-white to-[var(--eddura-success-50)] dark:from-[var(--eddura-success-900)] dark:to-[var(--eddura-success-800)]',
+      iconWrap: 'from-[var(--eddura-success-100)] to-[var(--eddura-success-200)] dark:from-[var(--eddura-success-800)] dark:to-[var(--eddura-success-700)]',
+      valueColor: 'text-[var(--eddura-success-900)] dark:text-white',
+      titleColor: 'text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)]',
+      iconColor: 'text-[var(--eddura-success)]',
+      stripe: 'bg-[var(--eddura-success-600)] dark:bg-[var(--eddura-success-600)]',
+      blob: 'bg-[var(--eddura-success-200)] dark:bg-[var(--eddura-success-700)]',
+      badge: 'bg-[var(--eddura-success-100)] text-[var(--eddura-success-700)]',
+    },
+    accent: {
+      container: 'from-white to-[var(--eddura-accent-50)] dark:from-[var(--eddura-accent-900)] dark:to-[var(--eddura-accent-800)]',
+      iconWrap: 'from-[var(--eddura-accent-100)] to-[var(--eddura-accent-200)] dark:from-[var(--eddura-accent-800)] dark:to-[var(--eddura-accent-700)]',
+      valueColor: 'text-[var(--eddura-accent-900)] dark:text-white',
+      titleColor: 'text-[var(--eddura-accent-600)] dark:text-[var(--eddura-accent-300)]',
+      iconColor: 'text-[var(--eddura-accent)]',
+      stripe: 'bg-[var(--eddura-accent-600)] dark:bg-[var(--eddura-accent-600)]',
+      blob: 'bg-[var(--eddura-accent-200)] dark:bg-[var(--eddura-accent-700)]',
+      badge: 'bg-[var(--eddura-accent-100)] text-[var(--eddura-accent-700)]',
+    },
+    warning: {
+      container: 'from-white to-[var(--eddura-warning-50)] dark:from-[var(--eddura-warning-900)] dark:to-[var(--eddura-warning-800)]',
+      iconWrap: 'from-[var(--eddura-warning-100)] to-[var(--eddura-warning-200)] dark:from-[var(--eddura-warning-800)] dark:to-[var(--eddura-warning-700)]',
+      valueColor: 'text-[var(--eddura-warning-900)] dark:text-white',
+      titleColor: 'text-[var(--eddura-warning-600)] dark:text-[var(--eddura-warning-300)]',
+      iconColor: 'text-[var(--eddura-warning)]',
+      stripe: 'bg-[var(--eddura-warning-600)] dark:bg-[var(--eddura-warning-600)]',
+      blob: 'bg-[var(--eddura-warning-200)] dark:bg-[var(--eddura-warning-700)]',
+      badge: 'bg-[var(--eddura-warning-100)] text-[var(--eddura-warning-700)]',
+    },
+    info: {
+      container: 'from-white to-[var(--eddura-info-50)] dark:from-[var(--eddura-info-900)] dark:to-[var(--eddura-info-800)]',
+      iconWrap: 'from-[var(--eddura-info-100)] to-[var(--eddura-info-200)] dark:from-[var(--eddura-info-800)] dark:to-[var(--eddura-info-700)]',
+      valueColor: 'text-[var(--eddura-info-900)] dark:text-white',
+      titleColor: 'text-[var(--eddura-info-600)] dark:text-[var(--eddura-info-300)]',
+      iconColor: 'text-[var(--eddura-info)]',
+      stripe: 'bg-[var(--eddura-info-600)] dark:bg-[var(--eddura-info-600)]',
+      blob: 'bg-[var(--eddura-info-200)] dark:bg-[var(--eddura-info-700)]',
+      badge: 'bg-[var(--eddura-info-100)] text-[var(--eddura-info-700)]',
+    },
+  };
+
+  const t = themeMap[colorTheme];
+
+  return (
+    <Card className={`relative overflow-hidden rounded-xl border border-[var(--eddura-primary-100)] dark:border-[var(--eddura-primary-800)] shadow-[0_4px_16px_rgba(2,6,23,0.06)] hover:shadow-[0_8px_22px_rgba(2,6,23,0.10)] transition-all ${colorTheme === 'primary' ? 'bg-[var(--eddura-primary-50)]' : ''} ${colorTheme === 'success' ? 'bg-[var(--eddura-success-50)]' : ''} ${colorTheme === 'info' ? 'bg-[var(--eddura-info-50)]' : ''} ${colorTheme === 'warning' ? 'bg-[var(--eddura-warning-50)]' : ''} ${colorTheme === 'accent' ? 'bg-[var(--eddura-accent-50)]' : ''} dark:bg-gradient-to-br dark:${t.container}`}> 
+      <div className={`absolute inset-x-0 top-0 h-1 ${t.stripe}`} />
+      <CardContent className="px-4 py-3 relative">
+        <div className="relative h-[120px] flex flex-col justify-between">
+          {/* Top: title */}
+          <div>
+            <span className={`text-[11px] font-semibold tracking-wide ${t.titleColor}`}>{title}</span>
+          </div>
+
+          {/* Bottom-left: value and optional caption */}
+          <div>
+            <p className={`text-2xl leading-none font-extrabold ${t.valueColor}`}>{value}</p>
+            {caption ? (
+              <p className="mt-1 text-[11px] text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-400)]">{caption}</p>
+            ) : null}
+          </div>
+
+          {/* Right-centered icon */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <div className={`w-9 h-9 ${colorTheme === 'primary' ? 'bg-[var(--eddura-primary-100)]' : ''} ${colorTheme === 'success' ? 'bg-[var(--eddura-success-100)]' : ''} ${colorTheme === 'info' ? 'bg-[var(--eddura-info-100)]' : ''} ${colorTheme === 'warning' ? 'bg-[var(--eddura-warning-100)]' : ''} ${colorTheme === 'accent' ? 'bg-[var(--eddura-accent-100)]' : ''} dark:bg-gradient-to-br dark:${t.iconWrap} rounded-lg flex items-center justify-center shadow-sm`}>
+              <Icon className={`w-5 h-5 ${t.iconColor}`} />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface UserActivity {
   id: string;
@@ -78,6 +180,9 @@ export default function DashboardContent() {
   const [userActivities, setUserActivities] = useState<UserActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const ACTIVITY_PAGE_SIZE = 5;
+  const [activityPage, setActivityPage] = useState(1);
+  const [hasMoreActivities, setHasMoreActivities] = useState(true);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -105,15 +210,18 @@ export default function DashboardContent() {
     }
   };
 
-  const fetchUserActivities = async () => {
+  const fetchUserActivities = async (page: number = 1) => {
     try {
-      const response = await fetch('/api/user/activities?limit=10');
+      const limit = page * ACTIVITY_PAGE_SIZE;
+      const response = await fetch(`/api/user/activities?limit=${limit}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user activities');
       }
       
       const data = await response.json();
-      setUserActivities(data.activities || []);
+      const activities: UserActivity[] = data.activities || [];
+      setUserActivities(activities);
+      setHasMoreActivities(activities.length >= limit);
     } catch (error) {
       console.error('Error fetching user activities:', error);
     } finally {
@@ -121,7 +229,16 @@ export default function DashboardContent() {
     }
   };
 
-  // Logout is now handled by StudentLayout
+  const loadMoreActivities = async () => {
+    const nextPage = activityPage + 1;
+    await fetchUserActivities(nextPage);
+    setActivityPage(nextPage);
+  };
+
+  const showLessActivities = () => {
+    const prevPage = Math.max(1, activityPage - 1);
+    setActivityPage(prevPage);
+  };
 
   const handleRetakeQuiz = () => {
     router.push('/quiz');
@@ -135,24 +252,24 @@ export default function DashboardContent() {
     switch (type) {
       case 'quiz_completed':
       case 'quiz_retaken':
-        return { icon: Brain, bgColor: 'bg-green-100', iconColor: 'text-green-600' };
+        return { icon: Brain, bgColor: 'bg-gradient-to-br from-[var(--eddura-success-50)] to-[var(--eddura-success-100)] dark:from-[var(--eddura-success-900)] dark:to-[var(--eddura-success-800)]', iconColor: 'text-[var(--eddura-success)]' };
       case 'program_viewed':
-        return { icon: BookOpen, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' };
+        return { icon: BookOpen, bgColor: 'bg-gradient-to-br from-[var(--eddura-info-50)] to-[var(--eddura-info-100)] dark:from-[var(--eddura-info-900)] dark:to-[var(--eddura-info-800)]', iconColor: 'text-[var(--eddura-info)]' };
       case 'scholarship_viewed':
-        return { icon: Award, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' };
+        return { icon: Award, bgColor: 'bg-gradient-to-br from-[var(--eddura-primary-50)] to-[var(--eddura-primary-100)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]', iconColor: 'text-[var(--eddura-primary)]' };
       case 'application_started':
       case 'application_submitted':
-        return { icon: Target, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' };
+        return { icon: Target, bgColor: 'bg-gradient-to-br from-[var(--eddura-accent-50)] to-[var(--eddura-accent-100)] dark:from-[var(--eddura-accent-900)] dark:to-[var(--eddura-accent-800)]', iconColor: 'text-[var(--eddura-accent)]' };
       case 'document_uploaded':
-        return { icon: CheckCircle, bgColor: 'bg-indigo-100', iconColor: 'text-indigo-600' };
+        return { icon: CheckCircle, bgColor: 'bg-gradient-to-br from-[var(--eddura-success-50)] to-[var(--eddura-success-100)] dark:from-[var(--eddura-success-900)] dark:to-[var(--eddura-success-800)]', iconColor: 'text-[var(--eddura-success)]' };
       case 'profile_updated':
-        return { icon: Settings, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
+        return { icon: Settings, bgColor: 'bg-gradient-to-br from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]', iconColor: 'text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]' };
       case 'recommendation_viewed':
-        return { icon: Sparkles, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+        return { icon: Sparkles, bgColor: 'bg-gradient-to-br from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]', iconColor: 'text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]' };
       case 'login':
-        return { icon: Clock, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
+        return { icon: Clock, bgColor: 'bg-gradient-to-br from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]', iconColor: 'text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]' };
       default:
-        return { icon: Clock, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
+        return { icon: Clock, bgColor: 'bg-gradient-to-br from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]', iconColor: 'text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]' };
     }
   };
 
@@ -179,11 +296,11 @@ export default function DashboardContent() {
           animate={{ opacity: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 bg-[#007fbd] rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          <div className="w-20 h-20 bg-gradient-to-br from-[var(--eddura-primary)] to-[var(--eddura-primary-600)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+            <Sparkles className="w-10 h-10 text-white animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
-          <p className="text-gray-600">Preparing your personalized experience...</p>
+          <h2 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-3">Loading Dashboard</h2>
+          <p className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Preparing your personalized experience...</p>
         </motion.div>
       </div>
     );
@@ -203,445 +320,360 @@ export default function DashboardContent() {
     : null;
 
   return (
-    <div className="max-w-7xl mx-auto">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {userProfile?.firstName || session?.user?.name || 'User'}! 👋
-          </h2>
-          <p className="text-gray-600">
-            Here&apos;s your personalized dashboard with career insights and recommendations.
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
+      {/* Welcome Section with enhanced visual appeal */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative text-left space-y-4 py-6"
+      >
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--eddura-primary-50)] via-transparent to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:via-transparent dark:to-[var(--eddura-primary-900)] rounded-3xl -z-10" />
+        
+        <div className="relative">
+          {/* <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-16 h-16 bg-gradient-to-br from-[var(--eddura-primary)] to-[var(--eddura-primary-600)] rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl"
+          >
+            <Star className="w-8 h-8 text-white" />
+          </motion.div> */}
+          
+          <h1 className="text-5xl font-bold mb-2">
+            <span className="bg-gradient-to-r from-[var(--eddura-primary-900)] via-[var(--eddura-primary-700)] to-[var(--eddura-primary-900)] dark:from-white dark:via-[var(--eddura-primary-200)] dark:to-white bg-clip-text text-transparent">
+              Welcome back, {userProfile?.firstName || session?.user?.name || 'User'}!
+            </span>
+            <span className="ml-2 align-middle">👋</span>
+          </h1>
+          <p className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] max-w-3xl leading-relaxed">
+            Here&apos;s your personalized dashboard. Let&apos;s make your dreams a reality!
           </p>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"
-        >
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <Target className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Application Packages</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.applicationPackagesCreated || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Consistent Stats Grid with stronger visual rhythm */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
+      >
+        <StatsCard
+          title="Application Packages"
+          value={userProfile?.stats?.applicationPackagesCreated || 0}
+          icon={Target}
+          colorTheme="primary"
+          caption="Created"
+        />
+        <StatsCard
+          title="Documents Created"
+          value={userProfile?.stats?.documentsCreated || 0}
+          icon={BookOpen}
+          colorTheme="success"
+          caption="Created"
+        />
+        <StatsCard
+          title="Recommendation Letters"
+          value={`${userProfile?.stats?.recommendationLettersRequested || 0} / ${userProfile?.stats?.recommendationLettersReceived || 0}`}
+          icon={Award}
+          colorTheme="accent"
+          caption="Requested / Received"
+        />
+        <StatsCard
+          title="Scholarships Saved"
+          value={userProfile?.stats?.scholarshipsSaved || 0}
+          icon={TrendingUp}
+          colorTheme="info"
+          caption="Shown interest in"
+        />
+        <StatsCard
+          title="Tokens Earned"
+          value={userProfile?.tokens || 0}
+          icon={Gift}
+          colorTheme="warning"
+          caption={`Total: ${userProfile?.totalTokensEarned || 0}`}
+        />
+      </motion.div>
 
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                  <BookOpen className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Documents Created</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.documentsCreated || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <Award className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Recommendation Letters</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {userProfile?.stats?.recommendationLettersRequested || 0} / {userProfile?.stats?.recommendationLettersReceived || 0}
-                  </p>
-                  <p className="text-xs text-gray-500">Requested / Received</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
-                  <TrendingUp className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Scholarships Saved</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.scholarshipsSaved || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
-                  <Gift className="w-6 h-6 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Tokens Earned</p>
-                  <p className="text-2xl font-bold text-gray-900">{userProfile?.tokens || 0}</p>
-                  <p className="text-xs text-gray-500">Total: {userProfile?.totalTokensEarned || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Quick Actions & Recent Activity */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl">Quick Actions</CardTitle>
-                  <CardDescription>
-                    Get started with your career journey
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <Button 
-                      onClick={handleRetakeQuiz}
-                      className="h-20 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                    >
-                      <div className="flex items-start space-x-3 w-full">
-                        <Brain className="w-6 h-6 flex-shrink-0 mt-1" />
-                        <div className="text-left">
-                          <p className="font-semibold">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
-                          <p className="text-sm opacity-90">{userProfile?.quizCompleted ? 'Update your preferences' : 'Start your career discovery'}</p>
-                        </div>
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-10">
+        {/* Left Column - Quick Actions & Recent Activity */}
+        <div className="lg:col-span-2 space-y-10">
+          {/* Enhanced Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Card className="border-0 shadow-md bg-white dark:bg-[var(--eddura-primary-900)]">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl text-[var(--eddura-primary-900)] dark:text-white">Quick Actions</CardTitle>
+                <CardDescription className="text-base text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
+                  Get started with your career journey
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Link href="/quiz" className="group block rounded-xl p-5 bg-[var(--eddura-success)] text-white shadow hover:shadow-lg transition ring-1 ring-white/20 dark:ring-white/10">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/20 dark:bg-white/10 flex items-center justify-center">
+                        <Brain className="w-5 h-5 text-white" />
                       </div>
-                    </Button>
-                    
-                    <Link href="/quiz/results">
-                      <Button className="h-20 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white">
-                        <div className="flex items-start space-x-3 w-full">
-                          <Target className="w-6 h-6 flex-shrink-0 mt-1" />
-                          <div className="text-left">
-                            <p className="font-semibold">View Results</p>
-                            <p className="text-sm opacity-90">See your recommendations</p>
-                          </div>
-                        </div>
-                      </Button>
-                    </Link>
-                    
-                    <Link href="/programs">
-                      <Button className="h-20 w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
-                        <div className="flex items-start space-x-3 w-full">
-                          <GraduationCap className="w-6 h-6 flex-shrink-0 mt-1" />
-                          <div className="text-left">
-                            <p className="font-semibold">Browse Programs</p>
-                            <p className="text-sm opacity-90">Explore universities</p>
-                          </div>
-                        </div>
-                      </Button>
-                    </Link>
-                    
-                    <Link href="/scholarships">
-                      <Button className="h-20 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                        <div className="flex items-start space-x-3 w-full">
-                          <TrendingUp className="w-6 h-6 flex-shrink-0 mt-1" />
-                          <div className="text-left">
-                            <p className="font-semibold">Browse Scholarships</p>
-                            <p className="text-sm opacity-90">Find funding opportunities</p>
-                          </div>
-                        </div>
-                      </Button>
-                    </Link>
-                    
-                    <Link href="/applications/manage">
-                      <Button className="h-20 w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white">
-                        <div className="flex items-start space-x-3 w-full">
-                          <Target className="w-6 h-6 flex-shrink-0 mt-1" />
-                          <div className="text-left">
-                            <p className="font-semibold">Application Management</p>
-                            <p className="text-sm opacity-90">Manage your applications</p>
-                          </div>
-                        </div>
-                      </Button>
-                    </Link>
-                    
-                    <Link href="/referrals">
-                      <Button className="h-20 w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white">
-                        <div className="flex items-start space-x-3 w-full">
-                          <Users className="w-6 h-6 flex-shrink-0 mt-1" />
-                          <div className="text-left">
-                            <p className="font-semibold">Referral Program</p>
-                            <p className="text-sm opacity-90">Invite friends & earn tokens</p>
-                          </div>
-                        </div>
-                      </Button>
-                    </Link>
-                    
-                    <Link href="/leaderboard">
-                      <Button className="h-20 w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white">
-                        <div className="flex items-start space-x-3 w-full">
-                          <Trophy className="w-6 h-6 flex-shrink-0 mt-1" />
-                          <div className="text-left">
-                            <p className="font-semibold">Leaderboard</p>
-                            <p className="text-sm opacity-90">Compete with other users</p>
-                          </div>
-                        </div>
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Recent Activity */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl">Recent Activity</CardTitle>
-                  <CardDescription>
-                    Your latest interactions and progress
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {userActivities.length > 0 ? (
-                      userActivities.map((activity) => {
-                        const { icon: Icon, bgColor, iconColor } = getActivityIcon(activity.type);
-                        return (
-                          <div key={activity.id} className={`flex items-center space-x-4 p-3 ${bgColor.replace('bg-', 'bg-').replace('-100', '-50')} rounded-lg`}>
-                            <div className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}>
-                              <Icon className={`w-4 h-4 ${iconColor}`} />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                              <p className="text-xs text-gray-500">{activity.description}</p>
-                            </div>
-                            <span className="text-xs text-gray-400">{formatTimeAgo(activity.timestamp)}</span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Clock className="w-6 h-6 text-gray-400" />
-                        </div>
-                        <p className="text-sm text-gray-500">No recent activity</p>
-                        <p className="text-xs text-gray-400 mt-1">Your activities will appear here</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Right Column - Profile & Settings */}
-          <div className="space-y-6">
-            {/* Profile Card */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="text-center">
-                  <Avatar className="w-20 h-20 mx-auto mb-4">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="bg-[#007fbd] text-white text-2xl">
-                      {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <CardTitle>{userProfile?.firstName} {userProfile?.lastName}</CardTitle>
-                  <CardDescription>{userProfile?.email}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Quiz Status</span>
-                      <Badge className={userProfile?.quizCompleted ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
-                        {userProfile?.quizCompleted ? "Completed" : "Incomplete"}
-                      </Badge>
-                    </div>
-                    
-                    {userProfile?.quizCompletedAt && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Completed</span>
-                        <span className="text-sm text-gray-900">
-                          {new Date(userProfile.quizCompletedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                    
-                    <Separator />
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => setShowProfileModal(true)}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Quiz Progress */}
-            {userProfile?.quizCompleted && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-              >
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Quiz Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
                       <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>Completion</span>
-                          <span>100%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 text-center">
-                        <div>
-                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.applicationPackagesCreated || 0}</p>
-                          <p className="text-xs text-gray-500">Applications</p>
-                        </div>
-                        <div>
-                          <p className="text-2xl font-bold text-gray-900">{userProfile?.stats?.documentsCreated || 0}</p>
-                          <p className="text-xs text-gray-500">Documents</p>
-                        </div>
+                        <p className="font-semibold text-lg text-white">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">{userProfile?.quizCompleted ? 'Update your preferences' : 'Discover your strengths'}</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                  </Link>
 
-            {/* Token Display */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <TokenDisplay 
-                tokens={userProfile?.tokens || 0}
-                totalTokensEarned={userProfile?.totalTokensEarned || 0}
-                totalTokensSpent={userProfile?.totalTokensSpent || 0}
-              />
-            </motion.div>
+                  <Link href="/quiz/results" className="group block rounded-xl p-5 bg-[var(--eddura-info)] text-white shadow hover:shadow-lg transition ring-1 ring-white/20 dark:ring-white/10">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/20 dark:bg-white/10 flex items-center justify-center">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg text-white">View Results</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">See your recommendations</p>
+                      </div>
+                    </div>
+                  </Link>
 
-            {/* Eddura Squads Widget */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 1.0 }}
-            >
-              <SquadWidget />
-            </motion.div>
+                  <Link href="/applications" className="group block rounded-xl p-5 bg-violet-600 text-white shadow hover:shadow-lg transition ring-1 ring-white/20 dark:ring-white/10">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/20 dark:bg-white/10 flex items-center justify-center">
+                        <GraduationCap className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg text-white">Apply Now</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">Start your applications</p>
+                      </div>
+                    </div>
+                  </Link>
 
-            {/* Quick Links */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 1.2 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg">Quick Links</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Link href="/quiz/results" className="block">
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Target className="w-4 h-4 mr-2" />
-                        View Results
-                      </Button>
-                    </Link>
-                    <Link href="/quiz" className="block">
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Brain className="w-4 h-4 mr-2" />
-                        {userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}
-                      </Button>
-                    </Link>
-                    <Link href="/scholarships" className="block">
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Award className="w-4 h-4 mr-2" />
-                        Browse Scholarships
-                      </Button>
-                    </Link>
-                    <Link href="/applications/manage" className="block">
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Target className="w-4 h-4 mr-2" />
-                        Application Management
-                      </Button>
-                    </Link>
-                    <Link href="/referrals" className="block">
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Users className="w-4 h-4 mr-2" />
-                        Referral Program
-                      </Button>
-                    </Link>
-                    <Link href="/leaderboard" className="block">
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Trophy className="w-4 h-4 mr-2" />
-                        Leaderboard
-                      </Button>
-                    </Link>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
+                  <Link href="/scholarships" className="group block rounded-xl p-5 bg-[var(--eddura-accent)] text-white shadow hover:shadow-lg transition ring-1 ring-white/20 dark:ring-white/10">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/20 dark:bg-white/10 flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg text-white">Browse Scholarships</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">Find funding opportunities</p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Enhanced Recent Activity */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] backdrop-blur-sm overflow-hidden">
+              <CardHeader className="pb-8">
+                {/* <div className="w-16 h-16 bg-gradient-to-br from-[var(--eddura-accent)] to-[var(--eddura-accent-600)] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Zap className="w-8 h-8 text-white" />
+                </div> */}
+                <CardTitle className="text-3xl text-[var(--eddura-primary-900)] dark:text-white">Recent Activity</CardTitle>
+                <CardDescription className="text-xl text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
+                  Your latest interactions and progress
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {userActivities.length > 0 ? (
+                    userActivities
+                      .slice(0, activityPage * ACTIVITY_PAGE_SIZE)
+                      .map((activity, index) => {
+                      const { icon: Icon, bgColor, iconColor } = getActivityIcon(activity.type);
+                      return (
+                        <motion.div
+                          key={activity.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                          whileHover={{ x: 8, scale: 1.02 }}
+                          className={`flex items-center space-x-4 p-5 ${bgColor} rounded-2xl border border-[var(--eddura-primary-100)] dark:border-[var(--eddura-primary-800)] shadow-lg hover:shadow-xl transition-all duration-300`}
+                        >
+                          <div className={`w-12 h-12 ${bgColor.replace('50', '100').replace('900', '800')} rounded-xl flex items-center justify-center shadow-md`}>
+                            <Icon className={`w-6 h-6 ${iconColor}`} />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-[var(--eddura-primary-900)] dark:text-white">{activity.title}</p>
+                            <p className="text-xs text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{activity.description}</p>
+                          </div>
+                          <span className="text-xs font-medium text-[var(--eddura-primary-500)] dark:text-[var(--eddura-primary-400)] bg-white/50 dark:bg-black/20 px-3 py-1 rounded-full">
+                            {formatTimeAgo(activity.timestamp)}
+                          </span>
+                        </motion.div>
+                      );
+                      })
+                  ) : (
+                    <div className="text-center py-16">
+                      <div className="w-20 h-20 bg-gradient-to-br from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <Clock className="w-10 h-10 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-500)]" />
+                      </div>
+                      <p className="text-xl text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] mb-2">No recent activity</p>
+                      <p className="text-sm text-[var(--eddura-primary-500)] dark:text-[var(--eddura-primary-400)]">Your activities will appear here</p>
+                    </div>
+                  )}
+                </div>
+                {/* Pagination controls */}
+                {userActivities.length > 0 && (
+                  <div className="mt-6 flex items-center justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={showLessActivities}
+                      disabled={activityPage === 1}
+                    >
+                      Show less
                     </Button>
-                    <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadMoreActivities}
+                      disabled={!hasMoreActivities}
+                    >
+                      Load more
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
-        {/* Profile Edit Modal */}
-        {editableProfile && (
-          <ProfileEditModal
-            isOpen={showProfileModal}
-            onClose={() => setShowProfileModal(false)}
-            profile={editableProfile}
-            onUpdate={(updated) => {
-              setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
-            }}
-          />
-        )}
+        {/* Right Column - Profile & Settings */}
+        <div className="space-y-8">
+          {/* Enhanced Profile Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] backdrop-blur-sm overflow-hidden">
+              <CardHeader className="text-center pb-8">
+                <Avatar className="w-28 h-28 mx-auto mb-6 shadow-xl">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-gradient-to-br from-[var(--eddura-primary)] to-[var(--eddura-primary-600)] text-white text-4xl font-bold">
+                    {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <CardTitle className="text-2xl text-[var(--eddura-primary-900)] dark:text-white mb-2">{userProfile?.firstName} {userProfile?.lastName}</CardTitle>
+                <CardDescription className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{userProfile?.email}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-3 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-800)] rounded-xl">
+                  <span className="text-sm font-medium text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Quiz Status</span>
+                  <Badge className={userProfile?.quizCompleted ? "bg-gradient-to-r from-[var(--eddura-success)] to-[var(--eddura-success-600)] text-white" : "bg-gradient-to-r from-[var(--eddura-warning)] to-[var(--eddura-warning-600)] text-white"}>
+                    {userProfile?.quizCompleted ? "Completed" : "Incomplete"}
+                  </Badge>
+                </div>
+                
+                {userProfile?.quizCompletedAt && (
+                  <div className="flex items-center justify-between p-3 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-800)] rounded-xl">
+                    <span className="text-sm font-medium text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Completed</span>
+                    <span className="text-sm text-[var(--eddura-primary-900)] dark:text-white font-medium">
+                      {new Date(userProfile.quizCompletedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full border-2 border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] hover:bg-[var(--eddura-primary-50)] dark:hover:bg-[var(--eddura-primary-800)] hover:border-[var(--eddura-primary-300)] dark:hover:border-[var(--eddura-primary-600)] transition-all duration-200 rounded-xl h-12 font-semibold"
+                  onClick={() => setShowProfileModal(true)}
+                >
+                  <Settings className="w-5 h-5 mr-3" />
+                  Edit Profile
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Enhanced Quiz Progress */}
+          {userProfile?.quizCompleted && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-success-50)] dark:from-[var(--eddura-success-900)] dark:to-[var(--eddura-success-800)] backdrop-blur-sm overflow-hidden">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[var(--eddura-success)] to-[var(--eddura-success-600)] rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <CardTitle className="text-xl text-[var(--eddura-success-900)] dark:text-white">Quiz Progress</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex justify-between text-sm mb-3">
+                        <span className="text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">Completion</span>
+                        <span className="text-[var(--eddura-success-900)] dark:text-white font-bold">100%</span>
+                      </div>
+                      <div className="w-full bg-[var(--eddura-success-200)] dark:bg-[var(--eddura-success-700)] rounded-full h-3 shadow-inner">
+                        <div className="bg-gradient-to-r from-[var(--eddura-success)] to-[var(--eddura-success-600)] h-3 rounded-full shadow-lg" style={{ width: '100%' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                      <div className="p-3 bg-[var(--eddura-success-100)] dark:bg-[var(--eddura-success-800)] rounded-xl">
+                        <p className="text-2xl font-bold text-[var(--eddura-success-900)] dark:text-white">{userProfile?.stats?.applicationPackagesCreated || 0}</p>
+                        <p className="text-xs text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">Applications</p>
+                      </div>
+                      <div className="p-3 bg-[var(--eddura-success-100)] dark:bg-[var(--eddura-success-800)] rounded-xl">
+                        <p className="text-2xl font-bold text-[var(--eddura-success-900)] dark:text-white">{userProfile?.stats?.documentsCreated || 0}</p>
+                        <p className="text-xs text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">Documents</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Token Display */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <TokenDisplay 
+              tokens={userProfile?.tokens || 0}
+              totalTokensEarned={userProfile?.totalTokensEarned || 0}
+              totalTokensSpent={userProfile?.totalTokensSpent || 0}
+            />
+          </motion.div>
+
+          {/* Eddura Squads Widget */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+          >
+            <SquadWidget />
+          </motion.div>
+        </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {editableProfile && (
+        <ProfileEditModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          profile={editableProfile}
+          onUpdate={(updated) => {
+            setUserProfile((prev: UserProfile | null) => prev ? { ...prev, ...updated } : prev);
+          }}
+        />
+      )}
+    </ResponsiveContainer>
   );
 } 

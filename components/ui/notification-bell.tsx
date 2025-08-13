@@ -146,15 +146,15 @@ export function NotificationBell() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'text-red-600 bg-red-50';
+        return 'text-[var(--eddura-error)] bg-[var(--eddura-error-50)]';
       case 'high':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-[var(--eddura-accent)] bg-[var(--eddura-accent-50)]';
       case 'medium':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-[var(--eddura-info)] bg-[var(--eddura-info-50)]';
       case 'low':
-        return 'text-gray-600 bg-gray-50';
+        return 'text-[var(--eddura-primary-600)] bg-[var(--eddura-primary-50)]';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-[var(--eddura-primary-600)] bg-[var(--eddura-primary-50)]';
     }
   };
 
@@ -173,27 +173,27 @@ export function NotificationBell() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative">
+        <Button variant="ghost" size="sm" className="relative text-[var(--eddura-primary-600)] hover:text-[var(--eddura-primary-900)] hover:bg-[var(--eddura-primary-50)] transition-all duration-200">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-[var(--eddura-error)] text-white"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h4 className="font-semibold">Notifications</h4>
+      <PopoverContent className="w-80 p-0 border-[var(--eddura-primary-200)] shadow-lg" align="end">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--eddura-primary-200)]">
+          <h4 className="font-semibold text-[var(--eddura-primary-900)]">Notifications</h4>
           {unreadCount > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={markAllAsRead}
-              className="text-xs"
+              className="text-xs text-[var(--eddura-primary-600)] hover:text-[var(--eddura-primary-900)] hover:bg-[var(--eddura-primary-50)] transition-all duration-200"
             >
               Mark all read
             </Button>
@@ -203,23 +203,23 @@ export function NotificationBell() {
         <ScrollArea className="h-80">
           {isLoading ? (
             <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--eddura-primary)]"></div>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center">
-              <Bell className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <Bell className="h-8 w-8 text-[var(--eddura-primary-400)] mb-2" />
+              <p className="text-sm text-[var(--eddura-primary-600)]">No notifications yet</p>
+              <p className="text-xs text-[var(--eddura-primary-500)] mt-1">
                 You&apos;ll see updates about your squads here
               </p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-[var(--eddura-primary-200)]">
               {notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                    !notification.isRead ? 'bg-muted/30' : ''
+                  className={`p-4 cursor-pointer hover:bg-[var(--eddura-primary-50)] transition-colors ${
+                    !notification.isRead ? 'bg-[var(--eddura-primary-100)]' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -233,20 +233,20 @@ export function NotificationBell() {
                           {notification.title}
                         </h5>
                         {notification.isRead ? (
-                          <CheckCheck className="h-3 w-3 text-muted-foreground" />
+                          <CheckCheck className="h-3 w-3 text-[var(--eddura-primary-400)]" />
                         ) : (
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          <div className="w-2 h-2 bg-[var(--eddura-primary)] rounded-full"></div>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-sm text-[var(--eddura-primary-700)] line-clamp-2">
                         {notification.message}
                       </p>
                       {notification.metadata?.squadName && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-[var(--eddura-primary-500)] mt-1">
                           Squad: {notification.metadata.squadName}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-[var(--eddura-primary-500)] mt-1">
                         {new Date(notification.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -258,11 +258,11 @@ export function NotificationBell() {
         </ScrollArea>
         
         {notifications.length > 0 && (
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-[var(--eddura-primary-200)]">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="w-full text-xs"
+              className="w-full text-xs text-[var(--eddura-primary-600)] hover:text-[var(--eddura-primary-900)] hover:bg-[var(--eddura-primary-50)] transition-all duration-200"
               onClick={() => window.location.href = '/notifications'}
             >
               View all notifications

@@ -13,10 +13,10 @@ const buttonVariants = cva(
         destructive:
           'bg-error text-white hover:bg-error-dark focus-visible:ring-error shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95',
         outline:
-          'border-2 border-eddura-500 bg-white text-eddura-600 hover:bg-eddura-500 hover:text-white focus-visible:ring-eddura-500 transition-all duration-200',
+          'border-2 border-eddura-500 bg-white text-eddura-700 hover:bg-eddura-50 hover:text-eddura-800 focus-visible:ring-eddura-500 transition-all duration-200 dark:border-eddura-400 dark:bg-eddura-800 dark:text-eddura-100 dark:hover:bg-eddura-700 dark:hover:text-white',
         secondary:
-          'bg-eddura-100 text-eddura-700 hover:bg-eddura-200 focus-visible:ring-eddura-500 border border-eddura-200 hover:border-eddura-300',
-        ghost: 'text-eddura-600 hover:bg-eddura-50 hover:text-eddura-700 focus-visible:ring-eddura-500',
+          'bg-eddura-100 text-eddura-700 hover:bg-eddura-200 focus-visible:ring-eddura-500 border border-eddura-200 hover:border-eddura-300 dark:bg-eddura-700 dark:text-eddura-100 dark:hover:bg-eddura-600 dark:border-eddura-600 dark:hover:border-eddura-500',
+        ghost: 'text-eddura-600 hover:bg-eddura-50 hover:text-eddura-700 focus-visible:ring-eddura-500 dark:text-eddura-300 dark:hover:bg-eddura-800 dark:hover:text-eddura-100',
         link: 'text-eddura-500 underline-offset-4 hover:underline hover:text-eddura-600',
         accent: 'bg-accent text-white hover:bg-accent-dark focus-visible:ring-accent shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95',
         success: 'bg-success text-white hover:bg-success-dark focus-visible:ring-success shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95',
