@@ -510,7 +510,7 @@
 
 /* Dark Mode Styles */
 .dark {
-  /* Dark mode color overrides (keep brand scale consistent; avoid inverted whites) */
+  /* Keep original Eddura brand colors for dark mode */
   --eddura-primary-50: #E6F2F5;
   --eddura-primary-100: #CCE5EB;
   --eddura-primary-200: #99C7D7;
@@ -522,14 +522,14 @@
   --eddura-primary-800: #0A3A41;
   --eddura-primary-900: #052A30;
   
-  /* Dark mode background and text */
+  /* Proper dark mode semantic colors - much darker background */
   --background: 222.2 84% 4.9%;
   --foreground: 210 40% 98%;
   --card: 222.2 84% 4.9%;
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
   --primary-foreground: 222.2 84% 4.9%;
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
@@ -539,47 +539,116 @@
   --destructive-foreground: 210 40% 98%;
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  --ring: 224.3 76.3% 94.1%;
+  
+  /* Dark mode accent colors */
+  --eddura-accent: #FF8A5C;
+  --eddura-accent-light: #FFB085;
+  --eddura-accent-dark: #E55A2B;
+  
+  /* Dark mode success colors */
+  --eddura-success: #34D399;
+  --eddura-success-light: #6EE7B7;
+  --eddura-success-dark: #10B981;
+  
+  /* Dark mode warning colors */
+  --eddura-warning: #FBBF24;
+  --eddura-warning-light: #FCD34D;
+  --eddura-warning-dark: #F59E0B;
+  
+  /* Dark mode error colors */
+  --eddura-error: #F87171;
+  --eddura-error-light: #FCA5A5;
+  --eddura-error-dark: #EF4444;
 }
 
-/* Dark mode transitions */
+/* Enhanced dark mode transitions and utilities */
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Additional dark mode utilities */
+/* Enhanced dark mode gradients */
 .dark .bg-eddura-gradient {
   background: linear-gradient(135deg, var(--eddura-primary-900) 0%, var(--eddura-primary-800) 100%);
 }
 
+.dark .bg-eddura-gradient-light {
+  background: linear-gradient(135deg, var(--eddura-primary-800) 0%, var(--eddura-primary-700) 100%);
+}
+
+/* Dark mode text color mappings */
 .dark .text-eddura-900 {
-  color: var(--eddura-primary-100);
+  color: hsl(var(--foreground));
 }
 
 .dark .text-eddura-800 {
-  color: var(--eddura-primary-200);
+  color: hsl(var(--foreground) / 0.9);
 }
 
 .dark .text-eddura-700 {
-  color: var(--eddura-primary-300);
+  color: hsl(var(--foreground) / 0.8);
 }
 
 .dark .text-eddura-600 {
-  color: var(--eddura-primary-400);
+  color: hsl(var(--muted-foreground));
 }
 
+.dark .text-eddura-500 {
+  color: hsl(var(--primary));
+}
+
+/* Dark mode border utilities */
 .dark .border-eddura-100 {
-  border-color: var(--eddura-primary-800);
+  border-color: hsl(var(--border));
 }
 
 .dark .border-eddura-200 {
-  border-color: var(--eddura-primary-700);
+  border-color: hsl(var(--border) / 0.8);
 }
 
+.dark .border-eddura-300 {
+  border-color: hsl(var(--border) / 0.6);
+}
+
+/* Dark mode background utilities */
 .dark .bg-eddura-50 {
-  background-color: var(--eddura-primary-900);
+  background-color: hsl(var(--muted));
 }
 
 .dark .bg-eddura-100 {
-  background-color: var(--eddura-primary-800);
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+.dark .bg-eddura-200 {
+  background-color: hsl(var(--muted) / 0.6);
+}
+
+/* Dark mode hover states */
+.dark .hover\:bg-eddura-50:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.dark .hover\:bg-eddura-100:hover {
+  background-color: hsl(var(--muted) / 0.7);
+}
+
+/* Dark mode focus states */
+.dark .focus\:ring-eddura-500:focus {
+  --tw-ring-color: hsl(var(--primary));
+}
+
+/* Dark mode shadow utilities */
+.dark .shadow-eddura {
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.3);
+}
+
+.dark .shadow-eddura-lg {
+  box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dark .shadow-eddura-xl {
+  box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.5);
 }

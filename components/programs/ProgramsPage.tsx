@@ -28,6 +28,7 @@ import Image from 'next/image';
 
 import ProgramCard from './ProgramCard';
 import SchoolCard from './SchoolCard';
+import { ResponsiveContainer } from '../ui/responsive-container';
 
 interface School {
   _id: string;
@@ -295,18 +296,19 @@ export default function ProgramsPage() {
   if (!selectedSchool) {
     // Show school selection UI with pagination
     return (
-      <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-[var(--eddura-primary-900)] dark:via-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
+      // <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-[var(--eddura-primary-900)] dark:via-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
+      <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
         {/* Hero Section */}
         <div className="bg-white dark:bg-[var(--eddura-primary-900)] border-b border-gray-100 dark:border-[var(--eddura-primary-800)]">
-          <div className="max-w-7xl mx-auto px-4 py-12">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-teal rounded-full mb-6 shadow-eddura">
+          <div className=" mx-auto px-4 py-12">
+            <div >
+              {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-teal rounded-full mb-6 shadow-eddura">
                 <Building className="w-8 h-8 text-white" />
-              </div>
+              </div> */}
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Browse Programs by School
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl text-gray-600 dark:text-gray-300 ">
                 Discover academic programs from top universities around the world. 
                 Select a school to explore their available programs and find your perfect academic path.
               </p>
@@ -317,7 +319,7 @@ export default function ProgramsPage() {
         </div>
 
         {/* Search Section */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className=" mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto mb-12">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -465,13 +467,14 @@ export default function ProgramsPage() {
             </>
           )}
         </div>
-      </div>
-    );
+      {/* </div> */}
+    </ResponsiveContainer>
+  );
   }
 
   // Show programs for the selected school
   return (
-    <div className="max-w-7xl mx-auto px-4">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Header with back button and school info */}
       <div className="mb-8">
         <Button 
@@ -742,6 +745,6 @@ export default function ProgramsPage() {
           </Button>
         </motion.div>
       )}
-    </div>
+    </ResponsiveContainer>
   );
 }

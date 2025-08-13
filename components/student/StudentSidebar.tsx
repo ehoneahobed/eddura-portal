@@ -31,27 +31,23 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+
 import { SimpleLogo } from '@/components/ui/logo';
 
 // Simple, flat navigation list to match the minimal style
 const navigationItems = [
-  { name: 'Overview', href: '/dashboard', icon: Home, description: 'Your personalized dashboard' },
-  { name: 'Task Management', href: '/task-management', icon: Target, description: 'Manage applications and tasks' },
-  { name: 'Scholarships', href: '/scholarships', icon: Award, description: 'Find and apply for scholarships' },
-  { name: 'Saved Scholarships', href: '/saved-scholarships', icon: Bookmark, description: 'Your saved scholarships' },
-  { name: 'Schools & Programs', href: '/programs', icon: GraduationCap, description: 'Explore universities and programs' },
-  { name: 'Applications', href: '/applications', icon: FileText, description: 'Track your applications' },
-  { name: 'Application Management', href: '/applications/manage', icon: FileCheck, description: 'Manage application packages' },
-  { name: 'Recommendations', href: '/recommendations', icon: MessageSquare, description: 'Manage recommendation letters' },
-  { name: 'Recipients', href: '/recommendations/recipients', icon: Users, description: 'Manage your recipients' },
-  { name: 'Documents', href: '/documents', icon: Folder, description: 'Manage your documents' },
-  { name: 'Document Library', href: '/library', icon: Library, description: 'Browse and clone documents' },
-  { name: 'Eddura Squads', href: '/squads', icon: Trophy, description: 'Join collaborative squads for support' },
+  { name: 'Overview', href: '/dashboard', icon: Home },
+  { name: 'Task Management', href: '/task-management', icon: Target },
+  { name: 'Scholarships', href: '/scholarships', icon: Award },
+  { name: 'Saved Scholarships', href: '/saved-scholarships', icon: Bookmark },
+  { name: 'Schools & Programs', href: '/programs', icon: GraduationCap },
+  { name: 'Applications', href: '/applications', icon: FileText },
+  { name: 'Application Management', href: '/applications/manage', icon: FileCheck },
+  { name: 'Recommendations', href: '/recommendations', icon: MessageSquare },
+  { name: 'Recipients', href: '/recommendations/recipients', icon: Users },
+  { name: 'Documents', href: '/documents', icon: Folder },
+  { name: 'Document Library', href: '/library', icon: Library },
+  { name: 'Eddura Squads', href: '/squads', icon: Trophy },
 ];
 
 interface StudentSidebarProps {
@@ -112,45 +108,32 @@ export default function StudentSidebar({ className, isCollapsed: controlledColla
             const isActive = pathname === item.href;
             const Icon = item.icon;
             return (
-              <Tooltip key={item.name} delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <Link href={item.href}>
-                    <motion.div
-                      whileHover={{ x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={cn(
-                        'group relative flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-200',
-                        isActive
-                          ? 'bg-[var(--eddura-accent-50)] dark:bg-[var(--eddura-accent-900)]/25 border-[var(--eddura-accent-200)] dark:border-[var(--eddura-accent-700)] text-[var(--eddura-accent-800)] dark:text-[var(--eddura-accent-200)]'
-                          : 'bg-transparent border-transparent text-white/80 hover:bg-white/10 hover:border-white/20'
-                      )}
-                    >
-                      <Icon
-                        className={cn(
-                          'w-5 h-5',
-                          isActive
-                            ? 'text-[var(--eddura-accent-700)] dark:text-[var(--eddura-accent-300)]'
-                            : 'text-white/80'
-                        )}
-                      />
-                      {!isCollapsed && (
-                        <span className="text-sm font-medium leading-none truncate">
-                          {item.name}
-                        </span>
-                      )}
-                    </motion.div>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  sideOffset={8}
-                  align="center"
-                  className="bg-white dark:bg-[var(--eddura-primary-800)] text-[var(--eddura-primary-900)] dark:text-white border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] shadow-xl z-[9999] max-w-xs px-3 py-2"
+              <Link key={item.name} href={item.href}>
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    'group relative flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-200',
+                    isActive
+                      ? 'bg-[var(--eddura-accent-50)] dark:bg-[var(--eddura-accent-900)]/25 border-[var(--eddura-accent-200)] dark:border-[var(--eddura-accent-700)] text-[var(--eddura-accent-800)] dark:text-[var(--eddura-accent-200)]'
+                      : 'bg-transparent border-transparent text-white/80 hover:bg-white/10 hover:border-white/20'
+                  )}
                 >
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-xs text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] mt-1 leading-relaxed">{item.description}</p>
-                </TooltipContent>
-              </Tooltip>
+                  <Icon
+                    className={cn(
+                      'w-5 h-5',
+                      isActive
+                        ? 'text-[var(--eddura-accent-700)] dark:text-[var(--eddura-accent-300)]'
+                        : 'text-white/80'
+                    )}
+                  />
+                  {!isCollapsed && (
+                    <span className="text-sm font-medium leading-none truncate">
+                      {item.name}
+                    </span>
+                  )}
+                </motion.div>
+              </Link>
             );
           })}
         </nav>

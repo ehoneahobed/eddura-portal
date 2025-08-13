@@ -36,6 +36,7 @@ import Link from 'next/link';
 import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 import SquadWidget from './SquadWidget';
 import TokenDisplay from './TokenDisplay';
+import { ResponsiveContainer } from '../ui/responsive-container';
 
 // Consistent stat card for equal sizing across the grid
 interface StatsCardProps {
@@ -319,7 +320,7 @@ export default function DashboardContent() {
     : null;
 
   return (
-    <div className="w-full space-y-10">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Welcome Section with enhanced visual appeal */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -347,7 +348,7 @@ export default function DashboardContent() {
             <span className="ml-2 align-middle">👋</span>
           </h1>
           <p className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] max-w-3xl leading-relaxed">
-            Here's your personalized dashboard. Let's make your dreams a reality!
+            Here&apos;s your personalized dashboard. Let&apos;s make your dreams a reality!
           </p>
         </div>
       </motion.div>
@@ -673,6 +674,6 @@ export default function DashboardContent() {
           }}
         />
       )}
-    </div>
+    </ResponsiveContainer>
   );
 } 

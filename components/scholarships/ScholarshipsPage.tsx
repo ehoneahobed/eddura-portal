@@ -32,6 +32,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 import ScholarshipCard from './ScholarshipCard';
 import ScholarshipFilters from './ScholarshipFilters';
+import { ResponsiveContainer } from '../ui/responsive-container';
 
 // Define the Filters interface locally since it's not exported from ScholarshipFilters
 interface Filters {
@@ -329,8 +330,8 @@ export default function ScholarshipsPage() {
   }
 
   return (
-    <div>
-      <div className="max-w-7xl mx-auto">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
+      <div className=" mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -676,6 +677,6 @@ export default function ScholarshipsPage() {
           </motion.div>
         )}
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 }

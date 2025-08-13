@@ -55,10 +55,6 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
   const [isLoading, setIsLoading] = useState(true);
   const [userRank, setUserRank] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchLeaderboardData();
-  }, [activeTab, fetchLeaderboardData]);
-
   const fetchLeaderboardData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -81,6 +77,10 @@ export default function GlobalLeaderboard({ category = 'tokens' }: GlobalLeaderb
       setIsLoading(false);
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    fetchLeaderboardData();
+  }, [activeTab, fetchLeaderboardData]);
 
   const getRankIcon = (index: number) => {
     switch (index) {

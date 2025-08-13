@@ -37,6 +37,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import AddTaskModal from './AddTaskModal';
+import { ResponsiveContainer } from '../ui/responsive-container';
 
 interface Application {
   _id: string;
@@ -360,7 +361,7 @@ export default function TaskManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -756,6 +757,6 @@ export default function TaskManagementPage() {
           }}
         />
       )}
-    </div>
+    </ResponsiveContainer>
   );
 }

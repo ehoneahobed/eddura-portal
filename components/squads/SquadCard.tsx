@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { joinSquad, leaveSquad } from '@/hooks/use-squads';
 import { mutate } from 'swr';
+import { ModernCard } from '@/components/ui/modern-card';
 
 interface SquadCardProps {
   squad: {
@@ -133,37 +134,41 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <ModernCard 
+      variant="elevated" 
+      hover="lift" 
+      className="group relative overflow-hidden"
+    >
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-eddura-500 to-eddura-600"></div>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <CardTitle className="text-lg">{squad.name}</CardTitle>
+              <CardTitle className="text-lg text-eddura-900 dark:text-eddura-100">{squad.name}</CardTitle>
               <Badge variant={squad.squadType === 'primary' ? 'default' : 'secondary'}>
                 {squad.squadType}
               </Badge>
               <span className="text-lg">{getVisibilityIcon(squad.visibility)}</span>
             </div>
-            <CardDescription className="line-clamp-2">
+            <CardDescription className="line-clamp-2 text-eddura-700 dark:text-eddura-300">
               {squad.description}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Squad Stats */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      <CardContent className="space-y-4 p-6 pt-0">
+        <div className="grid grid-cols-2 gap-4 text-sm text-eddura-700 dark:text-eddura-300">
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-eddura-500" />
             <span>{squad.memberCount}/{squad.maxMembers} members</span>
           </div>
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-4 w-4 text-accent" />
             <span>{squad.goals.length} goals</span>
           </div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-green-500" />
             <span>{squad.completionPercentage}% complete</span>
           </div>
           <div className="flex items-center gap-2">
@@ -173,19 +178,17 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
           </div>
         </div>
 
-        {/* Progress Overview */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span>Overall Progress</span>
+            <span className="text-eddura-800 dark:text-eddura-100">Overall Progress</span>
             <span className="font-medium">{squad.completionPercentage}%</span>
           </div>
           <Progress value={squad.completionPercentage} className="h-2" />
         </div>
 
-        {/* Goals Summary */}
         {squad.goals.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Active Goals</h4>
+            <h4 className="text-sm font-medium text-eddura-800 dark:text-eddura-100">Active Goals</h4>
             <div className="space-y-1">
               {squad.goals.slice(0, 2).map((goal, index) => (
                 <div key={index} className="flex items-center justify-between text-xs">
@@ -209,12 +212,11 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
           </div>
         )}
 
-        {/* Members Preview */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium">Members</h4>
+          <h4 className="text-sm font-medium text-eddura-800 dark:text-eddura-100">Members</h4>
           <div className="flex items-center gap-1">
             {squad.memberIds.slice(0, 3).map((member, index) => (
-                                    <Avatar key={member._id as any} className="h-6 w-6">
+              <Avatar key={member._id as any} className="h-6 w-6">
                 <AvatarImage src={member.profilePicture} />
                 <AvatarFallback className="text-xs">
                   {member.firstName[0]}{member.lastName[0]}
@@ -229,7 +231,6 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
           </div>
         </div>
 
-        {/* Formation Info */}
         {squad.formationType !== 'general' && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {squad.formationType === 'academic_level' && <BookOpen className="h-3 w-3" />}
@@ -238,7 +239,6 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-2 pt-2">
           <Link href={`/squads/${squad._id as any}`}>
             <Button variant="outline" size="sm" className="flex-1">
@@ -251,7 +251,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
               size="sm" 
               onClick={handleJoin}
               disabled={isJoining}
-              className="flex-1"
+              className="flex-1 bg-eddura-500 hover:bg-eddura-600"
             >
               {isJoining ? 'Joining...' : 'Join Squad'}
             </Button>
@@ -270,6 +270,6 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
           )}
         </div>
       </CardContent>
-    </Card>
+    </ModernCard>
   );
 }

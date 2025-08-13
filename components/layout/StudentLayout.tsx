@@ -84,7 +84,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-eddura-900">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <ThemeAwareLogo size="7xl" className="animate-pulse" />
         </motion.div>
@@ -94,7 +94,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-white dark:bg-[var(--eddura-primary-900)]">
+      <div className="min-h-screen bg-white dark:bg-eddura-900">
         <div className="flex h-screen">
           {/* Fixed Sidebar - Only show when user is authenticated */}
           {showSidebar && session?.user && (
@@ -119,7 +119,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
           {/* Main Content - Adjusted for fixed sidebar */}
           <div className={`flex-1 flex flex-col overflow-hidden ${showSidebar && session?.user ? (isSidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[280px]') : ''}`}>
             {/* Header */}
-            <header className="bg-white/90 dark:bg-[var(--eddura-primary-900)] backdrop-blur-xl border-b border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-800)] shadow-sm sticky top-0 z-20">
+            <header className="bg-white/90 dark:bg-eddura-800/90 backdrop-blur-xl border-b border-eddura-200 dark:border-eddura-700 shadow-sm sticky top-0 z-20">
               <div className="flex items-center justify-between px-4 py-4">
                 {/* Left side */}
                 <div className="flex items-center space-x-4">
@@ -131,9 +131,9 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
                       className="lg:hidden"
                     >
                       {isMobileMenuOpen ? (
-                        <X className="h-5 w-5 text-[var(--eddura-primary)] dark:text-white" />
+                        <X className="h-5 w-5 text-eddura-600 dark:text-white" />
                       ) : (
-                        <Menu className="h-5 w-5 text-[var(--eddura-primary)] dark:text-white" />
+                        <Menu className="h-5 w-5 text-eddura-600 dark:text-white" />
                       )}
                     </Button>
                   )}
@@ -147,11 +147,11 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
                 {/* Center - Search */}
                 <div className="hidden md:flex flex-1 max-w-md mx-8">
                   <div className="relative w-full">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-300)]" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-eddura-400 dark:text-eddura-300" />
                     <input
                       type="text"
                       placeholder="Search scholarships, programs..."
-                      className="w-full pl-10 pr-4 py-2 border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] rounded-lg focus:ring-2 focus:ring-[var(--eddura-primary)] focus:border-transparent bg-white/90 dark:bg-[var(--eddura-primary-800)] text-[var(--eddura-primary-900)] dark:text-white placeholder-[var(--eddura-primary-400)] dark:placeholder-[var(--eddura-primary-500)]"
+                      className="w-full pl-10 pr-4 py-2 border border-eddura-200 dark:border-eddura-700 rounded-lg focus:ring-2 focus:ring-eddura-500 focus:border-transparent bg-white/90 dark:bg-eddura-800 text-eddura-900 dark:text-white placeholder-eddura-400 dark:placeholder-eddura-400"
                     />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
                     variant="ghost"
                     size="sm"
                     onClick={toggleTheme}
-                    className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] hover:bg-[var(--eddura-primary-50)] dark:hover:bg-[var(--eddura-primary-800)] transition-all duration-200"
+                    className="text-eddura-600 dark:text-eddura-300 hover:bg-eddura-50 dark:hover:bg-eddura-700 transition-all duration-200"
                   >
                     {theme === 'dark' ? (
                       <Sun className="h-5 w-5" />
@@ -183,26 +183,26 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
-                            className="flex items-center gap-2 rounded-full border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] px-2 py-1 pr-3 bg-white/90 dark:bg-[var(--eddura-primary-800)] hover:ring-1 hover:ring-[var(--eddura-primary-300)] dark:hover:ring-[var(--eddura-primary-600)] transition-all"
+                            className="flex items-center gap-2 rounded-full border border-eddura-200 dark:border-eddura-700 px-2 py-1 pr-3 bg-white/90 dark:bg-eddura-800 hover:ring-1 hover:ring-eddura-300 dark:hover:ring-eddura-600 transition-all"
                           >
                             <Avatar className="w-8 h-8">
                               <AvatarImage src="" />
-                              <AvatarFallback className="bg-[var(--eddura-primary)] text-white text-sm">
+                              <AvatarFallback className="bg-eddura-500 text-white text-sm">
                                 {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0] || session?.user?.name?.[0] || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div className="hidden md:block text-left">
-                              <p className="text-sm font-semibold leading-5 text-[var(--eddura-primary-900)] dark:text-white">
+                              <p className="text-sm font-semibold leading-5 text-eddura-900 dark:text-white">
                                 {userProfile?.firstName && userProfile?.lastName ? `${userProfile.firstName} ${userProfile.lastName}` : session?.user?.name || 'User'}
                               </p>
                             </div>
-                            <ChevronDown className="h-4 w-4 text-[var(--eddura-primary-500)] dark:text-white/80" />
+                            <ChevronDown className="h-4 w-4 text-eddura-500 dark:text-white/80" />
                           </Button>
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent
                           align="end"
-                          className="w-72 p-0 overflow-hidden rounded-xl border border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-800)] bg-white dark:bg-[var(--eddura-primary-900)] shadow-2xl"
+                          className="w-72 p-0 overflow-hidden rounded-xl border border-eddura-200 dark:border-eddura-700 bg-white dark:bg-eddura-800 shadow-2xl"
                         >
                           <DropdownMenuLabel className="p-4">
                             <div className="flex items-center gap-3">

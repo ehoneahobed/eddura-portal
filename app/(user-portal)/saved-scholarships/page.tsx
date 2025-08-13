@@ -7,12 +7,12 @@ import { motion } from 'framer-motion';
 import { 
   Bookmark, 
   Search, 
-  Filter, 
+  // Filter, 
   Calendar, 
   DollarSign, 
   MapPin,
   GraduationCap,
-  Target,
+  // Target,
   Edit3,
   Trash2,
   Share2,
@@ -20,7 +20,7 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  Clock,
+  // Clock,
   Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { ResponsiveContainer } from '@/components/ui/responsive-container';
 
 interface SavedScholarship {
   _id: string;
@@ -277,7 +278,7 @@ export default function SavedScholarshipsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
@@ -523,6 +524,6 @@ export default function SavedScholarshipsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ResponsiveContainer>
   );
 }

@@ -23,6 +23,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ResponsiveContainer } from '@/components/ui/responsive-container';
 
 interface ApplicationStats {
   total: number;
@@ -195,7 +196,7 @@ export default function ApplicationManagePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -471,6 +472,6 @@ export default function ApplicationManagePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 } 

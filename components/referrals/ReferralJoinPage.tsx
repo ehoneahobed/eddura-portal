@@ -38,10 +38,6 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
   const [isLoading, setIsLoading] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
 
-  useEffect(() => {
-    validateReferralCode();
-  }, [referralCode, validateReferralCode]);
-
   const validateReferralCode = useCallback(async () => {
     setIsValidating(true);
     try {
@@ -74,6 +70,10 @@ export default function ReferralJoinPage({ referralCode }: ReferralJoinPageProps
       setIsValidating(false);
     }
   }, [referralCode]);
+
+  useEffect(() => {
+    validateReferralCode();
+  }, [referralCode, validateReferralCode]);
 
   const handleSignup = () => {
     // Store referral code in session storage for signup process

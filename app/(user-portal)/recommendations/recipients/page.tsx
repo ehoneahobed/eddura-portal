@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ModernCard, StatCard, FeatureCard } from '@/components/ui/modern-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner, CardSkeleton } from '@/components/ui/enhanced-loading';
+import { ResponsiveContainer, ResponsiveGrid, ResponsiveStack } from '@/components/ui/responsive-container';
 import { 
   Search, 
   Plus, 
@@ -17,7 +21,18 @@ import {
   Filter,
   MoreHorizontal,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Users,
+  GraduationCap,
+  MessageSquare,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  Star,
+  Award,
+  CheckCircle,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -145,67 +160,105 @@ export default function RecipientsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded"></div>
-            ))}
+      <ResponsiveContainer maxWidth="8xl" padding="lg" className="py-8">
+        <div className="space-y-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-eddura-200 dark:bg-eddura-700 rounded w-1/4 mb-2"></div>
+            <div className="h-4 bg-eddura-100 dark:bg-eddura-800 rounded w-1/2 mb-8"></div>
           </div>
+          <ResponsiveGrid cols={{ default: 1, md: 2, lg: 3 }} gap="lg">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </ResponsiveGrid>
         </div>
-      </div>
+      </ResponsiveContainer>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Recipients</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your professors, supervisors, and managers who can write recommendation letters
-          </p>
-        </div>
-        <AddRecipientModal 
-          onRecipientAdded={handleRecipientAdded}
-          trigger={
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Recipient
-            </Button>
-          }
-        />
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search by name, email, institution..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+    <ResponsiveContainer maxWidth="8xl" padding="lg" className="py-8">
+      {/* Enhanced Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-12"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-eddura-100 to-accent/10 dark:from-eddura-800 dark:to-accent/20 rounded-xl border border-accent/20">
+                <Users className="h-8 w-8 text-eddura-600 dark:text-eddura-400" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-eddura-900 dark:text-eddura-100">
+                  Recipients
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <span className="text-eddura-600 dark:text-eddura-400 font-medium">
+                    {recipients.length} total recipients
+                  </span>
+                </div>
               </div>
             </div>
+            <p className="text-lg text-eddura-700 dark:text-eddura-300 max-w-2xl">
+              Manage your professors, supervisors, and managers who can write recommendation letters. 
+              Build your network of trusted recommenders.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <AddRecipientModal 
+              onRecipientAdded={handleRecipientAdded}
+              trigger={
+                <Button size="lg" className="bg-eddura-500 hover:bg-eddura-600 shadow-eddura">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add Recipient
+                </Button>
+              }
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Enhanced Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mb-8"
+      >
+        <ModernCard variant="elevated" className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-eddura-100 dark:bg-eddura-800 rounded-lg">
+              <Filter className="h-5 w-5 text-eddura-600 dark:text-eddura-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
+              Filter & Search
+            </h2>
+          </div>
+          
+          <ResponsiveGrid cols={{ default: 1, md: 3 }} gap="lg">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                Search Recipients
+              </label>
+              <Input
+                placeholder="Search by name, email, institution..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                leftIcon={<Search className="h-4 w-4" />}
+                className="bg-white dark:bg-eddura-800"
+              />
+            </div>
             
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Institution</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                Institution
+              </label>
               <Select value={filterInstitution} onValueChange={setFilterInstitution}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-eddura-800">
                   <SelectValue placeholder="All institutions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -219,10 +272,12 @@ export default function RecipientsPage() {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Draft Preference</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
+                Draft Preference
+              </label>
               <Select value={filterPreference} onValueChange={setFilterPreference}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-eddura-800">
                   <SelectValue placeholder="All preferences" />
                 </SelectTrigger>
                 <SelectContent>
@@ -232,182 +287,293 @@ export default function RecipientsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </ResponsiveGrid>
+          
+          {/* Filter Summary */}
+          {(searchQuery || filterInstitution !== 'all' || filterPreference !== 'all') && (
+            <div className="mt-4 pt-4 border-t border-eddura-200 dark:border-eddura-700">
+              <div className="flex items-center gap-2 text-sm text-eddura-600 dark:text-eddura-400">
+                <CheckCircle className="h-4 w-4" />
+                Showing {filteredRecipients.length} of {recipients.length} recipients
+              </div>
+            </div>
+          )}
+        </ModernCard>
+      </motion.div>
 
       {/* Recipients Grid */}
-      {filteredRecipients.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <div className="text-gray-500 mb-4">
-              <User className="h-12 w-12 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                {recipients.length === 0 ? 'No recipients yet' : 'No recipients match your filters'}
-              </h3>
-              <p className="text-sm">
-                {recipients.length === 0 
-                  ? 'Start by adding your first recipient'
-                  : 'Try adjusting your search or filters'
-                }
-              </p>
-            </div>
-            {recipients.length === 0 && (
-              <AddRecipientModal 
-                onRecipientAdded={handleRecipientAdded}
-                trigger={<Button>Add First Recipient</Button>}
-              />
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredRecipients.map((recipient) => (
-            <Card key={recipient._id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{recipient.name}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {recipient.title}
-                    </CardDescription>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
+      <AnimatePresence mode="wait">
+        {filteredRecipients.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+          >
+            <ModernCard variant="outlined" className="text-center py-16">
+              <div className="space-y-6">
+                <div className="mx-auto w-24 h-24 bg-eddura-100 dark:bg-eddura-800 rounded-full flex items-center justify-center">
+                  <User className="h-12 w-12 text-eddura-500 dark:text-eddura-400" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
+                    {recipients.length === 0 ? 'No recipients yet' : 'No recipients match your filters'}
+                  </h3>
+                  <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
+                    {recipients.length === 0 
+                      ? 'Start building your network by adding professors, supervisors, and mentors who can write recommendation letters for you.'
+                      : 'Try adjusting your search criteria or filters to find the recipients you\'re looking for.'
+                    }
+                  </p>
+                </div>
+                {recipients.length === 0 && (
+                  <AddRecipientModal 
+                    onRecipientAdded={handleRecipientAdded}
+                    trigger={
+                      <Button size="lg" className="bg-eddura-500 hover:bg-eddura-600">
+                        <Plus className="h-5 w-5 mr-2" />
+                        Add Your First Recipient
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingRecipient(recipient)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                                             <DropdownMenuItem onClick={() => copyToClipboard(recipient.primaryEmail)}>
-                         <Copy className="h-4 w-4 mr-2" />
-                         Copy Primary Email
-                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDeleteRecipient(recipient._id)}
-                        className="text-red-600"
-                        disabled={deletingRecipient === recipient._id}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {deletingRecipient === recipient._id ? 'Deleting...' : 'Delete'}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700 font-medium">{recipient.primaryEmail}</span>
-                      <Badge variant="outline" className="text-xs">Primary</Badge>
-                    </div>
-                    {recipient.emails.length > 1 && (
-                      <div className="ml-6 space-y-1">
-                        {recipient.emails.slice(1).map((email, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <Mail className="h-3 w-3 text-gray-400" />
-                            <span className="text-xs text-gray-600">{email}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    }
+                  />
+                )}
+              </div>
+            </ModernCard>
+          </motion.div>
+        ) : (
+          <ResponsiveGrid cols={{ default: 1, md: 2, lg: 3 }} gap="lg">
+            {filteredRecipients.map((recipient, index) => (
+              <motion.div
+                key={recipient._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <ModernCard 
+                  variant="elevated" 
+                  hover="lift" 
+                  className="h-full group relative overflow-hidden"
+                >
+                  {/* Gradient accent */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-eddura-500 to-eddura-600"></div>
                   
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-700">{recipient.institution}</span>
-                  </div>
-
-                  {recipient.department && (
-                    <div className="text-sm text-gray-600">
-                      {recipient.department}
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="p-2 bg-eddura-100 dark:bg-eddura-800 rounded-lg">
+                          <GraduationCap className="h-5 w-5 text-eddura-600 dark:text-eddura-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-eddura-900 dark:text-eddura-100 truncate">
+                            {recipient.name}
+                          </h3>
+                          <p className="text-sm text-eddura-600 dark:text-eddura-400 mt-1">
+                            {recipient.title}
+                          </p>
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setEditingRecipient(recipient)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => copyToClipboard(recipient.primaryEmail)}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy Primary Email
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteRecipient(recipient._id)}
+                            className="text-red-600"
+                            disabled={deletingRecipient === recipient._id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {deletingRecipient === recipient._id ? 'Deleting...' : 'Delete'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                  )}
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    {/* Contact Information */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-eddura-500" />
+                        <span className="text-sm text-eddura-700 dark:text-eddura-300 font-medium truncate">
+                          {recipient.primaryEmail}
+                        </span>
+                        <Badge variant="outline" className="text-xs">Primary</Badge>
+                      </div>
+                      
+                      {recipient.emails.length > 1 && (
+                        <div className="ml-6 text-xs text-eddura-600 dark:text-eddura-400">
+                          +{recipient.emails.length - 1} more email{recipient.emails.length > 2 ? 's' : ''}
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-eddura-500" />
+                        <span className="text-sm text-eddura-700 dark:text-eddura-300 truncate">
+                          {recipient.institution}
+                        </span>
+                      </div>
 
-                  {recipient.phoneNumber && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{recipient.phoneNumber}</span>
+                      {recipient.department && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-eddura-500" />
+                          <span className="text-sm text-eddura-600 dark:text-eddura-400 truncate">
+                            {recipient.department}
+                          </span>
+                        </div>
+                      )}
+
+                      {recipient.phoneNumber && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-eddura-500" />
+                          <span className="text-sm text-eddura-700 dark:text-eddura-300">
+                            {recipient.phoneNumber}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  <div className="flex items-center gap-2">
-                    <Badge variant={recipient.prefersDrafts ? 'default' : 'secondary'}>
-                      {recipient.prefersDrafts ? 'Prefers Drafts' : 'No Drafts'}
-                    </Badge>
-                    <Badge variant="outline">
-                      {recipient.preferredCommunicationMethod}
-                    </Badge>
-                  </div>
+                    {/* Preferences */}
+                    <div className="flex flex-wrap gap-2">
+                      <Badge 
+                        variant={recipient.prefersDrafts ? 'default' : 'secondary'}
+                        className={recipient.prefersDrafts ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
+                      >
+                        {recipient.prefersDrafts ? (
+                          <>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Prefers Drafts
+                          </>
+                        ) : (
+                          'No Drafts'
+                        )}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        <MessageSquare className="h-3 w-3 mr-1" />
+                        {recipient.preferredCommunicationMethod}
+                      </Badge>
+                    </div>
 
-                  <div className="text-xs text-gray-500">
-                    Added {format(new Date(recipient.createdAt), 'MMM dd, yyyy')}
-                  </div>
+                    {/* Footer */}
+                    <div className="pt-4 border-t border-eddura-100 dark:border-eddura-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs text-eddura-500 dark:text-eddura-400">
+                          <Calendar className="h-3 w-3" />
+                          Added {format(new Date(recipient.createdAt), 'MMM dd, yyyy')}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setEditingRecipient(recipient)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(recipient.primaryEmail)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </ModernCard>
+              </motion.div>
+            ))}
+          </ResponsiveGrid>
+        )}
+      </AnimatePresence>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => setEditingRecipient(recipient)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => copyToClipboard(recipient.primaryEmail)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Stats */}
+      {/* Enhanced Stats */}
       {recipients.length > 0 && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Recipients Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{recipients.length}</div>
-                <div className="text-sm text-gray-600">Total Recipients</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {recipients.filter(r => r.prefersDrafts).length}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-12"
+        >
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-eddura-900 dark:text-eddura-100 mb-2">
+              Recipients Overview
+            </h2>
+            <p className="text-eddura-600 dark:text-eddura-400">
+              Insights about your recommendation network
+            </p>
+          </div>
+          
+          <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="lg">
+            <StatCard
+              label="Total Recipients"
+              value={recipients.length.toString()}
+              icon={<Users className="h-6 w-6 text-eddura-500" />}
+              change={{ value: "Active network", trend: "neutral" }}
+            />
+            <StatCard
+              label="Prefer Drafts"
+              value={recipients.filter(r => r.prefersDrafts).length.toString()}
+              icon={<Edit className="h-6 w-6 text-green-500" />}
+              change={{ 
+                value: `${Math.round((recipients.filter(r => r.prefersDrafts).length / recipients.length) * 100)}% of total`, 
+                trend: "up" 
+              }}
+            />
+            <StatCard
+              label="Institutions"
+              value={institutions.length.toString()}
+              icon={<Building className="h-6 w-6 text-blue-500" />}
+              change={{ value: "Unique institutions", trend: "neutral" }}
+            />
+            <StatCard
+              label="With Phone"
+              value={recipients.filter(r => r.phoneNumber).length.toString()}
+              icon={<Phone className="h-6 w-6 text-purple-500" />}
+              change={{ 
+                value: `${Math.round((recipients.filter(r => r.phoneNumber).length / recipients.length) * 100)}% have phone`, 
+                trend: recipients.filter(r => r.phoneNumber).length > recipients.length / 2 ? "up" : "neutral" 
+              }}
+            />
+          </ResponsiveGrid>
+
+          {/* Quick Actions */}
+          <div className="mt-8">
+            <ModernCard variant="gradient" className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100">
+                    Ready to request recommendations?
+                  </h3>
+                  <p className="text-eddura-600 dark:text-eddura-400">
+                    Start creating recommendation requests for your recipients.
+                  </p>
                 </div>
-                <div className="text-sm text-gray-600">Prefer Drafts</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {institutions.length}
+                <div className="flex gap-3">
+                  <Button variant="outline" className="bg-white/80 dark:bg-eddura-800/80">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    View Recommendations
+                  </Button>
+                  <Button className="bg-eddura-500 hover:bg-eddura-600">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Request
+                  </Button>
                 </div>
-                <div className="text-sm text-gray-600">Institutions</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {recipients.filter(r => r.phoneNumber).length}
-                </div>
-                <div className="text-sm text-gray-600">Have Phone</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </ModernCard>
+          </div>
+        </motion.div>
       )}
 
       {/* Edit Modal */}
@@ -418,6 +584,6 @@ export default function RecipientsPage() {
           onCancel={() => setEditingRecipient(null)}
         />
       )}
-    </div>
+    </ResponsiveContainer>
   );
 } 

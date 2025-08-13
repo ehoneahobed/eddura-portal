@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/ui/pagination';
 import { toast } from 'sonner';
+import { ResponsiveContainer } from '../ui/responsive-container';
 
 interface Application {
   _id: string;
@@ -59,7 +60,7 @@ export default function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize, _setPageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [total, setTotal] = useState<number>(0);
 
@@ -85,7 +86,7 @@ export default function ApplicationsPage() {
     if (session?.user?.id) {
       fetchApplications(1);
     }
-  }, [session?.user?.id, pageSize]);
+  }, [session?.user?.id, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     filterApplications();
@@ -177,7 +178,7 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <ResponsiveContainer maxWidth="8xl" padding="md" className="py-4 sm:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -453,6 +454,6 @@ export default function ApplicationsPage() {
           }}
         />
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 }
