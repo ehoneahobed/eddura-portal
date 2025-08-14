@@ -240,24 +240,27 @@ export default function QuizSection({ section }: QuizSectionProps) {
         return (
           <div className="space-y-4">
             {currentQuestion.options?.map((option) => (
-              <div key={option.value} className="flex items-start space-x-4 p-5 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer group">
+              <div
+                key={option.value}
+                className="flex items-start space-x-4 p-5 border rounded-lg transition-all duration-200 cursor-pointer group bg-white dark:bg-[var(--eddura-primary-900)] border-gray-200 dark:border-[var(--eddura-primary-800)] hover:bg-eddura-50 dark:hover:bg-[var(--eddura-primary-800)]"
+              >
                 <Checkbox
                   id={option.value}
                   checked={(responses[currentQuestion.id] as string[])?.includes(option.value) || false}
                   onCheckedChange={(checked) => 
                     handleMultiSelectChange(currentQuestion.id, option.value, checked as boolean)
                   }
-                  className="mt-1"
+                  className="mt-1 border-gray-300 dark:border-[var(--eddura-primary-700)] data-[state=checked]:bg-[var(--eddura-primary)] data-[state=checked]:border-[var(--eddura-primary)]"
                 />
                 <div className="flex-1 min-w-0">
                   <label 
                     htmlFor={option.value}
-                    className="text-base font-medium text-gray-900 cursor-pointer block group-hover:text-blue-900 transition-colors"
+                    className="text-base font-medium text-[var(--eddura-primary-900)] dark:text-white cursor-pointer block transition-colors"
                   >
                     {option.label}
                   </label>
                   {option.description && (
-                    <p className="text-sm text-gray-600 mt-2 leading-relaxed">{option.description}</p>
+                    <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] mt-2 leading-relaxed">{option.description}</p>
                   )}
                 </div>
               </div>
@@ -268,24 +271,27 @@ export default function QuizSection({ section }: QuizSectionProps) {
         return (
           <div className="space-y-4">
             {currentQuestion.options?.map((option) => (
-              <div key={option.value} className="flex items-start space-x-4 p-5 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer group">
+              <div
+                key={option.value}
+                className="flex items-start space-x-4 p-5 border rounded-lg transition-all duration-200 cursor-pointer group bg-white dark:bg-[var(--eddura-primary-900)] border-gray-200 dark:border-[var(--eddura-primary-800)] hover:bg-eddura-50 dark:hover:bg-[var(--eddura-primary-800)]"
+              >
                 <input
                   type="radio"
                   id={option.value}
                   name={currentQuestion.id}
                   checked={responses[currentQuestion.id] === option.value}
                   onChange={() => handleResponseChange(currentQuestion.id, option.value)}
-                  className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="mt-1 h-5 w-5 text-[var(--eddura-primary)] focus:ring-[var(--eddura-primary)] border-gray-300 dark:border-[var(--eddura-primary-700)] bg-white dark:bg-[var(--eddura-primary-900)]"
                 />
                 <div className="flex-1 min-w-0">
                   <label 
                     htmlFor={option.value}
-                    className="text-base font-medium text-gray-900 cursor-pointer block group-hover:text-blue-900 transition-colors"
+                    className="text-base font-medium text-[var(--eddura-primary-900)] dark:text-white cursor-pointer block transition-colors"
                   >
                     {option.label}
                   </label>
                   {option.description && (
-                    <p className="text-sm text-gray-600 mt-2 leading-relaxed">{option.description}</p>
+                    <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] mt-2 leading-relaxed">{option.description}</p>
                   )}
                 </div>
               </div>
@@ -299,7 +305,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
               placeholder={currentQuestion.placeholder}
               value={(responses[currentQuestion.id] as string) || ''}
               onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
-              className="min-h-[200px] resize-none text-base leading-relaxed p-4"
+              className="min-h-[200px] resize-none text-base leading-relaxed p-4 bg-white dark:bg-[var(--eddura-primary-900)] border border-gray-200 dark:border-[var(--eddura-primary-800)] text-[var(--eddura-primary-900)] dark:text-white placeholder-eddura-400 dark:placeholder-[var(--eddura-primary-400)]"
             />
             <p className="text-sm text-gray-500">
               Take your time to provide detailed and thoughtful responses.
@@ -314,10 +320,10 @@ export default function QuizSection({ section }: QuizSectionProps) {
   // Don't render if no questions are available for this section
   if (filteredQuestions.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] flex items-center justify-center">
         <Card className="max-w-md mx-auto">
           <CardContent className="p-6 text-center">
-            <p className="text-gray-600 mb-4">
+            <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] mb-4">
               No questions available for this section based on your previous responses.
             </p>
             <Button onClick={() => router.push('/quiz')}>
@@ -330,32 +336,28 @@ export default function QuizSection({ section }: QuizSectionProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="relative z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-[#00334e]">Eddura</h1>
-              </Link>
-              <div className="hidden sm:block">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  <Clock className="w-3 h-3 mr-1" />
-                  {section.estimatedTime} min
-                </Badge>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
+    <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
+
+      {/* Progress Bar */}
+      <div className="bg-white/90 dark:bg-[var(--eddura-primary-900)] dark:bg-opacity-90 backdrop-blur-xl border-b border-eddura-200 dark:border-eddura-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-100)]">
+              Section {currentSectionIndex + 1} of {filteredSections.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
+                {Math.round(overallProgress)}% Complete
+              </span>
+              <Badge variant="secondary" className="hidden sm:inline-flex bg-[var(--eddura-primary-100)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-white">
+                <Clock className="w-3 h-3 mr-1" />
+                {section.estimatedTime} min
+              </Badge>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowHelp(!showHelp)}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] hover:bg-[var(--eddura-primary-50)] dark:hover:bg-[var(--eddura-primary-800)]"
               >
                 <HelpCircle className="w-4 h-4 mr-1" />
                 Help
@@ -364,28 +366,14 @@ export default function QuizSection({ section }: QuizSectionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleResponseChange(currentQuestion.id, responses[currentQuestion.id])}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] hover:bg-[var(--eddura-primary-50)] dark:hover:bg-[var(--eddura-primary-800)]"
               >
                 <Save className="w-4 h-4 mr-1" />
                 Save
               </Button>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Progress Bar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Section {currentSectionIndex + 1} of {filteredSections.length}
-            </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(overallProgress)}% Complete
-            </span>
-          </div>
-          <Progress value={overallProgress} className="h-2" />
+          <Progress value={overallProgress} className="h-2 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-800)]" />
         </div>
       </div>
 
@@ -394,13 +382,13 @@ export default function QuizSection({ section }: QuizSectionProps) {
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
           {/* Left Sidebar - Section Info */}
           <div className="lg:col-span-2">
-            <Card className="sticky top-8">
+            <Card className="sticky top-8 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <span className="text-2xl">{section.icon}</span>
                   <span>{section.title}</span>
                 </CardTitle>
-                <CardDescription>{section.description}</CardDescription>
+                <CardDescription className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{section.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -412,7 +400,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
                     <Progress value={sectionProgress} className="h-2" />
                   </div>
                   
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
                     <p>Question {currentQuestionIndex + 1} of {filteredQuestions.length}</p>
                     <p className="mt-1">Estimated time: {section.estimatedTime} minutes</p>
                   </div>
@@ -431,7 +419,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card>
+                <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl">
@@ -444,7 +432,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
                       )}
                     </div>
                     {currentQuestion?.description && (
-                      <CardDescription className="text-base">
+                      <CardDescription className="text-base text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
                         {currentQuestion.description}
                       </CardDescription>
                     )}
@@ -453,7 +441,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
                     {renderQuestion()}
                     
                     {/* Navigation */}
-                    <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <div className="flex justify-between items-center pt-6 border-t border-eddura-100 dark:border-eddura-700">
                       <Button
                         variant="outline"
                         onClick={handlePrevious}
@@ -465,7 +453,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
                       </Button>
                       
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
                           {currentQuestionIndex + 1} of {filteredQuestions.length}
                         </span>
                       </div>
@@ -473,7 +461,7 @@ export default function QuizSection({ section }: QuizSectionProps) {
                       <Button
                         onClick={handleNext}
                         disabled={!canProceed() || isSubmitting}
-                        className="flex items-center space-x-2 bg-[#007fbd] hover:bg-[#004d73] text-white"
+                        className="flex items-center space-x-2 bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-dark)] text-white"
                       >
                         <span>
                           {isLastQuestion 
@@ -494,15 +482,15 @@ export default function QuizSection({ section }: QuizSectionProps) {
 
       {/* Help Modal */}
       {showHelp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="max-w-md mx-4 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
             <CardHeader>
               <CardTitle>Quiz Help</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <h4 className="font-medium mb-2">How to complete this quiz:</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <ul className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] space-y-1">
                   <li>• Answer all required questions to proceed</li>
                   <li>• You can select multiple options where allowed</li>
                   <li>• Your progress is automatically saved</li>
