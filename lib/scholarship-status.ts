@@ -1,4 +1,5 @@
 import { CheckCircle, Clock, AlertCircle, HelpCircle, Calendar } from 'lucide-react';
+import { getServerLocale, loadTranslations } from '@/lib/i18n';
 
 export interface ScholarshipStatus {
   isOpen: boolean;
@@ -23,10 +24,44 @@ export interface ScholarshipStatus {
   applyButtonDisabled: boolean;
 }
 
+interface StatusOptions {
+  /** Page-scoped translator for `pages.scholarships` keys. Expects keys like `status.xxx` */
+  tp?: (key: string, values?: Record<string, string | number>) => string;
+}
+
 export function getScholarshipStatus(
   deadline: string,
-  openingDate?: string
+  openingDate?: string,
+  options: StatusOptions = {}
 ): ScholarshipStatus {
+  // Load translations synchronously best-effort; fall back to English keys
+  const locale = getServerLocale();
+  // We can't use async here; so build a tiny sync-ish accessor with cached translations
+  // If not available, default to English phrases below
+  // This file may run on client too; guard dynamic require
+  let t: (k: string, values?: Record<string, string | number>) => string = (k) => k;
+  const tp = options.tp;
+  if (tp) {
+    t = (k, v) => tp(k, v);
+  } else {
+  try {
+    // @ts-ignore dynamic import cached by lib/i18n
+    const maybe = (global as any).__edduraTranslationsCache?.[locale];
+    if (maybe) {
+      const translations = maybe as any;
+      t = (k: string, values?: Record<string, string | number>) => {
+        const parts = k.split('.');
+        let cur: any = translations;
+        for (const p of parts) cur = cur?.[p];
+        if (typeof cur === 'string') {
+          if (!values) return cur;
+          return cur.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
+        }
+        return k;
+      };
+    }
+  } catch {}
+  }
   const now = new Date();
   const deadlineDate = new Date(deadline);
   const openingDateObj = openingDate ? new Date(openingDate) : null;
@@ -54,21 +89,21 @@ export function getScholarshipStatus(
   // Opening date info
   const getOpeningDateInfo = () => {
     if (!openingDate) {
-      return {
-        status: 'Opening date not specified',
+        return {
+          status: t('status.openingDateNotSpecified') || 'Opening date not specified',
         color: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: HelpCircle,
-        description: 'No specific opening date provided'
+          description: t('status.noOpeningDate') || 'No specific opening date provided'
       };
     }
     
     if (isNotYetOpen) {
       if (daysUntilOpening! <= 7) {
         return {
-          status: `Opens in ${daysUntilOpening} days`,
+          status: t('status.opensInDays', { count: daysUntilOpening! }) || `Opens in ${daysUntilOpening} days`,
           color: 'bg-blue-100 text-blue-800 border-blue-200',
           icon: Clock,
-          description: `Applications will open on ${openingDateObj!.toLocaleDateString('en-US', { 
+          description: `${t('status.applicationsOpenOn') || 'Applications will open on'} ${openingDateObj!.toLocaleDateString('en-US', { 
             weekday: 'long',
             year: 'numeric', 
             month: 'long', 
@@ -77,14 +112,14 @@ export function getScholarshipStatus(
         };
       } else {
         return {
-          status: `Opens ${openingDateObj!.toLocaleDateString('en-US', { 
+          status: `${t('status.opensOn') || 'Opens'} ${openingDateObj!.toLocaleDateString('en-US', { 
             month: 'short', 
             day: 'numeric',
             year: 'numeric'
           })}`,
           color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
           icon: Calendar,
-          description: `Applications will open on ${openingDateObj!.toLocaleDateString('en-US', { 
+          description: `${t('status.applicationsOpenOn') || 'Applications will open on'} ${openingDateObj!.toLocaleDateString('en-US', { 
             weekday: 'long',
             year: 'numeric', 
             month: 'long', 
@@ -94,10 +129,10 @@ export function getScholarshipStatus(
       }
     } else {
       return {
-        status: 'Currently Accepting',
+        status: t('filters.status.currentlyAccepting') || 'Currently Accepting',
         color: 'bg-green-100 text-green-800 border-green-200',
         icon: CheckCircle,
-        description: 'Applications are currently being accepted'
+        description: t('status.currentlyAcceptingDescription') || 'Applications are currently being accepted'
       };
     }
   };
@@ -106,20 +141,20 @@ export function getScholarshipStatus(
   const getDeadlineInfo = () => {
     if (isExpired) {
       return {
-        status: 'Application Closed',
+        status: t('status.applicationClosed') || 'Application Closed',
         color: 'bg-red-100 text-red-800 border-red-200',
         icon: AlertCircle,
-        description: 'The application deadline has passed',
+        description: t('status.deadlinePassed') || 'The application deadline has passed',
         daysLeft: daysUntilDeadline
       };
     }
     
     if (daysUntilDeadline <= 7) {
       return {
-        status: `Closes in ${daysUntilDeadline} days`,
+        status: t('status.closesInDays', { count: daysUntilDeadline }) || `Closes in ${daysUntilDeadline} days`,
         color: 'bg-orange-100 text-orange-800 border-orange-200',
         icon: Clock,
-        description: `Application deadline: ${deadlineDate.toLocaleDateString('en-US', { 
+        description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
           weekday: 'long',
           year: 'numeric', 
           month: 'long', 
@@ -131,14 +166,14 @@ export function getScholarshipStatus(
     
     if (daysUntilDeadline <= 30) {
       return {
-        status: `Closes ${deadlineDate.toLocaleDateString('en-US', { 
+        status: `${t('status.closesOn') || 'Closes'} ${deadlineDate.toLocaleDateString('en-US', { 
           month: 'short', 
           day: 'numeric',
           year: 'numeric'
         })}`,
         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         icon: Calendar,
-        description: `Application deadline: ${deadlineDate.toLocaleDateString('en-US', { 
+        description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
           weekday: 'long',
           year: 'numeric', 
           month: 'long', 
@@ -151,10 +186,10 @@ export function getScholarshipStatus(
     // If scholarship hasn't opened yet, show "Prepare Application" instead of "Currently Accepting"
     if (isNotYetOpen) {
       return {
-        status: 'Prepare Application',
+        status: t('status.prepareApplication') || 'Prepare Application',
         color: 'bg-blue-100 text-blue-800 border-blue-200',
         icon: Calendar,
-        description: `Application deadline: ${deadlineDate.toLocaleDateString('en-US', { 
+        description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
           weekday: 'long',
           year: 'numeric', 
           month: 'long', 
@@ -165,10 +200,10 @@ export function getScholarshipStatus(
     }
     
     return {
-      status: 'Currently Accepting',
+      status: t('filters.status.currentlyAccepting') || 'Currently Accepting',
       color: 'bg-green-100 text-green-800 border-green-200',
       icon: CheckCircle,
-      description: `Application deadline: ${deadlineDate.toLocaleDateString('en-US', { 
+      description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
         weekday: 'long',
         year: 'numeric', 
         month: 'long', 
@@ -182,20 +217,20 @@ export function getScholarshipStatus(
   const getApplyButtonInfo = () => {
     if (isExpired) {
       return {
-        text: 'Application Closed',
+        text: t('status.applicationClosed') || 'Application Closed',
         disabled: true
       };
     }
     
     if (isNotYetOpen) {
       return {
-        text: 'Prepare Application',
+        text: t('status.prepareApplication') || 'Prepare Application',
         disabled: false
       };
     }
     
     return {
-      text: 'Apply Now',
+      text: t('status.applyNow') || 'Apply Now',
       disabled: false
     };
   };

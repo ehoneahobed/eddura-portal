@@ -6,27 +6,30 @@ import SessionProvider from '@/components/providers/SessionProvider';
 import ErrorBoundaryProvider from '@/components/providers/ErrorBoundaryProvider';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { I18nProvider } from '@/components/providers/I18nProvider';
 import { Toaster } from '@/components/ui/toaster';
+import { getInitialLocale } from '@/lib/i18n';
+import { headers } from 'next/headers';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
-    default: 'Eddura - Educational Management Platform',
+    default: 'Eddura - Scholarships and School Application Platform',
     template: '%s | Eddura'
   },
-  description: 'Eddura is a comprehensive educational management platform for schools, programs, and scholarships. Streamline your educational institution management with our powerful tools.',
+  description: 'Eddura is a comprehensive platform for managing your schools, programs, and scholarships applications.',
   keywords: [
     'Eddura',
-    'educational management',
-    'school management',
-    'program management',
-    'scholarship management',
-    'education platform',
+    'scholarships',
+    'school applications',
+    'program applications',
+    'scholarship applications',
+    'scholarship platform',
     'academic programs',
     'educational institutions',
-    'student management',
-    'education technology'
+    'student applications',
+    'scholarship technology'
   ],
   authors: [{ name: 'Eddura Team' }],
   creator: 'Eddura',
@@ -44,23 +47,23 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://eddura.com',
-    title: 'Eddura - Educational Management Platform',
-    description: 'Comprehensive platform for managing schools, programs, and scholarships. Streamline your educational institution management.',
+    title: 'Eddura - Scholarships and School Application Platform',
+    description: 'Eddura is a comprehensive platform for managing your schools, programs, and scholarships applications.',
     siteName: 'Eddura',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/assets/images/eddura-logo-white-text.jpg',
         width: 1200,
         height: 630,
-        alt: 'Eddura - Educational Management Platform',
+        alt: 'Eddura - Scholarships and School Application Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Eddura - Educational Management Platform',
-    description: 'Comprehensive platform for managing schools, programs, and scholarships.',
-    images: ['/og-image.jpg'],
+    title: 'Eddura - Scholarships and School Application Platform',
+    description: 'Eddura is a comprehensive platform for managing your schools, programs, and scholarships applications.',
+    images: ['/assets/images/eddura-logo-white-text.jpg'],
     creator: '@eddura',
   },
   robots: {
@@ -81,13 +84,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Get initial locale from headers (set by middleware)
+  const headersList = await headers();
+  const initialLocale = headersList.get('x-locale') || 'en';
+
   return (
-    <html lang="en">
+    <html lang={initialLocale} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -97,13 +104,15 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <ErrorBoundaryProvider>
           <SessionProvider>
             <SWRProvider>
               <AnalyticsProvider>
                 <ThemeProvider>
-                  {children}
+                  <I18nProvider initialLocale={initialLocale as any}>
+                    {children}
+                  </I18nProvider>
                 </ThemeProvider>
                 <Toaster />
               </AnalyticsProvider>

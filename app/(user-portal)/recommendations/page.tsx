@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 interface RecommendationRequest {
   _id: string;
@@ -32,6 +33,7 @@ interface RecommendationRequest {
 export default function RecommendationsPage() {
   const [requests, setRequests] = useState<RecommendationRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = usePageTranslation('recommendationsPage');
 
   useEffect(() => {
     fetchRequests();
@@ -117,15 +119,13 @@ export default function RecommendationsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Recommendation Letters</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your recommendation letter requests and track their status
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">{t('subtitle')}</p>
         </div>
         <Link href="/recommendations/new">
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            New Request
+            {t('actions.newRequest')}
           </Button>
         </Link>
       </div>
@@ -135,13 +135,11 @@ export default function RecommendationsPage() {
           <CardContent className="text-center py-12">
             <div className="text-gray-500 mb-4">
               <Clock className="h-12 w-12 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No recommendation requests yet</h3>
-              <p className="text-sm">
-                Start by creating your first recommendation letter request
-              </p>
+              <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">{t('empty.title')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('empty.description')}</p>
             </div>
             <Link href="/recommendations/new">
-              <Button>Create First Request</Button>
+              <Button>{t('empty.createFirst')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -154,64 +152,64 @@ export default function RecommendationsPage() {
                   <div className="flex-1">
                     <CardTitle className="text-lg">{request.title}</CardTitle>
                     <CardDescription className="mt-1">
-                      {request.recipientId?.name || 'Unknown Recipient'} • {request.recipientId?.institution || 'Unknown Institution'}
+                      {request.recipientId?.name || t('labels.unknownRecipient')} • {request.recipientId?.institution || t('labels.unknownInstitution')}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(request.status)}
                     <Badge className={getStatusColor(request.status)}>
-                      {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                      {t(`status.${request.status}`)}
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  <p className="text-sm text-gray-600 line-clamp-2 dark:text-gray-400">
                     {request.description}
                   </p>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge className={getPriorityColor(request.priority)}>
-                        {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)} Priority
+                        {t(`priority.${request.priority}`)}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {format(new Date(request.deadline), 'MMM dd, yyyy')}
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {format(new Date(request.deadline), t('dateFormat'))}
                     </div>
                   </div>
 
                   {request.status !== 'received' && request.status !== 'cancelled' && (
-                    <div className="text-sm">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       {getDaysUntilDeadline(request.deadline) > 0 ? (
                         <span className="text-yellow-600">
-                          {getDaysUntilDeadline(request.deadline)} days remaining
+                          {t('deadline.daysRemaining', { count: getDaysUntilDeadline(request.deadline) })}
                         </span>
                       ) : (
                         <span className="text-red-600">
-                          {Math.abs(getDaysUntilDeadline(request.deadline))} days overdue
+                          {t('deadline.daysOverdue', { count: Math.abs(getDaysUntilDeadline(request.deadline)) })}
                         </span>
                       )}
                     </div>
                   )}
 
                   {request.status === 'received' && (
-                    <div className="text-sm text-green-600">
-                      Received on {format(new Date(request.receivedAt!), 'MMM dd, yyyy')}
+                    <div className="text-sm text-green-600 dark:text-green-400">
+                      {t('deadline.receivedOn', { date: format(new Date(request.receivedAt!), t('dateFormat')) })}
                     </div>
                   )}
 
                   <div className="flex gap-2 pt-2">
                     <Link href={`/recommendations/${request._id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Details
+                      <Button variant="outline" size="sm" className="w-full text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        {t('actions.viewDetails')}
                       </Button>
                     </Link>
                     {request.status === 'pending' && (
                       <Link href={`/recommendations/${request._id}/edit`} className="flex-1">
-                        <Button size="sm" className="w-full">
-                          Edit
+                        <Button size="sm" className="w-full text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                          {t('actions.edit')}
                         </Button>
                       </Link>
                     )}

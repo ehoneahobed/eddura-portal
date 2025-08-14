@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ModernCard, StatCard, FeatureCard } from '@/components/ui/modern-card';
@@ -38,6 +38,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import AddRecipientModal from '@/components/recommendations/AddRecipientModal';
 import EditRecipientModal from '@/components/recommendations/EditRecipientModal';
+import { usePageTranslation, useNotificationTranslation } from '@/hooks/useTranslation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,6 +70,8 @@ interface Recipient {
 }
 
 export default function RecipientsPage() {
+  const { t } = usePageTranslation('recommendations');
+  const { t: tNotification } = useNotificationTranslation();
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,11 +80,7 @@ export default function RecipientsPage() {
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [deletingRecipient, setDeletingRecipient] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRecipients();
-  }, []);
-
-  const fetchRecipients = async () => {
+  const fetchRecipients = useCallback(async () => {
     try {
       const response = await fetch('/api/recommendations/recipients');
       const data = await response.json();
@@ -90,15 +89,19 @@ export default function RecipientsPage() {
       }
     } catch (error) {
       console.error('Error fetching recipients:', error);
-      toast.error('Failed to fetch recipients');
+      toast.error(tNotification('error.fetchFailed'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [tNotification]);
+
+  useEffect(() => {
+    fetchRecipients();
+  }, [fetchRecipients]);
 
   const handleRecipientAdded = (newRecipient: Recipient) => {
     setRecipients(prev => [newRecipient, ...prev]);
-    toast.success('Recipient added successfully!');
+    toast.success(tNotification('success.recipientAdded'));
   };
 
   const handleRecipientUpdated = (updatedRecipient: Recipient) => {
@@ -106,11 +109,11 @@ export default function RecipientsPage() {
       prev.map(r => r._id === updatedRecipient._id ? updatedRecipient : r)
     );
     setEditingRecipient(null);
-    toast.success('Recipient updated successfully!');
+    toast.success(tNotification('success.recipientUpdated'));
   };
 
   const handleDeleteRecipient = async (recipientId: string) => {
-    if (!confirm('Are you sure you want to delete this recipient? This action cannot be undone.')) {
+    if (!confirm(`${t('actions.confirmDelete')} ${t('actions.deleteWarning')}`)) {
       return;
     }
 
@@ -122,14 +125,14 @@ export default function RecipientsPage() {
 
       if (response.ok) {
         setRecipients(prev => prev.filter(r => r._id !== recipientId));
-        toast.success('Recipient deleted successfully!');
+        toast.success(tNotification('success.recipientDeleted'));
       } else {
         const data = await response.json();
-        toast.error(data.error || 'Failed to delete recipient');
+        toast.error(data.error || tNotification('error.recipientDeleteFailed'));
       }
     } catch (error) {
       console.error('Error deleting recipient:', error);
-      toast.error('Failed to delete recipient');
+      toast.error(tNotification('error.recipientDeleteFailed'));
     } finally {
       setDeletingRecipient(null);
     }
@@ -137,7 +140,7 @@ export default function RecipientsPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success(tNotification('success.copiedToClipboard'));
   };
 
   const filteredRecipients = recipients.filter(recipient => {
@@ -192,19 +195,18 @@ export default function RecipientsPage() {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-eddura-900 dark:text-eddura-100">
-                  Recipients
+                  {t('title')}
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
                   <Sparkles className="h-4 w-4 text-accent" />
                   <span className="text-eddura-600 dark:text-eddura-400 font-medium">
-                    {recipients.length} total recipients
+                    {t('header.totalCount', { count: recipients.length })}
                   </span>
                 </div>
               </div>
             </div>
             <p className="text-lg text-eddura-700 dark:text-eddura-300 max-w-2xl">
-              Manage your professors, supervisors, and managers who can write recommendation letters. 
-              Build your network of trusted recommenders.
+              {t('subtitle')}
             </p>
           </div>
           
@@ -214,7 +216,7 @@ export default function RecipientsPage() {
               trigger={
                 <Button size="lg" className="bg-eddura-500 hover:bg-eddura-600 shadow-eddura">
                   <Plus className="h-5 w-5 mr-2" />
-                  Add Recipient
+                  {t('actions.addRecipient')}
                 </Button>
               }
             />
@@ -235,17 +237,17 @@ export default function RecipientsPage() {
               <Filter className="h-5 w-5 text-eddura-600 dark:text-eddura-400" />
             </div>
             <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-              Filter & Search
+              {t('search.title')}
             </h2>
           </div>
           
           <ResponsiveGrid cols={{ default: 1, md: 3 }} gap="lg">
             <div className="space-y-2">
               <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
-                Search Recipients
+                {t('search.searchRecipientsLabel')}
               </label>
               <Input
-                placeholder="Search by name, email, institution..."
+                placeholder={t('search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 leftIcon={<Search className="h-4 w-4" />}
@@ -255,14 +257,14 @@ export default function RecipientsPage() {
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
-                Institution
+                {t('search.filterByInstitution')}
               </label>
               <Select value={filterInstitution} onValueChange={setFilterInstitution}>
                 <SelectTrigger className="bg-white dark:bg-eddura-800">
-                  <SelectValue placeholder="All institutions" />
+                  <SelectValue placeholder={t('search.allInstitutions')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All institutions</SelectItem>
+                  <SelectItem value="all">{t('search.allInstitutions')}</SelectItem>
                   {institutions.map((institution) => (
                     <SelectItem key={institution} value={institution}>
                       {institution}
@@ -274,16 +276,16 @@ export default function RecipientsPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
-                Draft Preference
+                {t('search.filterByPreference')}
               </label>
               <Select value={filterPreference} onValueChange={setFilterPreference}>
                 <SelectTrigger className="bg-white dark:bg-eddura-800">
-                  <SelectValue placeholder="All preferences" />
+                  <SelectValue placeholder={t('search.allPreferences')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All preferences</SelectItem>
-                  <SelectItem value="drafts">Prefers drafts</SelectItem>
-                  <SelectItem value="no-drafts">No drafts</SelectItem>
+                  <SelectItem value="all">{t('search.allPreferences')}</SelectItem>
+                  <SelectItem value="drafts">{t('search.prefersDrafts')}</SelectItem>
+                  <SelectItem value="no-drafts">{t('search.prefersEmail')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -294,7 +296,7 @@ export default function RecipientsPage() {
             <div className="mt-4 pt-4 border-t border-eddura-200 dark:border-eddura-700">
               <div className="flex items-center gap-2 text-sm text-eddura-600 dark:text-eddura-400">
                 <CheckCircle className="h-4 w-4" />
-                Showing {filteredRecipients.length} of {recipients.length} recipients
+                {t('search.showing', { count: filteredRecipients.length, total: recipients.length })}
               </div>
             </div>
           )}
@@ -316,12 +318,12 @@ export default function RecipientsPage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                    {recipients.length === 0 ? 'No recipients yet' : 'No recipients match your filters'}
+                    {recipients.length === 0 ? t('empty.title') : t('empty.filter.title')}
                   </h3>
                   <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
                     {recipients.length === 0 
-                      ? 'Start building your network by adding professors, supervisors, and mentors who can write recommendation letters for you.'
-                      : 'Try adjusting your search criteria or filters to find the recipients you\'re looking for.'
+                      ? t('empty.description')
+                      : t('empty.filter.description')
                     }
                   </p>
                 </div>
@@ -331,7 +333,7 @@ export default function RecipientsPage() {
                     trigger={
                       <Button size="lg" className="bg-eddura-500 hover:bg-eddura-600">
                         <Plus className="h-5 w-5 mr-2" />
-                        Add Your First Recipient
+                        {t('empty.addFirst')}
                       </Button>
                     }
                   />
@@ -380,11 +382,11 @@ export default function RecipientsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => setEditingRecipient(recipient)}>
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                            {t('recipient.edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => copyToClipboard(recipient.primaryEmail)}>
                             <Copy className="h-4 w-4 mr-2" />
-                            Copy Primary Email
+                            {t('recipient.copyEmail')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteRecipient(recipient._id)}
@@ -392,7 +394,7 @@ export default function RecipientsPage() {
                             disabled={deletingRecipient === recipient._id}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            {deletingRecipient === recipient._id ? 'Deleting...' : 'Delete'}
+                            {deletingRecipient === recipient._id ? t('actions.deleting') : t('recipient.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -407,12 +409,12 @@ export default function RecipientsPage() {
                         <span className="text-sm text-eddura-700 dark:text-eddura-300 font-medium truncate">
                           {recipient.primaryEmail}
                         </span>
-                        <Badge variant="outline" className="text-xs">Primary</Badge>
+                        <Badge variant="outline" className="text-xs">{t('recipient.primaryEmail')}</Badge>
                       </div>
                       
                       {recipient.emails.length > 1 && (
                         <div className="ml-6 text-xs text-eddura-600 dark:text-eddura-400">
-                          +{recipient.emails.length - 1} more email{recipient.emails.length > 2 ? 's' : ''}
+                          {t('recipient.moreEmails', { count: recipient.emails.length - 1 })}
                         </div>
                       )}
                       
@@ -451,10 +453,10 @@ export default function RecipientsPage() {
                         {recipient.prefersDrafts ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Prefers Drafts
+                            {t('recipient.prefersDrafts')}
                           </>
                         ) : (
-                          'No Drafts'
+                          t('recipient.noDrafts')
                         )}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
@@ -468,7 +470,7 @@ export default function RecipientsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1 text-xs text-eddura-500 dark:text-eddura-400">
                           <Calendar className="h-3 w-3" />
-                          Added {format(new Date(recipient.createdAt), 'MMM dd, yyyy')}
+                          {t('recipient.addedOn', { date: format(new Date(recipient.createdAt), 'MMM dd, yyyy') })}
                         </div>
                         <div className="flex gap-2">
                           <Button 
@@ -508,41 +510,41 @@ export default function RecipientsPage() {
         >
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-eddura-900 dark:text-eddura-100 mb-2">
-              Recipients Overview
+              {t('overview.title')}
             </h2>
             <p className="text-eddura-600 dark:text-eddura-400">
-              Insights about your recommendation network
+              {t('overview.subtitle')}
             </p>
           </div>
           
           <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="lg">
             <StatCard
-              label="Total Recipients"
+              label={t('overview.cards.totalRecipients')}
               value={recipients.length.toString()}
               icon={<Users className="h-6 w-6 text-eddura-500" />}
-              change={{ value: "Active network", trend: "neutral" }}
+              change={{ value: t('overview.activeNetwork'), trend: "neutral" }}
             />
             <StatCard
-              label="Prefer Drafts"
+              label={t('overview.cards.prefersDrafts')}
               value={recipients.filter(r => r.prefersDrafts).length.toString()}
               icon={<Edit className="h-6 w-6 text-green-500" />}
               change={{ 
-                value: `${Math.round((recipients.filter(r => r.prefersDrafts).length / recipients.length) * 100)}% of total`, 
+                value: t('overview.percentOfTotal', { percent: Math.round((recipients.filter(r => r.prefersDrafts).length / recipients.length) * 100) }), 
                 trend: "up" 
               }}
             />
             <StatCard
-              label="Institutions"
+              label={t('overview.cards.institutions')}
               value={institutions.length.toString()}
               icon={<Building className="h-6 w-6 text-blue-500" />}
-              change={{ value: "Unique institutions", trend: "neutral" }}
+              change={{ value: t('overview.cards.uniqueInstitutions'), trend: "neutral" }}
             />
             <StatCard
-              label="With Phone"
+              label={t('overview.cards.withPhone')}
               value={recipients.filter(r => r.phoneNumber).length.toString()}
               icon={<Phone className="h-6 w-6 text-purple-500" />}
               change={{ 
-                value: `${Math.round((recipients.filter(r => r.phoneNumber).length / recipients.length) * 100)}% have phone`, 
+                value: t('overview.percentHavePhone', { percent: Math.round((recipients.filter(r => r.phoneNumber).length / recipients.length) * 100) }), 
                 trend: recipients.filter(r => r.phoneNumber).length > recipients.length / 2 ? "up" : "neutral" 
               }}
             />
@@ -554,20 +556,20 @@ export default function RecipientsPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100">
-                    Ready to request recommendations?
+                    {t('cta.title')}
                   </h3>
                   <p className="text-eddura-600 dark:text-eddura-400">
-                    Start creating recommendation requests for your recipients.
+                    {t('cta.description')}
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <Button variant="outline" className="bg-white/80 dark:bg-eddura-800/80">
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    View Recommendations
+                    {t('cta.viewRecommendations')}
                   </Button>
                   <Button className="bg-eddura-500 hover:bg-eddura-600">
                     <Plus className="h-4 w-4 mr-2" />
-                    New Request
+                    {t('cta.newRequest')}
                   </Button>
                 </div>
               </div>

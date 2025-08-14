@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { useSquads } from '@/hooks/use-squads';
+import { usePageTranslation } from '@/hooks/useTranslation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ import SquadCard from './SquadCard';
 
 export default function SquadsDashboard() {
   const { data: session } = useSession();
+  const { t } = usePageTranslation('squads');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [activeTab, setActiveTab] = useState('my-squads');
@@ -31,8 +33,8 @@ export default function SquadsDashboard() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Sign in to access Eddura Squads</h2>
-          <p className="text-muted-foreground">Join collaborative groups to support your application journey</p>
+          <h2 className="text-2xl font-bold mb-2">{t('auth.signInTitle')}</h2>
+          <p className="text-muted-foreground">{t('auth.signInSubtitle')}</p>
         </div>
       </div>
     );
@@ -53,15 +55,15 @@ export default function SquadsDashboard() {
                 <Users className="h-6 w-6 text-eddura-600 dark:text-eddura-400" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold text-eddura-900 dark:text-eddura-100">Eddura Squads</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold text-eddura-900 dark:text-eddura-100">{t('dashboard.title')}</h1>
                 <div className="flex items-center gap-2 mt-1 text-eddura-600 dark:text-eddura-400">
                   <Sparkles className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{mySquads.length} in My Squads • {publicSquads.length} public</span>
+                  <span className="text-sm sm:text-base">{t('dashboard.counts', { mine: mySquads.length, public: publicSquads.length })}</span>
                 </div>
               </div>
             </div>
             <p className="text-sm sm:text-lg text-eddura-700 dark:text-eddura-300">
-              Join collaborative groups to support your application journey
+              {t('dashboard.subtitle')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -71,14 +73,14 @@ export default function SquadsDashboard() {
               className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800"
             >
               <Users className="w-4 h-4 mr-2" />
-              Join Squad
+              {t('actions.joinSquad')}
             </Button>
             <Button 
               onClick={() => setShowCreateModal(true)}
               className="bg-eddura-500 hover:bg-eddura-600"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Squad
+              {t('actions.createSquad')}
             </Button>
           </div>
         </div>
@@ -93,34 +95,34 @@ export default function SquadsDashboard() {
       >
         <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="md">
           <StatCard
-            label="Total Squads"
+            label={t('stats.totalSquads')}
             value={mySquads.length}
             icon={<Users className="h-6 w-6 text-eddura-500" />}
-            change={{ value: `${primarySquad ? '1 Primary' : '0 Primary'} • ${secondarySquads.length} Secondary`, trend: 'neutral' }}
+            change={{ value: t('stats.primarySecondary', { primary: primarySquad ? 1 : 0, secondary: secondarySquads.length }), trend: 'neutral' }}
           />
           <StatCard
-            label="Active Goals"
+            label={t('stats.activeGoals')}
             value={mySquads.reduce((total: number, squad: any) => total + squad.goals.length, 0)}
             icon={<Target className="h-6 w-6 text-accent" />}
-            change={{ value: 'Across all squads', trend: 'neutral' }}
+            change={{ value: t('stats.acrossAllSquads'), trend: 'neutral' }}
           />
           <StatCard
-            label="Avg Progress"
+            label={t('stats.avgProgress')}
             value={`${mySquads.length > 0 
               ? Math.round(mySquads.reduce((total: number, squad: any) => total + squad.completionPercentage, 0) / mySquads.length)
               : 0}%`}
             icon={<TrendingUp className="h-6 w-6 text-green-500" />}
-            change={{ value: 'Overall completion', trend: 'neutral' }}
+            change={{ value: t('stats.overallCompletion'), trend: 'neutral' }}
           />
           <StatCard
-            label="Need Help"
+            label={t('stats.needHelp')}
             value={mySquads.reduce((total: number, squad: any) => 
               total + squad.goals.reduce((goalTotal: number, goal: any) => 
                 goalTotal + goal.memberProgress.filter((mp: any) => mp.needsHelp).length, 0
               ), 0
             )}
             icon={<AlertCircle className="h-6 w-6 text-yellow-500" />}
-            change={{ value: 'Members needing support', trend: 'neutral' }}
+            change={{ value: t('stats.membersNeedingSupport'), trend: 'neutral' }}
           />
         </ResponsiveGrid>
       </motion.div>
@@ -136,26 +138,26 @@ export default function SquadsDashboard() {
           <div className="p-2 bg-eddura-100 dark:bg-eddura-800 rounded-lg">
             <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
           </div>
-          <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">Quick Actions</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">{t('quick.title')}</h2>
         </div>
         <ResponsiveGrid cols={{ default: 1, md: 3 }} gap="md">
           <FeatureCard
             icon={<Users className="h-6 w-6 text-eddura-500" />}
-            title="Discover Public Squads"
-            description="Find active communities aligned with your interests."
-            action={{ label: 'Browse Public Squads', onClick: () => setActiveTab('discover') }}
+            title={t('quick.discover.title')}
+            description={t('quick.discover.description')}
+            action={{ label: t('quick.discover.action'), onClick: () => setActiveTab('discover') }}
           />
           <FeatureCard
             icon={<Plus className="h-6 w-6 text-eddura-500" />}
-            title="Create a Squad"
-            description="Start a new group and invite peers to join."
-            action={{ label: 'Create Squad', onClick: () => setShowCreateModal(true) }}
+            title={t('quick.create.title')}
+            description={t('quick.create.description')}
+            action={{ label: t('quick.create.action'), onClick: () => setShowCreateModal(true) }}
           />
           <FeatureCard
             icon={<Target className="h-6 w-6 text-eddura-500" />}
-            title="Track Your Goals"
-            description="Monitor progress across your squads."
-            action={{ label: 'View My Squads', onClick: () => setActiveTab('my-squads') }}
+            title={t('quick.track.title')}
+            description={t('quick.track.description')}
+            action={{ label: t('quick.track.action'), onClick: () => setActiveTab('my-squads') }}
           />
         </ResponsiveGrid>
       </motion.div>
@@ -167,19 +169,19 @@ export default function SquadsDashboard() {
             value="my-squads"
             className="data-[state=active]:bg-white dark:data-[state=active]:bg-eddura-800 data-[state=active]:text-eddura-900 dark:data-[state=active]:text-eddura-100"
           >
-            My Squads
+            {t('tabs.mySquads')}
           </TabsTrigger>
           <TabsTrigger 
             value="discover"
             className="data-[state=active]:bg-white dark:data-[state=active]:bg-eddura-800 data-[state=active]:text-eddura-900 dark:data-[state=active]:text-eddura-100"
           >
-            Discover
+            {t('tabs.discover')}
           </TabsTrigger>
           <TabsTrigger 
             value="create"
             className="data-[state=active]:bg-white dark:data-[state=active]:bg-eddura-800 data-[state=active]:text-eddura-900 dark:data-[state=active]:text-eddura-100"
           >
-            Create
+            {t('tabs.create')}
           </TabsTrigger>
         </TabsList>
 
@@ -188,20 +190,20 @@ export default function SquadsDashboard() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-eddura-500 mx-auto mb-2"></div>
-                <p className="text-eddura-600 dark:text-eddura-400">Loading your squads...</p>
+                <p className="text-eddura-600 dark:text-eddura-400">{t('loading.mySquads')}</p>
               </div>
             </div>
           ) : mySquads.length === 0 ? (
             <ModernCard variant="outlined" className="text-center">
               <CardContent className="flex flex-col items-center justify-center py-8">
                 <Users className="h-12 w-12 text-eddura-500 mb-4" />
-                <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100 mb-2">No squads yet</h3>
+                <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100 mb-2">{t('empty.title')}</h3>
                 <p className="text-eddura-600 dark:text-eddura-400 text-center mb-4">
-                  Join or create your first squad to start collaborating with peers
+                  {t('empty.description')}
                 </p>
                 <Button onClick={() => setShowCreateModal(true)} className="bg-eddura-500 hover:bg-eddura-600">
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Squad
+                  {t('empty.createFirst')}
                 </Button>
               </CardContent>
             </ModernCard>
@@ -211,8 +213,8 @@ export default function SquadsDashboard() {
               {primarySquad && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <Badge className="bg-eddura-100 text-eddura-800 dark:bg-eddura-800 dark:text-eddura-200">Primary Squad</Badge>
-                    <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">Your Main Squad</h2>
+                    <Badge className="bg-eddura-100 text-eddura-800 dark:bg-eddura-800 dark:text-eddura-200">{t('sections.primary.badge')}</Badge>
+                    <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">{t('sections.primary.heading')}</h2>
                   </div>
                   <SquadCard squad={primarySquad} />
                 </div>
@@ -222,8 +224,8 @@ export default function SquadsDashboard() {
               {secondarySquads.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <Badge className="bg-eddura-50 text-eddura-800 dark:bg-eddura-800 dark:text-eddura-200">Secondary Squads</Badge>
-                    <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">Specialized Groups</h2>
+                    <Badge className="bg-eddura-50 text-eddura-800 dark:bg-eddura-800 dark:text-eddura-200">{t('sections.secondary.badge')}</Badge>
+                    <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">{t('sections.secondary.heading')}</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {secondarySquads.map((squad: any) => (
@@ -241,16 +243,16 @@ export default function SquadsDashboard() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-eddura-500 mx-auto mb-2"></div>
-                <p className="text-eddura-600 dark:text-eddura-400">Discovering public squads...</p>
+                <p className="text-eddura-600 dark:text-eddura-400">{t('loading.discover')}</p>
               </div>
             </div>
           ) : publicSquads.length === 0 ? (
             <ModernCard variant="outlined" className="text-center">
               <CardContent className="flex flex-col items-center justify-center py-8">
                 <Users className="h-12 w-12 text-eddura-500 mb-4" />
-                <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100 mb-2">No public squads available</h3>
+                <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100 mb-2">{t('discover.empty.title')}</h3>
                 <p className="text-eddura-600 dark:text-eddura-400 text-center">
-                  Check back later or create your own squad
+                  {t('discover.empty.description')}
                 </p>
               </CardContent>
             </ModernCard>
@@ -264,21 +266,21 @@ export default function SquadsDashboard() {
         </TabsContent>
 
         <TabsContent value="create" className="space-y-4">
-          <ModernCard variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-eddura-900 dark:text-eddura-100">Create a New Squad</CardTitle>
-              <CardDescription className="text-eddura-600 dark:text-eddura-400">
-                Start a collaborative group to support your application journey
-              </CardDescription>
-            </CardHeader>
+            <ModernCard variant="elevated">
+              <CardHeader>
+                <CardTitle className="text-eddura-900 dark:text-eddura-100">{t('create.title')}</CardTitle>
+                <CardDescription className="text-eddura-600 dark:text-eddura-400">
+                  {t('create.description')}
+                </CardDescription>
+              </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-eddura-900 dark:text-eddura-100">Primary Squad</h4>
-                    <p className="text-sm text-eddura-600 dark:text-eddura-400">
-                      Your main accountability group. You can only have one primary squad.
-                    </p>
+                      <h4 className="font-semibold text-eddura-900 dark:text-eddura-100">{t('create.primary.title')}</h4>
+                      <p className="text-sm text-eddura-600 dark:text-eddura-400">
+                        {t('create.primary.description')}
+                      </p>
                     <Button 
                       variant="outline" 
                       onClick={() => setShowCreateModal(true)}
@@ -286,21 +288,21 @@ export default function SquadsDashboard() {
                       className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Primary Squad
+                        {t('create.primary.button')}
                     </Button>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-eddura-900 dark:text-eddura-100">Secondary Squad</h4>
-                    <p className="text-sm text-eddura-600 dark:text-eddura-400">
-                      Specialized groups for specific interests or goals.
-                    </p>
+                      <h4 className="font-semibold text-eddura-900 dark:text-eddura-100">{t('create.secondary.title')}</h4>
+                      <p className="text-sm text-eddura-600 dark:text-eddura-400">
+                        {t('create.secondary.description')}
+                      </p>
                     <Button 
                       variant="outline" 
                       onClick={() => setShowCreateModal(true)}
                       className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Secondary Squad
+                        {t('create.secondary.button')}
                     </Button>
                   </div>
                 </div>

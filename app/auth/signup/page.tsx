@@ -12,6 +12,7 @@ import Link from "next/link";
 import { z } from "zod";
 import { ThemeAwareLogo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 const signupSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -109,8 +110,9 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center p-4">
-      {/* Theme toggle in top right */}
-      <div className="absolute top-6 right-6">
+      {/* Language selector and theme toggle in top right */}
+      <div className="absolute top-6 right-6 flex items-center space-x-3">
+        <LanguageSelector variant="compact" showLabel={false} />
         <ThemeToggle />
       </div>
 

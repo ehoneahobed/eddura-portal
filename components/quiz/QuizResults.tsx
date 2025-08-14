@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QUIZ_SECTIONS, getQuestionById } from '@/lib/quiz-config';
+// Removed ResponsiveContainer import – not needed for page layout
 
 interface QuizResults {
   quizCompleted: boolean;
@@ -351,10 +352,10 @@ export default function QuizResults() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your results...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--eddura-primary)] mx-auto mb-4"></div>
+          <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Loading your results...</p>
         </div>
       </div>
     );
@@ -362,13 +363,13 @@ export default function QuizResults() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] flex items-center justify-center">
         <div className="text-center max-w-md mx-auto">
           <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-xl font-semibold text-[var(--eddura-primary-900)] dark:text-white mb-2">Error</h2>
+          <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] mb-4">{error}</p>
           <Button onClick={() => window.location.reload()}>
             Try Again
           </Button>
@@ -379,16 +380,16 @@ export default function QuizResults() {
 
   if (!results) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">No results found.</p>
+          <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">No results found.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] py-4 sm:py-8">
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -401,10 +402,10 @@ export default function QuizResults() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-4xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">
                 Career Discovery Results
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
                 Personalized insights and recommendations based on your quiz responses
               </p>
             </motion.div>
@@ -432,21 +433,21 @@ export default function QuizResults() {
 
                   {/* AI Analysis Tab */}
                   <TabsContent value="ai-analysis" className="space-y-6">
-                    {!results.aiAnalysis ? (
+                        {!results.aiAnalysis ? (
                       <div className="text-center py-12">
-                        <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                          <Sparkles className="w-8 h-8 text-blue-600" />
+                        <div className="rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-800)]">
+                          <Sparkles className="w-8 h-8 text-[var(--eddura-primary)]" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        <h3 className="text-xl font-semibold text-[var(--eddura-primary-900)] dark:text-white mb-2">
                           Generate AI Analysis
                         </h3>
-                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] mb-6 max-w-md mx-auto">
                           Get personalized career insights, program recommendations, and scholarship opportunities based on your quiz responses.
                         </p>
                         <Button 
                           onClick={generateAIAnalysis} 
                           disabled={isGeneratingAI}
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                          className="bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-dark)]"
                         >
                           {isGeneratingAI ? (
                             <>
@@ -466,12 +467,12 @@ export default function QuizResults() {
                         {/* AI Analysis Header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-2">
+                            <div className="bg-gradient-to-r from-[var(--eddura-primary)] to-[var(--eddura-primary-light)] rounded-full p-2">
                               <Sparkles className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <h3 className="text-xl font-semibold text-gray-900">AI Analysis</h3>
-                              <p className="text-sm text-gray-600">Personalized insights and recommendations</p>
+                              <h3 className="text-xl font-semibold text-[var(--eddura-primary-900)] dark:text-white">AI Analysis</h3>
+                              <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Personalized insights and recommendations</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-3">
@@ -545,7 +546,7 @@ export default function QuizResults() {
                                       <CardContent className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                           <div>
-                                            <h4 className="font-semibold text-sm text-gray-700 mb-2">Education Requirements</h4>
+                                              <h4 className="font-semibold text-sm text-[var(--eddura-primary-800)] dark:text-white mb-2">Education Requirements</h4>
                                             <div className="space-y-1">
                                               {career.educationRequirements.map((req, idx) => (
                                                 <div key={idx} className="flex items-center text-sm">
@@ -556,7 +557,7 @@ export default function QuizResults() {
                                             </div>
                                           </div>
                                           <div>
-                                            <h4 className="font-semibold text-sm text-gray-700 mb-2">Key Skills</h4>
+                                              <h4 className="font-semibold text-sm text-[var(--eddura-primary-800)] dark:text-white mb-2">Key Skills</h4>
                                             <div className="flex flex-wrap gap-1">
                                               {career.skillsNeeded.map((skill, idx) => (
                                                 <Badge key={idx} variant="secondary" className="text-xs">
@@ -604,7 +605,7 @@ export default function QuizResults() {
                                         <CardContent className="space-y-4">
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Education Requirements</h4>
+                                              <h4 className="font-semibold text-sm text-[var(--eddura-primary-800)] dark:text-white mb-2">Education Requirements</h4>
                                               <div className="space-y-1">
                                                 {career.educationRequirements.map((req, idx) => (
                                                   <div key={idx} className="flex items-center text-sm">
@@ -615,7 +616,7 @@ export default function QuizResults() {
                                               </div>
                                             </div>
                                             <div>
-                                              <h4 className="font-semibold text-sm text-gray-700 mb-2">Key Skills</h4>
+                                              <h4 className="font-semibold text-sm text-[var(--eddura-primary-800)] dark:text-white mb-2">Key Skills</h4>
                                               <div className="flex flex-wrap gap-1">
                                                 {career.skillsNeeded.map((skill, idx) => (
                                                   <Badge key={idx} variant="secondary" className="text-xs">
@@ -660,7 +661,7 @@ export default function QuizResults() {
                                         </CardHeader>
                                         <CardContent>
                                           <div className="space-y-2">
-                                            <p className="text-sm text-gray-600">{gap.howToDevelop}</p>
+                                            <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{gap.howToDevelop}</p>
                                           </div>
                                         </CardContent>
                                       </Card>
@@ -872,8 +873,8 @@ export default function QuizResults() {
                   <TabsContent value="quiz-responses" className="space-y-6">
                     <div className="space-y-6">
                       <div className="flex items-center">
-                        <FileText className="w-6 h-6 text-blue-600 mr-2" />
-                        <h3 className="text-2xl font-semibold">Your Quiz Responses</h3>
+                        <FileText className="w-6 h-6 text-[var(--eddura-primary)] mr-2" />
+                        <h3 className="text-2xl font-semibold text-[var(--eddura-primary-900)] dark:text-white">Your Quiz Responses</h3>
                       </div>
                       
                       <div className="grid gap-4">
@@ -890,22 +891,22 @@ export default function QuizResults() {
                                 transition={{ delay: index * 0.1 }}
                                 className="group relative"
                               >
-                                <div className="bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md overflow-hidden">
+                                <div className="bg-white dark:bg-[var(--eddura-primary-900)] rounded-xl border border-gray-200 dark:border-[var(--eddura-primary-800)] hover:border-blue-300 dark:hover:border-[var(--eddura-primary-700)] transition-all duration-300 hover:shadow-md overflow-hidden">
                                   <div className="p-6">
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex items-center">
                                         <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3 text-white text-sm font-semibold">
                                           {index + 1}
                                         </div>
-                                                                                 <div>
-                                           <h4 className="font-semibold text-gray-900 text-lg leading-tight">
+                                                                                <div>
+                                           <h4 className="font-semibold text-[var(--eddura-primary-900)] dark:text-white text-lg leading-tight">
                                              {getQuestionTitle(key)}
                                            </h4>
                                          </div>
                                       </div>
                                       <div className="flex items-center space-x-2">
                                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <span className="text-xs text-gray-500 font-medium">Answered</span>
+                                        <span className="text-xs text-gray-500 dark:text-[var(--eddura-primary-300)] font-medium">Answered</span>
                                       </div>
                                     </div>
                                     
@@ -917,7 +918,7 @@ export default function QuizResults() {
                                             return (
                                               <div
                                                 key={idx}
-                                                className="inline-flex items-center px-3 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 font-medium text-sm hover:from-blue-100 hover:to-purple-100 transition-all duration-200 cursor-default"
+                                                className="inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] border border-[var(--eddura-primary-200)] dark:bg-[var(--eddura-primary-800)] dark:border-[var(--eddura-primary-700)] dark:text-white/90 font-medium text-sm transition-all duration-200 cursor-default"
                                               >
                                                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
                                                 {formattedItem}
@@ -926,7 +927,7 @@ export default function QuizResults() {
                                           })}
                                         </div>
                                       ) : (
-                                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-700 font-medium">
+                                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] border border-[var(--eddura-primary-200)] dark:bg-[var(--eddura-primary-800)] dark:border-[var(--eddura-primary-700)] dark:text-white/90 font-medium">
                                           <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                                           {String(value).replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                         </div>
@@ -943,22 +944,22 @@ export default function QuizResults() {
                       </div>
                       
                       {/* Summary footer */}
-                      <div className="mt-8 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+                      <div className="mt-8 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] rounded-xl border border-gray-200 dark:border-[var(--eddura-primary-800)]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Sparkles className="w-4 h-4 text-blue-600" />
+                            <div className="w-8 h-8 bg-blue-100 dark:bg-[var(--eddura-primary-800)] rounded-full flex items-center justify-center">
+                              <Sparkles className="w-4 h-4 text-blue-600 dark:text-white" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">Quiz Completed</p>
-                              <p className="text-sm text-gray-600">
+                              <p className="font-semibold text-[var(--eddura-primary-900)] dark:text-white">Quiz Completed</p>
+                              <p className="text-sm text-gray-600 dark:text-[var(--eddura-primary-300)]">
                                 {Object.keys(results.quizResponses || {}).length} questions answered
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-600">Match Score</p>
-                            <p className="text-2xl font-bold text-blue-600">{results.matchScore}%</p>
+                            <p className="text-sm font-medium text-gray-600 dark:text-[var(--eddura-primary-300)]">Match Score</p>
+                            <p className="text-2xl font-bold text-blue-600 dark:text-white">{results.matchScore}%</p>
                           </div>
                         </div>
                       </div>

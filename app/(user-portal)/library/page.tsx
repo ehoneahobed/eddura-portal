@@ -50,6 +50,7 @@ import {
 import { toast } from 'sonner';
 import AdvancedSearchFilters from '@/components/library/AdvancedSearchFilters';
 import DocumentErrorBoundary from '@/components/documents/DocumentErrorBoundary';
+import { usePageTranslation, useNotificationTranslation } from '@/hooks/useTranslation';
 
 interface LibraryDocument {
   _id: string;
@@ -76,6 +77,8 @@ interface LibraryDocument {
 
 export default function LibraryPage() {
   const { data: session } = useSession();
+  const { t } = usePageTranslation('library');
+  const { t: tNotification } = useNotificationTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -160,9 +163,9 @@ export default function LibraryPage() {
   // Handle errors from the custom hook
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      toast.error(tNotification('error.fetchFailed'));
     }
-  }, [error]);
+  }, [error, tNotification]);
 
   // Handle pagination changes separately
   useEffect(() => {
@@ -224,7 +227,7 @@ export default function LibraryPage() {
       
       if (response.ok) {
         const data = await response.json();
-        toast.success('Document cloned successfully! You can find it in your Documents section.');
+        toast.success(tNotification('success.documentCloned'));
         
         // Refresh the data to get updated clone counts
         refetch();
@@ -235,11 +238,11 @@ export default function LibraryPage() {
         }
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to clone document');
+        toast.error(error.error || tNotification('error.documentCloneFailed'));
       }
     } catch (error) {
       console.error('Error cloning document:', error);
-      toast.error('Failed to clone document');
+      toast.error(tNotification('error.documentCloneFailed'));
     } finally {
       setIsCloning(undefined);
     }
@@ -257,23 +260,23 @@ export default function LibraryPage() {
       
       if (response.ok) {
         const data = await response.json();
-        toast.success('Rating submitted successfully!');
+        toast.success(tNotification('success.ratingSubmitted'));
         // Refresh the data to get updated ratings
         refetch();
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to submit rating');
+        toast.error(error.error || tNotification('error.ratingFailed'));
       }
     } catch (error) {
       console.error('Error rating document:', error);
-      toast.error('Failed to submit rating');
+      toast.error(tNotification('error.ratingFailed'));
     }
   };
 
   const downloadDocument = async (doc: LibraryDocument, format: 'pdf' | 'docx') => {
     try {
       // Show loading toast
-      const loadingToast = toast.loading(`Generating ${format.toUpperCase()}...`);
+      const loadingToast = toast.loading(tNotification(`loading.generating${format.toUpperCase()}`));
       
       console.log(`[LIBRARY_DOWNLOAD] Starting ${format} download for document:`, doc._id);
       
@@ -294,7 +297,7 @@ export default function LibraryPage() {
         // Check if blob is valid
         if (blob.size === 0) {
           toast.dismiss(loadingToast);
-          toast.error(`Generated ${format.toUpperCase()} file is empty. Please try again.`);
+          toast.error(tNotification('error.emptyFile', { format: format.toUpperCase() }));
           console.error(`[LIBRARY_DOWNLOAD] Empty blob received for ${format}`);
           return;
         }
@@ -302,7 +305,7 @@ export default function LibraryPage() {
         // Check content type
         if (format === 'pdf' && !blob.type.includes('pdf')) {
           toast.dismiss(loadingToast);
-          toast.error(`Invalid file type received. Expected PDF but got ${blob.type}`);
+          toast.error(tNotification('error.invalidFile', { expected: 'PDF', actual: blob.type }));
           console.error(`[LIBRARY_DOWNLOAD] Invalid content type:`, blob.type);
           return;
         }
@@ -323,7 +326,7 @@ export default function LibraryPage() {
         }, 100);
         
         toast.dismiss(loadingToast);
-        toast.success(`Document downloaded as ${format.toUpperCase()}`);
+        toast.success(tNotification('success.downloadComplete', { format: format.toUpperCase() }));
         console.log(`[LIBRARY_DOWNLOAD] ${format} download completed successfully`);
       } else {
         const errorText = await response.text();
@@ -341,11 +344,11 @@ export default function LibraryPage() {
         }
         
         toast.dismiss(loadingToast);
-        toast.error(errorMessage);
+        toast.error(tNotification('error.downloadFailed', { format: format.toUpperCase() }));
       }
     } catch (error) {
       console.error(`[LIBRARY_DOWNLOAD] Network error downloading ${format}:`, error);
-      toast.error(`Network error downloading ${format.toUpperCase()}. Please check your connection and try again.`);
+      toast.error(tNotification('error.networkError'));
     }
   };
 
@@ -418,7 +421,7 @@ export default function LibraryPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl sm:text-4xl font-bold text-eddura-900 dark:text-eddura-100">
-                  Document Library
+                  {t('title')}
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
                   <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-eddura-500" />
@@ -429,8 +432,7 @@ export default function LibraryPage() {
               </div>
             </div>
             <p className="text-sm sm:text-lg text-eddura-700 dark:text-eddura-300">
-              Browse and clone high-quality academic documents for your applications. 
-              Discover essays, personal statements, and more from successful applicants.
+              {t('subtitle')}
             </p>
           </div>
           
@@ -442,7 +444,7 @@ export default function LibraryPage() {
               className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800 h-11 sm:h-12"
             >
               <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              My Documents
+              {t('quickActions.myDocuments.action')}
             </Button>
             <Button 
               variant="outline" 
@@ -451,7 +453,7 @@ export default function LibraryPage() {
               className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800 h-11 sm:h-12"
             >
               <Copy className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              Cloned Documents
+              {t('quickActions.myClonedDocuments.action')}
             </Button>
           </div>
         </div>
@@ -466,31 +468,31 @@ export default function LibraryPage() {
       >
         <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="md">
           <StatCard
-            label="Available Documents"
+            label={t('stats.availableDocuments')}
             value={pagination.total.toString()}
             icon={<BookOpen className="h-6 w-6 text-eddura-500" />}
-            change={{ value: "In library", trend: "neutral" }}
+            change={{ value: t('stats.inLibrary'), trend: "neutral" }}
           />
           <StatCard
-            label="My Cloned Documents"
+            label={t('stats.myClonedDocuments')}
             value={userStats.totalCloned.toString()}
             icon={<Copy className="h-6 w-6 text-green-500" />}
             change={{ 
-              value: `${userStats.recentlyCloned} this week`, 
+              value: `${userStats.recentlyCloned} ${t('stats.thisWeek')}`, 
               trend: userStats.recentlyCloned > 0 ? "up" : "neutral" 
             }}
           />
           <StatCard
-            label="Favorite Category"
+            label={t('stats.favoriteCategory')}
             value={userStats.favoriteCategory || 'None'}
             icon={<Heart className="h-6 w-6 text-red-500" />}
-            change={{ value: "Most cloned", trend: "neutral" }}
+            change={{ value: t('stats.mostCloned'), trend: "neutral" }}
           />
           <StatCard
-            label="Documents Rated"
+            label={t('stats.documentsRated')}
             value={userStats.totalRated.toString()}
             icon={<Star className="h-6 w-6 text-yellow-500" />}
-            change={{ value: "Reviews given", trend: "neutral" }}
+            change={{ value: t('stats.reviewsGiven'), trend: "neutral" }}
           />
         </ResponsiveGrid>
       </motion.div>
@@ -507,35 +509,35 @@ export default function LibraryPage() {
             <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
           </div>
           <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-            Quick Actions
+            {t('quickActions.title')}
           </h2>
         </div>
         
         <ResponsiveGrid cols={{ default: 1, md: 3 }} gap="md">
           <FeatureCard
             icon={<Copy className="h-6 w-6 text-eddura-500" />}
-            title="My Cloned Documents"
-            description={`Access your ${userStats.totalCloned} cloned documents and continue working on them.`}
+            title={t('quickActions.myClonedDocuments.title')}
+            description={t('quickActions.myClonedDocuments.description', { count: userStats.totalCloned })}
             action={{ 
-              label: "View Cloned Documents", 
+              label: t('quickActions.myClonedDocuments.action'), 
               onClick: () => window.open('/documents/cloned', '_blank')
             }}
           />
           <FeatureCard
             icon={<FileText className="h-6 w-6 text-eddura-500" />}
-            title="My Documents"
-            description="Create new documents or edit your existing personal documents."
+            title={t('quickActions.myDocuments.title')}
+            description={t('quickActions.myDocuments.description')}
             action={{ 
-              label: "Go to Documents", 
+              label: t('quickActions.myDocuments.action'), 
               onClick: () => window.open('/documents', '_blank')
             }}
           />
           <FeatureCard
             icon={<Target className="h-6 w-6 text-eddura-500" />}
-            title="Application Management"
-            description="Manage your applications and track your progress across programs."
+            title={t('quickActions.applicationManagement.title')}
+            description={t('quickActions.applicationManagement.description')}
             action={{ 
-              label: "Manage Applications", 
+              label: t('quickActions.applicationManagement.action'), 
               onClick: () => window.open('/applications/manage', '_blank')
             }}
           />
@@ -555,7 +557,7 @@ export default function LibraryPage() {
               <Search className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
             </div>
             <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-              Search & Filter Documents
+              {t('search.title')}
             </h2>
           </div>
           
@@ -619,11 +621,10 @@ export default function LibraryPage() {
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                      No documents found
+                      {t('search.noResults')}
                     </h3>
                     <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
-                      Try adjusting your search terms or filters to find the documents you&apos;re looking for. 
-                      Our library contains thousands of high-quality academic documents.
+                      {t('search.noResultsDescription')}
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -638,11 +639,11 @@ export default function LibraryPage() {
                       }}
                     >
                       <Filter className="h-4 w-4 mr-2" />
-                      Clear Filters
+                      {t('search.clearFilters')}
                     </Button>
                     <Button onClick={() => window.open('/documents', '_blank')}>
                       <FileText className="h-4 w-4 mr-2" />
-                      Create Your Own
+                      {t('search.createYourOwn')}
                     </Button>
                   </div>
                 </div>
@@ -656,7 +657,7 @@ export default function LibraryPage() {
                     <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-eddura-600 dark:text-eddura-400" />
                   </div>
                   <h2 className="text-lg sm:text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                    Available Documents
+                    {t('documents.title')}
                   </h2>
                 </div>
                 <Badge 
@@ -692,7 +693,7 @@ export default function LibraryPage() {
                             {document.isCloned && (
                               <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs shrink-0">
                                 <Check className="h-3 w-3 mr-1" />
-                                Cloned
+                                {t('documents.cloned')}
                               </Badge>
                             )}
                           </div>
@@ -761,7 +762,7 @@ export default function LibraryPage() {
                             className="flex-1 h-9 text-xs sm:text-sm"
                           >
                             <Eye className="h-3 w-3 mr-1" />
-                            Preview
+                            {t('documents.previewDocument')}
                           </Button>
                           {document.isCloned ? (
                             <Button
@@ -771,7 +772,7 @@ export default function LibraryPage() {
                               className="flex-1 h-9 text-xs sm:text-sm"
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
-                              View
+                              {t('documents.viewMore')}
                             </Button>
                           ) : (
                             <Button
@@ -785,7 +786,7 @@ export default function LibraryPage() {
                               ) : (
                                 <>
                                   <Copy className="h-3 w-3 mr-1" />
-                                  Clone
+                                  {t('documents.cloneDocument')}
                                 </>
                               )}
                             </Button>
@@ -868,7 +869,7 @@ export default function LibraryPage() {
                   onClick={() => selectedDocument && downloadDocument(selectedDocument, 'pdf')}
                 >
                   <FileDown className="h-4 w-4 mr-2" />
-                  Download PDF
+                  {t('documents.downloadPDF')}
                 </Button>
                 <Button
                   variant="outline"
@@ -876,21 +877,21 @@ export default function LibraryPage() {
                   onClick={() => selectedDocument && downloadDocument(selectedDocument, 'docx')}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Download Word
+                  {t('documents.downloadDOCX')}
                 </Button>
               </div>
               <div>
                 {selectedDocument?.isCloned ? (
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                      <Check className="h-4 w-4 mr-2" /> Already Cloned
+                      <Check className="h-4 w-4 mr-2" /> {t('documents.alreadyCloned')}
                     </Badge>
                     <Button
                       variant="outline"
                       onClick={() => window.open('/documents/cloned', '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      View Cloned Document
+                      {t('documents.viewMore')}
                     </Button>
                   </div>
                 ) : (
@@ -903,7 +904,7 @@ export default function LibraryPage() {
                     ) : (
                       <Copy className="h-4 w-4 mr-2" />
                     )}
-                    Clone Document
+                    {t('documents.cloneDocument')}
                   </Button>
                 )}
               </div>

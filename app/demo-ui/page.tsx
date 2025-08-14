@@ -8,6 +8,8 @@ import { ResponsiveContainer, ResponsiveGrid, ResponsiveStack, ResponsiveText, B
 import { ModernCard, FeatureCard, StatCard, LinkCard } from '@/components/ui/modern-card';
 import { LoadingSpinner, LoadingDots, FullPageLoading, CardSkeleton, ListSkeleton } from '@/components/ui/enhanced-loading';
 import { ResponsiveNav } from '@/components/ui/responsive-nav';
+import { useDemoNavigation } from '@/lib/navigation';
+import { useCommonTranslation } from '@/hooks/useTranslation';
 import { 
   Zap, 
   Shield, 
@@ -24,25 +26,11 @@ import {
   Award
 } from 'lucide-react';
 
-const navItems = [
-  { label: 'Home', href: '/' },
-  { label: 'Features', href: '/features' },
-  { 
-    label: 'Products', 
-    href: '/products',
-    children: [
-      { label: 'Platform', href: '/products/platform' },
-      { label: 'API', href: '/products/api' },
-      { label: 'Analytics', href: '/products/analytics' }
-    ]
-  },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Contact', href: '/contact' }
-];
-
 export default function UIDemo() {
   const [loading, setLoading] = useState(false);
   const [showFullLoading, setShowFullLoading] = useState(false);
+  const navItems = useDemoNavigation();
+  const { t } = useCommonTranslation();
 
   const handleLoadingDemo = () => {
     setLoading(true);
@@ -65,8 +53,8 @@ export default function UIDemo() {
         items={navItems}
         rightContent={
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">Sign In</Button>
-            <Button size="sm">Get Started</Button>
+            <Button variant="outline" size="sm">{t('navigation.signIn')}</Button>
+            <Button size="sm">{t('navigation.getStarted')}</Button>
           </div>
         }
       />

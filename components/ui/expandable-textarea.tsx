@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, AlertCircle, CheckCircle } from 'lucide-react';
+import { useFormTranslation } from '@/hooks/useTranslation';
 
 export interface ExpandableTextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -34,6 +35,7 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
     onChange,
     ...props 
   }, ref) => {
+    const { t } = useFormTranslation();
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
     const [charCount, setCharCount] = useState((value as string)?.length || 0);
     const [wordCount, setWordCount] = useState(0);
@@ -60,24 +62,24 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
         // Check character limits
         if (minLength && currentLength < minLength) {
           isValid = false;
-          message = `At least ${minLength} characters required`;
+          message = t('validation.minLength', { min: minLength });
         } else if (maxLength && currentLength > maxLength) {
           isValid = false;
-          message = `Maximum ${maxLength} characters allowed`;
+          message = t('validation.maxLength', { max: maxLength });
         }
         
         // Check word limits
         if (minWords && currentWordCount < minWords) {
           isValid = false;
-          message = `At least ${minWords} words required`;
+          message = t('validation.minWords', { min: minWords });
         } else if (maxWords && currentWordCount > maxWords) {
           isValid = false;
-          message = `Maximum ${maxWords} words allowed`;
+          message = t('validation.maxWords', { max: maxWords });
         }
         
         onValidationChange(isValid, message);
       }
-    }, [value, minLength, maxLength, minWords, maxWords, onValidationChange]);
+    }, [value, minLength, maxLength, minWords, maxWords, onValidationChange, t]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (onChange) {

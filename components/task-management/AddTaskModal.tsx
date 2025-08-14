@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useFormTranslation } from '@/hooks/useTranslation';
 
 interface Application {
   _id: string;
@@ -61,6 +62,7 @@ const priorities = [
 ];
 
 export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdded }: AddTaskModalProps) {
+  const { t } = useFormTranslation();
   const [formData, setFormData] = useState({
     type: '',
     title: '',
@@ -82,7 +84,7 @@ export default function AddTaskModal({ isOpen, onClose, applications, onTaskAdde
     e.preventDefault();
     
     if (!formData.type || !formData.title) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('validation.required'));
       return;
     }
 

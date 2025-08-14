@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getScholarshipStatus } from '@/lib/scholarship-status';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 interface Scholarship {
   _id: string;
@@ -58,6 +59,8 @@ interface ScholarshipCardProps {
 }
 
 export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
+  const { t } = usePageTranslation('scholarships');
+  const { t: tCommon } = useCommonTranslation();
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const providerInitial = (scholarship.provider || '?').charAt(0).toUpperCase();
@@ -66,17 +69,21 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
     if (typeof value === 'number') {
       return `${currency || '$'}${value.toLocaleString()}`;
     }
-    return value || 'Varies';
+    return value || t('varies');
   };
 
   // Get unified scholarship status
-  const scholarshipStatus = getScholarshipStatus(scholarship.deadline, scholarship.openingDate);
+  const scholarshipStatus = getScholarshipStatus(
+    scholarship.deadline,
+    scholarship.openingDate,
+    { tp: (k, v) => t(k as any, v) }
+  );
 
   const requirements = [];
-  if (scholarship.applicationRequirements.essay) requirements.push('Essay');
-  if (scholarship.applicationRequirements.cv) requirements.push('CV');
+  if (scholarship.applicationRequirements.essay) requirements.push(t('requirements.essay'));
+  if (scholarship.applicationRequirements.cv) requirements.push(t('requirements.cv'));
   if (scholarship.applicationRequirements.recommendationLetters) {
-    requirements.push(`${scholarship.applicationRequirements.recommendationLetters} Recommendations`);
+    requirements.push(t('requirements.recommendations', { count: scholarship.applicationRequirements.recommendationLetters }));
   }
 
   return (
@@ -131,7 +138,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
               </span>
             </div>
             <Badge variant="outline" className="text-xs pointer-events-none border-gray-200 dark:border-[var(--eddura-primary-700)] text-gray-700 dark:text-[var(--eddura-primary-200)] bg-[var(--eddura-primary-50)]/60">
-              {scholarship.frequency}
+              {scholarship.frequency === 'Annual' ? t('filters.frequency.annual') : scholarship.frequency === 'One-time' ? t('filters.frequency.oneTime') : scholarship.frequency === 'Full Duration' ? t('filters.frequency.fullDuration') : scholarship.frequency}
             </Badge>
           </div>
 
@@ -195,7 +202,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
           {/* Requirements */}
           {requirements.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)] mb-2">Requirements:</p>
+              <p className="text-xs font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)] mb-2">{t('requirements.title')}</p>
               <div className="flex flex-wrap gap-1">
                 {requirements.slice(0, 3).map((req, index) => (
                   <Badge key={index} variant="secondary" className="text-xs pointer-events-none bg-[var(--eddura-primary-50)]/60 dark:bg-[var(--eddura-primary-800)]">
@@ -204,7 +211,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
                 ))}
                 {requirements.length > 3 && (
                   <Badge variant="secondary" className="text-xs pointer-events-none bg-[var(--eddura-primary-50)]/60 dark:bg-[var(--eddura-primary-800)]">
-                    +{requirements.length - 3} more
+                    +{requirements.length - 3} {t('more')}
                   </Badge>
                 )}
               </div>
@@ -217,10 +224,10 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
               <scholarshipStatus.deadlineInfo.icon className="h-4 w-4 text-gray-400" />
               <span className="text-xs text-gray-600">
                 {scholarshipStatus.isNotYetOpen && scholarship.openingDate 
-                  ? `${Math.ceil((new Date(scholarship.openingDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days to opening`
+                  ? t('deadline.daysToOpening', { count: Math.ceil((new Date(scholarship.openingDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) })
                   : scholarshipStatus.deadlineInfo.daysLeft >= 0 
-                    ? `${scholarshipStatus.deadlineInfo.daysLeft} days to close` 
-                    : 'Expired'
+                    ? t('deadline.daysToClose', { count: scholarshipStatus.deadlineInfo.daysLeft })
+                    : t('deadline.expired')
                 }
               </span>
             </div>
@@ -240,9 +247,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
           {/* Preparation Message for Not Yet Open Scholarships */}
           {scholarshipStatus.isNotYetOpen && scholarship.openingDate && (
             <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-md">
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                💡 You can start preparing your application now, even though applications haven&apos;t opened yet.
-              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">{t('notOpenHint')}</p>
             </div>
           )}
 
@@ -276,7 +281,7 @@ export default function ScholarshipCard({ scholarship }: ScholarshipCardProps) {
             <div className="flex items-center space-x-2">
               <Link href={`/scholarships/${scholarship._id}`}>
                 <Button variant="outline" size="sm" className="bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-dark)] text-white border-[var(--eddura-primary)]">
-                  View Details
+                  {t('viewDetails')}
                   <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </Link>

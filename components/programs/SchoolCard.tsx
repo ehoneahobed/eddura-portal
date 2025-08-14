@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Building, Star, Users, Globe, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 interface School {
   _id: string;
@@ -27,6 +28,7 @@ interface SchoolCardProps {
  * with improved visual design and hover effects.
  */
 const SchoolCard: React.FC<SchoolCardProps> = ({ school, onSelect }) => {
+  const { t } = usePageTranslation('programs');
   return (
     <Card
       className="cursor-pointer group h-full bg-white dark:bg-[var(--eddura-primary-900)] transition-all duration-300 border border-[var(--eddura-primary-100)] dark:border-[var(--eddura-primary-800)] shadow-[0_4px_14px_rgba(25,103,117,0.08)] hover:shadow-[0_16px_34px_rgba(25,103,117,0.18)] hover:-translate-y-1"
@@ -83,17 +85,17 @@ const SchoolCard: React.FC<SchoolCardProps> = ({ school, onSelect }) => {
         <div className="space-y-3 mb-4">
           {/* Founded Year */}
           {school.yearFounded && (
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <Building className="w-3 h-3 mr-2 flex-shrink-0" />
-              <span>Founded {school.yearFounded}</span>
+                <span>{t('school.founded', { year: school.yearFounded })}</span>
             </div>
           )}
 
           {/* International Students */}
           {school.internationalStudentCount && (
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <Users className="w-3 h-3 mr-2 flex-shrink-0" />
-              <span>{school.internationalStudentCount.toLocaleString()} international students</span>
+                <span>{t('school.internationalStudents', { count: school.internationalStudentCount.toLocaleString() })}</span>
             </div>
           )}
 
@@ -103,7 +105,7 @@ const SchoolCard: React.FC<SchoolCardProps> = ({ school, onSelect }) => {
               <Globe className="w-3 h-3 mr-2 flex-shrink-0" />
               <span className="truncate">
                 {school.languagesOfInstruction.slice(0, 2).join(', ')}
-                {school.languagesOfInstruction.length > 2 && ` +${school.languagesOfInstruction.length - 2} more`}
+                {school.languagesOfInstruction.length > 2 && ` +${school.languagesOfInstruction.length - 2} ${t('school.more')}`}
               </span>
             </div>
           )}
@@ -111,7 +113,7 @@ const SchoolCard: React.FC<SchoolCardProps> = ({ school, onSelect }) => {
           {/* Campus Type */}
           {school.campusType && school.campusType !== 'Unknown' && (
             <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)]">
-              {school.campusType} Campus
+              {t('school.campusType', { type: school.campusType })}
             </Badge>
           )}
         </div>
@@ -119,9 +121,7 @@ const SchoolCard: React.FC<SchoolCardProps> = ({ school, onSelect }) => {
         {/* Call to Action */}
         <div className="pt-3 border-t border-gray-100 dark:border-[var(--eddura-primary-800)] group-hover:border-[var(--eddura-primary-200)] dark:group-hover:border-[var(--eddura-primary-700)] transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-eddura-600 dark:text-eddura-300 group-hover:text-eddura-700 dark:group-hover:text-eddura-200 transition-colors">
-              View Programs
-            </span>
+            <span className="text-sm font-medium text-eddura-600 dark:text-eddura-300 group-hover:text-eddura-700 dark:group-hover:text-eddura-200 transition-colors">{t('school.viewPrograms')}</span>
             <ArrowRight className="w-4 h-4 text-eddura-600 dark:text-eddura-300 group-hover:text-eddura-700 dark:group-hover:text-eddura-200 transition-colors group-hover:translate-x-1" />
           </div>
         </div>

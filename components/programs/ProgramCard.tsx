@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 interface Program {
   _id: string;
@@ -57,6 +58,8 @@ interface ProgramCardProps {
 }
 
 export default function ProgramCard({ program }: ProgramCardProps) {
+  const { t } = usePageTranslation('programs');
+  const { t: tCommon } = useCommonTranslation();
   const [isSaved, setIsSaved] = useState(false);
 
   const formatTuition = (amount: number, currency: string) => {
@@ -136,7 +139,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
             </div>
             {program.school.globalRanking && (
               <Badge variant="outline" className="text-xs">
-                #{program.school.globalRanking} Global
+                #{program.school.globalRanking} {t('program.global')}
               </Badge>
             )}
           </div>
@@ -171,9 +174,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
 
             <div className="flex items-center space-x-2">
               <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-              <span className="text-xs text-gray-600 dark:text-gray-300">
-                {program.duration} • {program.mode}
-              </span>
+               <span className="text-xs text-gray-600 dark:text-gray-300">{program.duration} • {t(`modes.${program.mode === 'Full-time' ? 'fullTime' : program.mode === 'Part-time' ? 'partTime' : program.mode === 'Online' ? 'online' : 'hybrid'}` as any)}</span>
             </div>
 
             {program.languages.length > 0 && (
@@ -190,13 +191,11 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <DollarSign className="h-4 w-4 text-eddura-600 dark:text-eddura-300" />
-              <span className="font-semibold text-eddura-600 dark:text-eddura-300">
-                {formatTuition(program.tuitionFees.international, program.tuitionFees.currency)}/year
-              </span>
+              <span className="font-semibold text-eddura-600 dark:text-eddura-300">{formatTuition(program.tuitionFees.international, program.tuitionFees.currency)}/{t('program.perYear')}</span>
             </div>
             {program.applicationFee && (
               <Badge variant="outline" className="text-xs">
-                ${program.applicationFee} fee
+                ${program.applicationFee} {t('program.fee')}
               </Badge>
             )}
           </div>
@@ -207,7 +206,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
               <div className="flex items-center space-x-2 mb-2">
                 <Award className="h-3 w-3 text-eddura-600 dark:text-eddura-300" />
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-                  {program.availableScholarships.length} Scholarships Available
+                  {program.availableScholarships.length} {t('program.scholarshipsAvailable')}
                 </span>
               </div>
             </div>
@@ -219,7 +218,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
               <div className="flex items-center space-x-2">
                 <Star className="h-3 w-3 text-eddura-600 dark:text-eddura-300" />
                 <span className="text-xs text-gray-600 dark:text-gray-300">
-                  Employability Rank: #{program.employabilityRank}
+                  {t('program.employabilityRank')}: #{program.employabilityRank}
                 </span>
               </div>
             </div>
@@ -228,7 +227,7 @@ export default function ProgramCard({ program }: ProgramCardProps) {
           {/* Intake Sessions */}
           {program.intakeSessions.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs font-medium text-gray-700 mb-1">Intake Sessions:</p>
+                <p className="text-xs font-medium text-gray-700 mb-1">{t('program.intakeSessions')}:</p>
               <div className="flex flex-wrap gap-1">
                 {program.intakeSessions.slice(0, 3).map((session, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
@@ -249,14 +248,11 @@ export default function ProgramCard({ program }: ProgramCardProps) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                <span className="text-xs text-gray-600 dark:text-gray-300">
-                  {daysUntilDeadline} days left
-                </span>
+                 <span className="text-xs text-gray-600 dark:text-gray-300">{t('program.daysLeft', { count: daysUntilDeadline! })}</span>
               </div>
               {deadlineStatus && (
                 <Badge className={`text-xs ${deadlineStatus.color}`}>
-                  {deadlineStatus.status === 'urgent' ? 'Urgent' :
-                   deadlineStatus.status === 'soon' ? 'Soon' : 'Open'}
+                  {deadlineStatus.status === 'urgent' ? t('program.urgent') : deadlineStatus.status === 'soon' ? t('program.soon') : t('program.open')}
                 </Badge>
               )}
             </div>
@@ -273,13 +269,13 @@ export default function ProgramCard({ program }: ProgramCardProps) {
             <div className="flex items-center space-x-2">
               <Link href={`/programs/${program._id}`}>
                 <Button variant="outline" size="sm">
-                  View Details
+                  {t('program.viewDetails')}
                   <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </Link>
               
               <Button size="sm" className="bg-eddura-500 hover:bg-eddura-600 text-white shadow-eddura">
-                Apply Now
+                {t('program.applyNow')}
               </Button>
             </div>
           </div>

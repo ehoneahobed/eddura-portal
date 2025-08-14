@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ThemeAwareLogo } from '@/components/ui/logo';
+import { LanguageSelector, MobileLanguageSelector } from '@/components/ui/language-selector';
 import { Menu, X, ChevronDown } from 'lucide-react';
 
 interface NavItem {
@@ -78,6 +79,7 @@ export function ResponsiveNav({
 
             {/* Right Content */}
             <div className="flex items-center space-x-4">
+              <LanguageSelector variant="compact" showLabel={false} />
               {showThemeToggle && <ThemeToggle />}
               {rightContent}
               
@@ -147,9 +149,10 @@ export function ResponsiveNav({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-eddura-100 dark:border-eddura-800">
+                <div className="p-6 border-t border-eddura-100 dark:border-eddura-800 space-y-4">
+                  <MobileLanguageSelector />
                   {showThemeToggle && (
-                    <div className="flex justify-center">
+                    <div className="flex justify-center pt-4 border-t border-eddura-100 dark:border-eddura-800">
                       <ThemeToggle />
                     </div>
                   )}

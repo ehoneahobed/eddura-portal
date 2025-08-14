@@ -31,23 +31,25 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 import { SimpleLogo } from '@/components/ui/logo';
+import { useCommonTranslation } from '@/hooks/useTranslation';
 
-// Simple, flat navigation list to match the minimal style
-const navigationItems = [
-  { name: 'Overview', href: '/dashboard', icon: Home },
-  { name: 'Task Management', href: '/task-management', icon: Target },
-  { name: 'Scholarships', href: '/scholarships', icon: Award },
-  { name: 'Saved Scholarships', href: '/saved-scholarships', icon: Bookmark },
-  { name: 'Schools & Programs', href: '/programs', icon: GraduationCap },
-  { name: 'Applications', href: '/applications', icon: FileText },
-  { name: 'Application Management', href: '/applications/manage', icon: FileCheck },
-  { name: 'Recommendations', href: '/recommendations', icon: MessageSquare },
-  { name: 'Recipients', href: '/recommendations/recipients', icon: Users },
-  { name: 'Documents', href: '/documents', icon: Folder },
-  { name: 'Document Library', href: '/library', icon: Library },
-  { name: 'Eddura Squads', href: '/squads', icon: Trophy },
+// Navigation items with translation keys
+const getNavigationItems = (t: (key: string) => string) => [
+  { name: t('sidebar.overview'), href: '/dashboard', icon: Home },
+  { name: t('sidebar.taskManagement'), href: '/task-management', icon: Target },
+  { name: t('sidebar.scholarships'), href: '/scholarships', icon: Award },
+  { name: t('sidebar.savedScholarships'), href: '/saved-scholarships', icon: Bookmark },
+  { name: t('sidebar.schoolsPrograms'), href: '/programs', icon: GraduationCap },
+  { name: t('sidebar.applications'), href: '/applications', icon: FileText },
+  { name: t('sidebar.applicationManagement'), href: '/applications/manage', icon: FileCheck },
+  { name: t('sidebar.recommendations'), href: '/recommendations', icon: MessageSquare },
+  { name: t('sidebar.recipients'), href: '/recommendations/recipients', icon: Users },
+  { name: t('sidebar.documents'), href: '/documents', icon: Folder },
+  { name: t('sidebar.documentLibrary'), href: '/library', icon: Library },
+  { name: t('sidebar.edduraSquads'), href: '/squads', icon: Trophy },
 ];
 
 interface StudentSidebarProps {
@@ -58,12 +60,37 @@ interface StudentSidebarProps {
 
 export default function StudentSidebar({ className, isCollapsed: controlledCollapsed, onToggleCollapse }: StudentSidebarProps) {
   const [uncontrolledCollapsed, setUncontrolledCollapsed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
+  const { t, isLoading } = useCommonTranslation();
   const isCollapsed = controlledCollapsed ?? uncontrolledCollapsed;
+  
   const toggleCollapsed = () => {
     if (onToggleCollapse) onToggleCollapse();
     else setUncontrolledCollapsed((prev) => !prev);
   };
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Use fallback navigation items during SSR or while loading
+  const fallbackNavigationItems = [
+    { name: 'Overview', href: '/dashboard', icon: Home },
+    { name: 'Task Management', href: '/task-management', icon: Target },
+    { name: 'Scholarships', href: '/scholarships', icon: Award },
+    { name: 'Saved Scholarships', href: '/saved-scholarships', icon: Bookmark },
+    { name: 'Schools & Programs', href: '/programs', icon: GraduationCap },
+    { name: 'Applications', href: '/applications', icon: FileText },
+    { name: 'Application Management', href: '/applications/manage', icon: FileCheck },
+    { name: 'Recommendations', href: '/recommendations', icon: MessageSquare },
+    { name: 'Recipients', href: '/recommendations/recipients', icon: Users },
+    { name: 'Documents', href: '/documents', icon: Folder },
+    { name: 'Document Library', href: '/library', icon: Library },
+    { name: 'Eddura Squads', href: '/squads', icon: Trophy },
+  ];
+
+  const navigationItems = isMounted && !isLoading ? getNavigationItems(t) : fallbackNavigationItems;
 
   return (
     <motion.div
@@ -146,7 +173,7 @@ export default function StudentSidebar({ className, isCollapsed: controlledColla
             className="p-4 border-t border-white/10 bg-transparent"
           >
             <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-4">
-              Quick Actions
+              {isMounted && !isLoading ? t('sidebar.quickActions') : 'Quick Actions'}
             </h3>
             <div className="space-y-3">
               <Link href="/quiz">
@@ -156,7 +183,7 @@ export default function StudentSidebar({ className, isCollapsed: controlledColla
                   className="w-full justify-start bg-transparent border border-white/20 text-white hover:bg-white/10 hover:border-white/30 focus-visible:ring-white/30 transition-all duration-200 rounded-lg h-10"
                 >
                   <Target className="w-4 h-4 mr-3" />
-                  Take Quiz
+                  {isMounted && !isLoading ? t('sidebar.takeQuiz') : 'Take Quiz'}
                 </Button>
               </Link>
               <Link href="/quiz/results">
@@ -166,7 +193,7 @@ export default function StudentSidebar({ className, isCollapsed: controlledColla
                   className="w-full justify-start bg-transparent border border-white/20 text-white hover:bg-white/10 hover:border-white/30 focus-visible:ring-white/30 transition-all duration-200 rounded-lg h-10"
                 >
                   <BookOpen className="w-4 h-4 mr-3" />
-                  View Results
+                  {isMounted && !isLoading ? t('sidebar.viewResults') : 'View Results'}
                 </Button>
               </Link>
             </div>

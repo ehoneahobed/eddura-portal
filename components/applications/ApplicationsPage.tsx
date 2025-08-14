@@ -31,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/ui/pagination';
 import { toast } from 'sonner';
 import { ResponsiveContainer } from '../ui/responsive-container';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 interface Application {
   _id: string;
@@ -54,6 +55,8 @@ interface Application {
 export default function ApplicationsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { t } = usePageTranslation('applications');
+  const { t: tCommon } = useCommonTranslation();
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,11 +108,11 @@ export default function ApplicationsPage() {
         setTotalPages(data.totalPages || 1);
         setTotal(data.total || data.applications.length);
       } else {
-        toast.error('Failed to fetch applications');
+        toast.error(t('errors.fetchFailed'));
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
-      toast.error('Failed to fetch applications');
+      toast.error(t('errors.fetchFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -118,25 +121,25 @@ export default function ApplicationsPage() {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'draft':
-        return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: 'Draft' };
+        return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: t('status.draft') };
       case 'in_progress':
-        return { color: 'bg-eddura-100 text-eddura-700', icon: Play, label: 'In Progress' };
+        return { color: 'bg-eddura-100 text-eddura-700', icon: Play, label: t('status.inProgress') };
       case 'ready_for_submission':
-        return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Ready for Submission' };
+        return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: t('status.readyForSubmission') };
       case 'submitted':
-        return { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Submitted' };
+        return { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: t('status.submitted') };
       case 'under_review':
-        return { color: 'bg-eddura-50 text-eddura-700', icon: Eye, label: 'Under Review' };
+        return { color: 'bg-eddura-50 text-eddura-700', icon: Eye, label: t('status.underReview') };
       case 'approved':
-        return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Approved' };
+        return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: t('status.approved') };
       case 'rejected':
-        return { color: 'bg-red-100 text-red-800', icon: AlertCircle, label: 'Rejected' };
+        return { color: 'bg-red-100 text-red-800', icon: AlertCircle, label: t('status.rejected') };
       case 'waitlisted':
-        return { color: 'bg-orange-100 text-orange-800', icon: Pause, label: 'Waitlisted' };
+        return { color: 'bg-orange-100 text-orange-800', icon: Pause, label: t('status.waitlisted') };
       case 'withdrawn':
-        return { color: 'bg-gray-100 text-gray-800', icon: Trash2, label: 'Withdrawn' };
+        return { color: 'bg-gray-100 text-gray-800', icon: Trash2, label: t('status.withdrawn') };
       default:
-        return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: 'Unknown' };
+        return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: t('status.unknown') };
     }
   };
 
@@ -170,8 +173,8 @@ export default function ApplicationsPage() {
       <div className="min-h-screen bg-eddura-light flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-eddura-500" />
-          <h2 className="text-2xl font-bold text-eddura-primary dark:text-eddura-100 mb-2">Loading Applications</h2>
-          <p className="text-eddura-secondary dark:text-eddura-300">Getting your application data...</p>
+          <h2 className="text-2xl font-bold text-eddura-primary dark:text-eddura-100 mb-2">{t('loading')}</h2>
+          <p className="text-eddura-secondary dark:text-eddura-300">{t('loadingSubtitle')}</p>
         </div>
       </div>
     );
@@ -182,24 +185,22 @@ export default function ApplicationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-eddura-primary dark:text-eddura-100">My Applications</h1>
-          <p className="text-eddura-secondary dark:text-eddura-300 mt-2">
-            Track and manage your scholarship applications
-          </p>
+          <h1 className="text-3xl font-bold text-eddura-primary dark:text-eddura-100">{t('title')}</h1>
+          <p className="text-eddura-secondary dark:text-eddura-300 mt-2">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline"
             onClick={() => router.push('/applications/manage')}
           >
-            Application Management
+            {t('actions.management')}
           </Button>
           <Button 
             onClick={() => router.push('/scholarships')}
             className="bg-eddura-500 hover:bg-eddura-600 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Find Scholarships
+            {t('actions.findScholarships')}
           </Button>
         </div>
       </div>
@@ -210,7 +211,7 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">Total Applications</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">{t('stats.total')}</p>
                 <p className="text-2xl font-bold text-eddura-primary dark:text-eddura-100">{total || applications.length}</p>
               </div>
               <FileText className="w-8 h-8 text-eddura-500" />
@@ -222,7 +223,7 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">In Progress</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">{t('status.inProgress')}</p>
                 <p className="text-2xl font-bold text-eddura-500">
                   {applications.filter(app => app.status === 'in_progress').length}
                 </p>
@@ -236,7 +237,7 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">Submitted</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">{t('status.submitted')}</p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {applications.filter(app => app.status === 'submitted').length}
                 </p>
@@ -250,7 +251,7 @@ export default function ApplicationsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">Approved</p>
+                <p className="text-sm font-medium text-eddura-secondary dark:text-eddura-300">{t('status.approved')}</p>
                 <p className="text-2xl font-bold text-green-600">
                   {applications.filter(app => app.status === 'approved').length}
                 </p>
@@ -262,7 +263,7 @@ export default function ApplicationsPage() {
       </div>
 
       {/* Application Management CTA */}
-      <Card className="bg-eddura-gradient border-eddura">
+      <Card className="bg-eddura-gradient border-eddura dark:bg-eddura-700 dark:border-eddura-600 mt-4 rounded-lg">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
@@ -270,32 +271,30 @@ export default function ApplicationsPage() {
                 <Target className="h-8 w-8 text-eddura-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Application Management System</h3>
-                <p className="text-white/90">
-                  Create application packages, track requirements, and manage your entire application journey
-                </p>
+                <h3 className="text-lg font-semibold text-white">{t('cta.title')}</h3>
+                <p className="text-white/90">{t('cta.description')}</p>
               </div>
             </div>
             <Button 
               onClick={() => router.push('/applications/manage')}
-              className="bg-white text-eddura-700 hover:bg-eddura-50"
+              className="bg-white text-eddura-700 hover:bg-eddura-50 dark:bg-eddura-700 dark:text-eddura-100 dark:hover:bg-eddura-600"
             >
               <Target className="w-4 h-4 mr-2" />
-              Open Application Management
+              {t('cta.openManagement')}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Filters */}
-      <Card>
+      <Card className="mt-4 rounded-lg">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search applications..."
+                  placeholder={t('search')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -305,18 +304,18 @@ export default function ApplicationsPage() {
             <div className="w-full sm:w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('filterByStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="under_review">Under Review</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="waitlisted">Waitlisted</SelectItem>
-                  <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                  <SelectItem value="all">{t('allStatus')}</SelectItem>
+                  <SelectItem value="draft">{t('status.draft')}</SelectItem>
+                  <SelectItem value="in_progress">{t('status.inProgress')}</SelectItem>
+                  <SelectItem value="submitted">{t('status.submitted')}</SelectItem>
+                  <SelectItem value="under_review">{t('status.underReview')}</SelectItem>
+                  <SelectItem value="approved">{t('status.approved')}</SelectItem>
+                  <SelectItem value="rejected">{t('status.rejected')}</SelectItem>
+                  <SelectItem value="waitlisted">{t('status.waitlisted')}</SelectItem>
+                  <SelectItem value="withdrawn">{t('status.withdrawn')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -325,16 +324,16 @@ export default function ApplicationsPage() {
       </Card>
 
       {/* Applications List */}
-      <div className="space-y-4">
+      <div className="space-y-4 mt-4">
         {filteredApplications.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('empty.title')}</h3>
               <p className="text-gray-600 mb-4">
                 {applications.length === 0 
-                  ? "You haven't started any applications yet."
-                  : "No applications match your current filters."
+                  ? t('empty.noneYet')
+                  : t('empty.noMatch')
                 }
               </p>
               {applications.length === 0 && (
@@ -343,7 +342,7 @@ export default function ApplicationsPage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Award className="w-4 h-4 mr-2" />
-                  Browse Scholarships
+                  {t('actions.browseScholarships')}
                 </Button>
               )}
             </CardContent>
@@ -379,7 +378,7 @@ export default function ApplicationsPage() {
                               )}
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
-                                Deadline: {formatDate(application.scholarshipId.deadline)}
+                                {tCommon('labels.deadline')}: {formatDate(application.scholarshipId.deadline)}
                               </span>
                             </div>
                           </div>
@@ -391,17 +390,17 @@ export default function ApplicationsPage() {
                         
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span>Progress</span>
+                             <span>{tCommon('labels.progress')}</span>
                             <span>{application.progress}%</span>
                           </div>
                           <Progress value={application.progress} className="h-2" />
                         </div>
                         
                         <div className="flex items-center gap-4 text-sm text-eddura-secondary dark:text-eddura-300">
-                          <span>Started: {formatDate(application.startedAt)}</span>
-                          <span>Last activity: {formatDate(application.lastActivityAt)}</span>
+                          <span>{t('labels.started')}: {formatDate(application.startedAt)}</span>
+                          <span>{t('labels.lastActivity')}: {formatDate(application.lastActivityAt)}</span>
                           {application.estimatedTimeRemaining && (
-                            <span>~{application.estimatedTimeRemaining} min remaining</span>
+                             <span>~{t('labels.minutesRemaining', { count: application.estimatedTimeRemaining })}</span>
                           )}
                         </div>
                       </div>
@@ -414,7 +413,7 @@ export default function ApplicationsPage() {
                             className="bg-eddura-500 hover:bg-eddura-600 text-white"
                           >
                             <Play className="w-4 h-4 mr-2" />
-                            Continue
+                             {t('actions.continue')}
                           </Button>
                         ) : application.status === 'ready_for_submission' ? (
                           <Button 
@@ -422,7 +421,7 @@ export default function ApplicationsPage() {
                             className="bg-green-600 hover:bg-green-700 text-white"
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Review
+                             {t('actions.review')}
                           </Button>
                         ) : (
                           <Button 
@@ -430,7 +429,7 @@ export default function ApplicationsPage() {
                             variant="outline"
                           >
                             <Eye className="w-4 h-4 mr-2" />
-                            View
+                             {tCommon('actions.view')}
                           </Button>
                         )}
                       </div>

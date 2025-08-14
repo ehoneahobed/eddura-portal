@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ThemeAwareLogo } from '@/components/ui/logo';
+import { LanguageSelector } from '@/components/ui/language-selector';
 import Hero from './Hero';
 import { ComingSoon } from './ComingSoon';
 import { config } from '@/lib/config';
@@ -36,8 +37,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 export default function LandingPage() {
+  const { t } = usePageTranslation('landing');
   const [isVisible, setIsVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -64,42 +67,42 @@ export default function LandingPage() {
       title: 'AI-Powered Intelligence',
       description: 'Advanced machine learning algorithms analyze your profile and automatically match you with the perfect programs and scholarships.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Database,
       title: 'Unified Data Hub',
       description: 'Single source of truth for all your academic data. Upload once, use everywhere with intelligent auto-population.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Layers,
       title: 'Smart Application Stack',
       description: 'Layer your applications with intelligent insights, deadline tracking, and progress optimization.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Network,
       title: 'Global Opportunity Network',
       description: 'Connect with 50+ universities and 100+ scholarship opportunities worldwide.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Cpu,
       title: 'Intelligent Automation',
       description: 'Automate repetitive tasks, generate personalized content, and optimize your application strategy.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Eye,
       title: 'Predictive Analytics',
       description: 'Get insights into your application success probability and optimize your strategy in real-time.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     }
   ];
 
@@ -157,15 +160,17 @@ export default function LandingPage() {
                </div>
              </div>
              <div className="flex items-center space-x-6">
+               <LanguageSelector variant="compact" showLabel={false} />
                <ThemeToggle />
                <Link href="/quiz">
-                 <Button variant="outline" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white transition-all duration-300 rounded-lg">
-                   Take Quiz
+                 <Button variant="outline" className="border-eddura-500 dark:border-eddura-400 text-eddura-600 dark:text-eddura-300 hover:bg-eddura-500 hover:text-white dark:hover:bg-eddura-400 dark:hover:text-white transition-all duration-300 rounded-lg">
+                   <Eye className="mr-2 h-5 w-5" />
+                   {t('hero.secondaryCta')}
                  </Button>
                </Link>
                <Link href="/auth/register">
                  <Button className="bg-eddura-500 hover:bg-eddura-600 text-white border-0 shadow-eddura hover:shadow-eddura-lg transition-all duration-300 rounded-lg">
-                   Get Started
+                   {t('navbar.getStarted')}
                    <ArrowRight className="ml-2 h-4 w-4" />
                  </Button>
                </Link>
@@ -175,7 +180,7 @@ export default function LandingPage() {
        </header>
 
              {/* Hero Section */}
-       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center">
+       <section ref={heroRef} className="mt-10 relative min-h-screen flex items-center justify-center dark:bg-eddura-900">
         <div className="relative z-10">
           <Hero />
         </div>
@@ -220,18 +225,18 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-                         <h2 className="text-4xl md:text-6xl font-bold mb-8">
-                               <span className="text-eddura-800 dark:text-eddura-100">
-                  Revolutionary
-                </span>
-                <br />
-                <span className="text-eddura-600 dark:text-eddura-300">
-                  Features
-                </span>
-              </h2>
-              <p className="text-xl text-eddura-800 dark:text-eddura-300 max-w-3xl mx-auto">
-                Built with cutting-edge technology to give you the ultimate competitive advantage.
-              </p>
+            <h2 className="text-4xl md:text-6xl font-bold mb-8">
+              <span className="text-eddura-800 dark:text-eddura-100">
+                {t('features.headingTop')}
+              </span>
+              <br />
+              <span className="text-eddura-600 dark:text-eddura-300">
+                {t('features.headingBottom')}
+              </span>
+            </h2>
+            <p className="text-xl text-eddura-800 dark:text-eddura-300 max-w-3xl mx-auto">
+              {t('features.description')}
+            </p>
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -253,7 +258,7 @@ export default function LandingPage() {
                   </div>
                                                          <h3 className="text-2xl font-bold text-eddura-800 dark:text-eddura-100 mb-4">{feature.title}</h3>
                     <p className="text-eddura-800 dark:text-eddura-300 leading-relaxed">{feature.description}</p>
-                  <div className="mt-6 flex items-center text-eddura-500 group-hover:text-eddura-600 transition-colors duration-300">
+                  <div className="mt-6 flex items-center text-eddura-500 dark:text-eddura-400 group-hover:text-eddura-600 dark:group-hover:text-eddura-300 transition-colors duration-300">
                     <span className="text-sm font-medium">Learn more</span>
                     <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
@@ -274,15 +279,15 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-                         <h2 className="text-4xl md:text-6xl font-bold mb-8">
-                               <span className="text-eddura-800 dark:text-eddura-100">
-                  Trusted by
-                </span>
-                <br />
-                <span className="text-eddura-600 dark:text-eddura-300">
-                  Top Students
-                </span>
-             </h2>
+            <h2 className="text-4xl md:text-6xl font-bold mb-8">
+              <span className="text-eddura-800 dark:text-eddura-100">
+                {t('testimonials.headingTop')}
+              </span>
+              <br />
+              <span className="text-eddura-600 dark:text-eddura-300">
+                {t('testimonials.headingBottom')}
+              </span>
+            </h2>
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -307,7 +312,7 @@ export default function LandingPage() {
                   <p className="text-eddura-800 dark:text-eddura-300 leading-relaxed">&ldquo;{testimonial.content}&rdquo;</p>
                 <div className="flex mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-eddura-500 fill-current" />
+                    <Star key={i} className="h-4 w-4 text-eddura-500 dark:text-eddura-400 fill-current" />
                   ))}
                 </div>
               </motion.div>
@@ -327,15 +332,15 @@ export default function LandingPage() {
             viewport={{ once: true }}
           >
                          <h2 className="text-4xl md:text-6xl font-bold text-eddura-800 dark:text-eddura-100 mb-8">
-               Ready to Transform
-               <br />
-               <span className="text-eddura-600 dark:text-eddura-300">
-                 Your Future?
-               </span>
-             </h2>
-             <p className="text-xl text-eddura-800 dark:text-eddura-300 mb-12 max-w-2xl mx-auto">
-               Join thousands of students who have already discovered their path to success with Eddura&apos;s intelligent platform.
-             </p>
+              {t('finalCta.headingTop')}
+              <br />
+              <span className="text-eddura-600 dark:text-eddura-300">
+                {t('finalCta.headingBottom')}
+              </span>
+            </h2>
+            <p className="text-xl text-eddura-800 dark:text-eddura-300 mb-12 max-w-2xl mx-auto">
+              {t('finalCta.description')}
+            </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link href="/auth/register">
                 <Button 
@@ -343,7 +348,7 @@ export default function LandingPage() {
                   className="text-lg px-8 py-4 bg-eddura-500 hover:bg-eddura-600 text-white border-0 shadow-eddura-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 rounded-xl"
                 >
                   <Rocket className="mr-2 h-5 w-5" />
-                  Start Your Journey
+                  {t('finalCta.primaryCta')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -351,10 +356,10 @@ export default function LandingPage() {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-4 border-2 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white transition-all duration-300 rounded-xl"
+                  className="text-lg px-8 py-4 border-2 border-eddura-500 dark:border-eddura-400 text-eddura-600 dark:text-eddura-300 hover:bg-eddura-500 hover:text-white dark:hover:bg-eddura-400 dark:hover:text-white transition-all duration-300 rounded-xl"
                 >
                   <Play className="mr-2 h-5 w-5" />
-                  Watch Demo
+                  {t('finalCta.secondaryCta')}
                 </Button>
               </Link>
             </div>
@@ -370,22 +375,22 @@ export default function LandingPage() {
                <ThemeAwareLogo size="xl" />
              </div>
              <p className="text-eddura-600 dark:text-eddura-400 mb-8 max-w-md mx-auto">
-               The future of academic applications. Powered by AI, designed for success.
-             </p>
-             <div className="flex justify-center space-x-8 mb-8">
-               <Link href="#features" className="text-eddura-600 dark:text-eddura-400 hover:text-eddura-500 dark:hover:text-eddura-300 transition-colors">
-                 Features
-               </Link>
-               <Link href="#" className="text-eddura-600 dark:text-eddura-400 hover:text-eddura-500 dark:hover:text-eddura-300 transition-colors">
-                 Privacy
-               </Link>
-               <Link href="#" className="text-eddura-600 dark:text-eddura-400 hover:text-eddura-500 dark:hover:text-eddura-300 transition-colors">
-                 Terms
-               </Link>
-             </div>
-             <div className="border-t border-eddura-100 dark:border-eddura-700 pt-8">
-               <p className="text-eddura-600 dark:text-eddura-400">&copy; 2025 Eddura. All rights reserved.</p>
-             </div>
+              {t('footer.tagline')}
+            </p>
+            <div className="flex justify-center space-x-8 mb-8">
+              <Link href="#features" className="text-eddura-600 dark:text-eddura-400 hover:text-eddura-500 dark:hover:text-eddura-300 transition-colors">
+                {t('footer.links.features')}
+              </Link>
+              <Link href="#" className="text-eddura-600 dark:text-eddura-400 hover:text-eddura-500 dark:hover:text-eddura-300 transition-colors">
+                {t('footer.links.privacy')}
+              </Link>
+              <Link href="#" className="text-eddura-600 dark:text-eddura-400 hover:text-eddura-500 dark:hover:text-eddura-300 transition-colors">
+                {t('footer.links.terms')}
+              </Link>
+            </div>
+            <div className="border-t border-eddura-100 dark:border-eddura-700 pt-8">
+              <p className="text-eddura-600 dark:text-eddura-400">{t('footer.copyright', { year: new Date().getFullYear() })}</p>
+            </div>
           </div>
         </div>
       </footer>

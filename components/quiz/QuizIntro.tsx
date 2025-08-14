@@ -19,7 +19,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 
 export default function QuizIntro() {
@@ -108,38 +107,7 @@ export default function QuizIntro() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="relative z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Link href="/" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-[#007fbd] rounded-lg flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
-                  <h1 className="text-2xl font-bold text-[#00334e]">
-                    Eddura
-                  </h1>
-                </Link>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/auth/login">
-                <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/auth/register">
-                <Button className="bg-[#007fbd] hover:bg-[#004d73] text-white">
-                  Register
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
 
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
@@ -150,17 +118,17 @@ export default function QuizIntro() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Badge variant="secondary" className="mb-6 bg-blue-100 text-blue-800 hover:bg-blue-200">
+              <Badge variant="secondary" className="mb-6 bg-[var(--eddura-primary-100)] text-[var(--eddura-primary-800)] hover:bg-[var(--eddura-primary-200)]">
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered Career Discovery
               </Badge>
               
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              <h1 className="text-5xl md:text-6xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-6">
                 Discover Your Perfect
-                <span className="text-[#007fbd] block">University Program</span>
+                <span className="text-[var(--eddura-primary)] block">University Program</span>
               </h1>
               
-              <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              <p className="text-xl text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] mb-8 max-w-3xl mx-auto">
                 Take our comprehensive career discovery quiz and get personalized AI recommendations 
                 for university programs that match your interests, strengths, and career aspirations.
               </p>
@@ -170,7 +138,7 @@ export default function QuizIntro() {
                   size="lg" 
                   onClick={handleStartQuiz}
                   disabled={isStarting}
-                  className="text-lg px-8 py-4 bg-[#007fbd] hover:bg-[#004d73] text-white shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105"
+                  className="text-lg px-8 py-4 bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-dark)] text-white shadow-2xl hover:shadow-eddura transition-all duration-300 transform hover:scale-105"
                 >
                   {isStarting ? (
                     <>
@@ -190,7 +158,7 @@ export default function QuizIntro() {
                   <Button 
                     variant="outline" 
                     size="lg" 
-                    className="text-lg px-8 py-4 border-2 border-[#007fbd] text-[#007fbd] hover:bg-[#007fbd] hover:text-white transition-all duration-300"
+                    className="text-lg px-8 py-4 border-2 border-[var(--eddura-primary)] text-[var(--eddura-primary)] hover:bg-[var(--eddura-primary)] hover:text-white transition-all duration-300"
                   >
                     <Users className="mr-2 h-5 w-5" />
                     Register First
@@ -208,10 +176,10 @@ export default function QuizIntro() {
             className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16"
           >
             {quizStats.map((stat, index) => (
-              <Card key={index} className="text-center border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <Card key={index} className="text-center border border-eddura-100 shadow-lg bg-white/80 dark:bg-[var(--eddura-primary-900)]">
                 <CardContent className="p-6">
-                  <div className="text-3xl font-bold text-[#007fbd] mb-2">{stat.number}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div className="text-3xl font-bold text-[var(--eddura-primary)] mb-2">{stat.number}</div>
+                  <div className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
@@ -220,7 +188,7 @@ export default function QuizIntro() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-[var(--eddura-primary-900)]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -228,10 +196,10 @@ export default function QuizIntro() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-4">
               Why Choose Our Quiz?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] max-w-2xl mx-auto">
               Our comprehensive assessment goes beyond simple questions to provide you with 
               truly personalized insights and recommendations.
             </p>
@@ -245,15 +213,15 @@ export default function QuizIntro() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
               >
-                <Card className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <Card className="h-full border border-eddura-100 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-[var(--eddura-primary-50)] to-[var(--eddura-primary-100)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]">
                   <CardHeader className="text-center pb-4">
-                    <div className="w-12 h-12 bg-[#007fbd] rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-12 bg-[var(--eddura-primary)] rounded-lg flex items-center justify-center mx-auto mb-4">
                       <feature.icon className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-gray-600 text-center">
+                    <CardDescription className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] text-center">
                       {feature.description}
                     </CardDescription>
                   </CardContent>
@@ -265,7 +233,7 @@ export default function QuizIntro() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[var(--eddura-primary-50)] to-[var(--eddura-primary-100)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -273,10 +241,10 @@ export default function QuizIntro() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-4">
               What You&apos;ll Discover
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)] max-w-2xl mx-auto">
               Our quiz will help you uncover insights about yourself and find the perfect 
               educational path for your future.
             </p>
@@ -288,16 +256,16 @@ export default function QuizIntro() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 1.0 }}
             >
-              <Card className="border-0 shadow-lg bg-white">
+              <Card className="border border-eddura-100 shadow-lg bg-white dark:bg-[var(--eddura-primary-900)]">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-[#007fbd]">Personal Insights</CardTitle>
+                  <CardTitle className="text-2xl text-[var(--eddura-primary)]">Personal Insights</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
                     {benefits.slice(0, 3).map((benefit, index) => (
                       <li key={index} className="flex items-start">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{benefit}</span>
+                        <span className="text-[var(--eddura-primary-800)] dark:text-white/90">{benefit}</span>
                       </li>
                     ))}
                   </ul>
@@ -310,16 +278,16 @@ export default function QuizIntro() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 1.2 }}
             >
-              <Card className="border-0 shadow-lg bg-white">
+              <Card className="border border-eddura-100 shadow-lg bg-white dark:bg-[var(--eddura-primary-900)]">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-[#007fbd]">Program Recommendations</CardTitle>
+                  <CardTitle className="text-2xl text-[var(--eddura-primary)]">Program Recommendations</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
                     {benefits.slice(3).map((benefit, index) => (
                       <li key={index} className="flex items-start">
                         <Star className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{benefit}</span>
+                        <span className="text-[var(--eddura-primary-800)] dark:text-white/90">{benefit}</span>
                       </li>
                     ))}
                   </ul>
@@ -331,7 +299,7 @@ export default function QuizIntro() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#00334e]">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-eddura-gradient">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -341,7 +309,7 @@ export default function QuizIntro() {
             <h2 className="text-4xl font-bold text-white mb-6">
               Ready to Discover Your Path?
             </h2>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-white/80 mb-8">
               Join thousands of students who have already found their perfect university program 
               with our AI-powered career discovery quiz.
             </p>
@@ -351,7 +319,7 @@ export default function QuizIntro() {
                 size="lg" 
                 onClick={handleStartQuiz}
                 disabled={isStarting}
-                className="text-lg px-8 py-4 bg-[#007fbd] hover:bg-[#004d73] text-white shadow-2xl hover:shadow-[#007fbd]/25 transition-all duration-300 transform hover:scale-105"
+                className="text-lg px-8 py-4 bg-white text-[var(--eddura-primary-900)] hover:bg-white/90 shadow-2xl transition-all duration-300 transform hover:scale-105"
               >
                 {isStarting ? (
                   <>
@@ -371,7 +339,7 @@ export default function QuizIntro() {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-[#00334e] transition-all duration-300"
+                  className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-[var(--eddura-primary-900)] transition-all duration-300"
                 >
                   <Users className="mr-2 h-5 w-5" />
                   Create Account

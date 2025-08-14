@@ -22,15 +22,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { ThemeAwareLogo } from '@/components/ui/logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LanguageSelector } from '@/components/ui/language-selector';
+import { useFormTranslation } from '@/hooks/useTranslation';
+import { createLocalizedValidation } from '@/lib/validation';
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = {
+  email: string;
+  password: string;
+};
 
 export default function LoginForm() {
+  const { t } = useFormTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +47,13 @@ export default function LoginForm() {
       setMessage(messageParam);
     }
   }, [searchParams]);
+
+  // Create localized validation schema
+  const validation = createLocalizedValidation(t);
+  const loginSchema = z.object({
+    email: validation.email(),
+    password: validation.required(),
+  });
 
   const {
     register,
@@ -125,8 +134,9 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center px-4">
-      {/* Theme toggle in top right */}
-      <div className="absolute top-6 right-6">
+      {/* Language selector and theme toggle in top right */}
+      <div className="absolute top-6 right-6 flex items-center space-x-3">
+        <LanguageSelector variant="compact" showLabel={false} />
         <ThemeToggle />
       </div>
 
