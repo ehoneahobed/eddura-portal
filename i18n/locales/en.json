@@ -252,6 +252,7 @@
     "recommendations": {
       "title": "Recommendation Recipients",
       "subtitle": "Manage your recommendation letter recipients and track your requests.",
+      "header": { "totalCount": "{count} total recipients" },
       "stats": {
         "totalRecipients": "Total Recipients",
         "activeRequests": "Active Requests",
@@ -263,9 +264,12 @@
         "averageRate": "Average rate"
       },
       "search": {
+        "title": "Search & Filters",
+        "searchRecipientsLabel": "Search Recipients",
         "placeholder": "Search recipients...",
         "filterByInstitution": "Filter by Institution",
         "filterByPreference": "Filter by Preference",
+        "showing": "Showing {count} of {total} recipients",
         "allInstitutions": "All Institutions",
         "allPreferences": "All Preferences",
         "prefersDrafts": "Prefers Drafts",
@@ -276,6 +280,8 @@
         "addNew": "Add New Recipient",
         "edit": "Edit Recipient",
         "delete": "Delete Recipient",
+        "noDrafts": "No Drafts",
+        "moreEmails": "+{count} more {count, plural, one {email} other {emails}}",
         "contact": "Contact",
         "viewProfile": "View Profile",
         "sendRequest": "Send Request",
@@ -295,14 +301,39 @@
       "empty": {
         "title": "No recipients yet",
         "description": "Start building your network of recommendation letter writers. Add professors, supervisors, and mentors who can provide strong recommendations.",
-        "addFirst": "Add Your First Recipient"
+        "addFirst": "Add Your First Recipient",
+        "filter": {
+          "title": "No recipients match your filters",
+          "description": "Try adjusting your search criteria or filters to find the recipients you're looking for."
+        }
+      },
+      "overview": {
+        "title": "Recipients Overview",
+        "subtitle": "Insights about your recommendation network",
+        "activeNetwork": "Active network",
+        "percentOfTotal": "{percent}% of total",
+        "percentHavePhone": "{percent}% have phone",
+        "cards": {
+          "totalRecipients": "Total Recipients",
+          "prefersDrafts": "Prefer Drafts",
+          "institutions": "Institutions",
+          "uniqueInstitutions": "Unique institutions",
+          "withPhone": "With Phone"
+        }
+      },
+      "cta": {
+        "title": "Ready to request recommendations?",
+        "description": "Start creating recommendation requests for your recipients.",
+        "viewRecommendations": "View Recommendations",
+        "newRequest": "New Request"
       },
       "actions": {
         "addRecipient": "Add Recipient",
         "editRecipient": "Edit Recipient",
         "deleteRecipient": "Delete Recipient",
         "confirmDelete": "Are you sure you want to delete this recipient?",
-        "deleteWarning": "This action cannot be undone."
+        "deleteWarning": "This action cannot be undone.",
+        "deleting": "Deleting..."
       }
     },
     "library": {
@@ -566,6 +597,132 @@
         "linkCopyFailed": "Failed to copy link to clipboard",
         "linkCopyFailedDescription": "Please try selecting and copying the link manually."
       }
+    },
+    "applications": {
+      "title": "My Applications",
+      "subtitle": "Track and manage your scholarship applications",
+      "loading": "Loading Applications",
+      "loadingSubtitle": "Getting your application data...",
+      "search": "Search applications...",
+      "filterByStatus": "Filter by status",
+      "allStatus": "All Status",
+      "stats": {
+        "total": "Total Applications"
+      },
+      "status": {
+        "draft": "Draft",
+        "inProgress": "In Progress",
+        "readyForSubmission": "Ready for Submission",
+        "submitted": "Submitted",
+        "underReview": "Under Review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "waitlisted": "Waitlisted",
+        "withdrawn": "Withdrawn",
+        "unknown": "Unknown"
+      },
+      "actions": {
+        "management": "Application Management",
+        "findScholarships": "Find Scholarships",
+        "browseScholarships": "Browse Scholarships",
+        "continue": "Continue",
+        "review": "Review"
+      },
+      "cta": {
+        "title": "Application Management System",
+        "description": "Create application packages, track requirements, and manage your entire application journey",
+        "openManagement": "Open Application Management"
+      },
+      "labels": {
+        "started": "Started",
+        "lastActivity": "Last activity",
+        "minutesRemaining": "{count} min remaining"
+      },
+      "empty": {
+        "title": "No applications found",
+        "noneYet": "You haven't started any applications yet.",
+        "noMatch": "No applications match your current filters."
+      },
+      "errors": { "fetchFailed": "Failed to fetch applications" }
+    },
+    "applicationsManage": {
+      "title": "Application Management",
+      "subtitle": "Manage your applications, track progress, and stay organized",
+      "errors": { "fetchFailed": "Failed to fetch application data" },
+      "actions": {
+        "createPackage": "Create Application Package",
+        "browseScholarships": "Browse Scholarships",
+        "view": "View"
+      },
+      "stats": {
+        "total": "Total Applications",
+        "ready": "Ready to Apply",
+        "upcomingDeadlines": "Upcoming Deadlines"
+      },
+      "quick": {
+        "title": "Quick Actions",
+        "new": "New",
+        "Create Application Package": "Create Application Package",
+        "Start a new application for a school or program": "Start a new application for a school or program",
+        "Browse Scholarships": "Browse Scholarships",
+        "Find and apply for scholarships": "Find and apply for scholarships",
+        "Explore Programs": "Explore Programs",
+        "Discover schools and programs": "Discover schools and programs",
+        "Manage Documents": "Manage Documents",
+        "Upload and organize your documents": "Upload and organize your documents"
+      },
+      "recent": {
+        "title": "Recent Applications",
+        "viewAll": "View All",
+        "loading": "Loading applications...",
+        "none": "No applications yet",
+        "createFirst": "Create your first application package to get started"
+      },
+      "statusMap": {
+        "draft": "Draft",
+        "in_progress": "In Progress",
+        "ready_for_submission": "Ready for Submission",
+        "submitted": "Submitted",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "waitlisted": "Waitlisted",
+        "withdrawn": "Withdrawn"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "labels": {
+        "progress": "Progress",
+        "deadline": "Deadline",
+        "days": "{count} days",
+        "noDeadline": "No deadline"
+      },
+      "types": {
+        "programsAndSchools": "Programs & Schools",
+        "scholarships": "Scholarships"
+      }
+    },
+    "recommendationsPage": {
+      "title": "Recommendation Letters",
+      "subtitle": "Manage your recommendation letter requests and track their status",
+      "actions": { "newRequest": "New Request", "viewDetails": "View Details", "edit": "Edit" },
+      "empty": {
+        "title": "No recommendation requests yet",
+        "description": "Start by creating your first recommendation letter request",
+        "createFirst": "Create First Request"
+      },
+      "labels": { "unknownRecipient": "Unknown Recipient", "unknownInstitution": "Unknown Institution" },
+      "status": { "pending": "Pending", "sent": "Sent", "received": "Received", "overdue": "Overdue", "cancelled": "Cancelled" },
+      "priority": { "low": "Low Priority", "medium": "Medium Priority", "high": "High Priority" },
+      "deadline": {
+        "daysRemaining": "{count} days remaining",
+        "daysOverdue": "{count} days overdue",
+        "receivedOn": "Received on {date}"
+      },
+      "dateFormat": "MMM dd, yyyy"
     },
     "programs": {
       "title": "Browse Programs by School",

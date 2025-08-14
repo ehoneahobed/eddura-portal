@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ResponsiveContainer } from '@/components/ui/responsive-container';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 interface ApplicationStats {
   total: number;
@@ -51,6 +52,8 @@ interface Application {
 
 export default function ApplicationManagePage() {
   const { data: session } = useSession();
+  const { t } = usePageTranslation('applicationsManage');
+  const { t: tCommon } = useCommonTranslation();
   const [stats, setStats] = useState<ApplicationStats>({
     total: 0,
     draft: 0,
@@ -102,11 +105,11 @@ export default function ApplicationManagePage() {
         
         setStats(newStats);
       } else {
-        toast.error('Failed to fetch application data');
+        toast.error(t('errors.fetchFailed'));
       }
     } catch (error) {
       console.error('Error fetching application data:', error);
-      toast.error('Failed to fetch application data');
+      toast.error(t('errors.fetchFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -200,15 +203,13 @@ export default function ApplicationManagePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-eddura-primary dark:text-white">Application Management</h1>
-          <p className="text-eddura-secondary dark:text-eddura-600 mt-2">
-            Manage your applications, track progress, and stay organized
-          </p>
+          <h1 className="text-3xl font-bold text-eddura-primary dark:text-white">{t('title')}</h1>
+          <p className="text-eddura-secondary dark:text-eddura-600 mt-2">{t('subtitle')}</p>
         </div>
         <Link href="/applications/packages">
           <Button className="bg-eddura-500 hover:bg-eddura-600 text-white shadow-eddura hover:shadow-eddura-lg">
             <Plus className="w-4 h-4 mr-2" />
-            Create Application Package
+            {t('actions.createPackage')}
           </Button>
         </Link>
       </div>
@@ -219,7 +220,7 @@ export default function ApplicationManagePage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Total Applications</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.total')}</p>
                 <p className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white">{stats.total}</p>
               </div>
               <Package className="h-8 w-8 text-eddura-600" />
@@ -231,7 +232,7 @@ export default function ApplicationManagePage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Ready to Apply</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.ready')}</p>
                 <p className="text-2xl font-bold text-[var(--eddura-success)]">{stats.readyForSubmission}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-[var(--eddura-success)]" />
@@ -243,7 +244,7 @@ export default function ApplicationManagePage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">In Progress</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('status.inProgress')}</p>
                 <p className="text-2xl font-bold text-[var(--eddura-warning-dark)]">{stats.inProgress}</p>
               </div>
               <Clock className="h-8 w-8 text-[var(--eddura-warning-dark)]" />
@@ -255,7 +256,7 @@ export default function ApplicationManagePage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Upcoming Deadlines</p>
+                <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.upcomingDeadlines')}</p>
                 <p className="text-2xl font-bold text-[var(--eddura-accent-dark)]">{stats.upcomingDeadlines}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-[var(--eddura-accent-dark)]" />
@@ -265,9 +266,9 @@ export default function ApplicationManagePage() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
+      <Card className="mt-4 rounded-lg dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-800)]">
         <CardHeader>
-          <CardTitle className="text-eddura-primary dark:text-white">Quick Actions</CardTitle>
+          <CardTitle className="text-eddura-primary dark:text-white">{t('quick.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -281,12 +282,12 @@ export default function ApplicationManagePage() {
                       </div>
                       {action.badge && (
                         <Badge variant="secondary" className="text-xs">
-                          {action.badge}
+                          {t('quick.new')}
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold text-[var(--eddura-primary-900)] dark:text-white mb-2">{action.title}</h3>
-                    <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{action.description}</p>
+                    <h3 className="font-semibold text-[var(--eddura-primary-900)] dark:text-white mb-2">{t(`quick.${action.title}`)}</h3>
+                    <p className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{t(`quick.${action.description}`)}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -296,13 +297,13 @@ export default function ApplicationManagePage() {
       </Card>
 
       {/* Recent Applications */}
-      <Card className="dark:bg-[var(--eddura-primary-900)]">
+      <Card className="mt-4 rounded-lg dark:bg-[var(--eddura-primary-900)]">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-eddura-primary dark:text-white">Recent Applications</CardTitle>
+          <CardTitle className="text-eddura-primary dark:text-white">{t('recent.title')}</CardTitle>
             <Link href="/applications/packages">
               <Button variant="outline" size="sm" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
-                View All
+                {t('recent.viewAll')}
                 <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -313,13 +314,13 @@ export default function ApplicationManagePage() {
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                <span>Loading applications...</span>
+                <span>{t('recent.loading')}</span>
               </div>
             ) : recentApplications.length === 0 ? (
               <div className="text-center py-8 text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
                 <Package className="h-12 w-12 mx-auto mb-4 text-[var(--eddura-primary-300)]" />
-                <p>No applications yet</p>
-                <p className="text-sm">Create your first application package to get started</p>
+                <p>{t('recent.none')}</p>
+                <p className="text-sm">{t('recent.createFirst')}</p>
               </div>
             ) : (
               recentApplications.map((app) => (
@@ -336,10 +337,10 @@ export default function ApplicationManagePage() {
                       <h3 className="font-normal text-gray-900 dark:text-white text-sm md:text-base">{app.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge className={getStatusColor(app.status)}>
-                          {app.status.replace('_', ' ')}
+                          {t(`statusMap.${app.status}`)}
                         </Badge>
                         <Badge className={getPriorityColor(app.priority)}>
-                          {app.priority}
+                          {t(`priority.${app.priority}`)}
                         </Badge>
                       </div>
                     </div>
@@ -347,21 +348,21 @@ export default function ApplicationManagePage() {
 
                   <div className="flex items-center gap-4">
                     <div className="hidden sm:block text-right">
-                      <div className="text-[11px] text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Progress</div>
+                      <div className="text-[11px] text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('labels.progress')}</div>
                       <div className="text-xs md:text-sm font-medium text-[var(--eddura-primary-900)] dark:text-white">{app.progress}%</div>
                     </div>
                     <div className="w-28">
                       <Progress value={app.progress} className="h-2 bg-eddura-100 dark:bg-white/10" indicatorClassName="bg-eddura-500 dark:bg-eddura-500" />
                     </div>
                     <div className="text-right min-w-[88px]">
-                      <div className="text-[11px] text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Deadline</div>
+                      <div className="text-[11px] text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('labels.deadline')}</div>
                       <div className="text-xs md:text-sm font-medium text-[var(--eddura-primary-900)] dark:text-white">
-                        {app.applicationDeadline ? `${getDaysUntilDeadline(app.applicationDeadline)} days` : 'No deadline'}
+                        {app.applicationDeadline ? t('labels.days', { count: getDaysUntilDeadline(app.applicationDeadline) }) : t('labels.noDeadline')}
                       </div>
                     </div>
                     <Link href={`/applications/${app._id}`}>
                       <Button variant="outline" size="sm" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
-                        View
+                        {t('actions.view')}
                       </Button>
                     </Link>
                   </div>
@@ -373,12 +374,12 @@ export default function ApplicationManagePage() {
       </Card>
 
       {/* Application Types Overview */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 mt-4">
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
               <School className="h-5 w-5 mr-2" />
-              Programs & Schools
+              {t('types.programsAndSchools')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -390,23 +391,23 @@ export default function ApplicationManagePage() {
                 return (
                   <>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Total Applications</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('stats.total')}</span>
                       <span className="font-medium">{programApps.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Ready for Submission</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('status.readyForSubmission')}</span>
                       <span className="font-medium text-green-600">
                         {programApps.filter(app => app.status === 'ready_for_submission').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">In Progress</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('status.inProgress')}</span>
                       <span className="font-medium text-yellow-600">
                         {programApps.filter(app => app.status === 'in_progress').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Accepted</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('status.accepted')}</span>
                       <span className="font-medium text-green-600">
                         {programApps.filter(app => app.status === 'accepted').length}
                       </span>
@@ -427,7 +428,7 @@ export default function ApplicationManagePage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Award className="h-5 w-5 mr-2" />
-              Scholarships
+              {t('types.scholarships')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -439,23 +440,23 @@ export default function ApplicationManagePage() {
                 return (
                   <>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Total Applications</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('stats.total')}</span>
                       <span className="font-medium">{scholarshipApps.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Ready for Submission</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('status.readyForSubmission')}</span>
                       <span className="font-medium text-green-600">
                         {scholarshipApps.filter(app => app.status === 'ready_for_submission').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">In Progress</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('status.inProgress')}</span>
                       <span className="font-medium text-yellow-600">
                         {scholarshipApps.filter(app => app.status === 'in_progress').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">Awarded</span>
+                              <span className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-200)]">{t('status.accepted')}</span>
                       <span className="font-medium text-green-600">
                         {scholarshipApps.filter(app => app.status === 'accepted').length}
                       </span>
@@ -466,7 +467,7 @@ export default function ApplicationManagePage() {
             </div>
             <Link href="/scholarships">
               <Button variant="outline" className="w-full mt-4 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white dark:text-white dark:border-white/20 dark:hover:border-transparent">
-                Browse Scholarships
+                {t('actions.browseScholarships')}
               </Button>
             </Link>
           </CardContent>

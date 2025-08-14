@@ -200,7 +200,7 @@ export default function RecipientsPage() {
                 <div className="flex items-center gap-2 mt-1">
                   <Sparkles className="h-4 w-4 text-accent" />
                   <span className="text-eddura-600 dark:text-eddura-400 font-medium">
-                    {recipients.length} total recipients
+                    {t('header.totalCount', { count: recipients.length })}
                   </span>
                 </div>
               </div>
@@ -237,14 +237,14 @@ export default function RecipientsPage() {
               <Filter className="h-5 w-5 text-eddura-600 dark:text-eddura-400" />
             </div>
             <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-              {t('search.filterByInstitution')} & Search
+              {t('search.title')}
             </h2>
           </div>
           
           <ResponsiveGrid cols={{ default: 1, md: 3 }} gap="lg">
             <div className="space-y-2">
               <label className="text-sm font-medium text-eddura-700 dark:text-eddura-300">
-                Search Recipients
+                {t('search.searchRecipientsLabel')}
               </label>
               <Input
                 placeholder={t('search.placeholder')}
@@ -296,7 +296,7 @@ export default function RecipientsPage() {
             <div className="mt-4 pt-4 border-t border-eddura-200 dark:border-eddura-700">
               <div className="flex items-center gap-2 text-sm text-eddura-600 dark:text-eddura-400">
                 <CheckCircle className="h-4 w-4" />
-                Showing {filteredRecipients.length} of {recipients.length} recipients
+                {t('search.showing', { count: filteredRecipients.length, total: recipients.length })}
               </div>
             </div>
           )}
@@ -318,12 +318,12 @@ export default function RecipientsPage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                    {recipients.length === 0 ? t('empty.title') : 'No recipients match your filters'}
+                    {recipients.length === 0 ? t('empty.title') : t('empty.filter.title')}
                   </h3>
                   <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
                     {recipients.length === 0 
                       ? t('empty.description')
-                      : 'Try adjusting your search criteria or filters to find the recipients you\'re looking for.'
+                      : t('empty.filter.description')
                     }
                   </p>
                 </div>
@@ -394,7 +394,7 @@ export default function RecipientsPage() {
                             disabled={deletingRecipient === recipient._id}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            {deletingRecipient === recipient._id ? 'Deleting...' : t('recipient.delete')}
+                            {deletingRecipient === recipient._id ? t('actions.deleting') : t('recipient.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -414,7 +414,7 @@ export default function RecipientsPage() {
                       
                       {recipient.emails.length > 1 && (
                         <div className="ml-6 text-xs text-eddura-600 dark:text-eddura-400">
-                          +{recipient.emails.length - 1} more email{recipient.emails.length > 2 ? 's' : ''}
+                          {t('recipient.moreEmails', { count: recipient.emails.length - 1 })}
                         </div>
                       )}
                       
@@ -456,7 +456,7 @@ export default function RecipientsPage() {
                             {t('recipient.prefersDrafts')}
                           </>
                         ) : (
-                          'No Drafts'
+                          t('recipient.noDrafts')
                         )}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
@@ -510,41 +510,41 @@ export default function RecipientsPage() {
         >
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-eddura-900 dark:text-eddura-100 mb-2">
-              Recipients Overview
+              {t('overview.title')}
             </h2>
             <p className="text-eddura-600 dark:text-eddura-400">
-              Insights about your recommendation network
+              {t('overview.subtitle')}
             </p>
           </div>
           
           <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="lg">
             <StatCard
-              label="Total Recipients"
+              label={t('overview.cards.totalRecipients')}
               value={recipients.length.toString()}
               icon={<Users className="h-6 w-6 text-eddura-500" />}
-              change={{ value: "Active network", trend: "neutral" }}
+              change={{ value: t('overview.activeNetwork'), trend: "neutral" }}
             />
             <StatCard
-              label="Prefer Drafts"
+              label={t('overview.cards.prefersDrafts')}
               value={recipients.filter(r => r.prefersDrafts).length.toString()}
               icon={<Edit className="h-6 w-6 text-green-500" />}
               change={{ 
-                value: `${Math.round((recipients.filter(r => r.prefersDrafts).length / recipients.length) * 100)}% of total`, 
+                value: t('overview.percentOfTotal', { percent: Math.round((recipients.filter(r => r.prefersDrafts).length / recipients.length) * 100) }), 
                 trend: "up" 
               }}
             />
             <StatCard
-              label="Institutions"
+              label={t('overview.cards.institutions')}
               value={institutions.length.toString()}
               icon={<Building className="h-6 w-6 text-blue-500" />}
-              change={{ value: "Unique institutions", trend: "neutral" }}
+              change={{ value: t('overview.cards.uniqueInstitutions'), trend: "neutral" }}
             />
             <StatCard
-              label="With Phone"
+              label={t('overview.cards.withPhone')}
               value={recipients.filter(r => r.phoneNumber).length.toString()}
               icon={<Phone className="h-6 w-6 text-purple-500" />}
               change={{ 
-                value: `${Math.round((recipients.filter(r => r.phoneNumber).length / recipients.length) * 100)}% have phone`, 
+                value: t('overview.percentHavePhone', { percent: Math.round((recipients.filter(r => r.phoneNumber).length / recipients.length) * 100) }), 
                 trend: recipients.filter(r => r.phoneNumber).length > recipients.length / 2 ? "up" : "neutral" 
               }}
             />
@@ -556,20 +556,20 @@ export default function RecipientsPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold text-eddura-900 dark:text-eddura-100">
-                    Ready to request recommendations?
+                    {t('cta.title')}
                   </h3>
                   <p className="text-eddura-600 dark:text-eddura-400">
-                    Start creating recommendation requests for your recipients.
+                    {t('cta.description')}
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <Button variant="outline" className="bg-white/80 dark:bg-eddura-800/80">
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    View Recommendations
+                    {t('cta.viewRecommendations')}
                   </Button>
                   <Button className="bg-eddura-500 hover:bg-eddura-600">
                     <Plus className="h-4 w-4 mr-2" />
-                    New Request
+                    {t('cta.newRequest')}
                   </Button>
                 </div>
               </div>

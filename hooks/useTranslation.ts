@@ -103,7 +103,7 @@ export function useTranslation(): UseTranslationReturn {
 }
 
 // Specialized hooks for common use cases
-export function usePageTranslation(page: keyof TranslationKeys['pages']) {
+export function usePageTranslation(page: keyof TranslationKeys['pages'] | string) {
   const { t, ...rest } = useTranslation();
   
   const pageT = useCallback((key: string, values?: Record<string, string | number>) => {

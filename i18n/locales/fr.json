@@ -252,6 +252,7 @@
     "recommendations": {
       "title": "Destinataires de recommandations",
       "subtitle": "Gérez vos destinataires de lettres de recommandation et suivez vos demandes.",
+      "header": { "totalCount": "{count} destinataire{count, plural, one {} other {s}} au total" },
       "stats": {
         "totalRecipients": "Total des destinataires",
         "activeRequests": "Demandes actives",
@@ -263,9 +264,12 @@
         "averageRate": "Taux moyen"
       },
       "search": {
+        "title": "Recherche et filtres",
+        "searchRecipientsLabel": "Rechercher des destinataires",
         "placeholder": "Rechercher des destinataires...",
         "filterByInstitution": "Filtrer par institution",
         "filterByPreference": "Filtrer par préférence",
+        "showing": "Affichage de {count} sur {total} destinataires",
         "allInstitutions": "Toutes les institutions",
         "allPreferences": "Toutes les préférences",
         "prefersDrafts": "Préfère les brouillons",
@@ -276,6 +280,8 @@
         "addNew": "Ajouter un nouveau destinataire",
         "edit": "Modifier le destinataire",
         "delete": "Supprimer le destinataire",
+        "noDrafts": "Aucun brouillon",
+        "moreEmails": "+{count} autre{count, plural, one {} other {s}} e-mail",
         "contact": "Contact",
         "viewProfile": "Voir le profil",
         "sendRequest": "Envoyer une demande",
@@ -295,14 +301,39 @@
       "empty": {
         "title": "Aucun destinataire pour le moment",
         "description": "Commencez à construire votre réseau de rédacteurs de lettres de recommandation. Ajoutez des professeurs, superviseurs et mentors qui peuvent fournir de solides recommandations.",
-        "addFirst": "Ajouter votre premier destinataire"
+        "addFirst": "Ajouter votre premier destinataire",
+        "filter": {
+          "title": "Aucun destinataire ne correspond à vos filtres",
+          "description": "Essayez d'ajuster vos critères de recherche ou vos filtres pour trouver les destinataires recherchés."
+        }
+      },
+      "overview": {
+        "title": "Aperçu des destinataires",
+        "subtitle": "Aperçu de votre réseau de recommandations",
+        "activeNetwork": "Réseau actif",
+        "percentOfTotal": "{percent}% du total",
+        "percentHavePhone": "{percent}% avec téléphone",
+        "cards": {
+          "totalRecipients": "Total des destinataires",
+          "prefersDrafts": "Préférent les brouillons",
+          "institutions": "Institutions",
+          "uniqueInstitutions": "Institutions uniques",
+          "withPhone": "Avec téléphone"
+        }
+      },
+      "cta": {
+        "title": "Prêt à demander des recommandations ?",
+        "description": "Commencez à créer des demandes de recommandation pour vos destinataires.",
+        "viewRecommendations": "Voir les recommandations",
+        "newRequest": "Nouvelle demande"
       },
       "actions": {
         "addRecipient": "Ajouter un destinataire",
         "editRecipient": "Modifier le destinataire",
         "deleteRecipient": "Supprimer le destinataire",
         "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce destinataire ?",
-        "deleteWarning": "Cette action ne peut pas être annulée."
+        "deleteWarning": "Cette action ne peut pas être annulée.",
+        "deleting": "Suppression..."
       }
     },
     "library": {
@@ -566,6 +597,132 @@
         "linkCopyFailed": "Échec de la copie du lien dans le presse-papiers",
         "linkCopyFailedDescription": "Veuillez essayer de sélectionner et copier le lien manuellement."
       }
+    },
+    "applications": {
+      "title": "Mes candidatures",
+      "subtitle": "Suivez et gérez vos candidatures aux bourses",
+      "loading": "Chargement des candidatures",
+      "loadingSubtitle": "Récupération de vos données de candidature...",
+      "search": "Rechercher des candidatures...",
+      "filterByStatus": "Filtrer par statut",
+      "allStatus": "Tous les statuts",
+      "stats": {
+        "total": "Total des candidatures"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "inProgress": "En cours",
+        "readyForSubmission": "Prête à être soumise",
+        "submitted": "Soumise",
+        "underReview": "En révision",
+        "approved": "Approuvée",
+        "rejected": "Rejetée",
+        "waitlisted": "Liste d'attente",
+        "withdrawn": "Retirée",
+        "unknown": "Inconnu"
+      },
+      "actions": {
+        "management": "Gestion des candidatures",
+        "findScholarships": "Trouver des bourses",
+        "browseScholarships": "Parcourir les bourses",
+        "continue": "Continuer",
+        "review": "Vérifier"
+      },
+      "cta": {
+        "title": "Système de gestion des candidatures",
+        "description": "Créez des dossiers de candidature, suivez les exigences et gérez tout votre parcours de candidature",
+        "openManagement": "Ouvrir la gestion des candidatures"
+      },
+      "labels": {
+        "started": "Début",
+        "lastActivity": "Dernière activité",
+        "minutesRemaining": "{count} min restantes"
+      },
+      "empty": {
+        "title": "Aucune candidature trouvée",
+        "noneYet": "Vous n'avez pas encore commencé de candidatures.",
+        "noMatch": "Aucune candidature ne correspond à vos filtres actuels."
+      },
+      "errors": { "fetchFailed": "Échec de la récupération des candidatures" }
+    },
+    "applicationsManage": {
+      "title": "Gestion des candidatures",
+      "subtitle": "Gérez vos candidatures, suivez la progression et restez organisé",
+      "errors": { "fetchFailed": "Échec de la récupération des données de candidature" },
+      "actions": {
+        "createPackage": "Créer un dossier de candidature",
+        "browseScholarships": "Parcourir les bourses",
+        "view": "Voir"
+      },
+      "stats": {
+        "total": "Total des candidatures",
+        "ready": "Prêtes à postuler",
+        "upcomingDeadlines": "Échéances à venir"
+      },
+      "quick": {
+        "title": "Actions rapides",
+        "new": "Nouveau",
+        "Create Application Package": "Créer un dossier de candidature",
+        "Start a new application for a school or program": "Commencer une nouvelle candidature pour une école ou un programme",
+        "Browse Scholarships": "Parcourir les bourses",
+        "Find and apply for scholarships": "Trouver et postuler à des bourses",
+        "Explore Programs": "Explorer les programmes",
+        "Discover schools and programs": "Découvrir des écoles et des programmes",
+        "Manage Documents": "Gérer les documents",
+        "Upload and organize your documents": "Téléverser et organiser vos documents"
+      },
+      "recent": {
+        "title": "Candidatures récentes",
+        "viewAll": "Tout voir",
+        "loading": "Chargement des candidatures...",
+        "none": "Aucune candidature pour le moment",
+        "createFirst": "Créez votre premier dossier de candidature pour commencer"
+      },
+      "statusMap": {
+        "draft": "Brouillon",
+        "in_progress": "En cours",
+        "ready_for_submission": "Prête à être soumise",
+        "submitted": "Soumise",
+        "accepted": "Acceptée",
+        "rejected": "Rejetée",
+        "waitlisted": "Liste d'attente",
+        "withdrawn": "Retirée"
+      },
+      "priority": {
+        "low": "Faible",
+        "medium": "Moyenne",
+        "high": "Élevée",
+        "urgent": "Urgente"
+      },
+      "labels": {
+        "progress": "Progrès",
+        "deadline": "Échéance",
+        "days": "{count} jours",
+        "noDeadline": "Pas d'échéance"
+      },
+      "types": {
+        "programsAndSchools": "Programmes et écoles",
+        "scholarships": "Bourses"
+      }
+    },
+    "recommendationsPage": {
+      "title": "Lettres de recommandation",
+      "subtitle": "Gérez vos demandes de lettres de recommandation et suivez leur statut",
+      "actions": { "newRequest": "Nouvelle demande", "viewDetails": "Voir les détails", "edit": "Modifier" },
+      "empty": {
+        "title": "Aucune demande de recommandation pour le moment",
+        "description": "Commencez par créer votre première demande de lettre de recommandation",
+        "createFirst": "Créer la première demande"
+      },
+      "labels": { "unknownRecipient": "Destinataire inconnu", "unknownInstitution": "Institution inconnue" },
+      "status": { "pending": "En attente", "sent": "Envoyée", "received": "Reçue", "overdue": "En retard", "cancelled": "Annulée" },
+      "priority": { "low": "Priorité faible", "medium": "Priorité moyenne", "high": "Priorité élevée" },
+      "deadline": {
+        "daysRemaining": "{count} jours restants",
+        "daysOverdue": "{count} jours de retard",
+        "receivedOn": "Reçue le {date}"
+      },
+      "dateFormat": "dd MMM yyyy"
     },
     "programs": {
       "title": "Parcourir les programmes par établissement",

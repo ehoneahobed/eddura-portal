@@ -478,6 +478,75 @@ export type TranslationKeys = {
         linkCopyFailedDescription: string;
       };
     };
+    applicationsManage: {
+      title: string;
+      subtitle: string;
+      errors: { fetchFailed: string };
+      actions: { createPackage: string; browseScholarships: string; view: string };
+      stats: { total: string; ready: string; upcomingDeadlines: string };
+      quick: {
+        title: string;
+        new: string;
+        'Create Application Package': string;
+        'Start a new application for a school or program': string;
+        'Browse Scholarships': string;
+        'Find and apply for scholarships': string;
+        'Explore Programs': string;
+        'Discover schools and programs': string;
+        'Manage Documents': string;
+        'Upload and organize your documents': string;
+      };
+      recent: { title: string; viewAll: string; loading: string; none: string; createFirst: string };
+      statusMap: Record<string, string>;
+      priority: { low: string; medium: string; high: string; urgent: string };
+      labels: { progress: string; deadline: string; days: string; noDeadline: string };
+      types: { programsAndSchools: string; scholarships: string };
+    };
+    applications: {
+      title: string;
+      subtitle: string;
+      loading: string;
+      loadingSubtitle: string;
+      search: string;
+      filterByStatus: string;
+      allStatus: string;
+      stats: { total: string };
+      status: {
+        draft: string;
+        inProgress: string;
+        readyForSubmission: string;
+        submitted: string;
+        underReview: string;
+        approved: string;
+        rejected: string;
+        waitlisted: string;
+        withdrawn: string;
+        unknown: string;
+      };
+      actions: {
+        management: string;
+        findScholarships: string;
+        browseScholarships: string;
+        continue: string;
+        review: string;
+      };
+      cta: {
+        title: string;
+        description: string;
+        openManagement: string;
+      };
+      labels: {
+        started: string;
+        lastActivity: string;
+        minutesRemaining: string;
+      };
+      empty: {
+        title: string;
+        noneYet: string;
+        noMatch: string;
+      };
+      errors: { fetchFailed: string };
+    };
     documents: {
       title: string;
       subtitle: string;
@@ -518,6 +587,17 @@ export type TranslationKeys = {
         browseTemplates: string;
         createNew: string;
       };
+    };
+    recommendationsPage: {
+      title: string;
+      subtitle: string;
+      actions: { newRequest: string; viewDetails: string; edit: string };
+      empty: { title: string; description: string; createFirst: string };
+      labels: { unknownRecipient: string; unknownInstitution: string };
+      status: { pending: string; sent: string; received: string; overdue: string; cancelled: string };
+      priority: { low: string; medium: string; high: string };
+      deadline: { daysRemaining: string; daysOverdue: string; receivedOn: string };
+      dateFormat: string;
     };
   };
   forms: {
