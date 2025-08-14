@@ -48,6 +48,7 @@ This document inventories all user-facing and admin-facing features discovered i
   - API: `app/api/documents/*` (CRUD, types, versioning, download Word/PDF, share, feedback, upload to S3)
   - Storage: AWS S3 via `lib/s3.ts`; config in README
 - Document library (curated examples to clone/edit)
+  - Paid plans only (Free can view landing/teasers, cannot clone)
   - User page: `app/(user-portal)/library/page.tsx`
   - Admin: `app/admin/library/*` (documents, templates, publish, review, analytics)
   - API: `app/api/library/documents/*` (+ rate, download)
@@ -56,7 +57,7 @@ This document inventories all user-facing and admin-facing features discovered i
   - Models: `models/DocumentShare`, `models/DocumentFeedback`
 
 ### AI & Automation
-- AI content generation/refinement and reviews
+- AI content generation/refinement and reviews (token-gated; not included on Free without purchased tokens)
   - API: `app/api/ai/generate`, `app/api/ai/refine`, `app/api/ai/refine-with-feedback`, `app/api/ai/review-application`, `app/api/ai/quiz-analysis`
   - Lib: `lib/ai-utils.ts`, `lib/ai-review-utils.ts`, `lib/ai-recommendations.ts`
   - Docs: `AI_*` docs in repo
@@ -84,6 +85,9 @@ This document inventories all user-facing and admin-facing features discovered i
 
 ### Squads & Leaderboards (Social/Collaboration)
 - Create/join squads by code, goals, progress, leaderboard
+  - Free: 1 primary squad only
+  - Paid: create additional squads, advanced goals/analytics
+  - Referral tokens for inviting new users who sign up
   - Pages: `app/(user-portal)/squads/*`, `app/join/[code]`
   - Components: `components/squads/*`, `components/leaderboards/GlobalLeaderboard.tsx`
   - API: `app/api/squads/*`, `app/api/leaderboard/global`
@@ -125,6 +129,7 @@ This document inventories all user-facing and admin-facing features discovered i
 
 ### Media & Storage
 - Media upload (S3) and document upload (S3 presigned)
+  - Paid plans only (uploads disabled on Free)
   - API: `app/api/media/upload`, `app/api/documents/upload`, `app/api/test-s3-upload`
   - Lib: `lib/s3.ts`
 

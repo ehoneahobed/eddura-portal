@@ -7,27 +7,27 @@ Goal: Design pricing and packaging that nudges most buyers to select the middle 
 - Free — Kickstart
   - $0/month
   - Who: new users exploring Eddura
-  - Limits: 3 active apps, 100MB storage, 5MB/file, join 1 squad, 2 library clones/mo, 1 recommendation request/mo, 10 AI tokens/mo
+  - Limits: 3 active apps, uploads disabled, library access disabled, 1 primary squad, 1 recommendation request (total), 0 AI tokens
 
 - Starter — Essentials (Least Favorite by design)
-  - $6/month (anchor low)
+  - $7/month (anchor low)
   - Who: light users who only need basics beyond free
-  - Includes: 10 active apps, 1GB storage, 25MB/file, join 3 squads, 20 library clones/mo, 5 recommendation requests/mo, 200 AI tokens/mo
+  - Includes: 10 active apps, uploads enabled (1GB, 25MB/file), library access (20 clones/mo), join 3 squads, 5 recommendation requests/mo, 150 AI tokens/mo
   - Pay-as-you-go tokens available
 
 - Plus — Recommended (Middle, target choice)
-  - $15/month (visibly better value)
+  - $12/month (visibly better value)
   - Who: typical applicant applying to several schools and scholarships
-  - Includes: 30 active apps, 5GB storage, 100MB/file, create 1 squad + join 5, 100 library clones/mo, 20 recommendation requests/mo, 1,000 AI tokens/mo
+  - Includes: 30 active apps, uploads (5GB, 100MB/file), create 1 squad + join 5, library access (100 clones/mo), 20 recommendation requests/mo, 700 AI tokens/mo
   - Extras: Document export (PDF/Word) included up to 20/month
   - Pay-as-you-go tokens available (discounted bundles)
 
 - Pro — Power (Top tier)
-  - $49/month
+  - $20/month (cap highest price)
   - Who: power users, counselors, heavy applications
-  - Includes: 100 active apps, 20GB storage, 500MB/file, create 3 squads + join 10, 500 library clones/mo, 100 recommendation requests/mo, 5,000 AI tokens/mo
+  - Includes: 100 active apps, uploads (20GB, 500MB/file), create 3 squads + join 10, library access (500 clones/mo), 100 recommendation requests/mo, 2,000 AI tokens/mo
   - Extras: Document export included up to 200/month, priority support, advanced analytics
-  - Team add-on (future): seat-based pricing
+  - Future: B2B plan for coaches/counselors with multi-seat support (separate pricing)
 
 ## Price Psychology Tactics
 - Contrast effect: Starter is priced close to Plus but materially less value
@@ -43,12 +43,12 @@ Goal: Design pricing and packaging that nudges most buyers to select the middle 
 
 ## Feature Allocation by Plan
 - Applications: 3 / 10 / 30 / 100
-- Storage total: 100MB / 1GB / 5GB / 20GB
-- File size: 5MB / 25MB / 100MB / 500MB
-- Squads: join 1 / join 3 / create 1 + join 5 / create 3 + join 10
-- Library clones per month: 2 / 20 / 100 / 500
+- Storage total: N/A (Free) / 1GB / 5GB / 20GB
+- File size: N/A (Free) / 25MB / 100MB / 500MB
+- Squads: 1 primary / join 3 / create 1 + join 5 / create 3 + join 10
+- Library clones per month: 0 / 20 / 100 / 500
 - Recommendation requests per month: 1 / 5 / 20 / 100
-- AI tokens per month: 10 / 200 / 1,000 / 5,000
+- AI tokens per month: 0 / 150 / 700 / 2,000
 - Document exports included: 0 / 0 / 20 / 200 (then tokens apply)
 
 ## Gating & Metering

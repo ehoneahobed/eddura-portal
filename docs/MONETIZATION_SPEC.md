@@ -11,7 +11,7 @@
 - Admin (internal content/ops)
 
 ## Plans Overview
-- Free: Onboarding, core tracking, limited AI
+- Free: Onboarding, core tracking, no AI included (pay-as-you-go tokens allowed)
 - Starter (Tier 1)
 - Plus (Tier 2) — target most users
 - Pro (Tier 3)
@@ -23,14 +23,18 @@ Free (always-on):
 - Account, authentication, profile
 - Discover: scholarships, programs, schools (browse/search)
 - Save scholarships, basic application list (up to 3 active apps)
-- Documents: create/edit text docs, basic templates (limited), upload up to 5 files total, per-file 5MB
+- Documents: create/edit text docs, basic templates (limited)
 - Requirements checklist: basic, manual add, progress tracking
-- Squads: join up to 1 squad, view leaderboard
-- Referrals: generate code, basic stats
+- Squads: 1 primary squad (join/create one primary only), view leaderboard
+- Referrals: generate code, basic stats; earn tokens when invited non-users sign up
 - Notifications: essential
 - Analytics: basic dashboard stats
 - Content viewing
-- AI: 10 tokens/month included
+- AI: not included (requires tokens)
+- File uploads: paid plans only
+- Library access: paid plans only
+- Recommendations: 1 request total to showcase value (more on paid)
+
 
 Premium adds (and scales by tier):
 - Applications: higher active app limits, interviews tracking, follow-ups
@@ -110,12 +114,12 @@ Premium adds (and scales by tier):
 
 ## Free vs Paid Limits (Initial Defaults)
 - Applications: Free 3, Starter 10, Plus 30, Pro 100
-- Storage total: Free 100MB, Starter 1GB, Plus 5GB, Pro 20GB
-- Per-file size: Free 5MB, Starter 25MB, Plus 100MB, Pro 500MB
+- Storage total: Free N/A (uploads disabled), Starter 1GB, Plus 5GB, Pro 20GB
+- Per-file size: Free N/A (uploads disabled), Starter 25MB, Plus 100MB, Pro 500MB
 - Squads: Free join 1, Starter join 3, Plus create 1+join 5, Pro create 3+join 10
-- Library clone/month: Free 2, Starter 20, Plus 100, Pro 500
+- Library clone/month: Free 0 (access disabled), Starter 20, Plus 100, Pro 500
 - Recommendation requests/month: Free 1, Starter 5, Plus 20, Pro 100
-- AI monthly tokens grant: Free 10, Starter 200, Plus 1,000, Pro 5,000
+- AI monthly tokens grant: Free 0, Starter 150, Plus 700, Pro 2,000
 
 ## Token Costs (Initial Defaults)
 - AI generate (short, up to 300 words): 2 tokens

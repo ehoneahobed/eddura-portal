@@ -20,3 +20,11 @@ Guidelines:
 - Always show an estimate before deduction and require user confirmation.
 - Deduct grant tokens first, then purchased tokens.
 - Enforce daily soft caps (plan-dependent) and cooldowns to prevent abuse.
+
+## Token Rewards (Earning)
+
+| Action | Reward (tokens) | Notes |
+|---|---:|---|
+| Invite non-user who signs up | 10 | Unique signups only; monthly cap configurable |
+| Create a new squad (non-primary) | 20 | Paid plans only; 1 reward per squad |
+| Provide peer review on shared doc | 1 | Anti-fraud checks; daily cap |

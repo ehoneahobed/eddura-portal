@@ -6,9 +6,12 @@
 - Cross-plan usability: subscriptions grant monthly tokens; token packs add-on any time
 
 ## Token Sources
-- Monthly grant by plan
+- Monthly grant by plan (Free: 0)
 - One-time purchases (packs)
 - Referral/achievement rewards (configurable)
+- Squad growth incentives:
+  - Create a new squad (non-primary): N/A on Free, eligible on paid plans: +20 tokens
+  - Invite non-user who signs up: +10 tokens per unique signup (capped/month)
 
 ## Token Sinks (Actions and Unit Costs)
 - AI generate (short prompt, <=300 words): 2
