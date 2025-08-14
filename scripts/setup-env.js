@@ -23,6 +23,9 @@ NEXT_PUBLIC_LAUNCHED=false
 
 # Database Configuration
 MONGODB_URI=your_mongodb_connection_string_here
+# Optional: Connection pool tuning (keeps Atlas connections low)
+MONGODB_MAX_POOL_SIZE=5
+MONGODB_MIN_POOL_SIZE=0
 
 # Authentication (NextAuth.js)
 NEXTAUTH_SECRET=your_nextauth_secret_here
@@ -48,6 +51,8 @@ if (!envExists) {
 console.log('📋 Required Environment Variables:');
 console.log('   • NEXT_PUBLIC_LAUNCHED: Controls whether to show full app or coming soon page');
 console.log('   • MONGODB_URI: Your MongoDB connection string');
+console.log('   • MONGODB_MAX_POOL_SIZE (optional): Default 5 (adjust for Atlas limits)');
+console.log('   • MONGODB_MIN_POOL_SIZE (optional): Default 0');
 console.log('   • NEXTAUTH_SECRET: Secret for NextAuth.js (generate with: openssl rand -base64 32)');
 console.log('   • NEXTAUTH_URL: Your application URL (http://localhost:3000 for development)\n');
 
