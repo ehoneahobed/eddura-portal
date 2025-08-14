@@ -193,6 +193,160 @@
     }
   },
   "pages": {
+    "landing": {
+      "navbar": { "takeQuiz": "Take Quiz", "getStarted": "Get Started" },
+      "hero": {
+        "heading": "Make Your University & Scholarships Applications",
+        "titles": {
+          "simpler": "Simpler.",
+          "smarter": "Smarter.",
+          "moreSuccessful": "More Successful.",
+          "personalized": "Personalized."
+        },
+        "takeQuiz": "Take Our Career Discovery Quiz",
+        "subtitle": "Eddura is your AI-powered command center for academic success. Start with our career discovery quiz to get personalized program recommendations, then craft winning applications for every university and scholarship.",
+        "primaryCta": "Start Career Discovery Quiz",
+        "secondaryCta": "Create Account",
+        "trust": {
+          "personalizedFast": "Get personalized recommendations in 10 minutes",
+          "noRegistration": "No registration required to start",
+          "worldwide": "Trusted by students worldwide"
+        }
+      },
+      "stats": {
+        "successRate": "Success Rate",
+        "faster": "Faster Applications",
+        "universities": "Universities",
+        "scholarships": "Scholarships Available"
+      },
+      "features": {
+        "headingTop": "Revolutionary",
+        "headingBottom": "Features",
+        "description": "Built with cutting-edge technology to give you the ultimate competitive advantage.",
+        "items": {
+          "ai": { "title": "AI-Powered Intelligence", "description": "Advanced machine learning analyzes your profile and automatically matches you with the perfect programs and scholarships." },
+          "hub": { "title": "Unified Data Hub", "description": "Single source of truth for all your academic data. Upload once, use everywhere with intelligent auto-population." },
+          "stack": { "title": "Smart Application Stack", "description": "Layer your applications with intelligent insights, deadline tracking, and progress optimization." },
+          "network": { "title": "Global Opportunity Network", "description": "Connect with 50+ universities and 100+ scholarship opportunities worldwide." },
+          "automation": { "title": "Intelligent Automation", "description": "Automate repetitive tasks, generate personalized content, and optimize your application strategy." },
+          "analytics": { "title": "Predictive Analytics", "description": "Get insights into your application success probability and optimize your strategy in real-time." }
+        }
+      },
+      "testimonials": { "headingTop": "Trusted by", "headingBottom": "Top Students" },
+      "finalCta": {
+        "headingTop": "Ready to Transform",
+        "headingBottom": "Your Future?",
+        "description": "Join thousands of students who have already discovered their path to success with Eddura's intelligent platform.",
+        "primaryCta": "Start Your Journey",
+        "secondaryCta": "Watch Demo"
+      },
+      "comingSoon": {
+        "badge": "Coming Soon",
+        "exploreAi": "Explore Our AI in Action",
+        "subtitle": "{appDescription}. Get AI-powered insights, essay hacks, early betas & connect with future leaders.",
+        "telegramCta": "Join Our Telegram Channel",
+        "earlyAccess": "Get Early Access",
+        "earlyAccessSub": "Be among the first to experience the future of scholarship applications",
+        "whatsComing": "What's Coming",
+        "whatsComingSub": "Be the first to know when we launch. Don't just apply, succeed.",
+        "emailPlaceholder": "Enter your email",
+        "notifyMe": "Notify Me"
+      },
+      "footer": {
+        "tagline": "The future of academic applications. Powered by AI, designed for success.",
+        "links": { "features": "Features", "privacy": "Privacy", "terms": "Terms" },
+        "copyright": "© {year} Eddura. All rights reserved."
+      }
+    },
+    "squads": {
+      "dashboard": {
+        "title": "Eddura Squads",
+        "subtitle": "Join collaborative groups to support your application journey",
+        "counts": "{mine} in My Squads • {public} public"
+      },
+      "auth": {
+        "signInTitle": "Sign in to access Eddura Squads",
+        "signInSubtitle": "Join collaborative groups to support your application journey"
+      },
+      "actions": {
+        "joinSquad": "Join Squad",
+        "createSquad": "Create Squad",
+        "leaveSquad": "Leave Squad",
+        "joining": "Joining...",
+        "leaving": "Leaving..."
+      },
+      "stats": {
+        "totalSquads": "Total Squads",
+        "primarySecondary": "{primary} Primary • {secondary} Secondary",
+        "activeGoals": "Active Goals",
+        "acrossAllSquads": "Across all squads",
+        "avgProgress": "Avg Progress",
+        "overallCompletion": "Overall completion",
+        "needHelp": "Need Help",
+        "membersNeedingSupport": "Members needing support"
+      },
+      "quick": {
+        "title": "Quick Actions",
+        "discover": {
+          "title": "Discover Public Squads",
+          "description": "Find active communities aligned with your interests.",
+          "action": "Browse Public Squads"
+        },
+        "create": {
+          "title": "Create a Squad",
+          "description": "Start a new group and invite peers to join.",
+          "action": "Create Squad"
+        },
+        "track": {
+          "title": "Track Your Goals",
+          "description": "Monitor progress across your squads.",
+          "action": "View My Squads"
+        }
+      },
+      "tabs": { "mySquads": "My Squads", "discover": "Discover", "create": "Create" },
+      "loading": { "mySquads": "Loading your squads...", "discover": "Discovering public squads..." },
+      "empty": {
+        "title": "No squads yet",
+        "description": "Join or create your first squad to start collaborating with peers",
+        "createFirst": "Create Your First Squad"
+      },
+      "sections": {
+        "primary": { "badge": "Primary Squad", "heading": "Your Main Squad" },
+        "secondary": { "badge": "Secondary Squads", "heading": "Specialized Groups" }
+      },
+      "discover": {
+        "empty": {
+          "title": "No public squads available",
+          "description": "Check back later or create your own squad"
+        }
+      },
+      "create": {
+        "title": "Create a New Squad",
+        "description": "Start a collaborative group to support your application journey",
+        "primary": {
+          "title": "Primary Squad",
+          "description": "Your main accountability group. You can only have one primary squad.",
+          "button": "Create Primary Squad"
+        },
+        "secondary": {
+          "title": "Secondary Squad",
+          "description": "Specialized groups for specific interests or goals.",
+          "button": "Create Secondary Squad"
+        }
+      },
+      "card": {
+        "members": "{count}/{max} members",
+        "goals": "{count} goals",
+        "complete": "{percent}% complete",
+        "activity": "{level} activity",
+        "overallProgress": "Overall Progress",
+        "activeGoals": "Active Goals",
+        "moreGoals": "+{count} more goals",
+        "membersTitle": "Members",
+        "moreMembers": "+{count} more",
+        "viewDetails": "View Details"
+      }
+    },
     "dashboard": {
       "title": "Dashboard",
       "subtitle": "Your personalized dashboard with quiz results and career recommendations.",
@@ -225,6 +379,27 @@
         "browseScholarships": "Browse Scholarships",
         "findFunding": "Find funding opportunities"
       },
+      "tokens": {
+        "title": "Token Balance",
+        "subtitle": "Your Eddura rewards and earnings",
+        "available": "Available Tokens",
+        "totalEarned": "Total Earned",
+        "totalSpent": "Total Spent",
+        "net": "Net",
+        "cta": "Earn tokens by completing tasks and referring friends"
+      },
+      "squadsWidget": {
+        "title": "Eddura Squads",
+        "subtitle": "Join collaborative squads for support",
+        "empty": {
+          "title": "No squads yet",
+          "description": "Join or create a squad to collaborate with other students",
+          "action": "Create Squad"
+        },
+        "goal": "goal",
+        "goals": "goals",
+        "viewAll": "View All Squads ({count})"
+      },
       "recentActivity": {
         "title": "Recent Activity",
         "subtitle": "Your latest interactions and progress",
@@ -240,6 +415,8 @@
       "profile": {
         "editProfile": "Edit Profile",
         "viewProfile": "View Profile",
+        "quizStatus": "Quiz Status",
+        "quizProgress": "Quiz Progress",
         "quizCompleted": "Quiz Completed",
         "quizNotCompleted": "Quiz Not Completed",
         "memberSince": "Member since {date}",

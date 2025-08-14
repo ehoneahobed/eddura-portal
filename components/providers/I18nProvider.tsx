@@ -22,49 +22,33 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Only detect browser language if no initialLocale was provided and after hydration
+  // After hydration, reconcile locale with persisted preference (localStorage/cookie),
+  // regardless of the server-provided initialLocale.
   useEffect(() => {
     setIsHydrated(true);
-    
-    // Only run client-side detection if no initialLocale was provided
-    if (!initialLocale && typeof window !== 'undefined') {
-      const detectBrowserLanguage = (): Locale => {
-        try {
-          // Check localStorage first
-          const savedLocale = localStorage.getItem('locale') as Locale;
-          if (savedLocale && locales.includes(savedLocale)) {
-            return savedLocale;
-          }
 
-          // Check cookie (set by middleware)
-          const cookieLocale = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('locale='))
-            ?.split('=')[1] as Locale;
-          
-          if (cookieLocale && locales.includes(cookieLocale)) {
-            return cookieLocale;
-          }
+    if (typeof window === 'undefined') return;
 
-          // Check browser language
-          const browserLanguage = navigator.language.split('-')[0] as Locale;
-          if (locales.includes(browserLanguage)) {
-            return browserLanguage;
-          }
+    try {
+      const savedLocale = (localStorage.getItem('locale') as Locale) || (document.cookie
+        .split('; ')
+        .find(row => row.startsWith('locale='))
+        ?.split('=')[1] as Locale);
 
-          return defaultLocale;
-        } catch (error) {
-          console.warn('Error detecting browser language:', error);
-          return defaultLocale;
-        }
-      };
-
-      const detectedLocale = detectBrowserLanguage();
-      if (detectedLocale !== locale) {
-        setLocaleState(detectedLocale);
+      if (savedLocale && locales.includes(savedLocale) && savedLocale !== locale) {
+        setLocaleState(savedLocale);
+        return;
       }
+
+      // Fallback to browser language if no persisted preference
+      const browserLanguage = navigator.language.split('-')[0] as Locale;
+      if (!initialLocale && locales.includes(browserLanguage) && browserLanguage !== locale) {
+        setLocaleState(browserLanguage);
+      }
+    } catch (error) {
+      console.warn('Error reconciling locale after hydration:', error);
     }
-  }, []);
+  }, [initialLocale, locale]);
 
   const setLocale = async (newLocale: Locale) => {
     if (newLocale === locale) return;

@@ -193,6 +193,160 @@
     }
   },
   "pages": {
+    "landing": {
+      "navbar": { "takeQuiz": "Passer le quiz", "getStarted": "Commencer" },
+      "hero": {
+        "heading": "Rendez vos candidatures universitaires et bourses",
+        "titles": {
+          "simpler": "Plus simples.",
+          "smarter": "Plus intelligentes.",
+          "moreSuccessful": "Plus réussies.",
+          "personalized": "Personnalisées."
+        },
+        "takeQuiz": "Passer notre quiz d'orientation",
+        "subtitle": "Eddura est votre centre de commande alimenté par l'IA pour la réussite académique. Commencez par notre quiz d'orientation pour obtenir des recommandations personnalisées de programmes, puis réalisez des candidatures gagnantes pour chaque université et bourse.",
+        "primaryCta": "Commencer le quiz d'orientation",
+        "secondaryCta": "Créer un compte",
+        "trust": {
+          "personalizedFast": "Des recommandations personnalisées en 10 minutes",
+          "noRegistration": "Aucune inscription requise pour commencer",
+          "worldwide": "Plébiscité par des étudiants dans le monde entier"
+        }
+      },
+      "stats": {
+        "successRate": "Taux de réussite",
+        "faster": "Candidatures plus rapides",
+        "universities": "Universités",
+        "scholarships": "Bourses disponibles"
+      },
+      "features": {
+        "headingTop": "Révolutionnaires",
+        "headingBottom": "Fonctionnalités",
+        "description": "Construit avec des technologies de pointe pour vous donner l'avantage compétitif ultime.",
+        "items": {
+          "ai": { "title": "Intelligence alimentée par l'IA", "description": "Des algorithmes d'apprentissage automatique analysent votre profil et vous associent automatiquement aux programmes et bourses idéaux." },
+          "hub": { "title": "Hub de données unifié", "description": "Source unique de vérité pour toutes vos données académiques. Téléversez une fois, réutilisez partout avec auto‑remplissage intelligent." },
+          "stack": { "title": "Pile de candidatures intelligente", "description": "Superposez vos candidatures avec des informations intelligentes, le suivi des délais et l'optimisation de la progression." },
+          "network": { "title": "Réseau d'opportunités mondial", "description": "Connectez‑vous à plus de 50 universités et 100 bourses dans le monde entier." },
+          "automation": { "title": "Automatisation intelligente", "description": "Automatisez les tâches répétitives, générez du contenu personnalisé et optimisez votre stratégie de candidature." },
+          "analytics": { "title": "Analytique prédictive", "description": "Obtenez des informations sur vos chances de succès et optimisez votre stratégie en temps réel." }
+        }
+      },
+      "testimonials": { "headingTop": "Plébiscité par", "headingBottom": "Les meilleurs étudiants" },
+      "finalCta": {
+        "headingTop": "Prêt à transformer",
+        "headingBottom": "Votre avenir ?",
+        "description": "Rejoignez des milliers d'étudiants qui ont déjà trouvé leur voie vers la réussite grâce à la plateforme intelligente d'Eddura.",
+        "primaryCta": "Commencer votre parcours",
+        "secondaryCta": "Regarder la démo"
+      },
+      "comingSoon": {
+        "badge": "Bientôt disponible",
+        "exploreAi": "Découvrez notre IA en action",
+        "subtitle": "{appDescription}. Obtenez des insights IA, des astuces d'essais, des bêtas en avant‑première et connectez‑vous avec de futurs leaders.",
+        "telegramCta": "Rejoindre notre canal Telegram",
+        "earlyAccess": "Accès anticipé",
+        "earlyAccessSub": "Soyez parmi les premiers à découvrir l'avenir des candidatures aux bourses",
+        "whatsComing": "Ce qui arrive",
+        "whatsComingSub": "Soyez informé dès notre lancement. Ne vous contentez pas de postuler, réussissez.",
+        "emailPlaceholder": "Entrez votre e‑mail",
+        "notifyMe": "Prévenez‑moi"
+      },
+      "footer": {
+        "tagline": "L'avenir des candidatures académiques. Propulsé par l'IA, conçu pour la réussite.",
+        "links": { "features": "Fonctionnalités", "privacy": "Confidentialité", "terms": "Conditions" },
+        "copyright": "© {year} Eddura. Tous droits réservés."
+      }
+    },
+    "squads": {
+      "dashboard": {
+        "title": "Équipes Eddura",
+        "subtitle": "Rejoignez des groupes collaboratifs pour soutenir votre parcours de candidature",
+        "counts": "{mine} dans Mes Équipes • {public} publiques"
+      },
+      "auth": {
+        "signInTitle": "Connectez-vous pour accéder aux Équipes Eddura",
+        "signInSubtitle": "Rejoignez des groupes collaboratifs pour soutenir votre parcours de candidature"
+      },
+      "actions": {
+        "joinSquad": "Rejoindre l'équipe",
+        "createSquad": "Créer une équipe",
+        "leaveSquad": "Quitter l'équipe",
+        "joining": "Rejoindre...",
+        "leaving": "Quitte..."
+      },
+      "stats": {
+        "totalSquads": "Total des équipes",
+        "primarySecondary": "{primary} Principale • {secondary} Secondaires",
+        "activeGoals": "Objectifs actifs",
+        "acrossAllSquads": "Dans toutes les équipes",
+        "avgProgress": "Progression moy.",
+        "overallCompletion": "Achèvement global",
+        "needHelp": "Besoin d'aide",
+        "membersNeedingSupport": "Membres nécessitant du soutien"
+      },
+      "quick": {
+        "title": "Actions rapides",
+        "discover": {
+          "title": "Découvrir les équipes publiques",
+          "description": "Trouvez des communautés actives correspondant à vos intérêts.",
+          "action": "Parcourir les équipes publiques"
+        },
+        "create": {
+          "title": "Créer une équipe",
+          "description": "Créez un nouveau groupe et invitez vos pairs à rejoindre.",
+          "action": "Créer une équipe"
+        },
+        "track": {
+          "title": "Suivre vos objectifs",
+          "description": "Surveillez la progression de vos équipes.",
+          "action": "Voir Mes Équipes"
+        }
+      },
+      "tabs": { "mySquads": "Mes équipes", "discover": "Découvrir", "create": "Créer" },
+      "loading": { "mySquads": "Chargement de vos équipes...", "discover": "Découverte des équipes publiques..." },
+      "empty": {
+        "title": "Aucune équipe pour le moment",
+        "description": "Rejoignez ou créez votre première équipe pour commencer à collaborer avec des pairs",
+        "createFirst": "Créer ma première équipe"
+      },
+      "sections": {
+        "primary": { "badge": "Équipe principale", "heading": "Votre équipe principale" },
+        "secondary": { "badge": "Équipes secondaires", "heading": "Groupes spécialisés" }
+      },
+      "discover": {
+        "empty": {
+          "title": "Aucune équipe publique disponible",
+          "description": "Revenez plus tard ou créez votre propre équipe"
+        }
+      },
+      "create": {
+        "title": "Créer une nouvelle équipe",
+        "description": "Créez un groupe collaboratif pour soutenir votre parcours de candidature",
+        "primary": {
+          "title": "Équipe principale",
+          "description": "Votre groupe de responsabilité principal. Vous ne pouvez avoir qu'une seule équipe principale.",
+          "button": "Créer l'équipe principale"
+        },
+        "secondary": {
+          "title": "Équipe secondaire",
+          "description": "Groupes spécialisés pour des intérêts ou objectifs spécifiques.",
+          "button": "Créer une équipe secondaire"
+        }
+      },
+      "card": {
+        "members": "{count}/{max} membres",
+        "goals": "{count} objectifs",
+        "complete": "{percent}% terminé",
+        "activity": "activité {level}",
+        "overallProgress": "Progression globale",
+        "activeGoals": "Objectifs actifs",
+        "moreGoals": "+{count} objectifs de plus",
+        "membersTitle": "Membres",
+        "moreMembers": "+{count} de plus",
+        "viewDetails": "Voir les détails"
+      }
+    },
     "dashboard": {
       "title": "Tableau de bord",
       "subtitle": "Votre tableau de bord personnalisé avec les résultats du quiz et les recommandations de carrière.",
@@ -225,6 +379,27 @@
         "browseScholarships": "Parcourir les bourses d'études",
         "findFunding": "Trouvez des opportunités de financement"
       },
+      "tokens": {
+        "title": "Solde de jetons",
+        "subtitle": "Vos récompenses et gains Eddura",
+        "available": "Jetons disponibles",
+        "totalEarned": "Total gagné",
+        "totalSpent": "Total dépensé",
+        "net": "Net",
+        "cta": "Gagnez des jetons en accomplissant des tâches et en parrainant des amis"
+      },
+      "squadsWidget": {
+        "title": "Équipes Eddura",
+        "subtitle": "Rejoignez des équipes collaboratives pour obtenir du soutien",
+        "empty": {
+          "title": "Aucune équipe pour le moment",
+          "description": "Rejoignez ou créez une équipe pour collaborer avec d'autres étudiants",
+          "action": "Créer une équipe"
+        },
+        "goal": "objectif",
+        "goals": "objectifs",
+        "viewAll": "Voir toutes les équipes ({count})"
+      },
       "recentActivity": {
         "title": "Activité récente",
         "subtitle": "Vos dernières interactions et progrès",
@@ -240,6 +415,8 @@
       "profile": {
         "editProfile": "Modifier le profil",
         "viewProfile": "Voir le profil",
+        "quizStatus": "Statut du quiz",
+        "quizProgress": "Progression du quiz",
         "quizCompleted": "Quiz terminé",
         "quizNotCompleted": "Quiz non terminé",
         "memberSince": "Membre depuis {date}",

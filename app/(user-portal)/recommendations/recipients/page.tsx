@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ModernCard, StatCard, FeatureCard } from '@/components/ui/modern-card';
@@ -80,11 +80,7 @@ export default function RecipientsPage() {
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [deletingRecipient, setDeletingRecipient] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRecipients();
-  }, []);
-
-  const fetchRecipients = async () => {
+  const fetchRecipients = useCallback(async () => {
     try {
       const response = await fetch('/api/recommendations/recipients');
       const data = await response.json();
@@ -97,7 +93,11 @@ export default function RecipientsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tNotification]);
+
+  useEffect(() => {
+    fetchRecipients();
+  }, [fetchRecipients]);
 
   const handleRecipientAdded = (newRecipient: Recipient) => {
     setRecipients(prev => [newRecipient, ...prev]);

@@ -21,6 +21,7 @@ import {
 import { joinSquad, leaveSquad } from '@/hooks/use-squads';
 import { mutate } from 'swr';
 import { ModernCard } from '@/components/ui/modern-card';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 interface SquadCardProps {
   squad: {
@@ -77,6 +78,7 @@ interface SquadCardProps {
 
 export default function SquadCard({ squad, showJoinButton = false }: SquadCardProps) {
   const { data: session } = useSession();
+  const { t } = usePageTranslation('squads');
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -161,26 +163,26 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
         <div className="grid grid-cols-2 gap-4 text-sm text-eddura-700 dark:text-eddura-300">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-eddura-500" />
-            <span>{squad.memberCount}/{squad.maxMembers} members</span>
+            <span>{t('card.members', { count: squad.memberCount, max: squad.maxMembers })}</span>
           </div>
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-accent" />
-            <span>{squad.goals.length} goals</span>
+            <span>{t('card.goals', { count: squad.goals.length })}</span>
           </div>
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-500" />
-            <span>{squad.completionPercentage}% complete</span>
+            <span>{t('card.complete', { percent: squad.completionPercentage })}</span>
           </div>
           <div className="flex items-center gap-2">
             <Badge className={getActivityColor(squad.activityLevel)}>
-              {squad.activityLevel} activity
+              {t('card.activity', { level: squad.activityLevel })}
             </Badge>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-eddura-800 dark:text-eddura-100">Overall Progress</span>
+            <span className="text-eddura-800 dark:text-eddura-100">{t('card.overallProgress')}</span>
             <span className="font-medium">{squad.completionPercentage}%</span>
           </div>
           <Progress value={squad.completionPercentage} className="h-2" />
@@ -188,7 +190,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
 
         {squad.goals.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-eddura-800 dark:text-eddura-100">Active Goals</h4>
+            <h4 className="text-sm font-medium text-eddura-800 dark:text-eddura-100">{t('card.activeGoals')}</h4>
             <div className="space-y-1">
               {squad.goals.slice(0, 2).map((goal, index) => (
                 <div key={index} className="flex items-center justify-between text-xs">
@@ -205,7 +207,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
               ))}
               {squad.goals.length > 2 && (
                 <div className="text-xs text-muted-foreground">
-                  +{squad.goals.length - 2} more goals
+                  {t('card.moreGoals', { count: squad.goals.length - 2 })}
                 </div>
               )}
             </div>
@@ -213,7 +215,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
         )}
 
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-eddura-800 dark:text-eddura-100">Members</h4>
+          <h4 className="text-sm font-medium text-eddura-800 dark:text-eddura-100">{t('card.membersTitle')}</h4>
           <div className="flex items-center gap-1">
             {squad.memberIds.slice(0, 3).map((member, index) => (
               <Avatar key={member._id as any} className="h-6 w-6">
@@ -225,7 +227,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
             ))}
             {squad.memberIds.length > 3 && (
               <div className="text-xs text-muted-foreground">
-                +{squad.memberIds.length - 3} more
+                {t('card.moreMembers', { count: squad.memberIds.length - 3 })}
               </div>
             )}
           </div>
@@ -242,7 +244,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
         <div className="flex items-center gap-2 pt-2">
           <Link href={`/squads/${squad._id as any}`}>
             <Button variant="outline" size="sm" className="flex-1">
-              View Details
+              {t('card.viewDetails')}
             </Button>
           </Link>
           
@@ -253,7 +255,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
               disabled={isJoining}
               className="flex-1 bg-eddura-500 hover:bg-eddura-600"
             >
-              {isJoining ? 'Joining...' : 'Join Squad'}
+              {isJoining ? t('actions.joining') : t('actions.joinSquad')}
             </Button>
           )}
           
@@ -265,7 +267,7 @@ export default function SquadCard({ squad, showJoinButton = false }: SquadCardPr
               disabled={isLeaving}
               className="flex-1"
             >
-              {isLeaving ? 'Leaving...' : 'Leave Squad'}
+              {isLeaving ? t('actions.leaving') : t('actions.leaveSquad')}
             </Button>
           )}
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,7 +53,7 @@ export default function DocumentsPage() {
 
 
   // Fetch documents
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     try {
       console.log('Fetching documents...');
       const response = await fetch('/api/documents');
@@ -74,13 +74,13 @@ export default function DocumentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tNotification]);
 
   useEffect(() => {
     if (session?.user) {
       fetchDocuments();
     }
-  }, [session]);
+  }, [session, fetchDocuments]);
 
   // Group documents by category
   const documentsByCategory = documents.reduce((acc, doc) => {

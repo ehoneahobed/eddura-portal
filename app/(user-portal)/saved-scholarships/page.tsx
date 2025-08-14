@@ -103,7 +103,7 @@ export default function SavedScholarshipsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, t]);
 
   useEffect(() => {
     if (status === 'loading') return;

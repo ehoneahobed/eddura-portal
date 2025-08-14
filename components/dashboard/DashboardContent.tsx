@@ -37,7 +37,7 @@ import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 import SquadWidget from './SquadWidget';
 import TokenDisplay from './TokenDisplay';
 import { ResponsiveContainer } from '../ui/responsive-container';
-import { usePageTranslation } from '@/hooks/useTranslation';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 // Consistent stat card for equal sizing across the grid
 interface StatsCardProps {
@@ -178,6 +178,7 @@ export default function DashboardContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { t } = usePageTranslation('dashboard');
+  const { t: tc } = useCommonTranslation();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userActivities, setUserActivities] = useState<UserActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -418,7 +419,7 @@ export default function DashboardContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Card className="border-0 shadow-md bg-white dark:bg-[var(--eddura-primary-900)]">
+            <Card className="mt-8 border-0 shadow-md bg-white dark:bg-[var(--eddura-primary-900)]">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl text-[var(--eddura-primary-900)] dark:text-white">{t('quickActions.title')}</CardTitle>
                 <CardDescription className="text-base text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
@@ -485,7 +486,7 @@ export default function DashboardContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] backdrop-blur-sm overflow-hidden">
+            <Card className="mt-8 border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] backdrop-blur-sm overflow-hidden">
               <CardHeader className="pb-8">
                 {/* <div className="w-16 h-16 bg-gradient-to-br from-[var(--eddura-accent)] to-[var(--eddura-accent-600)] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Zap className="w-8 h-8 text-white" />
@@ -568,7 +569,7 @@ export default function DashboardContent() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] backdrop-blur-sm overflow-hidden">
+            <Card className="mt-8 border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-primary-50)] dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)] backdrop-blur-sm overflow-hidden">
               <CardHeader className="text-center pb-8">
                 <Avatar className="w-28 h-28 mx-auto mb-6 shadow-xl">
                   <AvatarImage src="" />
@@ -581,15 +582,15 @@ export default function DashboardContent() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between p-3 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-800)] rounded-xl">
-                  <span className="text-sm font-medium text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Quiz Status</span>
+                  <span className="text-sm font-medium text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{t('profile.quizStatus')}</span>
                   <Badge className={userProfile?.quizCompleted ? "bg-gradient-to-r from-[var(--eddura-success)] to-[var(--eddura-success-600)] text-white" : "bg-gradient-to-r from-[var(--eddura-warning)] to-[var(--eddura-warning-600)] text-white"}>
-                    {userProfile?.quizCompleted ? "Completed" : "Incomplete"}
+                    {userProfile?.quizCompleted ? t('profile.quizCompleted') : t('profile.quizNotCompleted')}
                   </Badge>
                 </div>
                 
                 {userProfile?.quizCompletedAt && (
                   <div className="flex items-center justify-between p-3 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-800)] rounded-xl">
-                    <span className="text-sm font-medium text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Completed</span>
+                    <span className="text-sm font-medium text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{tc('status.completed')}</span>
                     <span className="text-sm text-[var(--eddura-primary-900)] dark:text-white font-medium">
                       {new Date(userProfile.quizCompletedAt).toLocaleDateString()}
                     </span>
@@ -602,7 +603,7 @@ export default function DashboardContent() {
                   onClick={() => setShowProfileModal(true)}
                 >
                   <Settings className="w-5 h-5 mr-3" />
-                  Edit Profile
+                  {t('profile.editProfile')}
                 </Button>
               </CardContent>
             </Card>
@@ -615,18 +616,18 @@ export default function DashboardContent() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-success-50)] dark:from-[var(--eddura-success-900)] dark:to-[var(--eddura-success-800)] backdrop-blur-sm overflow-hidden">
+              <Card className="mt-8 border-0 shadow-xl bg-gradient-to-br from-white to-[var(--eddura-success-50)] dark:from-[var(--eddura-success-900)] dark:to-[var(--eddura-success-800)] backdrop-blur-sm overflow-hidden">
                 <CardHeader className="text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-[var(--eddura-success)] to-[var(--eddura-success-600)] rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                     <CheckCircle className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl text-[var(--eddura-success-900)] dark:text-white">Quiz Progress</CardTitle>
+                  <CardTitle className="text-xl text-[var(--eddura-success-900)] dark:text-white">{t('profile.quizProgress')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
                     <div>
                       <div className="flex justify-between text-sm mb-3">
-                        <span className="text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">Completion</span>
+                        <span className="text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">{tc('labels.completion')}</span>
                         <span className="text-[var(--eddura-success-900)] dark:text-white font-bold">100%</span>
                       </div>
                       <div className="w-full bg-[var(--eddura-success-200)] dark:bg-[var(--eddura-success-700)] rounded-full h-3 shadow-inner">
@@ -637,11 +638,11 @@ export default function DashboardContent() {
                     <div className="grid grid-cols-2 gap-4 text-center">
                       <div className="p-3 bg-[var(--eddura-success-100)] dark:bg-[var(--eddura-success-800)] rounded-xl">
                         <p className="text-2xl font-bold text-[var(--eddura-success-900)] dark:text-white">{userProfile?.stats?.applicationPackagesCreated || 0}</p>
-                        <p className="text-xs text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">Applications</p>
+                        <p className="text-xs text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">{tc('navigation.applications')}</p>
                       </div>
                       <div className="p-3 bg-[var(--eddura-success-100)] dark:bg-[var(--eddura-success-800)] rounded-xl">
                         <p className="text-2xl font-bold text-[var(--eddura-success-900)] dark:text-white">{userProfile?.stats?.documentsCreated || 0}</p>
-                        <p className="text-xs text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">Documents</p>
+                        <p className="text-xs text-[var(--eddura-success-600)] dark:text-[var(--eddura-success-300)] font-medium">{tc('navigation.documents')}</p>
                       </div>
                     </div>
                   </div>

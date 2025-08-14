@@ -231,21 +231,21 @@ export function validateTranslationQuality(
           }
 
           // Check for interpolation consistency
-          const englishInterpolations = (englishValue.match(/\{[^}]+\}/g) || []).sort();
-          const frenchInterpolations = (frenchValue?.match(/\{[^}]+\}/g) || []).sort();
+          const englishInterpolations: string[] = ((englishValue.match(/\{[^}]+\}/g) || []) as string[]).sort();
+          const frenchInterpolations: string[] = ((typeof frenchValue === 'string' ? (frenchValue.match(/\{[^}]+\}/g) || []) : []) as string[]).sort();
 
           if (englishInterpolations.length !== frenchInterpolations.length) {
             if (englishInterpolations.length > frenchInterpolations.length) {
               issues.push({
                 key: currentPath,
                 type: 'missing_interpolation',
-                message: `Missing interpolations in French: ${englishInterpolations.filter(i => !frenchInterpolations.includes(i)).join(', ')}`
+                message: `Missing interpolations in French: ${englishInterpolations.filter((i: string) => !frenchInterpolations.includes(i)).join(', ')}`
               });
             } else {
               issues.push({
                 key: currentPath,
                 type: 'extra_interpolation',
-                message: `Extra interpolations in French: ${frenchInterpolations.filter(i => !englishInterpolations.includes(i)).join(', ')}`
+                message: `Extra interpolations in French: ${frenchInterpolations.filter((i: string) => !englishInterpolations.includes(i)).join(', ')}`
               });
             }
           }

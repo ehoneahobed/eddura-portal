@@ -79,7 +79,7 @@ const ExpandableTextarea = React.forwardRef<HTMLTextAreaElement, ExpandableTexta
         
         onValidationChange(isValid, message);
       }
-    }, [value, minLength, maxLength, minWords, maxWords, onValidationChange]);
+    }, [value, minLength, maxLength, minWords, maxWords, onValidationChange, t]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (onChange) {

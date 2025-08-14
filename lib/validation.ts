@@ -4,10 +4,18 @@ import { z } from 'zod';
 export function createLocalizedValidation(t: (key: string, values?: Record<string, string | number>) => string) {
   return {
     // String validations
-    required: (field?: string) => z.string().min(1, t('validation.required', { field })),
+    required: (field?: string) => z.string().min(1, t('validation.required', field !== undefined ? { field } : {})),
     email: () => z.string().email(t('validation.email')),
-    minLength: (min: number, field?: string) => z.string().min(min, t('validation.minLength', { min, field })),
-    maxLength: (max: number, field?: string) => z.string().max(max, t('validation.maxLength', { max, field })),
+    minLength: (min: number, field?: string) => {
+      const values: Record<string, string | number> = { min };
+      if (field !== undefined) values.field = field;
+      return z.string().min(min, t('validation.minLength', values));
+    },
+    maxLength: (max: number, field?: string) => {
+      const values: Record<string, string | number> = { max };
+      if (field !== undefined) values.field = field;
+      return z.string().max(max, t('validation.maxLength', values));
+    },
     
     // Password validations
     password: () => z.string()
@@ -28,7 +36,11 @@ export function createLocalizedValidation(t: (key: string, values?: Record<strin
     url: () => z.string().url(t('validation.invalidUrl')),
     
     // Array validations
-    nonEmptyArray: (field?: string) => z.array(z.any()).min(1, t('validation.selectAtLeastOne', { field })),
+    nonEmptyArray: (field?: string) => {
+      const values: Record<string, string | number> = {};
+      if (field !== undefined) values.field = field;
+      return z.array(z.any()).min(1, t('validation.selectAtLeastOne', values));
+    },
     
     // Object validations
     passwordMatch: (passwordField: string = 'password') => z.object({
@@ -49,17 +61,27 @@ export function getValidationMessage(
 ): string {
   switch (type) {
     case 'required':
-      return t('validation.required', { field: options?.field });
+      return t('validation.required', options?.field !== undefined ? { field: options.field } : {});
     case 'email':
       return t('validation.email');
     case 'minLength':
-      return t('validation.minLength', { min: options?.min, field: options?.field });
+      return t('validation.minLength', (() => {
+        const values: Record<string, string | number> = {};
+        if (options?.min !== undefined) values.min = options.min;
+        if (options?.field !== undefined) values.field = options.field;
+        return values;
+      })());
     case 'maxLength':
-      return t('validation.maxLength', { max: options?.max, field: options?.field });
+      return t('validation.maxLength', (() => {
+        const values: Record<string, string | number> = {};
+        if (options?.max !== undefined) values.max = options.max;
+        if (options?.field !== undefined) values.field = options.field;
+        return values;
+      })());
     case 'minWords':
-      return t('validation.minWords', { min: options?.min });
+      return t('validation.minWords', options?.min !== undefined ? { min: options.min } : {});
     case 'maxWords':
-      return t('validation.maxWords', { max: options?.max });
+      return t('validation.maxWords', options?.max !== undefined ? { max: options.max } : {});
     case 'passwordMismatch':
       return t('validation.passwordMismatch');
     case 'invalidFormat':

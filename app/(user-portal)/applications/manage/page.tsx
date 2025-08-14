@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,13 +67,7 @@ export default function ApplicationManagePage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchApplicationData();
-    }
-  }, [session?.user?.id]);
-
-  const fetchApplicationData = async () => {
+  const fetchApplicationData = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/applications');
@@ -113,7 +107,13 @@ export default function ApplicationManagePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchApplicationData();
+    }
+  }, [session?.user?.id, fetchApplicationData]);
 
   const quickActions = [
     {

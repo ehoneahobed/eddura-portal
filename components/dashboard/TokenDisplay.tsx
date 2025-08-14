@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 import { Gift, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface TokenDisplayProps {
@@ -11,6 +12,8 @@ interface TokenDisplayProps {
 }
 
 export default function TokenDisplay({ tokens, totalTokensEarned, totalTokensSpent }: TokenDisplayProps) {
+  const { t } = usePageTranslation('dashboard');
+  const { t: tc } = useCommonTranslation();
   const net = Math.max(0, totalTokensEarned - totalTokensSpent);
   return (
     <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-[var(--eddura-primary)] to-[var(--eddura-primary-600)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)]">
@@ -18,17 +21,17 @@ export default function TokenDisplay({ tokens, totalTokensEarned, totalTokensSpe
       <CardHeader className="pb-2 relative">
         <CardTitle className="text-xl text-white flex items-center gap-2">
           <Gift className="w-5 h-5 text-white" />
-          Token Balance
+          {t('tokens.title')}
         </CardTitle>
         <CardDescription className="text-white/80">
-          Your Eddura rewards and earnings
+          {t('tokens.subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent className="relative space-y-5">
         <div className="text-center">
           <div className="inline-flex items-baseline gap-2 px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md shadow-lg">
             <span className="text-4xl font-extrabold text-white tracking-tight">{tokens}</span>
-            <span className="text-sm text-white/80">Available Tokens</span>
+            <span className="text-sm text-white/80">{t('tokens.available')}</span>
           </div>
         </div>
 
@@ -38,27 +41,27 @@ export default function TokenDisplay({ tokens, totalTokensEarned, totalTokensSpe
               <TrendingUp className="w-4 h-4 text-white" />
               <span className="text-lg font-semibold text-white">{totalTokensEarned}</span>
             </div>
-            <p className="text-xs text-white/80">Total Earned</p>
+            <p className="text-xs text-white/80">{t('tokens.totalEarned')}</p>
           </div>
           <div className="text-center p-3 rounded-xl bg-white/10 border border-white/20">
             <div className="flex items-center justify-center gap-2 mb-1">
               <TrendingDown className="w-4 h-4 text-white" />
               <span className="text-lg font-semibold text-white">{totalTokensSpent}</span>
             </div>
-            <p className="text-xs text-white/80">Total Spent</p>
+            <p className="text-xs text-white/80">{t('tokens.totalSpent')}</p>
           </div>
           <div className="text-center p-3 rounded-xl bg-white/10 border border-white/20">
             <div className="flex items-center justify-center gap-2 mb-1">
               <Gift className="w-4 h-4 text-white" />
               <span className="text-lg font-semibold text-white">{net}</span>
             </div>
-            <p className="text-xs text-white/80">Net</p>
+            <p className="text-xs text-white/80">{t('tokens.net')}</p>
           </div>
         </div>
 
         <div className="text-center">
           <Badge className="bg-white/15 text-white border-white/20 hover:bg-white/20">
-            Earn tokens by completing tasks and referring friends
+            {t('tokens.cta')}
           </Badge>
         </div>
       </CardContent>
