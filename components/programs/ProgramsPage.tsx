@@ -29,6 +29,7 @@ import Image from 'next/image';
 import ProgramCard from './ProgramCard';
 import SchoolCard from './SchoolCard';
 import { ResponsiveContainer } from '../ui/responsive-container';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 interface School {
   _id: string;
@@ -82,6 +83,8 @@ interface Program {
 }
 
 export default function ProgramsPage() {
+  const { t } = usePageTranslation('programs');
+  const { t: tCommon } = useCommonTranslation();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -305,13 +308,8 @@ export default function ProgramsPage() {
               {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-teal rounded-full mb-6 shadow-eddura">
                 <Building className="w-8 h-8 text-white" />
               </div> */}
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Browse Programs by School
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 ">
-                Discover academic programs from top universities around the world. 
-                Select a school to explore their available programs and find your perfect academic path.
-              </p>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('title')}</h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300 ">{t('subtitle')}</p>
               
 
             </div>
@@ -324,16 +322,14 @@ export default function ProgramsPage() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search schools by name, country, or city..."
+                placeholder={t('searchSchools')}
                 value={schoolSearch}
                 onChange={e => handleSchoolSearch(e.target.value)}
                 className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-eddura-500 focus:ring-2 focus:ring-eddura-200 rounded-xl shadow-sm dark:border-[var(--eddura-primary-700)] dark:bg-[var(--eddura-primary-800)] dark:text-white dark:placeholder:text-[var(--eddura-primary-300)]"
               />
             </div>
             {schoolSearch && (
-              <p className="text-sm text-gray-500 mt-2 text-center">
-                Searching for &quot;{schoolSearch}&quot;...
-              </p>
+              <p className="text-sm text-gray-500 mt-2 text-center">{t('searchingFor', { term: schoolSearch })}</p>
             )}
           </div>
 
@@ -348,8 +344,8 @@ export default function ProgramsPage() {
                 <div className="w-20 h-20 bg-gradient-teal rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse shadow-eddura">
                   <Building className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Schools</h2>
-                <p className="text-gray-600">Finding the best universities around the world...</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('loadingSchools')}</h2>
+                <p className="text-gray-600">{t('loadingSchoolsSubtitle')}</p>
               </motion.div>
             </div>
           ) : (
@@ -362,9 +358,8 @@ export default function ProgramsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  Showing <span className="font-semibold text-eddura-600">{schools.length}</span> of{' '}
-                  <span className="font-semibold">{schoolPagination.totalCount}</span> schools
-                  {schoolSearch && ` matching &quot;${schoolSearch}&quot;`}
+                  {t('showingSchools', { count: schools.length, total: schoolPagination.totalCount })}
+                  {schoolSearch ? ` ${t('matching', { term: schoolSearch })}` : ''}
                 </motion.p>
               </div>
 
@@ -404,19 +399,15 @@ export default function ProgramsPage() {
                     className="px-6 py-2 hover:bg-eddura-50 hover:border-eddura-200 transition-colors"
                   >
                     <ChevronLeft className="h-5 w-5 mr-2" />
-                    Previous
+                    {tCommon('actions.previous')}
                   </Button>
 
                   <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-lg shadow-sm border">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Page {schoolPagination.currentPage} of {schoolPagination.totalPages}
-                      </span>
+                      <span className="text-sm font-medium text-gray-700">{t('pageOf', { page: schoolPagination.currentPage, total: schoolPagination.totalPages })}</span>
                     </div>
                     <div className="h-4 w-px bg-gray-300"></div>
-                    <span className="text-sm text-gray-500">
-                      {schoolPagination.totalCount.toLocaleString()} schools total
-                    </span>
+                      <span className="text-sm text-gray-500">{t('schoolsTotal', { total: schoolPagination.totalCount.toLocaleString() })}</span>
                   </div>
 
                   <Button
@@ -426,7 +417,7 @@ export default function ProgramsPage() {
                     disabled={!schoolPagination.hasNextPage}
                     className="px-6 py-2 hover:bg-eddura-50 hover:border-eddura-200 transition-colors"
                   >
-                    Next
+                    {tCommon('actions.next')}
                     <ChevronRight className="h-5 w-5 ml-2" />
                   </Button>
                 </motion.div>
@@ -438,13 +429,10 @@ export default function ProgramsPage() {
                     <Building className="w-12 h-12 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {schoolSearch ? 'No schools found' : 'Unable to load schools'}
+                    {schoolSearch ? t('noSchools') : t('unableToLoadSchools')}
                   </h3>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    {schoolSearch 
-                      ? 'We couldn\'t find any schools matching your search criteria. Try adjusting your search terms or browse all schools.'
-                      : 'There was an error loading the schools. Please try refreshing the page or contact support if the problem persists.'
-                    }
+                    {schoolSearch ? t('noSchoolsHelp') : t('loadSchoolsError')}
                   </p>
                   <div className="flex gap-4 justify-center">
                     <Button 
@@ -452,14 +440,14 @@ export default function ProgramsPage() {
                       onClick={() => handleSchoolSearch('')}
                       className="px-6 py-2"
                     >
-                      View All Schools
+                      {t('viewAllSchools')}
                     </Button>
                     <Button 
                       variant="outline" 
                       onClick={() => window.location.reload()}
                       className="px-6 py-2"
                     >
-                      Refresh Page
+                      {t('refreshPage')}
                     </Button>
                   </div>
                 </div>
@@ -483,7 +471,7 @@ export default function ProgramsPage() {
           className="mb-4 hover:bg-gray-100"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Schools
+          {t('backToSchools')}
         </Button>
         
         <div className="flex items-center gap-4 mb-6">
@@ -526,7 +514,7 @@ export default function ProgramsPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="Search programs by name, field, or university..."
+                    placeholder={t('searchPrograms')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -538,12 +526,12 @@ export default function ProgramsPage() {
               <div className="flex gap-2">
                 <Select value={selectedFilters.degreeType} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, degreeType: value }))}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Degree Type" />
+                    <SelectValue placeholder={t('filters.degreeType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Degrees</SelectItem>
-                    <SelectItem value="Bachelor">Bachelor</SelectItem>
-                    <SelectItem value="Master">Master</SelectItem>
+                    <SelectItem value="all">{t('filters.allDegrees')}</SelectItem>
+                    <SelectItem value="Bachelor">{t('degrees.bachelor')}</SelectItem>
+                    <SelectItem value="Master">{t('degrees.master')}</SelectItem>
                     <SelectItem value="PhD">PhD</SelectItem>
                     <SelectItem value="MBA">MBA</SelectItem>
                   </SelectContent>
@@ -551,14 +539,14 @@ export default function ProgramsPage() {
 
                 <Select value={selectedFilters.mode} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, mode: value }))}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Mode" />
+                    <SelectValue placeholder={t('filters.mode')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Modes</SelectItem>
-                    <SelectItem value="Full-time">Full-time</SelectItem>
-                    <SelectItem value="Part-time">Part-time</SelectItem>
-                    <SelectItem value="Online">Online</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="all">{t('filters.allModes')}</SelectItem>
+                    <SelectItem value="Full-time">{t('modes.fullTime')}</SelectItem>
+                    <SelectItem value="Part-time">{t('modes.partTime')}</SelectItem>
+                    <SelectItem value="Online">{t('modes.online')}</SelectItem>
+                    <SelectItem value="Hybrid">{t('modes.hybrid')}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -568,12 +556,12 @@ export default function ProgramsPage() {
                   className="flex items-center gap-2"
                 >
                   <Filter className="h-4 w-4" />
-                  Filters
+                  {t('filters.button')}
                 </Button>
 
                 {(searchTerm || Object.values(selectedFilters).some(v => v)) && (
                   <Button variant="ghost" onClick={clearFilters}>
-                    Clear
+                    {t('filters.clear')}
                   </Button>
                 )}
               </div>
@@ -590,13 +578,13 @@ export default function ProgramsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Field of Study */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Field of Study</label>
+                    <label className="text-sm font-medium text-gray-700">{t('filters.fieldOfStudy')}</label>
                     <Select value={selectedFilters.fieldOfStudy} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, fieldOfStudy: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select field" />
+                        <SelectValue placeholder={t('filters.selectField')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Fields</SelectItem>
+                        <SelectItem value="all">{t('filters.allFields')}</SelectItem>
                         <SelectItem value="Computer Science">Computer Science</SelectItem>
                         <SelectItem value="Engineering">Engineering</SelectItem>
                         <SelectItem value="Business">Business</SelectItem>
@@ -609,25 +597,25 @@ export default function ProgramsPage() {
 
                   {/* Program Level */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Program Level</label>
+                    <label className="text-sm font-medium text-gray-700">{t('filters.programLevel')}</label>
                     <Select value={selectedFilters.programLevel} onValueChange={(value) => setSelectedFilters(prev => ({ ...prev, programLevel: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select level" />
+                        <SelectValue placeholder={t('filters.selectLevel')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Levels</SelectItem>
-                        <SelectItem value="Undergraduate">Undergraduate</SelectItem>
-                        <SelectItem value="Postgraduate">Postgraduate</SelectItem>
+                        <SelectItem value="all">{t('filters.allLevels')}</SelectItem>
+                        <SelectItem value="Undergraduate">{t('levels.undergraduate')}</SelectItem>
+                        <SelectItem value="Postgraduate">{t('levels.postgraduate')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Country */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Country</label>
+                    <label className="text-sm font-medium text-gray-700">{t('filters.country')}</label>
                     <Input
                       type="text"
-                      placeholder="e.g., United States"
+                      placeholder={t('filters.countryPlaceholder')}
                       value={selectedFilters.country}
                       onChange={(e) => setSelectedFilters(prev => ({ ...prev, country: e.target.value }))}
                       className="mt-1"
@@ -636,10 +624,10 @@ export default function ProgramsPage() {
 
                   {/* Max Tuition */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Max Tuition (USD)</label>
+                    <label className="text-sm font-medium text-gray-700">{t('filters.maxTuition')}</label>
                     <Input
                       type="number"
-                      placeholder="e.g., 50000"
+                      placeholder={t('filters.maxTuitionPlaceholder')}
                       value={selectedFilters.maxTuition}
                       onChange={(e) => setSelectedFilters(prev => ({ ...prev, maxTuition: e.target.value }))}
                       className="mt-1"
@@ -660,22 +648,19 @@ export default function ProgramsPage() {
         className="mb-6"
       >
         <div className="flex items-center justify-between">
-          <p className="text-gray-600">
-            Showing <span className="font-semibold">{filteredPrograms.length}</span> programs
-            {searchTerm && ` for "${searchTerm}"`}
-          </p>
+          <p className="text-gray-600">{t('results.showingPrograms', { count: filteredPrograms.length })}{searchTerm ? ` ${t('results.for', { term: searchTerm })}` : ''}</p>
           
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Sort by:</span>
+            <span className="text-sm text-gray-500">{t('sort.label')}</span>
             <Select defaultValue="relevance">
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="relevance">Relevance</SelectItem>
-                <SelectItem value="ranking">University Ranking</SelectItem>
-                <SelectItem value="tuition">Tuition (Low to High)</SelectItem>
-                <SelectItem value="deadline">Application Deadline</SelectItem>
+                <SelectItem value="relevance">{t('sort.options.relevance')}</SelectItem>
+                <SelectItem value="ranking">{t('sort.options.ranking')}</SelectItem>
+                <SelectItem value="tuition">{t('sort.options.tuition')}</SelectItem>
+                <SelectItem value="deadline">{t('sort.options.deadline')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -693,8 +678,8 @@ export default function ProgramsPage() {
             <div className="w-16 h-16 bg-gradient-teal rounded-full flex items-center justify-center mx-auto mb-4 shadow-eddura">
               <GraduationCap className="w-8 h-8 text-white animate-pulse" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Programs</h2>
-            <p className="text-gray-600 dark:text-gray-300">Finding the best academic opportunities at {selectedSchool.name}...</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('loadingPrograms')}</h2>
+            <p className="text-gray-600 dark:text-gray-300">{t('loadingProgramsSubtitle', { school: selectedSchool.name })}</p>
           </motion.div>
         </div>
       ) : filteredPrograms.length > 0 ? (
@@ -722,12 +707,10 @@ export default function ProgramsPage() {
           className="text-center py-12"
         >
           <GraduationCap className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No programs found</h3>
-          <p className="text-gray-600 mb-4">
-            Try adjusting your search terms or filters to find more programs.
-          </p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('empty.title')}</h3>
+            <p className="text-gray-600 mb-4">{t('empty.description')}</p>
           <Button onClick={clearFilters} variant="outline">
-            Clear all filters
+            {t('empty.clearAllFilters')}
           </Button>
         </motion.div>
       )}
@@ -740,7 +723,7 @@ export default function ProgramsPage() {
           className="text-center mt-8"
         >
           <Button variant="outline" size="lg">
-            Load More Programs
+            {t('loadMore')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </motion.div>

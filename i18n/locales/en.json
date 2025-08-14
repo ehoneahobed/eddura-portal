@@ -567,6 +567,100 @@
         "linkCopyFailedDescription": "Please try selecting and copying the link manually."
       }
     },
+    "programs": {
+      "title": "Browse Programs by School",
+      "subtitle": "Discover academic programs from top universities around the world. Select a school to explore their available programs and find your perfect academic path.",
+      "searchSchools": "Search schools by name, country, or city...",
+      "searchingFor": "Searching for \"{term}\"...",
+      "loadingSchools": "Loading Schools",
+      "loadingSchoolsSubtitle": "Finding the best universities around the world...",
+      "showingSchools": "Showing {count} of {total} schools",
+      "matching": "matching \"{term}\"",
+      "pageOf": "Page {page} of {total}",
+      "schoolsTotal": "{total} schools total",
+      "noSchools": "No schools found",
+      "unableToLoadSchools": "Unable to load schools",
+      "noSchoolsHelp": "We couldn't find any schools matching your search criteria. Try adjusting your search terms or browse all schools.",
+      "loadSchoolsError": "There was an error loading the schools. Please try refreshing the page or contact support if the problem persists.",
+      "viewAllSchools": "View All Schools",
+      "refreshPage": "Refresh Page",
+      "backToSchools": "Back to Schools",
+      "searchPrograms": "Search programs by name, field, or university...",
+      "loadingPrograms": "Loading Programs",
+      "loadingProgramsSubtitle": "Finding the best academic opportunities at {school}...",
+      "filters": {
+        "button": "Filters",
+        "clear": "Clear",
+        "degreeType": "Degree Type",
+        "allDegrees": "All Degrees",
+        "mode": "Mode",
+        "allModes": "All Modes",
+        "fieldOfStudy": "Field of Study",
+        "selectField": "Select field",
+        "allFields": "All Fields",
+        "programLevel": "Program Level",
+        "selectLevel": "Select level",
+        "allLevels": "All Levels",
+        "country": "Country",
+        "countryPlaceholder": "e.g., United States",
+        "maxTuition": "Max Tuition (USD)",
+        "maxTuitionPlaceholder": "e.g., 50000"
+      },
+      "degrees": {
+        "bachelor": "Bachelor",
+        "master": "Master"
+      },
+      "modes": {
+        "fullTime": "Full-time",
+        "partTime": "Part-time",
+        "online": "Online",
+        "hybrid": "Hybrid"
+      },
+      "levels": {
+        "undergraduate": "Undergraduate",
+        "postgraduate": "Postgraduate"
+      },
+      "results": {
+        "showingPrograms": "Showing {count} programs",
+        "for": "for \"{term}\""
+      },
+      "sort": {
+        "label": "Sort by:",
+        "options": {
+          "relevance": "Relevance",
+          "ranking": "University Ranking",
+          "tuition": "Tuition (Low to High)",
+          "deadline": "Application Deadline"
+        }
+      },
+      "program": {
+        "global": "Global",
+        "perYear": "year",
+        "fee": "fee",
+        "scholarshipsAvailable": "Scholarships Available",
+        "employabilityRank": "Employability Rank",
+        "intakeSessions": "Intake Sessions",
+        "daysLeft": "{count} days left",
+        "urgent": "Urgent",
+        "soon": "Soon",
+        "open": "Open",
+        "viewDetails": "View Details",
+        "applyNow": "Apply Now"
+      },
+      "empty": {
+        "title": "No programs found",
+        "description": "Try adjusting your search terms or filters to find more programs.",
+        "clearAllFilters": "Clear all filters"
+      },
+      "loadMore": "Load More Programs",
+      "school": {
+        "founded": "Founded {year}",
+        "internationalStudents": "{count} international students",
+        "more": "more",
+        "campusType": "{type} Campus",
+        "viewPrograms": "View Programs"
+      }
+    },
     "documents": {
       "title": "My Documents",
       "subtitle": "Create and manage your academic and professional documents. Build your portfolio of essays, statements, and applications with our powerful document editor.",

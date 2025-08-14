@@ -567,6 +567,100 @@
         "linkCopyFailedDescription": "Veuillez essayer de sélectionner et copier le lien manuellement."
       }
     },
+    "programs": {
+      "title": "Parcourir les programmes par établissement",
+      "subtitle": "Découvrez les programmes académiques des meilleures universités dans le monde. Sélectionnez un établissement pour explorer ses programmes et trouver votre parcours idéal.",
+      "searchSchools": "Rechercher des écoles par nom, pays ou ville...",
+      "searchingFor": "Recherche de \"{term}\"...",
+      "loadingSchools": "Chargement des écoles",
+      "loadingSchoolsSubtitle": "Recherche des meilleures universités dans le monde...",
+      "showingSchools": "Affichage de {count} sur {total} écoles",
+      "matching": "correspondant à \"{term}\"",
+      "pageOf": "Page {page} sur {total}",
+      "schoolsTotal": "{total} écoles au total",
+      "noSchools": "Aucune école trouvée",
+      "unableToLoadSchools": "Impossible de charger les écoles",
+      "noSchoolsHelp": "Nous n'avons trouvé aucune école correspondant à vos critères. Essayez d'ajuster vos termes de recherche ou parcourez toutes les écoles.",
+      "loadSchoolsError": "Une erreur est survenue lors du chargement des écoles. Veuillez actualiser la page ou contacter le support si le problème persiste.",
+      "viewAllSchools": "Voir toutes les écoles",
+      "refreshPage": "Actualiser la page",
+      "backToSchools": "Retour aux écoles",
+      "searchPrograms": "Rechercher des programmes par nom, domaine ou université...",
+      "loadingPrograms": "Chargement des programmes",
+      "loadingProgramsSubtitle": "Recherche des meilleures opportunités académiques à {school}...",
+      "filters": {
+        "button": "Filtres",
+        "clear": "Effacer",
+        "degreeType": "Type de diplôme",
+        "allDegrees": "Tous les diplômes",
+        "mode": "Mode",
+        "allModes": "Tous les modes",
+        "fieldOfStudy": "Domaine d'étude",
+        "selectField": "Sélectionner un domaine",
+        "allFields": "Tous les domaines",
+        "programLevel": "Niveau du programme",
+        "selectLevel": "Sélectionner un niveau",
+        "allLevels": "Tous les niveaux",
+        "country": "Pays",
+        "countryPlaceholder": "ex. États-Unis",
+        "maxTuition": "Frais max (USD)",
+        "maxTuitionPlaceholder": "ex. 50000"
+      },
+      "degrees": {
+        "bachelor": "Licence",
+        "master": "Master"
+      },
+      "modes": {
+        "fullTime": "Temps plein",
+        "partTime": "Temps partiel",
+        "online": "En ligne",
+        "hybrid": "Hybride"
+      },
+      "levels": {
+        "undergraduate": "Premier cycle",
+        "postgraduate": "Deuxième cycle"
+      },
+      "results": {
+        "showingPrograms": "Affichage de {count} programmes",
+        "for": "pour \"{term}\""
+      },
+      "sort": {
+        "label": "Trier par :",
+        "options": {
+          "relevance": "Pertinence",
+          "ranking": "Classement de l'université",
+          "tuition": "Frais de scolarité (croissant)",
+          "deadline": "Date limite de candidature"
+        }
+      },
+      "program": {
+        "global": "Monde",
+        "perYear": "an",
+        "fee": "frais",
+        "scholarshipsAvailable": "bourses disponibles",
+        "employabilityRank": "Classement d'employabilité",
+        "intakeSessions": "Sessions d'admission",
+        "daysLeft": "{count} jours restants",
+        "urgent": "Urgent",
+        "soon": "Bientôt",
+        "open": "Ouvert",
+        "viewDetails": "Voir les détails",
+        "applyNow": "Postuler maintenant"
+      },
+      "empty": {
+        "title": "Aucun programme trouvé",
+        "description": "Essayez d'ajuster vos termes de recherche ou vos filtres pour trouver plus de programmes.",
+        "clearAllFilters": "Effacer tous les filtres"
+      },
+      "loadMore": "Charger plus de programmes",
+      "school": {
+        "founded": "Fondée en {year}",
+        "internationalStudents": "{count} étudiants internationaux",
+        "more": "de plus",
+        "campusType": "Campus {type}",
+        "viewPrograms": "Voir les programmes"
+      }
+    },
     "documents": {
       "title": "Mes Documents",
       "subtitle": "Créez et gérez vos documents académiques et professionnels. Construisez votre portfolio d'essais, de déclarations et de candidatures avec notre éditeur de documents puissant.",
