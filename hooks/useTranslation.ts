@@ -60,8 +60,13 @@ export function useTranslation(): UseTranslationReturn {
     values?: Record<string, string | number>
   ): string => {
     if (!translations) {
-      console.warn(`Translation not loaded for key: ${key}`);
-      return key;
+      // Provide a readable fallback instead of returning the full key path
+      const fallback = key.split('.').pop() || key;
+      const humanized = fallback
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/[._-]/g, ' ')
+        .trim();
+      return humanized.charAt(0).toUpperCase() + humanized.slice(1);
     }
 
     try {

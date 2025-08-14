@@ -428,7 +428,96 @@
     },
     "scholarships": {
       "title": "Bourses d'études",
-      "subtitle": "Découvrez et postulez pour des bourses qui correspondent à votre profil et vos objectifs académiques"
+      "subtitle": "Découvrez et postulez à des bourses qui correspondent à votre profil et à vos objectifs académiques",
+      "loadingTitle": "Chargement des bourses",
+      "loadingSubtitle": "Recherche des meilleures opportunités pour vous...",
+      "searchPlaceholder": "Rechercher des bourses par titre, organisme ou domaine d'étude...",
+      "filters": {
+        "button": "Filtres",
+        "clear": "Effacer",
+        "frequency": {
+          "label": "Fréquence",
+          "placeholder": "Fréquence",
+          "allTypes": "Tous les types",
+          "oneTime": "Ponctuelle",
+          "annual": "Annuelle",
+          "fullDuration": "Durée complète"
+        },
+        "status": {
+          "placeholder": "Statut",
+          "all": "Tous les statuts",
+          "currentlyAccepting": "Candidatures ouvertes",
+          "expired": "Expiré",
+          "openingSoon": "Ouverture prochaine (3 mois)",
+          "urgent": "Urgent (30 jours)"
+        },
+        "help": {
+          "currentlyAccepting": "Les candidatures sont ouvertes et la date limite n'est pas passée",
+          "openingSoon": "Les candidatures s'ouvriront dans les 3 mois",
+          "urgent": "La date limite est dans 30 jours"
+        },
+        "minGPA": "Moyenne minimale (GPA)",
+        "minGPAPlaceholder": "ex. 3.5",
+        "requirements": "Exigences de la candidature",
+        "requiresEssay": "Nécessite un essai",
+        "requiresCV": "Nécessite un CV",
+        "requiresRecommendations": "Nécessite des recommandations",
+        "locations": "Lieux disponibles",
+        "selectCountries": "Sélectionner des pays",
+        "academicDisciplines": "Disciplines académiques",
+        "selectDisciplines": "Sélectionner des disciplines"
+      },
+      "results": {
+        "showing": "Affichage de {count} sur {total} bourses",
+        "for": "pour \"{term}\"",
+        "updating": "Mise à jour..."
+      },
+      "sort": {
+        "label": "Trier par :",
+        "options": {
+          "relevance": { "label": "Pertinence", "description": "Meilleures correspondances pour votre recherche" },
+          "alphabetical": { "label": "Alphabétique", "description": "A-Z par titre" },
+          "deadline": { "label": "Date limite", "description": "Dates limites les plus proches" },
+          "openingDate": { "label": "Date d'ouverture", "description": "Candidatures ouvrant bientôt" },
+          "newest": { "label": "Plus récentes", "description": "Ajoutées récemment" },
+          "oldest": { "label": "Plus anciennes", "description": "Ajoutées en premier" }
+        }
+      },
+      "empty": {
+        "title": "Aucune bourse trouvée",
+        "description": "Essayez d'ajuster vos termes de recherche ou vos filtres pour trouver plus d'opportunités.",
+        "clearAllFilters": "Effacer tous les filtres"
+      },
+      "requirements": {
+        "title": "Exigences :",
+        "essay": "Essai",
+        "cv": "CV",
+        "recommendations": "{count} recommandations"
+      },
+      "deadline": {
+        "daysToOpening": "{count} jours avant l'ouverture",
+        "daysToClose": "{count} jours avant la clôture",
+        "expired": "Expiré"
+      },
+      "status": {
+        "openingDateNotSpecified": "Date d'ouverture non spécifiée",
+        "noOpeningDate": "Aucune date d'ouverture précise fournie",
+        "opensInDays": "Ouvre dans {count} jours",
+        "applicationsOpenOn": "Les candidatures ouvriront le",
+        "opensOn": "Ouvre le",
+        "currentlyAcceptingDescription": "Les candidatures sont actuellement acceptées",
+        "applicationClosed": "Candidature clôturée",
+        "deadlinePassed": "La date limite de candidature est passée",
+        "closesInDays": "Se clôture dans {count} jours",
+        "applicationDeadline": "Date limite de candidature :",
+        "closesOn": "Se clôture le",
+        "prepareApplication": "Préparer la candidature",
+        "applyNow": "Postuler maintenant"
+      },
+      "notOpenHint": "Vous pouvez commencer à préparer votre candidature dès maintenant, même si les candidatures ne sont pas encore ouvertes.",
+      "varies": "Variable",
+      "viewDetails": "Voir les détails",
+      "more": "de plus"
     },
     "savedScholarships": {
       "title": "Bourses sauvegardées",

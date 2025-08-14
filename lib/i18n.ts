@@ -22,6 +22,12 @@ export async function loadTranslations(locale: Locale): Promise<TranslationKeys>
     if (isProduction) {
       translationCache.set(locale, translationData);
     }
+    // Also expose a global cache so non-hook utilities (e.g., status helpers) can read synchronously
+    try {
+      const g: any = global as any;
+      g.__edduraTranslationsCache = g.__edduraTranslationsCache || {};
+      g.__edduraTranslationsCache[locale] = translationData;
+    } catch {}
     
     return translationData;
   } catch (error) {

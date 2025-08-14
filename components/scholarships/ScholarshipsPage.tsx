@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import ScholarshipCard from './ScholarshipCard';
 import ScholarshipFilters from './ScholarshipFilters';
 import { ResponsiveContainer } from '../ui/responsive-container';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 // Define the Filters interface locally since it's not exported from ScholarshipFilters
 interface Filters {
@@ -87,17 +88,19 @@ interface PaginationInfo {
 
 // Define sorting options with descriptions
 const SORT_OPTIONS = [
-  { value: 'relevance', label: 'Relevance', description: 'Best matches for your search' },
-  { value: 'alphabetical', label: 'Alphabetical', description: 'A-Z by title' },
-  { value: 'deadline', label: 'Deadline', description: 'Earliest deadline first' },
-  { value: 'opening-date', label: 'Opening Date', description: 'Applications opening soon' },
-  { value: 'newest', label: 'Newest', description: 'Recently added' },
-  { value: 'oldest', label: 'Oldest', description: 'Added first' }
+  { value: 'relevance', key: 'relevance' },
+  { value: 'alphabetical', key: 'alphabetical' },
+  { value: 'deadline', key: 'deadline' },
+  { value: 'opening-date', key: 'openingDate' },
+  { value: 'newest', key: 'newest' },
+  { value: 'oldest', key: 'oldest' }
 ] as const;
 
 type SortOption = typeof SORT_OPTIONS[number]['value'];
 
 export default function ScholarshipsPage() {
+  const { t } = usePageTranslation('scholarships');
+  const { t: tCommon } = useCommonTranslation();
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -302,10 +305,10 @@ export default function ScholarshipsPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active': return 'Currently Accepting';
-      case 'expired': return 'Expired';
-      case 'coming-soon': return 'Opening Soon (3 months)';
-      case 'urgent': return 'Urgent (30 days)';
+      case 'active': return t('filters.status.currentlyAccepting');
+      case 'expired': return t('filters.status.expired');
+      case 'coming-soon': return t('filters.status.openingSoon');
+      case 'urgent': return t('filters.status.urgent');
       default: return status;
     }
   };
@@ -322,8 +325,8 @@ export default function ScholarshipsPage() {
           <div className="w-16 h-16 bg-[var(--eddura-primary)] rounded-full flex items-center justify-center mx-auto mb-4">
             <Award className="w-8 h-8 text-white animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">Loading Scholarships</h2>
-          <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Finding the best opportunities for you...</p>
+          <h2 className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">{t('loadingTitle')}</h2>
+          <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('loadingSubtitle')}</p>
         </motion.div>
       </div>
     );
@@ -338,12 +341,8 @@ export default function ScholarshipsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">
-            Discover Scholarships
-          </h1>
-          <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
-            Find and apply for scholarships that match your profile and academic goals.
-          </p>
+          <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">{t('title')}</h1>
+          <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{t('subtitle')}</p>
         </motion.div>
 
         {/* Search and Filters */}
@@ -362,7 +361,7 @@ export default function ScholarshipsPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-300)]" />
                     <Input
                       type="text"
-                      placeholder="Search scholarships by title, provider, or field of study..."
+                      placeholder={t('searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
@@ -424,13 +423,13 @@ export default function ScholarshipsPage() {
                     }}
                   >
                     <SelectTrigger className="w-[140px] bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
-                      <SelectValue placeholder="Frequency" />
+                      <SelectValue placeholder={t('filters.frequency.placeholder')} />
                     </SelectTrigger>
                     <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="One-time">One-time</SelectItem>
-                      <SelectItem value="Annual">Annual</SelectItem>
-                      <SelectItem value="Full Duration">Full Duration</SelectItem>
+                      <SelectItem value="all">{t('filters.frequency.allTypes')}</SelectItem>
+                      <SelectItem value="One-time">{t('filters.frequency.oneTime')}</SelectItem>
+                      <SelectItem value="Annual">{t('filters.frequency.annual')}</SelectItem>
+                      <SelectItem value="Full Duration">{t('filters.frequency.fullDuration')}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -450,14 +449,14 @@ export default function ScholarshipsPage() {
                     }}
                   >
                     <SelectTrigger className="w-[140px] bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
-                      <SelectValue placeholder="Status" />
+                      <SelectValue placeholder={t('filters.status.placeholder')} />
                     </SelectTrigger>
                     <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="active">Currently Accepting</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
-                      <SelectItem value="coming-soon">Opening Soon (3 months)</SelectItem>
-                      <SelectItem value="urgent">Urgent (30 days)</SelectItem>
+                      <SelectItem value="all">{t('filters.status.all')}</SelectItem>
+                      <SelectItem value="active">{t('filters.status.currentlyAccepting')}</SelectItem>
+                      <SelectItem value="expired">{t('filters.status.expired')}</SelectItem>
+                      <SelectItem value="coming-soon">{t('filters.status.openingSoon')}</SelectItem>
+                      <SelectItem value="urgent">{t('filters.status.urgent')}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -470,9 +469,9 @@ export default function ScholarshipsPage() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <div className="max-w-xs">
-                          <p><strong>Currently Accepting:</strong> Applications are open and deadline hasn&apos;t passed</p>
-                          <p><strong>Opening Soon:</strong> Applications will open within 3 months</p>
-                          <p><strong>Urgent:</strong> Deadline is within 30 days</p>
+                          <p><strong>{t('filters.status.currentlyAccepting')}:</strong> {t('filters.help.currentlyAccepting')}</p>
+                          <p><strong>{t('filters.status.openingSoon')}:</strong> {t('filters.help.openingSoon')}</p>
+                          <p><strong>{t('filters.status.urgent')}:</strong> {t('filters.help.urgent')}</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -485,7 +484,7 @@ export default function ScholarshipsPage() {
                     className="flex items-center gap-2 border-gray-200 dark:border-[var(--eddura-primary-700)] hover:bg-gray-50 dark:hover:bg-[var(--eddura-primary-800)] hover:text-eddura-700"
                   >
                     <Filter className="h-4 w-4" />
-                    Filters
+                    {t('filters.button')}
                   </Button>
 
                   {(searchTerm || Object.values(selectedFilters).some(v => v && v !== 'all') || selectedStatus !== 'all') && (
@@ -494,7 +493,7 @@ export default function ScholarshipsPage() {
                       onClick={clearFilters}
                       onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                     >
-                      Clear
+                      {t('filters.clear')}
                     </Button>
                   )}
                 </div>
@@ -531,21 +530,20 @@ export default function ScholarshipsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-gray-600 dark:text-[var(--eddura-primary-200)]">
-                Showing <span className="font-semibold">{scholarships.length}</span> of{' '}
-                <span className="font-semibold">{pagination.totalCount}</span> scholarships
-                {searchTerm && ` for &quot;${searchTerm}&quot;`}
-                {selectedStatus !== 'all' && ` (${getStatusLabel(selectedStatus)})`}
+                {t('results.showing', { count: scholarships.length, total: pagination.totalCount })}
+                {searchTerm ? ` ${t('results.for', { term: searchTerm })}` : ''}
+                {selectedStatus !== 'all' ? ` (${getStatusLabel(selectedStatus)})` : ''}
               </p>
               {isLoading && scholarships.length > 0 && (
                 <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-[var(--eddura-primary-300)]">
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  <span>Updating...</span>
+                  <span>{t('results.updating')}</span>
                 </div>
               )}
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Sort by:</span>
+              <span className="text-sm text-gray-500">{t('sort.label')}</span>
               <Select value={sortBy} onValueChange={(value) => {
                 setSortBy(value as SortOption);
                 setPagination((prev: PaginationInfo) => ({ ...prev, currentPage: 1 }));
@@ -565,8 +563,8 @@ export default function ScholarshipsPage() {
                   {SORT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       <div className="flex flex-col">
-                        <span>{option.label}</span>
-                        <span className="text-xs text-gray-500 dark:text-[var(--eddura-primary-300)]">{option.description}</span>
+                        <span>{t(`sort.options.${option.key}.label`)}</span>
+                        <span className="text-xs text-gray-500 dark:text-[var(--eddura-primary-300)]">{t(`sort.options.${option.key}.description`)}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -602,16 +600,14 @@ export default function ScholarshipsPage() {
             className="text-center py-12"
           >
             <Award className="h-16 w-16 text-gray-400 dark:text-[var(--eddura-primary-300)] mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No scholarships found</h3>
-            <p className="text-gray-600 dark:text-[var(--eddura-primary-300)] mb-4">
-              Try adjusting your search terms or filters to find more opportunities.
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('empty.title')}</h3>
+            <p className="text-gray-600 dark:text-[var(--eddura-primary-300)] mb-4">{t('empty.description')}</p>
             <Button 
               onClick={clearFilters} 
               variant="outline"
               onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
             >
-              Clear all filters
+              {t('empty.clearAllFilters')}
             </Button>
           </motion.div>
         )}
@@ -632,7 +628,7 @@ export default function ScholarshipsPage() {
                 disabled={!pagination.hasPrevPage}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                {tCommon('actions.previous')}
               </Button>
               
               <div className="flex items-center gap-1">
@@ -670,7 +666,7 @@ export default function ScholarshipsPage() {
                 onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                 disabled={!pagination.hasNextPage}
               >
-                Next
+                {tCommon('actions.next')}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

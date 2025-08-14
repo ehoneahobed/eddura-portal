@@ -428,7 +428,96 @@
     },
     "scholarships": {
       "title": "Scholarships",
-      "subtitle": "Discover and apply for scholarships that match your profile and academic goals"
+      "subtitle": "Discover and apply for scholarships that match your profile and academic goals",
+      "loadingTitle": "Loading Scholarships",
+      "loadingSubtitle": "Finding the best opportunities for you...",
+      "searchPlaceholder": "Search scholarships by title, provider, or field of study...",
+      "filters": {
+        "button": "Filters",
+        "clear": "Clear",
+        "frequency": {
+          "label": "Frequency",
+          "placeholder": "Frequency",
+          "allTypes": "All Types",
+          "oneTime": "One-time",
+          "annual": "Annual",
+          "fullDuration": "Full Duration"
+        },
+        "status": {
+          "placeholder": "Status",
+          "all": "All Statuses",
+          "currentlyAccepting": "Currently Accepting",
+          "expired": "Expired",
+          "openingSoon": "Opening Soon (3 months)",
+          "urgent": "Urgent (30 days)"
+        },
+        "help": {
+          "currentlyAccepting": "Applications are open and deadline hasn't passed",
+          "openingSoon": "Applications will open within 3 months",
+          "urgent": "Deadline is within 30 days"
+        },
+        "minGPA": "Min GPA",
+        "minGPAPlaceholder": "e.g., 3.5",
+        "requirements": "Application Requirements",
+        "requiresEssay": "Requires Essay",
+        "requiresCV": "Requires CV",
+        "requiresRecommendations": "Requires Recommendations",
+        "locations": "Available Locations",
+        "selectCountries": "Select countries",
+        "academicDisciplines": "Academic Disciplines",
+        "selectDisciplines": "Select disciplines"
+      },
+      "results": {
+        "showing": "Showing {count} of {total} scholarships",
+        "for": "for \"{term}\"",
+        "updating": "Updating..."
+      },
+      "sort": {
+        "label": "Sort by:",
+        "options": {
+          "relevance": { "label": "Relevance", "description": "Best matches for your search" },
+          "alphabetical": { "label": "Alphabetical", "description": "A-Z by title" },
+          "deadline": { "label": "Deadline", "description": "Earliest deadline first" },
+          "openingDate": { "label": "Opening Date", "description": "Applications opening soon" },
+          "newest": { "label": "Newest", "description": "Recently added" },
+          "oldest": { "label": "Oldest", "description": "Added first" }
+        }
+      },
+      "empty": {
+        "title": "No scholarships found",
+        "description": "Try adjusting your search terms or filters to find more opportunities.",
+        "clearAllFilters": "Clear all filters"
+      },
+      "requirements": {
+        "title": "Requirements:",
+        "essay": "Essay",
+        "cv": "CV",
+        "recommendations": "{count} Recommendations"
+      },
+      "deadline": {
+        "daysToOpening": "{count} days to opening",
+        "daysToClose": "{count} days to close",
+        "expired": "Expired"
+      },
+      "status": {
+        "openingDateNotSpecified": "Opening date not specified",
+        "noOpeningDate": "No specific opening date provided",
+        "opensInDays": "Opens in {count} days",
+        "applicationsOpenOn": "Applications will open on",
+        "opensOn": "Opens",
+        "currentlyAcceptingDescription": "Applications are currently being accepted",
+        "applicationClosed": "Application Closed",
+        "deadlinePassed": "The application deadline has passed",
+        "closesInDays": "Closes in {count} days",
+        "applicationDeadline": "Application deadline:",
+        "closesOn": "Closes",
+        "prepareApplication": "Prepare Application",
+        "applyNow": "Apply Now"
+      },
+      "notOpenHint": "You can start preparing your application now, even though applications haven't opened yet.",
+      "varies": "Varies",
+      "viewDetails": "View Details",
+      "more": "more"
     },
     "savedScholarships": {
       "title": "Saved Scholarships",

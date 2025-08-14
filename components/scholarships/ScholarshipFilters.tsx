@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { countries } from '@/utils/countries';
 import { academicFields } from '@/utils/fields';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 interface Filters {
   frequency: string;
@@ -25,6 +26,7 @@ interface ScholarshipFiltersProps {
 }
 
 export default function ScholarshipFilters({ filters, onFiltersChange }: ScholarshipFiltersProps) {
+  const { t } = usePageTranslation('scholarships');
   const updateFilter = (key: keyof Filters, value: string | boolean | string[]) => {
     onFiltersChange({
       ...filters,
@@ -53,14 +55,14 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
       {/* Frequency */}
       <div>
         <Label htmlFor="frequency" className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">
-          Frequency
+          {t('filters.frequency.label')}
         </Label>
         <Select value={filters.frequency} onValueChange={(value) => updateFilter('frequency', value)}>
           <SelectTrigger className="mt-1 border-gray-200 dark:border-[var(--eddura-primary-700)] bg-white text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:text-white">
-            <SelectValue placeholder="Select frequency" />
+            <SelectValue placeholder={t('filters.frequency.placeholder')} />
           </SelectTrigger>
           <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
-            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="all">{t('filters.frequency.allTypes')}</SelectItem>
             {frequencies.map((freq) => (
               <SelectItem key={freq} value={freq}>
                 {freq}
@@ -73,14 +75,14 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
       {/* Min GPA */}
       <div>
         <Label htmlFor="minGPA" className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">
-          Min GPA
+          {t('filters.minGPA')}
         </Label>
         <Input
           type="number"
           step="0.1"
           min="0"
           max="4"
-          placeholder="e.g., 3.5"
+          placeholder={t('filters.minGPAPlaceholder')}
           value={filters.minGPA}
           onChange={(e) => updateFilter('minGPA', e.target.value)}
           className="mt-1 bg-white dark:bg-[var(--eddura-primary-900)] border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)]"
@@ -90,7 +92,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
       {/* Application Requirements */}
       <div className="md:col-span-2 lg:col-span-4">
         <Label className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)] mb-2 block">
-          Application Requirements
+          {t('filters.requirements')}
         </Label>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center space-x-2">
@@ -100,7 +102,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
               onCheckedChange={(checked) => updateFilter('hasEssay', checked as boolean)}
             />
             <Label htmlFor="hasEssay" className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
-              Requires Essay
+              {t('filters.requiresEssay')}
             </Label>
           </div>
           
@@ -111,7 +113,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
               onCheckedChange={(checked) => updateFilter('hasCV', checked as boolean)}
             />
             <Label htmlFor="hasCV" className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
-              Requires CV
+              {t('filters.requiresCV')}
             </Label>
           </div>
           
@@ -122,7 +124,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
               onCheckedChange={(checked) => updateFilter('hasRecommendations', checked as boolean)}
             />
             <Label htmlFor="hasRecommendations" className="text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
-              Requires Recommendations
+              {t('filters.requiresRecommendations')}
             </Label>
           </div>
         </div>
@@ -131,7 +133,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
       {/* Location Filter */}
       <div className="md:col-span-2">
         <Label className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)] mb-2 block">
-          Available Locations
+          {t('filters.locations')}
         </Label>
         <div className="space-y-2">
           <Select
@@ -139,7 +141,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
             onValueChange={(value) => addToArray('locations', value)}
           >
             <SelectTrigger className="h-10 border-gray-200 bg-white text-gray-700 dark:border-[var(--eddura-primary-700)] dark:bg-[var(--eddura-primary-900)] dark:text-white">
-              <SelectValue placeholder="Select countries" />
+              <SelectValue placeholder={t('filters.selectCountries')} />
             </SelectTrigger>
             <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
               {countries.map((country) => (
@@ -167,7 +169,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
       {/* Discipline Filter */}
       <div className="md:col-span-2">
         <Label className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)] mb-2 block">
-          Academic Disciplines
+          {t('filters.academicDisciplines')}
         </Label>
         <div className="space-y-2">
           <Select
@@ -175,7 +177,7 @@ export default function ScholarshipFilters({ filters, onFiltersChange }: Scholar
             onValueChange={(value) => addToArray('disciplines', value)}
           >
             <SelectTrigger className="h-10 border-gray-200 bg-white text-gray-700 dark:border-[var(--eddura-primary-700)] dark:bg-[var(--eddura-primary-900)] dark:text-white">
-              <SelectValue placeholder="Select disciplines" />
+              <SelectValue placeholder={t('filters.selectDisciplines')} />
             </SelectTrigger>
             <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
               {academicFields.map((field) => (
