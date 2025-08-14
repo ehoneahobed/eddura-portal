@@ -23,29 +23,39 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { ThemeAwareLogo } from '@/components/ui/logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LanguageSelector } from '@/components/ui/language-selector';
+import { useFormTranslation } from '@/hooks/useTranslation';
+import { createLocalizedValidation } from '@/lib/validation';
 
-const registerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(50, 'First name must be less than 50 characters'),
-  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name must be less than 50 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters long')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type RegisterFormData = z.infer<typeof registerSchema>;
+type RegisterFormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
 export default function RegisterForm() {
+  const { t } = useFormTranslation();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Create localized validation schema
+  const validation = createLocalizedValidation(t);
+  const registerSchema = z.object({
+    firstName: validation.required().max(50, t('validation.maxLength', { max: 50 })),
+    lastName: validation.required().max(50, t('validation.maxLength', { max: 50 })),
+    email: validation.email(),
+    password: validation.password(),
+    confirmPassword: validation.confirmPassword(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('validation.passwordMismatch'),
+    path: ["confirmPassword"],
+  });
 
   const {
     register,
@@ -148,8 +158,9 @@ export default function RegisterForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center px-4">
-      {/* Theme toggle in top right */}
-      <div className="absolute top-6 right-6">
+      {/* Language selector and theme toggle in top right */}
+      <div className="absolute top-6 right-6 flex items-center space-x-3">
+        <LanguageSelector variant="compact" showLabel={false} />
         <ThemeToggle />
       </div>
 

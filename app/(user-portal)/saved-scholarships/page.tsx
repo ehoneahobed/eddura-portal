@@ -33,6 +33,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ResponsiveContainer } from '@/components/ui/responsive-container';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 interface SavedScholarship {
   _id: string;
@@ -71,6 +72,7 @@ interface SavedScholarshipsResponse {
 export default function SavedScholarshipsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = usePageTranslation('savedScholarships');
   const [savedScholarships, setSavedScholarships] = useState<SavedScholarship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +95,7 @@ export default function SavedScholarshipsPage() {
         const data: SavedScholarshipsResponse = await response.json();
         setSavedScholarships(data.savedScholarships);
       } else {
-        toast.error('Failed to fetch saved scholarships');
+        toast.error(t('notifications.fetchFailed') || 'Failed to fetch saved scholarships');
       }
     } catch (error) {
       console.error('Error fetching saved scholarships:', error);
@@ -124,7 +126,7 @@ export default function SavedScholarshipsPage() {
         setSavedScholarships((prev: SavedScholarship[]) => 
           prev.filter((s: SavedScholarship) => s.scholarshipId._id !== scholarshipId)
         );
-        toast.success('Scholarship removed from saved list');
+        toast.success(t('notifications.removed'));
       } else {
         toast.error('Failed to remove scholarship');
       }
@@ -157,7 +159,7 @@ export default function SavedScholarshipsPage() {
               : s
           )
         );
-        toast.success('Scholarship updated successfully');
+        toast.success(t('notifications.updated'));
         setIsEditDialogOpen(false);
         setEditingScholarship(null);
       } else {
@@ -186,14 +188,14 @@ export default function SavedScholarshipsPage() {
       // Fallback to clipboard
       try {
         await navigator.clipboard.writeText(url);
-        toast.success('Scholarship link copied to clipboard!', {
-          description: 'You can now share this link with others.',
+        toast.success(t('notifications.linkCopied'), {
+          description: t('notifications.linkCopiedDescription'),
           duration: 3000,
         });
       } catch (error) {
         console.error('Failed to copy scholarship link:', error);
-        toast.error('Failed to copy link to clipboard', {
-          description: 'Please try selecting and copying the link manually.',
+        toast.error(t('notifications.linkCopyFailed'), {
+          description: t('notifications.linkCopyFailedDescription'),
           duration: 4000,
         });
       }
@@ -239,13 +241,13 @@ export default function SavedScholarshipsPage() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) {
-      return 'Expired';
+      return t('deadline.expired');
     } else if (diffDays === 0) {
-      return 'Today';
+      return t('deadline.today');
     } else if (diffDays === 1) {
-      return 'Tomorrow';
+      return t('deadline.tomorrow');
     } else if (diffDays <= 7) {
-      return `${diffDays} days left`;
+      return t('deadline.daysLeft', { count: diffDays });
     } else {
       return date.toLocaleDateString('en-US', { 
         weekday: 'long',
@@ -286,8 +288,8 @@ export default function SavedScholarshipsPage() {
             <Bookmark className="h-7 w-7 text-[var(--eddura-primary-700)] dark:text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white">Saved Scholarships</h1>
-            <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">Manage your saved scholarships and track your applications</p>
+            <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white">{t('title')}</h1>
+            <p className="text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -296,7 +298,7 @@ export default function SavedScholarshipsPage() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[var(--eddura-primary-300)]" />
             <Input
-              placeholder="Search scholarships, providers, or notes..."
+              placeholder={t('search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-white dark:bg-[var(--eddura-primary-800)]"
@@ -304,14 +306,14 @@ export default function SavedScholarshipsPage() {
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-48 bg-white border-gray-200 text-gray-700 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-white">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={t('filterByStatus')} />
             </SelectTrigger>
             <SelectContent className="bg-white text-gray-900 border-gray-200 dark:bg-[var(--eddura-primary-900)] dark:text-white dark:border-[var(--eddura-primary-700)]">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="saved">Saved</SelectItem>
-              <SelectItem value="interested">Interested</SelectItem>
-              <SelectItem value="applied">Applied</SelectItem>
-              <SelectItem value="not-interested">Not Interested</SelectItem>
+              <SelectItem value="all">{t('allStatus')}</SelectItem>
+              <SelectItem value="saved">{t('status.saved')}</SelectItem>
+              <SelectItem value="interested">{t('status.interested')}</SelectItem>
+              <SelectItem value="applied">{t('status.applied')}</SelectItem>
+              <SelectItem value="not-interested">{t('status.notInterested')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -326,17 +328,17 @@ export default function SavedScholarshipsPage() {
         <Card className="border-dashed border-2 border-gray-300 dark:border-[var(--eddura-primary-700)] bg-white dark:bg-[var(--eddura-primary-900)]">
           <CardContent className="p-12 text-center">
             <Bookmark className="h-12 w-12 text-gray-400 dark:text-[var(--eddura-primary-300)] mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-[var(--eddura-primary-900)] dark:text-white mb-2">No saved scholarships</h3>
+            <h3 className="text-lg font-medium text-[var(--eddura-primary-900)] dark:text-white mb-2">{t('empty.title')}</h3>
             <p className="text-gray-600 dark:text-[var(--eddura-primary-300)] mb-4">
               {searchTerm || statusFilter !== 'all' 
-                ? 'No scholarships match your current filters.'
-                : 'Start saving scholarships to track them here.'
+                ? t('empty.noResults')
+                : t('empty.getStarted')
               }
             </p>
             {!searchTerm && statusFilter === 'all' && (
               <Link href="/scholarships">
                 <Button>
-                  Browse Scholarships
+                  {t('empty.browseScholarships')}
                 </Button>
               </Link>
             )}
@@ -435,7 +437,7 @@ export default function SavedScholarshipsPage() {
                       <Link href={`/scholarships/${scholarship._id}`}>
                         <Button size="sm" variant="outline" className="flex-1 bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-dark)] text-white border-[var(--eddura-primary)]">
                           <ExternalLink className="h-4 w-4 mr-1" />
-                          View Details
+                          {t('actions.viewDetails')}
                         </Button>
                       </Link>
                       
@@ -481,32 +483,32 @@ export default function SavedScholarshipsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Saved Scholarship</DialogTitle>
+            <DialogTitle>{t('dialog.editTitle')}</DialogTitle>
             <DialogDescription>
-              Update your notes and status for this scholarship.
+              {t('dialog.editDescription')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-sm font-medium">{t('dialog.status')}</label>
               <Select value={editStatus} onValueChange={setEditStatus}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="saved">Saved</SelectItem>
-                  <SelectItem value="interested">Interested</SelectItem>
-                  <SelectItem value="applied">Applied</SelectItem>
-                  <SelectItem value="not-interested">Not Interested</SelectItem>
+                  <SelectItem value="saved">{t('status.saved')}</SelectItem>
+                  <SelectItem value="interested">{t('status.interested')}</SelectItem>
+                  <SelectItem value="applied">{t('status.applied')}</SelectItem>
+                  <SelectItem value="not-interested">{t('status.notInterested')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
-              <label className="text-sm font-medium">Notes</label>
+              <label className="text-sm font-medium">{t('dialog.notes')}</label>
               <Textarea
-                placeholder="Add your notes about this scholarship..."
+                placeholder={t('dialog.notesPlaceholder')}
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
                 rows={3}
@@ -516,10 +518,10 @@ export default function SavedScholarshipsPage() {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
+              {t('dialog.cancel')}
             </Button>
             <Button onClick={handleUpdate}>
-              Update
+              {t('dialog.update')}
             </Button>
           </DialogFooter>
         </DialogContent>

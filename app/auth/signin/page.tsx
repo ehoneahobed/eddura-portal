@@ -12,6 +12,7 @@ import { Loader2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ThemeAwareLogo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -75,8 +76,9 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-eddura-50 via-white to-eddura-100 dark:from-eddura-900 dark:via-eddura-800 dark:to-eddura-900 flex items-center justify-center p-4">
-      {/* Theme toggle in top right */}
-      <div className="absolute top-6 right-6">
+      {/* Language selector and theme toggle in top right */}
+      <div className="absolute top-6 right-6 flex items-center space-x-3">
+        <LanguageSelector variant="compact" showLabel={false} />
         <ThemeToggle />
       </div>
 

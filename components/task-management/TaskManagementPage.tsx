@@ -38,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import AddTaskModal from './AddTaskModal';
 import { ResponsiveContainer } from '../ui/responsive-container';
+import { usePageTranslation, useCommonTranslation } from '@/hooks/useTranslation';
 
 interface Application {
   _id: string;
@@ -99,6 +100,8 @@ interface TaskStats {
 export default function TaskManagementPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { t } = usePageTranslation('taskManagement');
+  const { t: tCommon } = useCommonTranslation();
   const [applications, setApplications] = useState<Application[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<TaskStats | null>(null);
@@ -238,23 +241,23 @@ export default function TaskManagementPage() {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'draft':
-        return { color: 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: FileText, label: 'Draft' };
+        return { color: 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: FileText, label: t('status.draft') };
       case 'in_progress':
-        return { color: 'bg-[var(--eddura-info-50)] text-[var(--eddura-info-800)] dark:bg-[var(--eddura-info-900)] dark:text-[var(--eddura-info-200)]', icon: Play, label: 'In Progress' };
+        return { color: 'bg-[var(--eddura-info-50)] text-[var(--eddura-info-800)] dark:bg-[var(--eddura-info-900)] dark:text-[var(--eddura-info-200)]', icon: Play, label: t('status.inProgress') };
       case 'submitted':
-        return { color: 'bg-[var(--eddura-warning-50)] text-[var(--eddura-warning-800)] dark:bg-[var(--eddura-warning-900)] dark:text-[var(--eddura-warning-200)]', icon: Clock, label: 'Submitted' };
+        return { color: 'bg-[var(--eddura-warning-50)] text-[var(--eddura-warning-800)] dark:bg-[var(--eddura-warning-900)] dark:text-[var(--eddura-warning-200)]', icon: Clock, label: t('status.submitted') };
       case 'under_review':
-        return { color: 'bg-[var(--eddura-primary-100)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: Eye, label: 'Under Review' };
+        return { color: 'bg-[var(--eddura-primary-100)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: Eye, label: t('status.underReview') };
       case 'approved':
-        return { color: 'bg-[var(--eddura-success-100)] text-[var(--eddura-success-800)] dark:bg-[var(--eddura-success-900)] dark:text-[var(--eddura-success-200)]', icon: CheckCircle, label: 'Approved' };
+        return { color: 'bg-[var(--eddura-success-100)] text-[var(--eddura-success-800)] dark:bg-[var(--eddura-success-900)] dark:text-[var(--eddura-success-200)]', icon: CheckCircle, label: t('status.approved') };
       case 'rejected':
-        return { color: 'bg-[var(--eddura-error-50)] text-[var(--eddura-error-dark)] dark:bg-[var(--eddura-error-50)]/10 dark:text-[var(--eddura-error-light)]', icon: AlertCircle, label: 'Rejected' };
+        return { color: 'bg-[var(--eddura-error-50)] text-[var(--eddura-error-dark)] dark:bg-[var(--eddura-error-50)]/10 dark:text-[var(--eddura-error-light)]', icon: AlertCircle, label: t('status.rejected') };
       case 'waitlisted':
-        return { color: 'bg-[var(--eddura-accent-100)] text-[var(--eddura-accent-800)] dark:bg-[var(--eddura-accent-900)] dark:text-[var(--eddura-accent-200)]', icon: Clock, label: 'Waitlisted' };
+        return { color: 'bg-[var(--eddura-accent-100)] text-[var(--eddura-accent-800)] dark:bg-[var(--eddura-accent-900)] dark:text-[var(--eddura-accent-200)]', icon: Clock, label: t('status.waitlisted') };
       case 'withdrawn':
-        return { color: 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: Trash2, label: 'Withdrawn' };
+        return { color: 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: Trash2, label: t('status.withdrawn') };
       default:
-        return { color: 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: FileText, label: 'Unknown' };
+        return { color: 'bg-[var(--eddura-primary-50)] text-[var(--eddura-primary-800)] dark:bg-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]', icon: FileText, label: t('status.unknown') };
     }
   };
 
@@ -353,8 +356,8 @@ export default function TaskManagementPage() {
       <div className="min-h-screen bg-gradient-to-br from-[var(--eddura-primary-50)] via-white to-[var(--eddura-primary-100)] dark:from-[var(--eddura-primary-900)] dark:via-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-900)] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[var(--eddura-primary)]" />
-          <h2 className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">Loading Task Management</h2>
-          <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Getting your tasks and applications...</p>
+          <h2 className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-2">{t('loading')}</h2>
+          <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('loadingSubtitle')}</p>
         </div>
       </div>
     );
@@ -365,9 +368,9 @@ export default function TaskManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white">Task Management</h1>
+          <h1 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white">{t('title')}</h1>
           <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] mt-2">
-            Manage your applications, interviews, and follow-ups in one place
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -377,14 +380,14 @@ export default function TaskManagementPage() {
             className="border-[var(--eddura-primary)] text-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-50)] dark:hover:bg-[var(--eddura-primary-800)]"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Task
+            {t('actions.addTask')}
           </Button>
           <Button 
             onClick={handleAddApplication}
             className="bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-600)] text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Application
+            {t('actions.addApplication')}
           </Button>
         </div>
       </div>
@@ -397,7 +400,7 @@ export default function TaskManagementPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Total Applications</p>
+                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.totalApplications')}</p>
                   <p className="text-2xl font-bold text-[var(--eddura-primary-900)] dark:text-white">{stats.totalApplications}</p>
                 </div>
                 <FileText className="w-8 h-8 text-[var(--eddura-primary)]" />
@@ -410,7 +413,7 @@ export default function TaskManagementPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Active Applications</p>
+                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.activeApplications')}</p>
                   <p className="text-2xl font-bold text-[var(--eddura-info-700)] dark:text-[var(--eddura-info-300)]">{stats.activeApplications}</p>
                 </div>
                 <Play className="w-8 h-8 text-[var(--eddura-info-600)]" />
@@ -423,7 +426,7 @@ export default function TaskManagementPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Overdue Tasks</p>
+                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.overdueTasks')}</p>
                   <p className="text-2xl font-bold text-[var(--eddura-error-dark)]">{stats.overdueTasks}</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-[var(--eddura-error-dark)]" />
@@ -436,7 +439,7 @@ export default function TaskManagementPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Upcoming Deadlines</p>
+                  <p className="text-sm font-medium text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('stats.upcomingDeadlines')}</p>
                   <p className="text-2xl font-bold text-[var(--eddura-warning-700)]">{stats.upcomingDeadlines}</p>
                 </div>
                 <Calendar className="w-8 h-8 text-[var(--eddura-warning-600)]" />
@@ -455,14 +458,14 @@ export default function TaskManagementPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5" />
-                Application Types
+                {t('stats.applicationTypes')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <School className="w-4 h-4 text-[var(--eddura-info-600)]" />
-                  <span className="text-sm font-medium">Schools</span>
+                  <span className="text-sm font-medium">{t('applicationTypes.schools')}</span>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-[var(--eddura-primary-900)] dark:text-white">{stats?.applicationTypes.schools || 0}</p>
@@ -475,7 +478,7 @@ export default function TaskManagementPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="w-4 h-4 text-[var(--eddura-success-600)]" />
-                  <span className="text-sm font-medium">Programs</span>
+                  <span className="text-sm font-medium">{t('applicationTypes.programs')}</span>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-[var(--eddura-primary-900)] dark:text-white">{stats?.applicationTypes.programs || 0}</p>
@@ -488,7 +491,7 @@ export default function TaskManagementPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-[var(--eddura-accent-600)]" />
-                  <span className="text-sm font-medium">Scholarships</span>
+                  <span className="text-sm font-medium">{t('applicationTypes.scholarships')}</span>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-[var(--eddura-primary-900)] dark:text-white">{stats?.applicationTypes.scholarships || 0}</p>
@@ -504,24 +507,24 @@ export default function TaskManagementPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 dark:text-white">
                 <CheckCircle className="w-5 h-5" />
-                Application Status
+                {t('stats.applicationStatus')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">Draft</span>
+                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">{t('status.draft')}</span>
                 <Badge variant="secondary">{stats?.applicationStatus.draft || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">Submitted</span>
+                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">{t('status.submitted')}</span>
                 <Badge variant="secondary">{stats?.applicationStatus.submitted || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">Approved</span>
+                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">{t('status.approved')}</span>
                 <Badge variant="secondary" className="bg-green-100 text-green-800">{stats?.applicationStatus.approved || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">Rejected</span>
+                <span className="text-sm font-medium text-[var(--eddura-primary-800)] dark:text-[var(--eddura-primary-200)]">{t('status.rejected')}</span>
                 <Badge variant="secondary" className="bg-red-100 text-red-800">{stats?.applicationStatus.rejected || 0}</Badge>
               </div>
             </CardContent>
@@ -539,7 +542,7 @@ export default function TaskManagementPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-300)]" />
                     <Input
-                      placeholder="Search applications..."
+                      placeholder={t('actions.searchApplications')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] focus-visible:ring-[var(--eddura-primary)] bg-white dark:bg-[var(--eddura-primary-800)] text-[var(--eddura-primary-900)] dark:text-white placeholder-[var(--eddura-primary-400)] dark:placeholder-[var(--eddura-primary-400)]"
@@ -549,18 +552,18 @@ export default function TaskManagementPage() {
                 <div className="w-full sm:w-48">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] bg-white text-[var(--eddura-primary-900)] dark:bg-[var(--eddura-primary-800)] dark:text-white">
-                      <SelectValue placeholder="Filter by status" />
+                      <SelectValue placeholder={t('actions.filterByStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review">Under Review</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
-                      <SelectItem value="waitlisted">Waitlisted</SelectItem>
-                      <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                      <SelectItem value="all">{t('actions.allStatus')}</SelectItem>
+                      <SelectItem value="draft">{t('status.draft')}</SelectItem>
+                      <SelectItem value="in_progress">{t('status.inProgress')}</SelectItem>
+                      <SelectItem value="submitted">{t('status.submitted')}</SelectItem>
+                      <SelectItem value="under_review">{t('status.underReview')}</SelectItem>
+                      <SelectItem value="approved">{t('status.approved')}</SelectItem>
+                      <SelectItem value="rejected">{t('status.rejected')}</SelectItem>
+                      <SelectItem value="waitlisted">{t('status.waitlisted')}</SelectItem>
+                      <SelectItem value="withdrawn">{t('status.withdrawn')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -574,16 +577,16 @@ export default function TaskManagementPage() {
               <Card className="dark:bg-[var(--eddura-primary-900)]">
                 <CardContent className="p-8 text-center">
                   <FileText className="w-12 h-12 text-[var(--eddura-primary-400)] mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-[var(--eddura-primary-900)] dark:text-white mb-2">No applications found</h3>
+                  <h3 className="text-lg font-medium text-[var(--eddura-primary-900)] dark:text-white mb-2">{t('empty.title')}</h3>
                   <p className="text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] mb-4">
-                    You haven&apos;t started any applications yet.
+                    {t('empty.description')}
                   </p>
                   <Button 
                     onClick={handleAddApplication}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Award className="w-4 h-4 mr-2" />
-                    Browse Scholarships
+                    {t('empty.browseScholarships')}
                   </Button>
                 </CardContent>
               </Card>
@@ -616,10 +619,10 @@ export default function TaskManagementPage() {
                                        {formatCurrency(application.scholarshipId.value, application.scholarshipId.currency)}
                                      </span>
                                    )}
-                                   {application.scholarshipId?.deadline && (
+                                    {application.scholarshipId?.deadline && (
                                      <span className="flex items-center gap-1">
                                        <Calendar className="w-4 h-4" />
-                                       Deadline: {formatDate(application.scholarshipId.deadline)}
+                                        {tCommon('labels.deadline')}: {formatDate(application.scholarshipId.deadline)}
                                      </span>
                                    )}
                                  </div>
@@ -632,17 +635,17 @@ export default function TaskManagementPage() {
                             
                             <div className="space-y-2">
                               <div className="flex items-center justify-between text-sm text-[var(--eddura-primary-700)] dark:text-[var(--eddura-primary-300)]">
-                                <span>Progress</span>
+                                <span>{tCommon('labels.progress')}</span>
                                 <span>{application.progress}%</span>
                               </div>
                               <Progress value={application.progress} className="h-2 bg-[var(--eddura-primary-100)] dark:bg-[var(--eddura-primary-700)] [&>div]:bg-[var(--eddura-primary)] dark:[&>div]:bg-[var(--eddura-accent)]" />
                             </div>
                             
                             <div className="flex items-center gap-4 text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
-                              <span>Started: {formatDate(application.startedAt)}</span>
-                              <span>Last activity: {formatDate(application.lastActivityAt)}</span>
+                              <span>{t('labels.started')}: {formatDate(application.startedAt)}</span>
+                              <span>{t('labels.lastActivity')}: {formatDate(application.lastActivityAt)}</span>
                               {application.estimatedTimeRemaining && (
-                                <span>~{application.estimatedTimeRemaining} min remaining</span>
+                                <span>~{t('labels.minutesRemaining', { count: application.estimatedTimeRemaining })}</span>
                               )}
                             </div>
                           </div>
@@ -655,7 +658,7 @@ export default function TaskManagementPage() {
                                 className="bg-[var(--eddura-primary)] hover:bg-[var(--eddura-primary-600)] text-white"
                               >
                                 <Play className="w-4 h-4 mr-2" />
-                                Continue
+                                {tCommon('actions.continue')}
                               </Button>
                             ) : (
                               <Button 
@@ -664,7 +667,7 @@ export default function TaskManagementPage() {
                                 className="border-[var(--eddura-primary-200)] text-[var(--eddura-primary-800)] hover:bg-[var(--eddura-primary-50)] dark:text-white dark:border-[var(--eddura-primary-700)] dark:hover:bg-[var(--eddura-primary-800)]"
                               >
                                 <Eye className="w-4 h-4 mr-2" />
-                                View
+                                {tCommon('actions.view')}
                               </Button>
                             )}
                           </div>
@@ -680,7 +683,7 @@ export default function TaskManagementPage() {
             {filteredApplications.length > 0 && (
               <div className="flex items-center justify-between pt-2">
                 <div className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
-                  Showing {startIdx + 1}-{Math.min(endIdx, filteredApplications.length)} of {filteredApplications.length}
+                  {t('pagination.showing', { from: startIdx + 1, to: Math.min(endIdx, filteredApplications.length), total: filteredApplications.length })}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -690,7 +693,7 @@ export default function TaskManagementPage() {
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={safePage === 1}
                   >
-                    Prev
+                    {tCommon('actions.previous')}
                   </Button>
                   <span className="text-sm text-[var(--eddura-primary-900)] dark:text-white">
                     {safePage} / {totalPages}
@@ -702,16 +705,16 @@ export default function TaskManagementPage() {
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={safePage === totalPages}
                   >
-                    Next
+                    {tCommon('actions.next')}
                   </Button>
                   <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(parseInt(v)); setCurrentPage(1); }}>
                     <SelectTrigger className="w-28 border-[var(--eddura-primary-200)] dark:border-[var(--eddura-primary-700)] bg-white dark:bg-[var(--eddura-primary-900)] text-[var(--eddura-primary-900)] dark:text-white">
-                      <SelectValue placeholder="Page size" />
+                      <SelectValue placeholder={t('pagination.pageSize')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5 / page</SelectItem>
-                      <SelectItem value="10">10 / page</SelectItem>
-                      <SelectItem value="20">20 / page</SelectItem>
+                      <SelectItem value="5">{t('pagination.perPage', { count: 5 })}</SelectItem>
+                      <SelectItem value="10">{t('pagination.perPage', { count: 10 })}</SelectItem>
+                      <SelectItem value="20">{t('pagination.perPage', { count: 20 })}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -727,18 +730,18 @@ export default function TaskManagementPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
-              Progress Overview
+              {t('overview.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="text-center">
                 <p className="text-3xl font-extrabold text-[var(--eddura-primary)]">{stats.progressOverview.averageProgress}%</p>
-                <p className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Average Progress</p>
+                <p className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('overview.averageProgress')}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-extrabold text-[var(--eddura-success-600)]">{stats.progressOverview.applicationsInProgress}</p>
-                <p className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Applications in Progress</p>
+                <p className="text-sm text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('overview.applicationsInProgress')}</p>
               </div>
             </div>
           </CardContent>

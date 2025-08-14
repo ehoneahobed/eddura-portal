@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ThemeAwareLogo } from '@/components/ui/logo';
+import { LanguageSelector } from '@/components/ui/language-selector';
 import Hero from './Hero';
 import { ComingSoon } from './ComingSoon';
 import { config } from '@/lib/config';
@@ -157,6 +158,7 @@ export default function LandingPage() {
                </div>
              </div>
              <div className="flex items-center space-x-6">
+               <LanguageSelector variant="compact" showLabel={false} />
                <ThemeToggle />
                <Link href="/quiz">
                  <Button variant="outline" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white transition-all duration-300 rounded-lg">

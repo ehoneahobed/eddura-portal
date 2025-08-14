@@ -39,10 +39,13 @@ import DocumentCard from '@/components/documents/DocumentCard';
 import DocumentErrorBoundary from '@/components/documents/DocumentErrorBoundary';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { usePageTranslation, useNotificationTranslation } from '@/hooks/useTranslation';
 
 
 export default function DocumentsPage() {
   const { data: session } = useSession();
+  const { t } = usePageTranslation('documents');
+  const { t: tNotification } = useNotificationTranslation();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -63,11 +66,11 @@ export default function DocumentsPage() {
       } else {
         const errorData = await response.json();
         console.error('Documents API error:', errorData);
-        toast.error('Failed to fetch documents');
+        toast.error(tNotification('error.fetchFailed'));
       }
     } catch (error) {
       console.error('Error fetching documents:', error);
-      toast.error('Failed to fetch documents');
+      toast.error(tNotification('error.fetchFailed'));
     } finally {
       setLoading(false);
     }
@@ -98,12 +101,12 @@ export default function DocumentsPage() {
   const handleDocumentCreated = () => {
     setCreateDialogOpen(false);
     fetchDocuments();
-    toast.success('Document created successfully');
+    toast.success(tNotification('success.documentCreated'));
   };
 
   const handleDocumentDeleted = (documentId: string) => {
     setDocuments(docs => docs.filter(doc => doc._id !== documentId));
-    toast.success('Document deleted successfully');
+    toast.success(tNotification('success.documentDeleted'));
   };
 
   const handleDocumentUpdated = (updatedDocument: Document) => {
@@ -112,7 +115,7 @@ export default function DocumentsPage() {
         doc._id === updatedDocument._id ? updatedDocument : doc
       )
     );
-    toast.success('Document updated successfully');
+    toast.success(tNotification('success.documentUpdated'));
   };
 
 
@@ -160,7 +163,7 @@ export default function DocumentsPage() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-eddura-900 dark:text-eddura-100">
-                    My Documents
+                    {t('title')}
                   </h1>
                   <div className="flex items-center gap-2 mt-1">
                     <Sparkles className="h-4 w-4 text-accent" />
@@ -171,8 +174,7 @@ export default function DocumentsPage() {
                 </div>
               </div>
               <p className="text-lg text-eddura-700 dark:text-eddura-300 max-w-2xl">
-                Create and manage your academic and professional documents. Build your portfolio of essays, 
-                statements, and applications with our powerful document editor.
+                {t('subtitle')}
               </p>
             </div>
             
@@ -183,7 +185,7 @@ export default function DocumentsPage() {
                 className="border-eddura-300 text-eddura-700 hover:bg-eddura-50 dark:border-eddura-600 dark:text-eddura-300 dark:hover:bg-eddura-800"
               >
                 <Upload className="h-5 w-5 mr-2" />
-                Import Document
+                {t('empty.importExisting')}
               </Button>
               <Button 
                 size="lg" 
@@ -191,7 +193,7 @@ export default function DocumentsPage() {
                 className="bg-eddura-500 hover:bg-eddura-600 shadow-eddura"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Create Document
+                {t('quickActions.createNew')}
               </Button>
             </div>
           </div>
@@ -206,31 +208,31 @@ export default function DocumentsPage() {
         >
           <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="lg">
             <StatCard
-              label="Total Documents"
+              label={t('stats.totalDocuments')}
               value={documents.length.toString()}
               icon={<FileText className="h-6 w-6 text-eddura-500" />}
-              change={{ value: "In your library", trend: "neutral" }}
+              change={{ value: t('stats.inYourLibrary'), trend: "neutral" }}
             />
             <StatCard
-              label="Active Documents"
+              label={t('stats.activeDocuments')}
               value={documents.filter(doc => doc.isActive).length.toString()}
               icon={<CheckCircle className="h-6 w-6 text-green-500" />}
               change={{ 
-                value: `${Math.round((documents.filter(doc => doc.isActive).length / Math.max(documents.length, 1)) * 100)}% active`, 
+                value: `${Math.round((documents.filter(doc => doc.isActive).length / Math.max(documents.length, 1)) * 100)}% ${t('stats.active')}`, 
                 trend: "up" 
               }}
             />
             <StatCard
-              label="Total Words"
+              label={t('stats.totalWords')}
               value={documents.reduce((sum, doc) => sum + (doc.wordCount || 0), 0).toLocaleString()}
               icon={<Edit className="h-6 w-6 text-blue-500" />}
-              change={{ value: "Words written", trend: "neutral" }}
+              change={{ value: t('stats.wordsWritten'), trend: "neutral" }}
             />
             <StatCard
-              label="Categories"
+              label={t('stats.categories')}
               value={categories.length.toString()}
               icon={<Folder className="h-6 w-6 text-purple-500" />}
-              change={{ value: "Document types", trend: "neutral" }}
+              change={{ value: t('stats.documentTypes'), trend: "neutral" }}
             />
           </ResponsiveGrid>
         </motion.div>
@@ -249,7 +251,7 @@ export default function DocumentsPage() {
                   <BarChart3 className="h-5 w-5 text-eddura-600 dark:text-eddura-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                  Document Categories
+                  {t('categories.title')}
                 </h2>
               </div>
               
@@ -258,7 +260,7 @@ export default function DocumentsPage() {
                   value="all" 
                   className="data-[state=active]:bg-accent data-[state=active]:text-white dark:data-[state=active]:bg-accent data-[state=active]:shadow-lg font-medium"
                 >
-                  All
+                  {t('categories.all')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="personal"
@@ -266,7 +268,7 @@ export default function DocumentsPage() {
                 >
                   <div className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    Personal
+                    {t('categories.personal')}
                   </div>
                 </TabsTrigger>
                 <TabsTrigger 
@@ -275,7 +277,7 @@ export default function DocumentsPage() {
                 >
                   <div className="flex items-center gap-1">
                     <Briefcase className="h-3 w-3" />
-                    Professional
+                    {t('categories.professional')}
                   </div>
                 </TabsTrigger>
                 <TabsTrigger 
@@ -284,7 +286,7 @@ export default function DocumentsPage() {
                 >
                   <div className="flex items-center gap-1">
                     <GraduationCap className="h-3 w-3" />
-                    Academic
+                    {t('categories.academic')}
                   </div>
                 </TabsTrigger>
                 <TabsTrigger 
@@ -293,7 +295,7 @@ export default function DocumentsPage() {
                 >
                   <div className="flex items-center gap-1">
                     <Award className="h-3 w-3" />
-                    Experience
+                    {t('categories.experience')}
                   </div>
                 </TabsTrigger>
                 <TabsTrigger 
@@ -302,7 +304,7 @@ export default function DocumentsPage() {
                 >
                   <div className="flex items-center gap-1">
                     <BookOpen className="h-3 w-3" />
-                    Reference
+                    {t('categories.reference')}
                   </div>
                 </TabsTrigger>
                 <TabsTrigger 
@@ -311,7 +313,7 @@ export default function DocumentsPage() {
                 >
                   <div className="flex items-center gap-1">
                     <Upload className="h-3 w-3" />
-                    Uploads
+                    {t('categories.upload')}
                   </div>
                 </TabsTrigger>
               </TabsList>
@@ -332,11 +334,10 @@ export default function DocumentsPage() {
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                            No documents yet
+                            {t('empty.title')}
                           </h3>
                           <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
-                            Start building your document library with essays, personal statements, 
-                            cover letters, and more. Our AI-powered editor will help you craft compelling content.
+                            {t('empty.description')}
                           </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -346,11 +347,11 @@ export default function DocumentsPage() {
                             className="bg-eddura-500 hover:bg-eddura-600"
                           >
                             <Plus className="h-5 w-5 mr-2" />
-                            Create Your First Document
+                            {t('empty.createFirst')}
                           </Button>
                           <Button variant="outline" size="lg">
                             <Upload className="h-5 w-5 mr-2" />
-                            Import Existing Document
+                            {t('empty.importExisting')}
                           </Button>
                         </div>
                       </div>
@@ -384,7 +385,7 @@ export default function DocumentsPage() {
                               </div>
                               <div>
                                 <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100 capitalize">
-                                  {category} Documents
+                                  {t(`categories.${category}`)} Documents
                                 </h3>
                                 <div className="w-12 h-0.5 bg-accent mt-1 rounded-full"></div>
                               </div>
@@ -443,10 +444,10 @@ export default function DocumentsPage() {
                           </div>
                           <div className="space-y-2">
                             <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                              No {category} documents
+                              {t('categoryEmpty.title', { category: t(`categories.${category}`) })}
                             </h3>
                             <p className="text-eddura-600 dark:text-eddura-400 max-w-md mx-auto">
-                              Create your first {category} document to get started with this category.
+                              {t('categoryEmpty.description', { category: t(`categories.${category}`) })}
                             </p>
                           </div>
                           <Button 
@@ -455,7 +456,7 @@ export default function DocumentsPage() {
                             className="bg-eddura-500 hover:bg-eddura-600"
                           >
                             <Plus className="h-5 w-5 mr-2" />
-                            Create {category.charAt(0).toUpperCase() + category.slice(1)} Document
+                            {t('categoryEmpty.create', { category: t(`categories.${category}`) })}
                           </Button>
                         </div>
                       </ModernCard>
@@ -498,12 +499,11 @@ export default function DocumentsPage() {
                   <div className="flex items-center gap-2">
                     <Star className="h-5 w-5 text-accent" />
                     <h3 className="text-xl font-semibold text-eddura-900 dark:text-eddura-100">
-                      Ready to create more content?
+                      {t('quickActions.title')}
                     </h3>
                   </div>
                   <p className="text-eddura-700 dark:text-eddura-300 max-w-2xl">
-                    Keep building your document library. Our AI-powered editor helps you create 
-                    compelling essays, statements, and applications that stand out.
+                    {t('quickActions.description')}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -512,14 +512,14 @@ export default function DocumentsPage() {
                     className="bg-white/80 dark:bg-eddura-800/80 border-eddura-300 dark:border-eddura-600"
                   >
                     <BookOpen className="h-4 w-4 mr-2" />
-                    Browse Templates
+                    {t('quickActions.browseTemplates')}
                   </Button>
                   <Button 
                     onClick={() => setCreateDialogOpen(true)}
                     className="bg-eddura-500 hover:bg-eddura-600"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Create New Document
+                    {t('quickActions.createNew')}
                   </Button>
                 </div>
               </div>

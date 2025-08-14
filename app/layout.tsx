@@ -6,7 +6,10 @@ import SessionProvider from '@/components/providers/SessionProvider';
 import ErrorBoundaryProvider from '@/components/providers/ErrorBoundaryProvider';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { I18nProvider } from '@/components/providers/I18nProvider';
 import { Toaster } from '@/components/ui/toaster';
+import { getInitialLocale } from '@/lib/i18n';
+import { headers } from 'next/headers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -86,8 +89,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Get initial locale from headers (set by middleware)
+  const headersList = headers();
+  const initialLocale = headersList.get('x-locale') || 'en';
+
   return (
-    <html lang="en">
+    <html lang={initialLocale}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -103,7 +110,9 @@ export default function RootLayout({
             <SWRProvider>
               <AnalyticsProvider>
                 <ThemeProvider>
-                  {children}
+                  <I18nProvider initialLocale={initialLocale as any}>
+                    {children}
+                  </I18nProvider>
                 </ThemeProvider>
                 <Toaster />
               </AnalyticsProvider>

@@ -1,0 +1,590 @@
+{
+  "common": {
+    "navigation": {
+      "home": "Accueil",
+      "dashboard": "Tableau de bord",
+      "library": "Bibliothèque",
+      "documents": "Documents",
+      "recommendations": "Recommandations",
+      "applications": "Candidatures",
+      "profile": "Profil",
+      "settings": "Paramètres",
+      "logout": "Déconnexion",
+      "features": "Fonctionnalités",
+      "products": "Produits",
+      "pricing": "Tarification",
+      "contact": "Contact",
+      "platform": "Plateforme",
+      "api": "API",
+      "analytics": "Analytiques",
+      "signIn": "Se connecter",
+      "getStarted": "Commencer",
+      "signUp": "S'inscrire",
+      "help": "Aide",
+      "support": "Support",
+      "language": "Langue",
+      "account": "Compte",
+      "menu": "Menu"
+    },
+    "sidebar": {
+      "overview": "Vue d'ensemble",
+      "taskManagement": "Gestion des tâches",
+      "scholarships": "Bourses d'études",
+      "savedScholarships": "Bourses sauvegardées",
+      "schoolsPrograms": "Écoles et programmes",
+      "applications": "Candidatures",
+      "applicationManagement": "Gestion des candidatures",
+      "recommendations": "Recommandations",
+      "recipients": "Destinataires",
+      "documents": "Documents",
+      "documentLibrary": "Bibliothèque de documents",
+      "edduraSquads": "Équipes Eddura",
+      "quickActions": "Actions rapides",
+      "takeQuiz": "Passer le quiz",
+      "viewResults": "Voir les résultats"
+    },
+    "actions": {
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "create": "Créer",
+      "view": "Voir",
+      "copy": "Copier",
+      "clone": "Cloner",
+      "download": "Télécharger",
+      "upload": "Téléverser",
+      "import": "Importer",
+      "export": "Exporter",
+      "search": "Rechercher",
+      "filter": "Filtrer",
+      "sort": "Trier",
+      "clear": "Effacer",
+      "submit": "Soumettre",
+      "continue": "Continuer",
+      "back": "Retour",
+      "next": "Suivant",
+      "previous": "Précédent",
+      "close": "Fermer",
+      "open": "Ouvrir",
+      "refresh": "Actualiser",
+      "reload": "Recharger",
+      "retry": "Réessayer",
+      "confirm": "Confirmer",
+      "apply": "Appliquer",
+      "reset": "Réinitialiser",
+      "restore": "Restaurer",
+      "duplicate": "Dupliquer",
+      "share": "Partager",
+      "print": "Imprimer",
+      "preview": "Aperçu"
+    },
+    "status": {
+      "loading": "Chargement...",
+      "loadingDocuments": "Chargement des documents...",
+      "loadingData": "Chargement des données...",
+      "error": "Une erreur s'est produite",
+      "success": "Succès",
+      "failed": "Échec",
+      "completed": "Terminé",
+      "pending": "En attente",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "draft": "Brouillon",
+      "published": "Publié"
+    },
+    "labels": {
+      "title": "Titre",
+      "description": "Description",
+      "category": "Catégorie",
+      "type": "Type",
+      "tags": "Étiquettes",
+      "author": "Auteur",
+      "date": "Date",
+      "created": "Créé",
+      "updated": "Mis à jour",
+      "words": "mots",
+      "characters": "caractères",
+      "pages": "pages",
+      "results": "résultats",
+      "total": "Total",
+      "available": "Disponible",
+      "selected": "Sélectionné",
+      "name": "Nom",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "fullName": "Nom complet",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "city": "Ville",
+      "country": "Pays",
+      "language": "Langue",
+      "timezone": "Fuseau horaire",
+      "currency": "Devise",
+      "status": "Statut",
+      "priority": "Priorité",
+      "deadline": "Date limite",
+      "progress": "Progrès",
+      "completion": "Achèvement"
+    },
+    "messages": {
+      "noData": "Aucune donnée disponible",
+      "noResults": "Aucun résultat trouvé",
+      "tryAgain": "Veuillez réessayer",
+      "somethingWentWrong": "Quelque chose s'est mal passé",
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+      "unsavedChanges": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir partir ?",
+      "welcome": "Bienvenue",
+      "goodbye": "Au revoir",
+      "thankYou": "Merci",
+      "pleaseWait": "Veuillez patienter",
+      "almostDone": "Presque terminé",
+      "getStarted": "Commencer",
+      "learnMore": "En savoir plus",
+      "readMore": "Lire la suite",
+      "showMore": "Afficher plus",
+      "showLess": "Afficher moins",
+      "seeAll": "Tout voir",
+      "viewAll": "Voir tout",
+      "hideDetails": "Masquer les détails",
+      "showDetails": "Afficher les détails",
+      "expand": "Développer",
+      "collapse": "Réduire",
+      "minimize": "Réduire",
+      "maximize": "Agrandir",
+      "fullscreen": "Plein écran",
+      "exitFullscreen": "Quitter le plein écran",
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "tomorrow": "Demain",
+      "thisWeek": "Cette semaine",
+      "lastWeek": "La semaine dernière",
+      "nextWeek": "La semaine prochaine",
+      "thisMonth": "Ce mois-ci",
+      "lastMonth": "Le mois dernier",
+      "nextMonth": "Le mois prochain",
+      "thisYear": "Cette année",
+      "lastYear": "L'année dernière",
+      "nextYear": "L'année prochaine",
+      "processing": "Traitement en cours",
+      "letsGo": "C'est parti",
+      "awesome": "Fantastique",
+      "excellent": "Excellent",
+      "perfect": "Parfait",
+      "oops": "Oups",
+      "finish": "Terminer",
+      "skip": "Ignorer",
+      "academic": "Académique",
+      "scholarship": "Bourse d'études",
+      "application": "Candidature",
+      "university": "Université",
+      "program": "Programme",
+      "degree": "Diplôme",
+      "transcript": "Relevé de notes",
+      "recommendation": "Recommandation",
+      "essay": "Essai",
+      "statement": "Déclaration",
+      "portfolio": "Portfolio",
+      "deadline": "Date limite",
+      "requirement": "Exigence",
+      "eligibility": "Admissibilité",
+      "admission": "Admission"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "subtitle": "Votre tableau de bord personnalisé avec les résultats du quiz et les recommandations de carrière.",
+      "welcome": "Bienvenue, {name} !",
+      "personalizedExperience": "Voici votre tableau de bord personnalisé. Concrétisons ensemble vos projets d'études !",
+      "loadingDashboard": "Chargement du tableau de bord",
+      "preparingExperience": "Préparation de votre expérience personnalisée...",
+      "stats": {
+        "applicationPackages": "Dossiers de candidature",
+        "documentsCreated": "Documents créés",
+        "recommendationLetters": "Lettres de recommandation",
+        "scholarshipsSaved": "Bourses sauvegardées",
+        "tokensEarned": "Jetons gagnés",
+        "created": "Créé",
+        "requestedReceived": "Demandé / Reçu",
+        "shownInterest": "Intérêt manifesté",
+        "total": "Total : {count}"
+      },
+      "quickActions": {
+        "title": "Actions rapides",
+        "subtitle": "Commencez votre parcours professionnel",
+        "takeQuiz": "Passer le quiz",
+        "retakeQuiz": "Refaire le quiz",
+        "discoverStrengths": "Découvrez vos forces",
+        "updatePreferences": "Mettez à jour vos préférences",
+        "viewResults": "Voir les résultats",
+        "seeRecommendations": "Voir vos recommandations",
+        "applyNow": "Postuler maintenant",
+        "startApplications": "Commencez vos candidatures",
+        "browseScholarships": "Parcourir les bourses d'études",
+        "findFunding": "Trouvez des opportunités de financement"
+      },
+      "recentActivity": {
+        "title": "Activité récente",
+        "subtitle": "Vos dernières interactions et progrès",
+        "noActivity": "Aucune activité récente",
+        "activitiesWillAppear": "Vos activités apparaîtront ici",
+        "showLess": "Afficher moins",
+        "loadMore": "Charger plus",
+        "justNow": "À l'instant",
+        "minutesAgo": "Il y a {count} minute{plural}",
+        "hoursAgo": "Il y a {count} heure{plural}",
+        "daysAgo": "Il y a {count} jour{plural}"
+      },
+      "profile": {
+        "editProfile": "Modifier le profil",
+        "viewProfile": "Voir le profil",
+        "quizCompleted": "Quiz terminé",
+        "quizNotCompleted": "Quiz non terminé",
+        "memberSince": "Membre depuis {date}",
+        "lastLogin": "Dernière connexion : {date}",
+        "location": "Localisation",
+        "phoneNumber": "Numéro de téléphone",
+        "dateOfBirth": "Date de naissance"
+      }
+    },
+    "recommendations": {
+      "title": "Destinataires de recommandations",
+      "subtitle": "Gérez vos destinataires de lettres de recommandation et suivez vos demandes.",
+      "stats": {
+        "totalRecipients": "Total des destinataires",
+        "activeRequests": "Demandes actives",
+        "completedRequests": "Demandes terminées",
+        "responseRate": "Taux de réponse",
+        "inYourNetwork": "Dans votre réseau",
+        "pending": "en attente",
+        "completed": "terminé",
+        "averageRate": "Taux moyen"
+      },
+      "search": {
+        "placeholder": "Rechercher des destinataires...",
+        "filterByInstitution": "Filtrer par institution",
+        "filterByPreference": "Filtrer par préférence",
+        "allInstitutions": "Toutes les institutions",
+        "allPreferences": "Toutes les préférences",
+        "prefersDrafts": "Préfère les brouillons",
+        "prefersEmail": "Préfère l'e-mail",
+        "prefersPhone": "Préfère le téléphone"
+      },
+      "recipient": {
+        "addNew": "Ajouter un nouveau destinataire",
+        "edit": "Modifier le destinataire",
+        "delete": "Supprimer le destinataire",
+        "contact": "Contact",
+        "viewProfile": "Voir le profil",
+        "sendRequest": "Envoyer une demande",
+        "copyEmail": "Copier l'e-mail",
+        "callPhone": "Appeler",
+        "prefersDrafts": "Préfère les brouillons",
+        "prefersEmail": "Préfère l'e-mail",
+        "prefersPhone": "Préfère le téléphone",
+        "department": "Département",
+        "institution": "Institution",
+        "primaryEmail": "E-mail principal",
+        "phoneNumber": "Numéro de téléphone",
+        "officeAddress": "Adresse du bureau",
+        "addedOn": "Ajouté le {date}",
+        "lastUpdated": "Dernière mise à jour {date}"
+      },
+      "empty": {
+        "title": "Aucun destinataire pour le moment",
+        "description": "Commencez à construire votre réseau de rédacteurs de lettres de recommandation. Ajoutez des professeurs, superviseurs et mentors qui peuvent fournir de solides recommandations.",
+        "addFirst": "Ajouter votre premier destinataire"
+      },
+      "actions": {
+        "addRecipient": "Ajouter un destinataire",
+        "editRecipient": "Modifier le destinataire",
+        "deleteRecipient": "Supprimer le destinataire",
+        "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce destinataire ?",
+        "deleteWarning": "Cette action ne peut pas être annulée."
+      }
+    },
+    "library": {
+      "title": "Bibliothèque de Documents",
+      "subtitle": "Parcourez et clonez des documents académiques de haute qualité pour vos candidatures. Découvrez des essais, des déclarations personnelles et plus encore de candidats ayant réussi.",
+      "stats": {
+        "availableDocuments": "Documents Disponibles",
+        "myClonedDocuments": "Mes Documents Clonés",
+        "favoriteCategory": "Catégorie Favorite",
+        "documentsRated": "Documents Évalués",
+        "inLibrary": "Dans la bibliothèque",
+        "thisWeek": "cette semaine",
+        "mostCloned": "Le plus cloné",
+        "reviewsGiven": "Avis donnés"
+      },
+      "quickActions": {
+        "title": "Actions Rapides",
+        "myClonedDocuments": {
+          "title": "Mes Documents Clonés",
+          "description": "Accédez à vos {count} documents clonés et continuez à travailler dessus.",
+          "action": "Voir les Documents Clonés"
+        },
+        "myDocuments": {
+          "title": "Mes Documents",
+          "description": "Créez de nouveaux documents ou modifiez vos documents personnels existants.",
+          "action": "Aller aux Documents"
+        },
+        "applicationManagement": {
+          "title": "Gestion des Candidatures",
+          "description": "Gérez vos candidatures et suivez votre progression dans les programmes.",
+          "action": "Gérer les Candidatures"
+        }
+      },
+      "search": {
+        "title": "Rechercher et Filtrer les Documents",
+        "placeholder": "Rechercher des documents...",
+        "noResults": "Aucun document trouvé",
+        "noResultsDescription": "Essayez d'ajuster vos termes de recherche ou vos filtres pour trouver les documents que vous recherchez. Notre bibliothèque contient des milliers de documents académiques de haute qualité.",
+        "clearFilters": "Effacer les Filtres",
+        "createYourOwn": "Créer le Vôtre"
+      },
+      "documents": {
+        "title": "Documents Disponibles",
+        "cloned": "Cloné",
+        "views": "vues",
+        "clones": "copies",
+        "rating": "note",
+        "previewDocument": "Aperçu du Document",
+        "cloneDocument": "Cloner le Document",
+        "rateDocument": "Évaluer le Document",
+        "downloadPDF": "Télécharger PDF",
+        "downloadDOCX": "Télécharger DOCX",
+        "alreadyCloned": "Déjà Cloné",
+        "cloning": "Clonage...",
+        "viewMore": "Voir Plus"
+      },
+      "categories": {
+        "personal": "Personnel",
+        "professional": "Professionnel",
+        "academic": "Académique",
+        "experience": "Expérience",
+        "reference": "Référence"
+      }
+    },
+    "taskManagement": {
+      "title": "Gestion des tâches",
+      "subtitle": "Gérez vos candidatures, entretiens et suivis en un seul endroit",
+      "loading": "Chargement de la gestion des tâches",
+      "loadingSubtitle": "Récupération de vos tâches et candidatures...",
+      "stats": {
+        "totalApplications": "Total des candidatures",
+        "activeApplications": "Candidatures actives",
+        "overdueTasks": "Tâches en retard",
+        "upcomingDeadlines": "Échéances à venir",
+        "applicationTypes": "Types de candidatures",
+        "applicationStatus": "Statut des candidatures"
+      },
+      "applicationTypes": {
+        "schools": "Écoles",
+        "programs": "Programmes",
+        "scholarships": "Bourses d'études"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "inProgress": "En cours",
+        "submitted": "Soumis",
+        "underReview": "En révision",
+        "approved": "Approuvé",
+        "rejected": "Rejeté",
+        "waitlisted": "Liste d'attente",
+        "withdrawn": "Retiré",
+        "unknown": "Inconnu"
+      },
+      "actions": {
+        "addTask": "Ajouter une tâche",
+        "addApplication": "Ajouter une candidature",
+        "continueApplication": "Continuer la candidature",
+        "viewApplication": "Voir la candidature",
+        "searchApplications": "Rechercher des candidatures...",
+        "filterByStatus": "Filtrer par statut",
+        "allStatus": "Tous les statuts"
+      },
+      "labels": {
+        "started": "Début",
+        "lastActivity": "Dernière activité",
+        "minutesRemaining": "{count} min restantes"
+      },
+      "pagination": {
+        "showing": "Affichage de {from} à {to} sur {total}",
+        "pageSize": "Taille de page",
+        "perPage": "{count} / page"
+      },
+      "overview": {
+        "title": "Aperçu de la progression",
+        "averageProgress": "Progression moyenne",
+        "applicationsInProgress": "Candidatures en cours"
+      },
+      "empty": {
+        "title": "Aucune candidature trouvée",
+        "description": "Vous n'avez pas encore commencé de candidatures.",
+        "browseScholarships": "Parcourir les bourses d'études"
+      }
+    },
+    "scholarships": {
+      "title": "Bourses d'études",
+      "subtitle": "Découvrez et postulez pour des bourses qui correspondent à votre profil et vos objectifs académiques"
+    },
+    "savedScholarships": {
+      "title": "Bourses sauvegardées",
+      "subtitle": "Gérez vos bourses sauvegardées et suivez vos candidatures",
+      "search": "Rechercher des bourses, fournisseurs ou notes...",
+      "filterByStatus": "Filtrer par statut",
+      "allStatus": "Tous les statuts",
+      "status": {
+        "saved": "Sauvegardé",
+        "interested": "Intéressé",
+        "applied": "Candidature soumise",
+        "notInterested": "Pas intéressé"
+      },
+      "actions": {
+        "viewDetails": "Voir les détails",
+        "editScholarship": "Modifier la bourse",
+        "updateScholarship": "Mettre à jour la bourse",
+        "removeScholarship": "Supprimer la bourse"
+      },
+      "empty": {
+        "title": "Aucune bourse sauvegardée",
+        "noResults": "Aucune bourse ne correspond à vos filtres actuels.",
+        "getStarted": "Commencez à sauvegarder des bourses pour les suivre ici.",
+        "browseScholarships": "Parcourir les bourses d'études"
+      },
+      "deadline": {
+        "expired": "Expiré",
+        "today": "Aujourd'hui",
+        "tomorrow": "Demain",
+        "daysLeft": "{count} jours restants"
+      },
+      "dialog": {
+        "editTitle": "Modifier la bourse sauvegardée",
+        "editDescription": "Mettez à jour vos notes et le statut de cette bourse.",
+        "status": "Statut",
+        "notes": "Notes",
+        "notesPlaceholder": "Ajoutez vos notes sur cette bourse...",
+        "cancel": "Annuler",
+        "update": "Mettre à jour"
+      },
+      "notifications": {
+        "removed": "Bourse supprimée de la liste sauvegardée",
+        "updated": "Bourse mise à jour avec succès",
+        "linkCopied": "Lien de la bourse copié dans le presse-papiers !",
+        "linkCopiedDescription": "Vous pouvez maintenant partager ce lien avec d'autres.",
+        "linkCopyFailed": "Échec de la copie du lien dans le presse-papiers",
+        "linkCopyFailedDescription": "Veuillez essayer de sélectionner et copier le lien manuellement."
+      }
+    },
+    "documents": {
+      "title": "Mes Documents",
+      "subtitle": "Créez et gérez vos documents académiques et professionnels. Construisez votre portfolio d'essais, de déclarations et de candidatures avec notre éditeur de documents puissant.",
+      "stats": {
+        "totalDocuments": "Total des Documents",
+        "activeDocuments": "Documents Actifs",
+        "totalWords": "Total des Mots",
+        "categories": "Catégories",
+        "inYourLibrary": "Dans votre bibliothèque",
+        "active": "actif",
+        "wordsWritten": "Mots écrits",
+        "documentTypes": "Types de documents"
+      },
+      "categories": {
+        "title": "Catégories de Documents",
+        "all": "Tous",
+        "personal": "Personnel",
+        "professional": "Professionnel",
+        "academic": "Académique",
+        "experience": "Expérience",
+        "reference": "Référence",
+        "upload": "Téléversements"
+      },
+      "empty": {
+        "title": "Aucun document pour le moment",
+        "description": "Commencez à construire votre bibliothèque de documents avec des essais, des lettres de motivation, des projets d'études et plus encore. Notre éditeur alimenté par l'IA vous aidera à créer du contenu convaincant.",
+        "createFirst": "Créer Votre Premier Document",
+        "importExisting": "Importer un Document Existant"
+      },
+      "categoryEmpty": {
+        "title": "Aucun document {category}",
+        "description": "Créez votre premier document {category} pour commencer avec cette catégorie.",
+        "create": "Créer un Document {category}"
+      },
+      "quickActions": {
+        "title": "Prêt à créer plus de contenu ?",
+        "description": "Continuez à enrichir votre bibliothèque de documents. Notre éditeur alimenté par l'IA vous aide à créer des essais, des lettres de motivation et des dossiers de candidature qui se démarquent.",
+        "browseTemplates": "Parcourir les Modèles",
+        "createNew": "Créer un Nouveau Document"
+      }
+    }
+  },
+  "forms": {
+    "validation": {
+      "required": "Ce champ est obligatoire",
+      "email": "Veuillez saisir une adresse e-mail valide",
+      "minLength": "Minimum {min} caractères requis",
+      "maxLength": "Maximum {max} caractères autorisés",
+      "minWords": "Minimum {min} mots requis",
+      "maxWords": "Maximum {max} mots autorisés",
+      "invalidFormat": "Format invalide",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordComplexity": "Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule et un chiffre",
+      "confirmPassword": "Veuillez confirmer votre mot de passe",
+      "invalidDate": "Veuillez saisir une date valide",
+      "invalidNumber": "Veuillez saisir un nombre valide",
+      "positiveNumber": "Veuillez saisir un nombre positif",
+      "invalidPhoneNumber": "Veuillez saisir un numéro de téléphone valide",
+      "invalidUrl": "Veuillez saisir une URL valide",
+      "selectAtLeastOne": "Veuillez sélectionner au moins une option",
+      "fieldRequired": "{field} est obligatoire",
+      "tooShort": "{field} est trop court",
+      "tooLong": "{field} est trop long"
+    },
+    "placeholders": {
+      "enterTitle": "Saisir le titre...",
+      "enterDescription": "Saisir la description...",
+      "searchDocuments": "Rechercher des documents...",
+      "selectCategory": "Sélectionner une catégorie...",
+      "selectType": "Sélectionner un type...",
+      "enterTags": "Saisir les étiquettes..."
+    }
+  },
+  "notifications": {
+    "success": {
+      "documentCreated": "Document créé avec succès",
+      "documentUpdated": "Document mis à jour avec succès",
+      "documentDeleted": "Document supprimé avec succès",
+      "documentCloned": "Document cloné avec succès ! Vous pouvez le trouver dans votre section Documents.",
+      "ratingSubmitted": "Évaluation soumise avec succès !",
+      "downloadComplete": "Document téléchargé en {format}",
+      "changesSaved": "Modifications enregistrées avec succès",
+      "recipientAdded": "Destinataire ajouté avec succès !",
+      "recipientUpdated": "Destinataire mis à jour avec succès !",
+      "recipientDeleted": "Destinataire supprimé avec succès !",
+      "copiedToClipboard": "Copié dans le presse-papiers"
+    },
+    "error": {
+      "documentCreateFailed": "Échec de la création du document",
+      "documentUpdateFailed": "Échec de la mise à jour du document",
+      "documentDeleteFailed": "Échec de la suppression du document",
+      "documentCloneFailed": "Échec du clonage du document",
+      "ratingFailed": "Échec de la soumission de l'évaluation",
+      "downloadFailed": "Échec du téléchargement {format}",
+      "fetchFailed": "Échec de la récupération des documents",
+      "networkError": "Erreur réseau. Veuillez vérifier votre connexion et réessayer.",
+      "invalidFile": "Type de fichier invalide reçu. Attendu {expected} mais reçu {actual}",
+      "emptyFile": "Le fichier {format} généré est vide. Veuillez réessayer.",
+      "recipientDeleteFailed": "Échec de la suppression du destinataire"
+    },
+    "loading": {
+      "generatingPDF": "Génération du PDF...",
+      "generatingDOCX": "Génération du DOCX...",
+      "loadingDocuments": "Chargement des documents...",
+      "cloningDocument": "Clonage du document...",
+      "savingChanges": "Enregistrement des modifications..."
+    }
+  }
+}

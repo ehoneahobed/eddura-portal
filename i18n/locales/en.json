@@ -1,0 +1,590 @@
+{
+  "common": {
+    "navigation": {
+      "home": "Home",
+      "dashboard": "Dashboard",
+      "library": "Library",
+      "documents": "Documents",
+      "recommendations": "Recommendations",
+      "applications": "Applications",
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout",
+      "features": "Features",
+      "products": "Products",
+      "pricing": "Pricing",
+      "contact": "Contact",
+      "platform": "Platform",
+      "api": "API",
+      "analytics": "Analytics",
+      "signIn": "Sign In",
+      "getStarted": "Get Started",
+      "signUp": "Sign Up",
+      "help": "Help",
+      "support": "Support",
+      "language": "Language",
+      "account": "Account",
+      "menu": "Menu"
+    },
+    "sidebar": {
+      "overview": "Overview",
+      "taskManagement": "Task Management",
+      "scholarships": "Scholarships",
+      "savedScholarships": "Saved Scholarships",
+      "schoolsPrograms": "Schools & Programs",
+      "applications": "Applications",
+      "applicationManagement": "Application Management",
+      "recommendations": "Recommendations",
+      "recipients": "Recipients",
+      "documents": "Documents",
+      "documentLibrary": "Document Library",
+      "edduraSquads": "Eddura Squads",
+      "quickActions": "Quick Actions",
+      "takeQuiz": "Take Quiz",
+      "viewResults": "View Results"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "view": "View",
+      "copy": "Copy",
+      "clone": "Clone",
+      "download": "Download",
+      "upload": "Upload",
+      "import": "Import",
+      "export": "Export",
+      "search": "Search",
+      "filter": "Filter",
+      "sort": "Sort",
+      "clear": "Clear",
+      "submit": "Submit",
+      "continue": "Continue",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "close": "Close",
+      "open": "Open",
+      "refresh": "Refresh",
+      "reload": "Reload",
+      "retry": "Retry",
+      "confirm": "Confirm",
+      "apply": "Apply",
+      "reset": "Reset",
+      "restore": "Restore",
+      "duplicate": "Duplicate",
+      "share": "Share",
+      "print": "Print",
+      "preview": "Preview"
+    },
+    "status": {
+      "loading": "Loading...",
+      "loadingDocuments": "Loading documents...",
+      "loadingData": "Loading data...",
+      "error": "An error occurred",
+      "success": "Success",
+      "failed": "Failed",
+      "completed": "Completed",
+      "pending": "Pending",
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "labels": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "type": "Type",
+      "tags": "Tags",
+      "author": "Author",
+      "date": "Date",
+      "created": "Created",
+      "updated": "Updated",
+      "words": "words",
+      "characters": "characters",
+      "pages": "pages",
+      "results": "results",
+      "total": "Total",
+      "available": "Available",
+      "selected": "Selected",
+      "name": "Name",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "city": "City",
+      "country": "Country",
+      "language": "Language",
+      "timezone": "Timezone",
+      "currency": "Currency",
+      "status": "Status",
+      "priority": "Priority",
+      "deadline": "Deadline",
+      "progress": "Progress",
+      "completion": "Completion"
+    },
+    "messages": {
+      "noData": "No data available",
+      "noResults": "No results found",
+      "tryAgain": "Please try again",
+      "somethingWentWrong": "Something went wrong",
+      "confirmDelete": "Are you sure you want to delete this item?",
+      "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+      "welcome": "Welcome",
+      "goodbye": "Goodbye",
+      "thankYou": "Thank you",
+      "pleaseWait": "Please wait",
+      "almostDone": "Almost done",
+      "getStarted": "Get started",
+      "learnMore": "Learn more",
+      "readMore": "Read more",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "seeAll": "See all",
+      "viewAll": "View all",
+      "hideDetails": "Hide details",
+      "showDetails": "Show details",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit fullscreen",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This week",
+      "lastWeek": "Last week",
+      "nextWeek": "Next week",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "nextMonth": "Next month",
+      "thisYear": "This year",
+      "lastYear": "Last year",
+      "nextYear": "Next year",
+      "processing": "Processing",
+      "letsGo": "Let's go",
+      "awesome": "Awesome",
+      "excellent": "Excellent",
+      "perfect": "Perfect",
+      "oops": "Oops",
+      "finish": "Finish",
+      "skip": "Skip",
+      "academic": "Academic",
+      "scholarship": "Scholarship",
+      "application": "Application",
+      "university": "University",
+      "program": "Program",
+      "degree": "Degree",
+      "transcript": "Transcript",
+      "recommendation": "Recommendation",
+      "essay": "Essay",
+      "statement": "Statement",
+      "portfolio": "Portfolio",
+      "deadline": "Deadline",
+      "requirement": "Requirement",
+      "eligibility": "Eligibility",
+      "admission": "Admission"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Your personalized dashboard with quiz results and career recommendations.",
+      "welcome": "Welcome back, {name}!",
+      "personalizedExperience": "Here's your personalized dashboard. Let's make your dreams a reality!",
+      "loadingDashboard": "Loading Dashboard",
+      "preparingExperience": "Preparing your personalized experience...",
+      "stats": {
+        "applicationPackages": "Application Packages",
+        "documentsCreated": "Documents Created",
+        "recommendationLetters": "Recommendation Letters",
+        "scholarshipsSaved": "Scholarships Saved",
+        "tokensEarned": "Tokens Earned",
+        "created": "Created",
+        "requestedReceived": "Requested / Received",
+        "shownInterest": "Shown interest in",
+        "total": "Total: {count}"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "subtitle": "Get started with your career journey",
+        "takeQuiz": "Take Quiz",
+        "retakeQuiz": "Retake Quiz",
+        "discoverStrengths": "Discover your strengths",
+        "updatePreferences": "Update your preferences",
+        "viewResults": "View Results",
+        "seeRecommendations": "See your recommendations",
+        "applyNow": "Apply Now",
+        "startApplications": "Start your applications",
+        "browseScholarships": "Browse Scholarships",
+        "findFunding": "Find funding opportunities"
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "subtitle": "Your latest interactions and progress",
+        "noActivity": "No recent activity",
+        "activitiesWillAppear": "Your activities will appear here",
+        "showLess": "Show less",
+        "loadMore": "Load more",
+        "justNow": "Just now",
+        "minutesAgo": "{count} minute{plural} ago",
+        "hoursAgo": "{count} hour{plural} ago",
+        "daysAgo": "{count} day{plural} ago"
+      },
+      "profile": {
+        "editProfile": "Edit Profile",
+        "viewProfile": "View Profile",
+        "quizCompleted": "Quiz Completed",
+        "quizNotCompleted": "Quiz Not Completed",
+        "memberSince": "Member since {date}",
+        "lastLogin": "Last login: {date}",
+        "location": "Location",
+        "phoneNumber": "Phone Number",
+        "dateOfBirth": "Date of Birth"
+      }
+    },
+    "recommendations": {
+      "title": "Recommendation Recipients",
+      "subtitle": "Manage your recommendation letter recipients and track your requests.",
+      "stats": {
+        "totalRecipients": "Total Recipients",
+        "activeRequests": "Active Requests",
+        "completedRequests": "Completed Requests",
+        "responseRate": "Response Rate",
+        "inYourNetwork": "In your network",
+        "pending": "pending",
+        "completed": "completed",
+        "averageRate": "Average rate"
+      },
+      "search": {
+        "placeholder": "Search recipients...",
+        "filterByInstitution": "Filter by Institution",
+        "filterByPreference": "Filter by Preference",
+        "allInstitutions": "All Institutions",
+        "allPreferences": "All Preferences",
+        "prefersDrafts": "Prefers Drafts",
+        "prefersEmail": "Prefers Email",
+        "prefersPhone": "Prefers Phone"
+      },
+      "recipient": {
+        "addNew": "Add New Recipient",
+        "edit": "Edit Recipient",
+        "delete": "Delete Recipient",
+        "contact": "Contact",
+        "viewProfile": "View Profile",
+        "sendRequest": "Send Request",
+        "copyEmail": "Copy Email",
+        "callPhone": "Call Phone",
+        "prefersDrafts": "Prefers Drafts",
+        "prefersEmail": "Prefers Email",
+        "prefersPhone": "Prefers Phone",
+        "department": "Department",
+        "institution": "Institution",
+        "primaryEmail": "Primary Email",
+        "phoneNumber": "Phone Number",
+        "officeAddress": "Office Address",
+        "addedOn": "Added on {date}",
+        "lastUpdated": "Last updated {date}"
+      },
+      "empty": {
+        "title": "No recipients yet",
+        "description": "Start building your network of recommendation letter writers. Add professors, supervisors, and mentors who can provide strong recommendations.",
+        "addFirst": "Add Your First Recipient"
+      },
+      "actions": {
+        "addRecipient": "Add Recipient",
+        "editRecipient": "Edit Recipient",
+        "deleteRecipient": "Delete Recipient",
+        "confirmDelete": "Are you sure you want to delete this recipient?",
+        "deleteWarning": "This action cannot be undone."
+      }
+    },
+    "library": {
+      "title": "Document Library",
+      "subtitle": "Browse and clone high-quality academic documents for your applications. Discover essays, personal statements, and more from successful applicants.",
+      "stats": {
+        "availableDocuments": "Available Documents",
+        "myClonedDocuments": "My Cloned Documents",
+        "favoriteCategory": "Favorite Category",
+        "documentsRated": "Documents Rated",
+        "inLibrary": "In library",
+        "thisWeek": "this week",
+        "mostCloned": "Most cloned",
+        "reviewsGiven": "Reviews given"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "myClonedDocuments": {
+          "title": "My Cloned Documents",
+          "description": "Access your {count} cloned documents and continue working on them.",
+          "action": "View Cloned Documents"
+        },
+        "myDocuments": {
+          "title": "My Documents",
+          "description": "Create new documents or edit your existing personal documents.",
+          "action": "Go to Documents"
+        },
+        "applicationManagement": {
+          "title": "Application Management",
+          "description": "Manage your applications and track your progress across programs.",
+          "action": "Manage Applications"
+        }
+      },
+      "search": {
+        "title": "Search & Filter Documents",
+        "placeholder": "Search documents...",
+        "noResults": "No documents found",
+        "noResultsDescription": "Try adjusting your search terms or filters to find the documents you're looking for. Our library contains thousands of high-quality academic documents.",
+        "clearFilters": "Clear Filters",
+        "createYourOwn": "Create Your Own"
+      },
+      "documents": {
+        "title": "Available Documents",
+        "cloned": "Cloned",
+        "views": "views",
+        "clones": "clones",
+        "rating": "rating",
+        "previewDocument": "Preview Document",
+        "cloneDocument": "Clone Document",
+        "rateDocument": "Rate Document",
+        "downloadPDF": "Download PDF",
+        "downloadDOCX": "Download DOCX",
+        "alreadyCloned": "Already Cloned",
+        "cloning": "Cloning...",
+        "viewMore": "View More"
+      },
+      "categories": {
+        "personal": "Personal",
+        "professional": "Professional",
+        "academic": "Academic",
+        "experience": "Experience",
+        "reference": "Reference"
+      }
+    },
+    "taskManagement": {
+      "title": "Task Management",
+      "subtitle": "Manage your applications, interviews, and follow-ups in one place",
+      "loading": "Loading Task Management",
+      "loadingSubtitle": "Getting your tasks and applications...",
+      "stats": {
+        "totalApplications": "Total Applications",
+        "activeApplications": "Active Applications",
+        "overdueTasks": "Overdue Tasks",
+        "upcomingDeadlines": "Upcoming Deadlines",
+        "applicationTypes": "Application Types",
+        "applicationStatus": "Application Status"
+      },
+      "applicationTypes": {
+        "schools": "Schools",
+        "programs": "Programs",
+        "scholarships": "Scholarships"
+      },
+      "status": {
+        "draft": "Draft",
+        "inProgress": "In Progress",
+        "submitted": "Submitted",
+        "underReview": "Under Review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "waitlisted": "Waitlisted",
+        "withdrawn": "Withdrawn",
+        "unknown": "Unknown"
+      },
+      "actions": {
+        "addTask": "Add Task",
+        "addApplication": "Add Application",
+        "continueApplication": "Continue Application",
+        "viewApplication": "View Application",
+        "searchApplications": "Search applications...",
+        "filterByStatus": "Filter by status",
+        "allStatus": "All Status"
+      },
+      "labels": {
+        "started": "Started",
+        "lastActivity": "Last activity",
+        "minutesRemaining": "{count} min remaining"
+      },
+      "pagination": {
+        "showing": "Showing {from}-{to} of {total}",
+        "pageSize": "Page size",
+        "perPage": "{count} / page"
+      },
+      "overview": {
+        "title": "Progress Overview",
+        "averageProgress": "Average Progress",
+        "applicationsInProgress": "Applications in Progress"
+      },
+      "empty": {
+        "title": "No applications found",
+        "description": "You haven't started any applications yet.",
+        "browseScholarships": "Browse Scholarships"
+      }
+    },
+    "scholarships": {
+      "title": "Scholarships",
+      "subtitle": "Discover and apply for scholarships that match your profile and academic goals"
+    },
+    "savedScholarships": {
+      "title": "Saved Scholarships",
+      "subtitle": "Manage your saved scholarships and track your applications",
+      "search": "Search scholarships, providers, or notes...",
+      "filterByStatus": "Filter by status",
+      "allStatus": "All Status",
+      "status": {
+        "saved": "Saved",
+        "interested": "Interested",
+        "applied": "Applied",
+        "notInterested": "Not Interested"
+      },
+      "actions": {
+        "viewDetails": "View Details",
+        "editScholarship": "Edit Scholarship",
+        "updateScholarship": "Update Scholarship",
+        "removeScholarship": "Remove Scholarship"
+      },
+      "empty": {
+        "title": "No saved scholarships",
+        "noResults": "No scholarships match your current filters.",
+        "getStarted": "Start saving scholarships to track them here.",
+        "browseScholarships": "Browse Scholarships"
+      },
+      "deadline": {
+        "expired": "Expired",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "daysLeft": "{count} days left"
+      },
+      "dialog": {
+        "editTitle": "Edit Saved Scholarship",
+        "editDescription": "Update your notes and status for this scholarship.",
+        "status": "Status",
+        "notes": "Notes",
+        "notesPlaceholder": "Add your notes about this scholarship...",
+        "cancel": "Cancel",
+        "update": "Update"
+      },
+      "notifications": {
+        "removed": "Scholarship removed from saved list",
+        "updated": "Scholarship updated successfully",
+        "linkCopied": "Scholarship link copied to clipboard!",
+        "linkCopiedDescription": "You can now share this link with others.",
+        "linkCopyFailed": "Failed to copy link to clipboard",
+        "linkCopyFailedDescription": "Please try selecting and copying the link manually."
+      }
+    },
+    "documents": {
+      "title": "My Documents",
+      "subtitle": "Create and manage your academic and professional documents. Build your portfolio of essays, statements, and applications with our powerful document editor.",
+      "stats": {
+        "totalDocuments": "Total Documents",
+        "activeDocuments": "Active Documents",
+        "totalWords": "Total Words",
+        "categories": "Categories",
+        "inYourLibrary": "In your library",
+        "active": "active",
+        "wordsWritten": "Words written",
+        "documentTypes": "Document types"
+      },
+      "categories": {
+        "title": "Document Categories",
+        "all": "All",
+        "personal": "Personal",
+        "professional": "Professional",
+        "academic": "Academic",
+        "experience": "Experience",
+        "reference": "Reference",
+        "upload": "Uploads"
+      },
+      "empty": {
+        "title": "No documents yet",
+        "description": "Start building your document library with essays, personal statements, cover letters, and more. Our AI-powered editor will help you craft compelling content.",
+        "createFirst": "Create Your First Document",
+        "importExisting": "Import Existing Document"
+      },
+      "categoryEmpty": {
+        "title": "No {category} documents",
+        "description": "Create your first {category} document to get started with this category.",
+        "create": "Create {category} Document"
+      },
+      "quickActions": {
+        "title": "Ready to create more content?",
+        "description": "Keep building your document library. Our AI-powered editor helps you create compelling essays, statements, and applications that stand out.",
+        "browseTemplates": "Browse Templates",
+        "createNew": "Create New Document"
+      }
+    }
+  },
+  "forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Please enter a valid email address",
+      "minLength": "Minimum {min} characters required",
+      "maxLength": "Maximum {max} characters allowed",
+      "minWords": "Minimum {min} words required",
+      "maxWords": "Maximum {max} words allowed",
+      "invalidFormat": "Invalid format",
+      "passwordMismatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 8 characters long",
+      "passwordComplexity": "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "confirmPassword": "Please confirm your password",
+      "invalidDate": "Please enter a valid date",
+      "invalidNumber": "Please enter a valid number",
+      "positiveNumber": "Please enter a positive number",
+      "invalidPhoneNumber": "Please enter a valid phone number",
+      "invalidUrl": "Please enter a valid URL",
+      "selectAtLeastOne": "Please select at least one option",
+      "fieldRequired": "{field} is required",
+      "tooShort": "{field} is too short",
+      "tooLong": "{field} is too long"
+    },
+    "placeholders": {
+      "enterTitle": "Enter title...",
+      "enterDescription": "Enter description...",
+      "searchDocuments": "Search documents...",
+      "selectCategory": "Select category...",
+      "selectType": "Select type...",
+      "enterTags": "Enter tags..."
+    }
+  },
+  "notifications": {
+    "success": {
+      "documentCreated": "Document created successfully",
+      "documentUpdated": "Document updated successfully",
+      "documentDeleted": "Document deleted successfully",
+      "documentCloned": "Document cloned successfully! You can find it in your Documents section.",
+      "ratingSubmitted": "Rating submitted successfully!",
+      "downloadComplete": "Document downloaded as {format}",
+      "changesSaved": "Changes saved successfully",
+      "recipientAdded": "Recipient added successfully!",
+      "recipientUpdated": "Recipient updated successfully!",
+      "recipientDeleted": "Recipient deleted successfully!",
+      "copiedToClipboard": "Copied to clipboard"
+    },
+    "error": {
+      "documentCreateFailed": "Failed to create document",
+      "documentUpdateFailed": "Failed to update document",
+      "documentDeleteFailed": "Failed to delete document",
+      "documentCloneFailed": "Failed to clone document",
+      "ratingFailed": "Failed to submit rating",
+      "downloadFailed": "Failed to download {format}",
+      "fetchFailed": "Failed to fetch documents",
+      "networkError": "Network error. Please check your connection and try again.",
+      "invalidFile": "Invalid file type received. Expected {expected} but got {actual}",
+      "emptyFile": "Generated {format} file is empty. Please try again.",
+      "recipientDeleteFailed": "Failed to delete recipient"
+    },
+    "loading": {
+      "generatingPDF": "Generating PDF...",
+      "generatingDOCX": "Generating DOCX...",
+      "loadingDocuments": "Loading documents...",
+      "cloningDocument": "Cloning document...",
+      "savingChanges": "Saving changes..."
+    }
+  }
+}

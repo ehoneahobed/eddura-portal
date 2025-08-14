@@ -37,6 +37,7 @@ import ProfileEditModal, { EditableUserProfile } from './ProfileEditModal';
 import SquadWidget from './SquadWidget';
 import TokenDisplay from './TokenDisplay';
 import { ResponsiveContainer } from '../ui/responsive-container';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 // Consistent stat card for equal sizing across the grid
 interface StatsCardProps {
@@ -176,6 +177,7 @@ interface DashboardStats {
 export default function DashboardContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { t } = usePageTranslation('dashboard');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userActivities, setUserActivities] = useState<UserActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -281,10 +283,19 @@ export default function DashboardContent() {
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    if (diffInMinutes < 1) return t('recentActivity.justNow');
+    if (diffInMinutes < 60) return t('recentActivity.minutesAgo', { 
+      count: diffInMinutes, 
+      plural: diffInMinutes > 1 ? 's' : '' 
+    });
+    if (diffInHours < 24) return t('recentActivity.hoursAgo', { 
+      count: diffInHours, 
+      plural: diffInHours > 1 ? 's' : '' 
+    });
+    if (diffInDays < 7) return t('recentActivity.daysAgo', { 
+      count: diffInDays, 
+      plural: diffInDays > 1 ? 's' : '' 
+    });
     return activityTime.toLocaleDateString();
   };
 
@@ -299,8 +310,8 @@ export default function DashboardContent() {
           <div className="w-20 h-20 bg-gradient-to-br from-[var(--eddura-primary)] to-[var(--eddura-primary-600)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
             <Sparkles className="w-10 h-10 text-white animate-pulse" />
           </div>
-          <h2 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-3">Loading Dashboard</h2>
-          <p className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">Preparing your personalized experience...</p>
+          <h2 className="text-3xl font-bold text-[var(--eddura-primary-900)] dark:text-white mb-3">{t('loadingDashboard')}</h2>
+          <p className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">{t('preparingExperience')}</p>
         </motion.div>
       </div>
     );
@@ -343,12 +354,12 @@ export default function DashboardContent() {
           
           <h1 className="text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-[var(--eddura-primary-900)] via-[var(--eddura-primary-700)] to-[var(--eddura-primary-900)] dark:from-white dark:via-[var(--eddura-primary-200)] dark:to-white bg-clip-text text-transparent">
-              Welcome back, {userProfile?.firstName || session?.user?.name || 'User'}!
+              {t('welcome', { name: userProfile?.firstName || session?.user?.name || 'User' })}
             </span>
             <span className="ml-2 align-middle">👋</span>
           </h1>
           <p className="text-lg text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] max-w-3xl leading-relaxed">
-            Here&apos;s your personalized dashboard. Let&apos;s make your dreams a reality!
+            {t('personalizedExperience')}
           </p>
         </div>
       </motion.div>
@@ -361,39 +372,39 @@ export default function DashboardContent() {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
       >
         <StatsCard
-          title="Application Packages"
+          title={t('stats.applicationPackages')}
           value={userProfile?.stats?.applicationPackagesCreated || 0}
           icon={Target}
           colorTheme="primary"
-          caption="Created"
+          caption={t('stats.created')}
         />
         <StatsCard
-          title="Documents Created"
+          title={t('stats.documentsCreated')}
           value={userProfile?.stats?.documentsCreated || 0}
           icon={BookOpen}
           colorTheme="success"
-          caption="Created"
+          caption={t('stats.created')}
         />
         <StatsCard
-          title="Recommendation Letters"
+          title={t('stats.recommendationLetters')}
           value={`${userProfile?.stats?.recommendationLettersRequested || 0} / ${userProfile?.stats?.recommendationLettersReceived || 0}`}
           icon={Award}
           colorTheme="accent"
-          caption="Requested / Received"
+          caption={t('stats.requestedReceived')}
         />
         <StatsCard
-          title="Scholarships Saved"
+          title={t('stats.scholarshipsSaved')}
           value={userProfile?.stats?.scholarshipsSaved || 0}
           icon={TrendingUp}
           colorTheme="info"
-          caption="Shown interest in"
+          caption={t('stats.shownInterest')}
         />
         <StatsCard
-          title="Tokens Earned"
+          title={t('stats.tokensEarned')}
           value={userProfile?.tokens || 0}
           icon={Gift}
           colorTheme="warning"
-          caption={`Total: ${userProfile?.totalTokensEarned || 0}`}
+          caption={t('stats.total', { count: userProfile?.totalTokensEarned || 0 })}
         />
       </motion.div>
 
@@ -409,9 +420,9 @@ export default function DashboardContent() {
           >
             <Card className="border-0 shadow-md bg-white dark:bg-[var(--eddura-primary-900)]">
               <CardHeader className="pb-4">
-                <CardTitle className="text-2xl text-[var(--eddura-primary-900)] dark:text-white">Quick Actions</CardTitle>
+                <CardTitle className="text-2xl text-[var(--eddura-primary-900)] dark:text-white">{t('quickActions.title')}</CardTitle>
                 <CardDescription className="text-base text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
-                  Get started with your career journey
+                  {t('quickActions.subtitle')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -422,8 +433,8 @@ export default function DashboardContent() {
                         <Brain className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-lg text-white">{userProfile?.quizCompleted ? 'Retake Quiz' : 'Take Quiz'}</p>
-                        <p className="text-sm text-white/90 dark:text-white/80">{userProfile?.quizCompleted ? 'Update your preferences' : 'Discover your strengths'}</p>
+                        <p className="font-semibold text-lg text-white">{userProfile?.quizCompleted ? t('quickActions.retakeQuiz') : t('quickActions.takeQuiz')}</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">{userProfile?.quizCompleted ? t('quickActions.updatePreferences') : t('quickActions.discoverStrengths')}</p>
                       </div>
                     </div>
                   </Link>
@@ -434,8 +445,8 @@ export default function DashboardContent() {
                         <Target className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-lg text-white">View Results</p>
-                        <p className="text-sm text-white/90 dark:text-white/80">See your recommendations</p>
+                        <p className="font-semibold text-lg text-white">{t('quickActions.viewResults')}</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">{t('quickActions.seeRecommendations')}</p>
                       </div>
                     </div>
                   </Link>
@@ -446,8 +457,8 @@ export default function DashboardContent() {
                         <GraduationCap className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-lg text-white">Apply Now</p>
-                        <p className="text-sm text-white/90 dark:text-white/80">Start your applications</p>
+                        <p className="font-semibold text-lg text-white">{t('quickActions.applyNow')}</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">{t('quickActions.startApplications')}</p>
                       </div>
                     </div>
                   </Link>
@@ -458,8 +469,8 @@ export default function DashboardContent() {
                         <TrendingUp className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-lg text-white">Browse Scholarships</p>
-                        <p className="text-sm text-white/90 dark:text-white/80">Find funding opportunities</p>
+                        <p className="font-semibold text-lg text-white">{t('quickActions.browseScholarships')}</p>
+                        <p className="text-sm text-white/90 dark:text-white/80">{t('quickActions.findFunding')}</p>
                       </div>
                     </div>
                   </Link>
@@ -479,9 +490,9 @@ export default function DashboardContent() {
                 {/* <div className="w-16 h-16 bg-gradient-to-br from-[var(--eddura-accent)] to-[var(--eddura-accent-600)] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Zap className="w-8 h-8 text-white" />
                 </div> */}
-                <CardTitle className="text-3xl text-[var(--eddura-primary-900)] dark:text-white">Recent Activity</CardTitle>
+                <CardTitle className="text-3xl text-[var(--eddura-primary-900)] dark:text-white">{t('recentActivity.title')}</CardTitle>
                 <CardDescription className="text-xl text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)]">
-                  Your latest interactions and progress
+                  {t('recentActivity.subtitle')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -518,8 +529,8 @@ export default function DashboardContent() {
                       <div className="w-20 h-20 bg-gradient-to-br from-[var(--eddura-primary-100)] to-[var(--eddura-primary-200)] dark:from-[var(--eddura-primary-800)] dark:to-[var(--eddura-primary-700)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <Clock className="w-10 h-10 text-[var(--eddura-primary-400)] dark:text-[var(--eddura-primary-500)]" />
                       </div>
-                      <p className="text-xl text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] mb-2">No recent activity</p>
-                      <p className="text-sm text-[var(--eddura-primary-500)] dark:text-[var(--eddura-primary-400)]">Your activities will appear here</p>
+                      <p className="text-xl text-[var(--eddura-primary-600)] dark:text-[var(--eddura-primary-300)] mb-2">{t('recentActivity.noActivity')}</p>
+                      <p className="text-sm text-[var(--eddura-primary-500)] dark:text-[var(--eddura-primary-400)]">{t('recentActivity.activitiesWillAppear')}</p>
                     </div>
                   )}
                 </div>
@@ -532,7 +543,7 @@ export default function DashboardContent() {
                       onClick={showLessActivities}
                       disabled={activityPage === 1}
                     >
-                      Show less
+                      {t('recentActivity.showLess')}
                     </Button>
                     <Button
                       variant="outline"
@@ -540,7 +551,7 @@ export default function DashboardContent() {
                       onClick={loadMoreActivities}
                       disabled={!hasMoreActivities}
                     >
-                      Load more
+                      {t('recentActivity.loadMore')}
                     </Button>
                   </div>
                 )}

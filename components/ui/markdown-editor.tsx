@@ -5,6 +5,8 @@ import MDEditor from '@uiw/react-md-editor';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Maximize2, Minimize2 } from 'lucide-react';
+import { useFormTranslation } from '@/hooks/useTranslation';
+import { getValidationMessage } from '@/lib/validation';
 
 interface MarkdownEditorProps {
   value: string;
@@ -45,19 +47,21 @@ export function MarkdownEditor({
   const wordCountValue = value ? value.trim().split(/\s+/).filter(word => word.length > 0).length : 0;
   const charCountValue = value ? value.length : 0;
 
+  const { t } = useFormTranslation();
+
   // Validation messages
   const getValidationMessage = () => {
     if (maxWords && wordCountValue > maxWords) {
-      return `Maximum ${maxWords} words allowed (current: ${wordCountValue})`;
+      return t('validation.maxWords', { max: maxWords }) + ` (current: ${wordCountValue})`;
     }
     if (minWords && wordCountValue < minWords) {
-      return `Minimum ${minWords} words required (current: ${wordCountValue})`;
+      return t('validation.minWords', { min: minWords }) + ` (current: ${wordCountValue})`;
     }
     if (maxLength && charCountValue > maxLength) {
-      return `Maximum ${maxLength} characters allowed (current: ${charCountValue})`;
+      return t('validation.maxLength', { max: maxLength }) + ` (current: ${charCountValue})`;
     }
     if (minLength && charCountValue < minLength) {
-      return `Minimum ${minLength} characters required (current: ${charCountValue})`;
+      return t('validation.minLength', { min: minLength }) + ` (current: ${charCountValue})`;
     }
     return null;
   };

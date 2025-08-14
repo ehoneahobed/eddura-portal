@@ -31,6 +31,7 @@ import {
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeAwareLogo } from '@/components/ui/logo';
+import { LanguageSelector } from '@/components/ui/language-selector';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -158,6 +159,9 @@ export default function StudentLayout({ children, showSidebar = true }: StudentL
 
                 {/* Right side */}
                 <div className="flex items-center space-x-4">
+                  {/* Language Selector */}
+                  <LanguageSelector variant="compact" showLabel={false} />
+                  
                   {/* Theme Toggle */}
                   <Button
                     variant="ghost"
