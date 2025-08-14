@@ -35,6 +35,12 @@ async function connectDB(): Promise<typeof mongoose> {
     throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
   }
 
+  // Reuse active connection immediately
+  if (mongoose.connection.readyState === 1) {
+    cached.conn = mongoose;
+    return cached.conn;
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -42,6 +48,13 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '5', 10),
+      minPoolSize: parseInt(process.env.MONGODB_MIN_POOL_SIZE || '0', 10),
+      maxIdleTimeMS: 60000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      appName: process.env.VERCEL ? 'eddura-vercel' : 'eddura-local'
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {

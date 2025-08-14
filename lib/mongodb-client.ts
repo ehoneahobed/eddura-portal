@@ -1,7 +1,14 @@
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options = {
+  maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '5', 10),
+  minPoolSize: parseInt(process.env.MONGODB_MIN_POOL_SIZE || '0', 10),
+  maxIdleTimeMS: 60000,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  appName: process.env.VERCEL ? 'eddura-vercel' : 'eddura-local'
+};
 
 let client;
 let clientPromise: Promise<MongoClient>;

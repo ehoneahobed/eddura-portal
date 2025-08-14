@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import RequirementsTemplate from '../../../models/RequirementsTemplate';
+import connectDB from '@/lib/mongodb';
 
 /**
  * GET /api/test-templates
@@ -9,6 +10,9 @@ import RequirementsTemplate from '../../../models/RequirementsTemplate';
 export async function GET(request: NextRequest) {
   try {
     console.log('Testing templates endpoint...');
+    
+    // Ensure DB connection
+    await connectDB();
     
     // Test database connection
     const mongoUri = process.env.MONGODB_URI;
