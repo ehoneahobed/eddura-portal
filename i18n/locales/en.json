@@ -250,7 +250,35 @@
         "whatsComing": "What's Coming",
         "whatsComingSub": "Be the first to know when we launch. Don't just apply, succeed.",
         "emailPlaceholder": "Enter your email",
-        "notifyMe": "Notify Me"
+        "notifyMe": "Notify Me",
+        "mainHeading": "Make Your University & Scholarships Applications",
+        "features": {
+          "aiIntelligence": {
+            "title": "AI-Powered Intelligence",
+            "description": "Advanced machine learning algorithms analyze your profile and match you with perfect opportunities."
+          },
+          "globalOpportunities": {
+            "title": "Global Opportunities",
+            "description": "Access to 50+ universities and 100+ scholarship opportunities worldwide."
+          },
+          "fasterApplications": {
+            "title": "10x Faster Applications",
+            "description": "Automate repetitive tasks and optimize your application strategy with intelligent insights."
+          },
+          "successRate": {
+            "title": "95% Success Rate",
+            "description": "Proven track record of helping students get accepted to their dream programs."
+          }
+        },
+        "stats": {
+          "universities": "Universities",
+          "scholarships": "Scholarships",
+          "successRate": "Success Rate",
+          "faster": "Faster"
+        },
+        "footer": {
+          "tagline": "Revolutionizing university & scholarship applications with AI-powered insights"
+        }
       },
       "footer": {
         "tagline": "The future of academic applications. Powered by AI, designed for success.",

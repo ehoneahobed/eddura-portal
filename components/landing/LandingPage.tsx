@@ -67,42 +67,42 @@ export default function LandingPage() {
       title: 'AI-Powered Intelligence',
       description: 'Advanced machine learning algorithms analyze your profile and automatically match you with the perfect programs and scholarships.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Database,
       title: 'Unified Data Hub',
       description: 'Single source of truth for all your academic data. Upload once, use everywhere with intelligent auto-population.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Layers,
       title: 'Smart Application Stack',
       description: 'Layer your applications with intelligent insights, deadline tracking, and progress optimization.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Network,
       title: 'Global Opportunity Network',
       description: 'Connect with 50+ universities and 100+ scholarship opportunities worldwide.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Cpu,
       title: 'Intelligent Automation',
       description: 'Automate repetitive tasks, generate personalized content, and optimize your application strategy.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     },
     {
       icon: Eye,
       title: 'Predictive Analytics',
       description: 'Get insights into your application success probability and optimize your strategy in real-time.',
       color: 'text-eddura-500',
-      bgColor: 'bg-eddura-100'
+      bgColor: 'bg-eddura-100 dark:bg-eddura-800'
     }
   ];
 
@@ -163,8 +163,9 @@ export default function LandingPage() {
                <LanguageSelector variant="compact" showLabel={false} />
                <ThemeToggle />
                <Link href="/quiz">
-                 <Button variant="outline" className="border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white transition-all duration-300 rounded-lg">
-                   {t('navbar.takeQuiz')}
+                 <Button variant="outline" className="border-eddura-500 dark:border-eddura-400 text-eddura-600 dark:text-eddura-300 hover:bg-eddura-500 hover:text-white dark:hover:bg-eddura-400 dark:hover:text-white transition-all duration-300 rounded-lg">
+                   <Eye className="mr-2 h-5 w-5" />
+                   {t('hero.secondaryCta')}
                  </Button>
                </Link>
                <Link href="/auth/register">
@@ -257,7 +258,7 @@ export default function LandingPage() {
                   </div>
                                                          <h3 className="text-2xl font-bold text-eddura-800 dark:text-eddura-100 mb-4">{feature.title}</h3>
                     <p className="text-eddura-800 dark:text-eddura-300 leading-relaxed">{feature.description}</p>
-                  <div className="mt-6 flex items-center text-eddura-500 group-hover:text-eddura-600 transition-colors duration-300">
+                  <div className="mt-6 flex items-center text-eddura-500 dark:text-eddura-400 group-hover:text-eddura-600 dark:group-hover:text-eddura-300 transition-colors duration-300">
                     <span className="text-sm font-medium">Learn more</span>
                     <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
@@ -311,7 +312,7 @@ export default function LandingPage() {
                   <p className="text-eddura-800 dark:text-eddura-300 leading-relaxed">&ldquo;{testimonial.content}&rdquo;</p>
                 <div className="flex mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-eddura-500 fill-current" />
+                    <Star key={i} className="h-4 w-4 text-eddura-500 dark:text-eddura-400 fill-current" />
                   ))}
                 </div>
               </motion.div>
@@ -355,7 +356,7 @@ export default function LandingPage() {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-4 border-2 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white transition-all duration-300 rounded-xl"
+                  className="text-lg px-8 py-4 border-2 border-eddura-500 dark:border-eddura-400 text-eddura-600 dark:text-eddura-300 hover:bg-eddura-500 hover:text-white dark:hover:bg-eddura-400 dark:hover:text-white transition-all duration-300 rounded-xl"
                 >
                   <Play className="mr-2 h-5 w-5" />
                   {t('finalCta.secondaryCta')}

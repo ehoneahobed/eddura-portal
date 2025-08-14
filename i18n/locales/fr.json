@@ -250,7 +250,35 @@
         "whatsComing": "Ce qui arrive",
         "whatsComingSub": "Soyez informé dès notre lancement. Ne vous contentez pas de postuler, réussissez.",
         "emailPlaceholder": "Entrez votre e‑mail",
-        "notifyMe": "Prévenez‑moi"
+        "notifyMe": "Prévenez‑moi",
+        "mainHeading": "Rendez vos candidatures universitaires et de bourses",
+        "features": {
+          "aiIntelligence": {
+            "title": "Intelligence alimentée par l'IA",
+            "description": "Des algorithmes d'apprentissage automatique avancés analysent votre profil et vous associent à des opportunités parfaites."
+          },
+          "globalOpportunities": {
+            "title": "Opportunités mondiales",
+            "description": "Accès à plus de 50 universités et plus de 100 opportunités de bourses dans le monde entier."
+          },
+          "fasterApplications": {
+            "title": "Candidatures 10x plus rapides",
+            "description": "Automatisez les tâches répétitives et optimisez votre stratégie de candidature avec des insights intelligents."
+          },
+          "successRate": {
+            "title": "Taux de réussite de 95%",
+            "description": "Bilan éprouvé d'aide aux étudiants pour être acceptés dans leurs programmes de rêve."
+          }
+        },
+        "stats": {
+          "universities": "Universités",
+          "scholarships": "Bourses",
+          "successRate": "Taux de réussite",
+          "faster": "Plus rapide"
+        },
+        "footer": {
+          "tagline": "Révolutionner les candidatures universitaires et de bourses avec des insights alimentés par l'IA"
+        }
       },
       "footer": {
         "tagline": "L'avenir des candidatures académiques. Propulsé par l'IA, conçu pour la réussite.",

@@ -600,6 +600,22 @@
   color: hsl(var(--primary));
 }
 
+.dark .text-eddura-400 {
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+
+.dark .text-eddura-300 {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+.dark .text-eddura-200 {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+.dark .text-eddura-100 {
+  color: hsl(var(--muted-foreground) / 0.2);
+}
+
 /* Dark mode border utilities */
 .dark .border-eddura-100 {
   border-color: hsl(var(--border));
@@ -611,6 +627,26 @@
 
 .dark .border-eddura-300 {
   border-color: hsl(var(--border) / 0.6);
+}
+
+.dark .border-eddura-400 {
+  border-color: hsl(var(--border) / 0.4);
+}
+
+.dark .border-eddura-500 {
+  border-color: hsl(var(--primary));
+}
+
+.dark .border-eddura-600 {
+  border-color: hsl(var(--primary) / 0.8);
+}
+
+.dark .border-eddura-700 {
+  border-color: hsl(var(--border) / 0.3);
+}
+
+.dark .border-eddura-800 {
+  border-color: hsl(var(--border) / 0.2);
 }
 
 /* Dark mode background utilities */
@@ -626,6 +662,38 @@
   background-color: hsl(var(--muted) / 0.6);
 }
 
+.dark .bg-eddura-300 {
+  background-color: hsl(var(--muted) / 0.4);
+}
+
+.dark .bg-eddura-400 {
+  background-color: hsl(var(--muted) / 0.2);
+}
+
+.dark .bg-eddura-500 {
+  background-color: hsl(var(--primary));
+}
+
+.dark .bg-eddura-600 {
+  background-color: hsl(var(--primary) / 0.8);
+}
+
+.dark .bg-eddura-700 {
+  background-color: hsl(var(--card));
+}
+
+.dark .bg-eddura-800 {
+  background-color: hsl(var(--muted));
+}
+
+.dark .bg-eddura-900 {
+  background-color: hsl(var(--background));
+}
+
+.dark .bg-eddura-950 {
+  background-color: hsl(var(--background));
+}
+
 /* Dark mode hover states */
 .dark .hover\:bg-eddura-50:hover {
   background-color: hsl(var(--muted) / 0.5);
@@ -633,6 +701,34 @@
 
 .dark .hover\:bg-eddura-100:hover {
   background-color: hsl(var(--muted) / 0.7);
+}
+
+.dark .hover\:bg-eddura-200:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.dark .hover\:bg-eddura-300:hover {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.dark .hover\:bg-eddura-400:hover {
+  background-color: hsl(var(--muted) / 0.1);
+}
+
+.dark .hover\:bg-eddura-500:hover {
+  background-color: hsl(var(--primary) / 0.9);
+}
+
+.dark .hover\:bg-eddura-600:hover {
+  background-color: hsl(var(--primary) / 0.7);
+}
+
+.dark .hover\:bg-eddura-700:hover {
+  background-color: hsl(var(--card) / 0.8);
+}
+
+.dark .hover\:bg-eddura-800:hover {
+  background-color: hsl(var(--muted) / 0.9);
 }
 
 /* Dark mode focus states */
@@ -651,4 +747,48 @@
 
 .dark .shadow-eddura-xl {
   box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode placeholder text */
+.dark .placeholder\:text-eddura-400::placeholder {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+.dark .placeholder\:text-eddura-500::placeholder {
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+
+/* Dark mode backdrop blur backgrounds */
+.dark .bg-white\/80 {
+  background-color: hsl(var(--card) / 0.8);
+}
+
+.dark .bg-white\/95 {
+  background-color: hsl(var(--card) / 0.95);
+}
+
+/* Dark mode border hover states */
+.dark .hover\:border-eddura-300:hover {
+  border-color: hsl(var(--border) / 0.4);
+}
+
+.dark .hover\:border-eddura-600:hover {
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+/* Dark mode group hover states */
+.dark .group:hover .group-hover\:bg-eddura-200 {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.dark .group:hover .group-hover\:bg-eddura-700 {
+  background-color: hsl(var(--card) / 0.8);
+}
+
+.dark .group:hover .group-hover\:border-eddura-300 {
+  border-color: hsl(var(--border) / 0.4);
+}
+
+.dark .group:hover .group-hover\:border-eddura-600 {
+  border-color: hsl(var(--primary) / 0.6);
 }

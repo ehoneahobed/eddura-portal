@@ -33,9 +33,9 @@ function Hero() {
   }, [titleNumber, titles]);
 
   return (
-    <div className=" relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0  from-eddura-50 via-white to-eddura-100/30 dark:from-eddura-900 dark:via-eddura-900 dark:to-eddura-900/30" />
+      <div className="absolute inset-0 bg-gradient-to-b from-eddura-50 via-white to-eddura-100/30 dark:from-eddura-900 dark:via-eddura-900 dark:to-eddura-800/30" />
       
       {/* Abstract geometric shapes */}
       {/* <div className="absolute top-20 left-10 w-32 h-32 bg-eddura-200/20 rounded-full blur-3xl" />
@@ -55,7 +55,7 @@ function Hero() {
               <Button 
                 variant="secondary" 
                 size="sm" 
-                className="gap-3 bg-eddura-100 hover:bg-eddura-200 text-eddura-700 border-eddura-200 hover:border-eddura-300 transition-all duration-300 rounded-full px-6 py-2 shadow-eddura"
+                className="gap-3 bg-eddura-100 dark:bg-eddura-800 hover:bg-eddura-200 dark:hover:bg-eddura-700 text-eddura-700 dark:text-eddura-200 border-eddura-200 dark:border-eddura-700 hover:border-eddura-300 dark:hover:border-eddura-600 transition-all duration-300 rounded-full px-6 py-2 shadow-eddura"
               >
                 <Brain className="w-4 h-4" />
                 {t('hero.takeQuiz')}
@@ -71,14 +71,14 @@ function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           >
-            <h1 className="text-4xl md:text-6xl lg:text-7xl max-w-5xl tracking-tight font-bold text-eddura-800 leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl max-w-5xl tracking-tight font-bold text-eddura-800 dark:text-eddura-100 leading-tight">
               {t('hero.heading')}
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-2">
                 &nbsp;
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
-                    className="absolute font-bold text-eddura-500"
+                    className="absolute font-bold text-eddura-500 dark:text-eddura-300"
                     initial={{ opacity: 0, y: "-100%" }}
                     transition={{ type: "spring", stiffness: 50, damping: 10 }}
                     animate={
@@ -100,7 +100,7 @@ function Hero() {
             </h1>
 
             <motion.p 
-              className="text-lg md:text-xl leading-relaxed tracking-tight text-eddura-800 max-w-4xl text-center mt-6"
+              className="text-lg md:text-xl leading-relaxed tracking-tight text-eddura-800 dark:text-eddura-300 max-w-4xl text-center mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
@@ -133,7 +133,7 @@ function Hero() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="gap-3 border-2 border-eddura-500 text-eddura-600 hover:bg-eddura-500 hover:text-white hover:border-eddura-500 transition-all duration-300 rounded-xl px-8 py-4 text-lg font-semibold bg-white/80 backdrop-blur-sm"
+                className="gap-3 border-2 border-eddura-500 dark:border-eddura-400 text-eddura-600 dark:text-eddura-300 hover:bg-eddura-500 hover:text-white hover:border-eddura-500 dark:hover:bg-eddura-400 dark:hover:text-white dark:hover:border-eddura-400 transition-all duration-300 rounded-xl px-8 py-4 text-lg font-semibold bg-white/80 dark:bg-eddura-800/80 backdrop-blur-sm"
               >
                 <Users className="w-5 h-5" />
                 {t('hero.secondaryCta')}
@@ -148,13 +148,13 @@ function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
           >
-            <div className="flex items-center gap-2 text-eddura-600">
-              <CheckCircle className="w-5 h-5 text-eddura-500" />
+            <div className="flex items-center gap-2 text-eddura-600 dark:text-eddura-400">
+              <CheckCircle className="w-5 h-5 text-eddura-500 dark:text-eddura-400" />
               <span className="text-sm font-medium">{t('hero.trust.personalizedFast')}</span>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-eddura-200" />
-            <div className="flex items-center gap-2 text-eddura-600">
-              <ThemeAwareLogo size="md" className="text-eddura-500" />
+            <div className="hidden sm:block w-px h-4 bg-eddura-200 dark:bg-eddura-700" />
+            <div className="flex items-center gap-2 text-eddura-600 dark:text-eddura-400">
+              <ThemeAwareLogo size="md" className="text-eddura-500 dark:text-eddura-400" />
               <span className="text-sm font-medium">{t('hero.trust.noRegistration')}</span>
             </div>
           </motion.div>
@@ -166,13 +166,13 @@ function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 1.0 }}
           >
-            <p className="text-sm text-eddura-500 mb-4 font-medium">{t('hero.trust.worldwide')}</p>
+            <p className="text-sm text-eddura-500 dark:text-eddura-400 mb-4 font-medium">{t('hero.trust.worldwide')}</p>
             <div className="flex items-center justify-center gap-8 opacity-60">
               {/* Placeholder for partner logos */}
-              <div className="w-24 h-8 bg-eddura-200 rounded animate-pulse" />
-              <div className="w-20 h-8 bg-eddura-200 rounded animate-pulse" />
-              <div className="w-28 h-8 bg-eddura-200 rounded animate-pulse" />
-              <div className="w-24 h-8 bg-eddura-200 rounded animate-pulse" />
+              <div className="w-24 h-8 bg-eddura-200 dark:bg-eddura-700 rounded animate-pulse" />
+              <div className="w-20 h-8 bg-eddura-200 dark:bg-eddura-700 rounded animate-pulse" />
+              <div className="w-28 h-8 bg-eddura-200 dark:bg-eddura-700 rounded animate-pulse" />
+              <div className="w-24 h-8 bg-eddura-200 dark:bg-eddura-700 rounded animate-pulse" />
             </div>
           </motion.div>
         </div>
