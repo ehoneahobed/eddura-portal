@@ -33,12 +33,14 @@ import { useScholarship } from '@/hooks/use-scholarships';
 import { toast } from 'sonner';
 import { getScholarshipStatus, formatDeadline } from '@/lib/scholarship-status';
 import { ApplicationPackageBuilder } from '@/components/applications/ApplicationPackageBuilder';
+import { usePageTranslation } from '@/hooks/useTranslation';
 
 function ScholarshipDetailContent() {
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
   const scholarshipId = params.id as string;
+  const { t } = usePageTranslation('scholarships');
   
   const { scholarship, isLoading, isError, mutate } = useScholarship(scholarshipId);
   
@@ -72,7 +74,11 @@ function ScholarshipDetailContent() {
   };
 
   // Get scholarship status using the unified utility
-  const scholarshipStatus = scholarship ? getScholarshipStatus(scholarship.deadline, scholarship.openingDate) : null;
+  const scholarshipStatus = scholarship ? getScholarshipStatus(
+    scholarship.deadline,
+    scholarship.openingDate,
+    { tp: (k, v) => t(k as any, v) }
+  ) : null;
 
   // Check if user is eligible based on basic criteria
   const checkBasicEligibility = () => {
