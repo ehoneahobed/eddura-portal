@@ -430,7 +430,7 @@ function ScholarshipDetailContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed text-base">
+                  <p className="text-gray-700 leading-relaxed text-base dark:text-gray-200">
                     {scholarship.scholarshipDetails}
                   </p>
                 </CardContent>
@@ -453,7 +453,7 @@ function ScholarshipDetailContent() {
                     {scholarship.coverage.map((item: string, idx: number) => (
                       <div key={idx} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700 font-medium">{item}</span>
+                        <span className="text-gray-700 font-medium dark:text-gray-200">{item}</span>
                       </div>
                     ))}
                   </div>
@@ -478,7 +478,7 @@ function ScholarshipDetailContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {scholarship.eligibility?.degreeLevels && scholarship.eligibility.degreeLevels.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <GraduationCap className="h-4 w-4 text-blue-600" /> Degree Levels
                       </h4>
                       <div className="flex flex-wrap gap-2">
@@ -490,7 +490,7 @@ function ScholarshipDetailContent() {
                   )}
                   {scholarship.eligibility?.fieldsOfStudy && scholarship.eligibility.fieldsOfStudy.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <BookOpen className="h-4 w-4 text-green-600" /> Fields of Study
                       </h4>
                       <div className="flex flex-wrap gap-2">
@@ -502,7 +502,7 @@ function ScholarshipDetailContent() {
                   )}
                   {scholarship.eligibility?.nationalities && scholarship.eligibility.nationalities.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <Globe className="h-4 w-4 text-orange-600" /> Eligible Nationalities
                       </h4>
                       <div className="flex flex-wrap gap-2">
@@ -514,26 +514,26 @@ function ScholarshipDetailContent() {
                   )}
                   {scholarship.eligibility?.minGPA && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <Target className="h-4 w-4 text-purple-600" /> Minimum GPA
                       </h4>
-                      <p className="text-gray-700 font-medium">{scholarship.eligibility.minGPA}</p>
+                      <p className="text-gray-700 font-medium dark:text-gray-200">{scholarship.eligibility.minGPA}</p>
                     </div>
                   )}
                   {scholarship.eligibility?.ageLimit && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <Calendar className="h-4 w-4 text-red-600" /> Age Limit
                       </h4>
-                      <p className="text-gray-700 font-medium">{scholarship.eligibility.ageLimit}</p>
+                      <p className="text-gray-700 font-medium dark:text-gray-200">{scholarship.eligibility.ageLimit}</p>
                     </div>
                   )}
                   {scholarship.eligibility?.additionalCriteria && (
                     <div className="md:col-span-2">
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <FileText className="h-4 w-4 text-gray-600" /> Additional Criteria
                       </h4>
-                      <p className="text-gray-700 leading-relaxed">{scholarship.eligibility.additionalCriteria}</p>
+                      <p className="text-gray-700 leading-relaxed dark:text-gray-200">{scholarship.eligibility.additionalCriteria}</p>
                     </div>
                   )}
                 </div>
@@ -554,14 +554,14 @@ function ScholarshipDetailContent() {
                 <div className="space-y-6">
                   {scholarship.applicationRequirements?.documentsToSubmit && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <CheckCircle className="h-4 w-4 text-green-600" /> Required Documents
                       </h4>
                       <ul className="space-y-2">
                         {scholarship.applicationRequirements.documentsToSubmit.map((doc: string, idx: number) => (
                           <li key={idx} className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-gray-700">{doc}</span>
+                            <span className="text-gray-700 dark:text-gray-200">{doc}</span>
                           </li>
                         ))}
                       </ul>
@@ -569,35 +569,35 @@ function ScholarshipDetailContent() {
                   )}
                   {scholarship.applicationRequirements?.requirementsDescription && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-white">
                         <FileText className="h-4 w-4 text-blue-600" /> Requirements Description
                       </h4>
-                      <p className="text-gray-700 leading-relaxed">{scholarship.applicationRequirements.requirementsDescription}</p>
+                      <p className="text-gray-700 leading-relaxed dark:text-gray-200">{scholarship.applicationRequirements.requirementsDescription}</p>
                     </div>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {scholarship.applicationRequirements?.essay && (
-                      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800">
                         <CheckCircle className="h-4 w-4 text-yellow-600" />
-                        <span className="text-gray-700 font-medium">Essay Required</span>
+                        <span className="text-gray-700 font-medium dark:text-yellow-200">Essay Required</span>
                       </div>
                     )}
                     {scholarship.applicationRequirements?.cv && (
-                      <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200 dark:bg-purple-900/30 dark:border-purple-800">
                         <CheckCircle className="h-4 w-4 text-purple-600" />
-                        <span className="text-gray-700 font-medium">CV/Resume Required</span>
+                        <span className="text-gray-700 font-medium dark:text-purple-200">CV/Resume Required</span>
                       </div>
                     )}
                     {scholarship.applicationRequirements?.testScores && (
-                      <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200 dark:bg-orange-900/30 dark:border-orange-800">
                         <CheckCircle className="h-4 w-4 text-orange-600" />
-                        <span className="text-gray-700 font-medium">Test Scores Required</span>
+                        <span className="text-gray-700 font-medium dark:text-orange-200">Test Scores Required</span>
                       </div>
                     )}
                     {scholarship.applicationRequirements?.recommendationLetters && (
-                      <div className="flex items-center gap-2 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <div className="flex items-center gap-2 p-3 bg-indigo-50 rounded-lg border border-indigo-200 dark:bg-indigo-900/30 dark:border-indigo-800">
                         <CheckCircle className="h-4 w-4 text-indigo-600" />
-                        <span className="text-gray-700 font-medium">
+                        <span className="text-gray-700 font-medium dark:text-indigo-200">
                           {scholarship.applicationRequirements.recommendationLetters} Recommendation Letter(s)
                         </span>
                       </div>
@@ -623,7 +623,7 @@ function ScholarshipDetailContent() {
                     {scholarship.selectionCriteria.map((criterion: string, idx: number) => (
                       <li key={idx} className="flex items-start gap-2">
                         <Sparkles className="h-4 w-4 text-blue-600 mt-0.5" aria-label="Criterion" />
-                        <span className="text-gray-700">{criterion}</span>
+                        <span className="text-gray-700 dark:text-gray-200">{criterion}</span>
                       </li>
                     ))}
                   </ul>
@@ -636,8 +636,8 @@ function ScholarshipDetailContent() {
         {/* Sidebar Summary */}
         <aside className="lg:col-span-1 lg:sticky top-24 h-fit animate-fade-in">
           <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[var(--eddura-primary-900)] dark:to-[var(--eddura-primary-800)]">
+              <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                 <Award className="h-5 w-5 text-blue-600" aria-label="Scholarship Summary" />
                 Scholarship Summary
               </CardTitle>
@@ -660,7 +660,7 @@ function ScholarshipDetailContent() {
               )}
               
               {/* Eligibility Status */}
-              <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'}`}> 
+              <div className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-semibold ${eligibilityCheck.eligible ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-200' : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200'}`}> 
                 {eligibilityCheck.eligible ? (
                   <CheckCircle className="h-5 w-5 text-blue-600" aria-label="Can Apply" />
                 ) : (
@@ -703,7 +703,7 @@ function ScholarshipDetailContent() {
                 {!hasApplicationForm && !hasRequestedForm && (
                   <Button 
                     variant="outline"
-                    className="w-full bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100" 
+                    className="w-full bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-[var(--eddura-primary-900)] dark:border-[var(--eddura-primary-700)] dark:text-gray-100 dark:hover:bg-[var(--eddura-primary-800)]" 
                     aria-label="Request Application Form"
                     onClick={() => setIsRequestDialogOpen(true)}
                     disabled={scholarshipStatus?.applyButtonDisabled || !eligibilityCheck.eligible}
@@ -716,7 +716,7 @@ function ScholarshipDetailContent() {
                 {hasRequestedForm && (
                   <Button 
                     variant="outline"
-                    className="w-full bg-yellow-50 border-yellow-200 text-yellow-700" 
+                    className="w-full bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-200" 
                     disabled
                   >
                     <Clock className="h-4 w-4 mr-2" />
@@ -769,7 +769,7 @@ function ScholarshipDetailContent() {
               )}
               
               {/* Deadline */}
-              <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                 <Calendar className="h-4 w-4 text-orange-600" />
                 <span className="font-medium">Deadline:</span>
                 <span>{formatDeadline(scholarship.deadline)}</span>
@@ -816,7 +816,7 @@ function ScholarshipDetailContent() {
                 </div>
               )}
               {scholarship.applicationRequirements?.recommendationLetters && (
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                   <FileText className="h-4 w-4 text-gray-600" />
                   <span className="font-medium">Recommendations:</span>
                   <span>{scholarship.applicationRequirements.recommendationLetters}</span>
@@ -827,7 +827,7 @@ function ScholarshipDetailContent() {
                   <div className="font-medium mb-1">Tags:</div>
                   <div className="flex flex-wrap gap-1">
                     {scholarship.tags.map((tag, idx) => (
-                      <Badge key={idx} className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 text-xs font-medium">{tag}</Badge>
+                      <Badge key={idx} className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 text-xs font-medium dark:bg-[var(--eddura-primary-800)] dark:text-gray-100 dark:border-[var(--eddura-primary-700)]">{tag}</Badge>
                     ))}
                   </div>
                 </div>
@@ -840,7 +840,7 @@ function ScholarshipDetailContent() {
                   </div>
                   <div className="space-y-1">
                     {scholarship.coverage.slice(0, 3).map((item: string, idx: number) => (
-                      <div key={idx} className="text-sm text-gray-700 bg-green-50 px-2 py-1 rounded border border-green-200">
+                      <div key={idx} className="text-sm text-gray-700 bg-green-50 px-2 py-1 rounded border border-green-200 dark:text-green-200 dark:bg-green-900/20 dark:border-green-800">
                         {item}
                       </div>
                     ))}
@@ -995,8 +995,8 @@ export default function ScholarshipDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 bg-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading Scholarship</h2>
-          <p className="text-gray-600">Getting the details...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-white">Loading Scholarship</h2>
+          <p className="text-gray-600 dark:text-gray-300">Getting the details...</p>
         </div>
       </div>
     }>
