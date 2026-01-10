@@ -101,7 +101,7 @@ export function getScholarshipStatus(
       if (daysUntilOpening! <= 7) {
         return {
           status: t('status.opensInDays', { count: daysUntilOpening! }) || `Opens in ${daysUntilOpening} days`,
-          color: 'bg-blue-100 text-blue-800 border-blue-200',
+          color: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800',
           icon: Clock,
           description: `${t('status.applicationsOpenOn') || 'Applications will open on'} ${openingDateObj!.toLocaleDateString('en-US', { 
             weekday: 'long',
@@ -117,7 +117,7 @@ export function getScholarshipStatus(
             day: 'numeric',
             year: 'numeric'
           })}`,
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-800',
           icon: Calendar,
           description: `${t('status.applicationsOpenOn') || 'Applications will open on'} ${openingDateObj!.toLocaleDateString('en-US', { 
             weekday: 'long',
@@ -130,7 +130,7 @@ export function getScholarshipStatus(
     } else {
       return {
         status: t('filters.status.currentlyAccepting') || 'Currently Accepting',
-        color: 'bg-green-100 text-green-800 border-green-200',
+        color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-200 dark:border-green-800',
         icon: CheckCircle,
         description: t('status.currentlyAcceptingDescription') || 'Applications are currently being accepted'
       };
@@ -142,7 +142,7 @@ export function getScholarshipStatus(
     if (isExpired) {
       return {
         status: t('status.applicationClosed') || 'Application Closed',
-        color: 'bg-red-100 text-red-800 border-red-200',
+        color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-200 dark:border-red-800',
         icon: AlertCircle,
         description: t('status.deadlinePassed') || 'The application deadline has passed',
         daysLeft: daysUntilDeadline
@@ -152,7 +152,7 @@ export function getScholarshipStatus(
     if (daysUntilDeadline <= 7) {
       return {
         status: t('status.closesInDays', { count: daysUntilDeadline }) || `Closes in ${daysUntilDeadline} days`,
-        color: 'bg-orange-100 text-orange-800 border-orange-200',
+        color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-200 dark:border-orange-800',
         icon: Clock,
         description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
           weekday: 'long',
@@ -171,7 +171,7 @@ export function getScholarshipStatus(
           day: 'numeric',
           year: 'numeric'
         })}`,
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-800',
         icon: Calendar,
         description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
           weekday: 'long',
@@ -187,7 +187,7 @@ export function getScholarshipStatus(
     if (isNotYetOpen) {
       return {
         status: t('status.prepareApplication') || 'Prepare Application',
-        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        color: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800',
         icon: Calendar,
         description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
           weekday: 'long',
@@ -201,7 +201,7 @@ export function getScholarshipStatus(
     
     return {
       status: t('filters.status.currentlyAccepting') || 'Currently Accepting',
-      color: 'bg-green-100 text-green-800 border-green-200',
+      color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-200 dark:border-green-800',
       icon: CheckCircle,
       description: `${t('status.applicationDeadline') || 'Application deadline:'} ${deadlineDate.toLocaleDateString('en-US', { 
         weekday: 'long',
